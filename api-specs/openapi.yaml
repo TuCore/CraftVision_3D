@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: CraftVision 3D - Core API
+  description: Đặc tả API cho các dịch vụ cốt lõi của hệ thống CraftVision 3D (Xử lý model 3D, Quản lý tài khoản).
+  version: 1.0.0
+  contact:
+    name: Backend Team
+
+servers:
+  - url: http://localhost:5000
+    description: Môi trường Development (Local Gateway)
+  - url: https://api.craftvision3d.com
+    description: Môi trường Production
+
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: Đăng nhập hệ thống
+      description: Nhận Token JWT để sử dụng cho các API yêu cầu xác thực.
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Đăng nhập thành công, trả về JWT Token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Sai email hoặc mật khẩu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/projects:
+    get:
+      summary: Lấy danh sách dự án 3D
+      description: Trả về danh sách các dự án 3D của người dùng hiện tại đang đăng nhập.
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lấy danh sách thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          description: Chưa đăng nhập (Thiếu Token)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: dev@craftvision3d.com
+        password:
+          type: string
+          format: password
+          example: "StrongP@ssw0rd!"
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expiresIn:
+          type: integer
+          example: 3600
+          description: Thời gian hết hạn của token (giây)
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          example: "Mô hình Biệt thự 3D - Khách hàng A"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-05-10T10:00:00Z"
+        modelUrl:
+          type: string
+          example: "https://s3.aws.com/craftvision/models/abc.gltf"
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "UNAUTHORIZED"
+        message:
+          type: string
+          example: "Sai thông tin đăng nhập, vui lòng thử lại!"

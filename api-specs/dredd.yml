@@ -1,0 +1,15 @@
+dry-run: null
+hookfiles: null
+language: nodejs
+sandbox: false
+server: null
+server-wait: 3
+init: false
+name: craftvision-contract-tests
+options:
+  - path: openapi.yaml
+    host: 'http://localhost:5000' # Cổng của Backend thực tế
+reporter: apiary
+custom:
+  apiaryApiKey: ''
+  apiaryApiName: craftvision3d
