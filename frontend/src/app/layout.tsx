@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/components/CartProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -27,8 +29,11 @@ export default function RootLayout({
       lang="vi"
       className={`${inter.variable} ${plusJakartaSans.variable} antialiased`}
     >
-      <body className="min-h-screen font-sans bg-background text-foreground">
-        {children}
+      <body className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
+        <CartProvider>
+          {children}
+          <Toaster position="top-center" />
+        </CartProvider>
       </body>
     </html>
   );

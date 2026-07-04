@@ -3,7 +3,7 @@ import { Box, Sparkles, ArrowRight, MessageCircle, Gift, Palette } from "lucide-
 
 export default function Landing() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-x-clip">
       <div className="blob animate-pulse-glow" style={{ top: -100, left: -80, width: 420, height: 420, background: "oklch(0.78 0.22 35)" }} />
       <div className="blob animate-pulse-glow" style={{ top: "30%", right: -120, width: 500, height: 500, background: "oklch(0.88 0.18 95)", animationDelay: "1s" }} />
       <div className="blob animate-pulse-glow" style={{ bottom: -140, left: "20%", width: 460, height: 460, background: "oklch(0.86 0.2 140)", animationDelay: "2s" }} />

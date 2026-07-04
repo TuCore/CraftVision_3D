@@ -10,7 +10,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
 
   return (
-    <div className="relative min-h-screen overflow-hidden grid lg:grid-cols-2">
+    <div className="relative min-h-screen overflow-x-clip grid lg:grid-cols-2">
       <div className="blob animate-pulse-glow" style={{ top: -100, left: -80, width: 420, height: 420, background: "oklch(0.78 0.22 35)" }} />
       <div className="blob animate-pulse-glow" style={{ bottom: -140, right: -120, width: 500, height: 500, background: "oklch(0.88 0.18 95)", animationDelay: "1s" }} />
 

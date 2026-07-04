@@ -36,9 +36,9 @@ export default function HomePage() {
               <Link href="/chat" className="btn-hero inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold">
                 <MessageCircle className="h-4 w-4" /> Trò chuyện với AI
               </Link>
-              <button className="inline-flex items-center gap-2 rounded-2xl bg-white/80 px-6 py-3 font-semibold hover:bg-white">
-                Khám phá thư viện <ArrowRight className="h-4 w-4" />
-              </button>
+              <Link href="/shop" className="inline-flex items-center gap-2 rounded-2xl bg-white/80 px-6 py-3 font-semibold hover:bg-white">
+                Vào cửa hàng <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </section>
