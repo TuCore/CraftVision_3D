@@ -1,0 +1,43 @@
+name: Docker Build & Push CD
+
+# Pipeline này chỉ chạy khi merge code vào nhánh MAIN (Release)
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  docker-deploy:
+    name: Build & Push to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tải mã nguồn (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Cài đặt Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Bước đăng nhập vào DockerHub. Bạn cần vào phần Settings > Secrets của repo 
+      # để thêm 2 biến DOCKERHUB_USERNAME và DOCKERHUB_TOKEN.
+      - name: Đăng nhập Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build và Đẩy Backend Image
+        # Cần có Dockerfile ở thư mục backend/src
+        run: echo "Bước này sẽ build Backend (khi bạn tạo xong Dockerfile cho .NET)"
+        # uses: docker/build-push-action@v5
+        # with:
+        #   context: ./backend/src
+        #   push: true
+        #   tags: ${{ secrets.DOCKERHUB_USERNAME }}/craftvision-backend:latest
+
+      - name: Build và Đẩy Frontend Image
+        # Cần có Dockerfile ở thư mục frontend
+        run: echo "Bước này sẽ build Frontend (khi bạn tạo xong Dockerfile cho Next.js)"
+        # uses: docker/build-push-action@v5
+        # with:
+        #   context: ./frontend
+        #   push: true
+        #   tags: ${{ secrets.DOCKERHUB_USERNAME }}/craftvision-frontend:latest
