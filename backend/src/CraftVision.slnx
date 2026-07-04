@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CraftVision.Application/CraftVision.Application.csproj" />
+  <Project Path="CraftVision.Domain/CraftVision.Domain.csproj" />
+  <Project Path="CraftVision.Infrastructure/CraftVision.Infrastructure.csproj" />
+  <Project Path="CraftVision.Presentation/CraftVision.Presentation.csproj" />
+</Solution>

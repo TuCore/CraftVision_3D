@@ -1,0 +1,41 @@
+name: Backend CI (.NET)
+
+# Pipeline này chỉ chạy khi có code mới push lên hoặc có Pull Request
+# VÀ chỉ khi code thay đổi nằm trong thư mục backend/src
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'backend/src/**'
+  pull_request:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'backend/src/**'
+
+jobs:
+  build-and-test:
+    name: Build & Test Backend
+    runs-on: ubuntu-latest
+    
+    # Định nghĩa thư mục gốc để chạy các lệnh terminal bên dưới
+    defaults:
+      run:
+        working-directory: ./backend/src
+
+    steps:
+    - name: Tải mã nguồn về server (Checkout)
+      uses: actions/checkout@v4
+
+    - name: Cài đặt môi trường .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x' # Sửa thành phiên bản .NET dự án bạn đang dùng (8.0 hoặc 9.0)
+
+    - name: Phục hồi thư viện (Restore)
+      run: dotnet restore CraftVision.sln
+
+    - name: Biên dịch mã nguồn (Build)
+      run: dotnet build CraftVision.sln --configuration Release --no-restore
+
+    - name: Chạy kiểm thử tự động (Test)
+      run: dotnet test CraftVision.sln --configuration Release --no-build --verbosity normal
