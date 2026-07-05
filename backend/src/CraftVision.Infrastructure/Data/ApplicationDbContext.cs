@@ -1,8 +1,5 @@
 using CraftVision.Domain.Entities;
-using CraftVision.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
-using Npgsql.NameTranslation;
 using Pgvector.EntityFrameworkCore;
 
 namespace CraftVision.Infrastructure.Data;
@@ -35,16 +32,6 @@ public class ApplicationDbContext : DbContext
         modelBuilder.HasPostgresExtension("vector");
         // Đăng ký pgcrypto để dùng gen_random_uuid()
         modelBuilder.HasPostgresExtension("pgcrypto");
-
-        // Map Enum types with exact database type names
-        var nullTranslator = new NpgsqlNullNameTranslator();
-        modelBuilder.HasPostgresEnum<UserTier>(name: "user_tier_enum", nameTranslator: nullTranslator);
-        modelBuilder.HasPostgresEnum<FileType>(name: "file_type_enum", nameTranslator: nullTranslator);
-        modelBuilder.HasPostgresEnum<MessageRole>(name: "message_role_enum", nameTranslator: nullTranslator);
-        modelBuilder.HasPostgresEnum<RequestStatus>(name: "request_status_enum", nameTranslator: nullTranslator);
-        modelBuilder.HasPostgresEnum<Difficulty>(name: "difficulty_enum", nameTranslator: nullTranslator);
-        modelBuilder.HasPostgresEnum<OptionLevel>(name: "option_level_enum", nameTranslator: nullTranslator);
-        modelBuilder.HasPostgresEnum<MaterialUnit>(name: "material_unit_enum", nameTranslator: nullTranslator);
 
         // Table Mappings
         modelBuilder.Entity<User>().ToTable("users");

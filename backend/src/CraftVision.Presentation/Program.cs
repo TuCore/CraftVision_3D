@@ -39,6 +39,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(dataSource, o => 
     {
         o.UseVector();
+        // EF Core 9+/10+ requires enum mapping here for EF level awareness
+        o.MapEnum<CraftVision.Domain.Enums.UserTier>("user_tier_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.FileType>("file_type_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.MessageRole>("message_role_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.RequestStatus>("request_status_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.Difficulty>("difficulty_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.OptionLevel>("option_level_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.MaterialUnit>("material_unit_enum", nameTranslator: nullTranslator);
     })
     .UseSnakeCaseNamingConvention()
 );
