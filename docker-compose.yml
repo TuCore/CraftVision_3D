@@ -1,1 +1,19 @@
-# Docker compose for local development
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: craftvision_db
+    environment:
+      POSTGRES_USER: craftvision_user
+      POSTGRES_PASSWORD: craftvision_password
+      POSTGRES_DB: craftvision_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./databases:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
