@@ -1,8 +1,86 @@
+using System.Text;
+using CraftVision.Application.Interfaces;
+using CraftVision.Application.Interfaces.Providers;
+using CraftVision.Application.Interfaces.Repositories;
+using CraftVision.Application.Services;
+using CraftVision.Infrastructure.Data;
+using CraftVision.Infrastructure.Providers;
+using CraftVision.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Npgsql.NameTranslation;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddControllers();
+
+// Configure OpenAPI (Swagger)
 builder.Services.AddOpenApi();
+
+// --- 1. CONFIG DATABASE CONNECTION ---
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+var nullTranslator = new NpgsqlNullNameTranslator();
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.UserTier>("user_tier_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.FileType>("file_type_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.MessageRole>("message_role_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.RequestStatus>("request_status_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.Difficulty>("difficulty_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.OptionLevel>("option_level_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.MaterialUnit>("material_unit_enum", nullTranslator);
+var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(dataSource, o => 
+    {
+        o.UseVector();
+        // EF Core 9+/10+ requires enum mapping here for EF level awareness
+        o.MapEnum<CraftVision.Domain.Enums.UserTier>("user_tier_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.FileType>("file_type_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.MessageRole>("message_role_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.RequestStatus>("request_status_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.Difficulty>("difficulty_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.OptionLevel>("option_level_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.MaterialUnit>("material_unit_enum", nameTranslator: nullTranslator);
+    })
+    .UseSnakeCaseNamingConvention()
+);
+
+// --- 2. CONFIG JWT AUTHENTICATION ---
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secret = jwtSettings["Secret"]!;
+
+builder.Services.AddAuthentication(options => 
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+    };
+});
+builder.Services.AddAuthorization();
+
+// --- 3. DEPENDENCY INJECTION ---
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+builder.Services.AddScoped<ITokenProvider, JwtTokenProvider>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
@@ -10,32 +88,69 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "CraftVision 3D API");
+        options.RoutePrefix = "swagger";
+    });
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapGet("/weatherforecast", () =>
+app.MapControllers();
+
+// --- API ĐỂ TEST KẾT NỐI DATABASE ---
+app.MapGet("/api/test-db", async (ApplicationDbContext db) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    try 
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (canConnect) 
+        {
+            return Results.Ok(new { 
+                Message = "Thành công! Backend đã kết nối tới PostgreSQL (CraftVision_3D) qua Entity Framework Core.",
+                Provider = db.Database.ProviderName
+            });
+        }
+        else 
+        {
+            return Results.StatusCode(500);
+        }
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, title: "Lỗi kết nối Database");
+    }
 })
-.WithName("GetWeatherForecast");
+.WithName("TestDbConnection");
+
+// --- API ĐỂ TEST ENTITIES MAPPING ---
+app.MapGet("/api/test-entities", async (ApplicationDbContext db) =>
+{
+    try 
+    {
+        var users = await db.Users.CountAsync();
+        var materials = await db.KnowledgeMaterials.CountAsync();
+        var sessions = await db.AiChatSessions.CountAsync();
+
+        return Results.Ok(new { 
+            Message = "Entities map thành công với Database!",
+            Data = new {
+                UsersCount = users,
+                KnowledgeMaterialsCount = materials,
+                AiChatSessionsCount = sessions
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.InnerException?.Message ?? ex.Message, title: "Lỗi Mapping Database");
+    }
+})
+.WithName("TestEntitiesMapping");
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
