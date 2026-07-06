@@ -19,6 +19,7 @@ namespace CraftVision.Domain.Entities
         public bool IsActive { get; set; } = true;
         public DateTime LastCheckedAt { get; set; } = DateTime.UtcNow;
         
+        [System.Text.Json.Serialization.JsonIgnore]
         public Vector? Embedding { get; set; }
         public string? SearchKeywords { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
