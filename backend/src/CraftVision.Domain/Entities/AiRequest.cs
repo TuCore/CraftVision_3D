@@ -29,6 +29,7 @@ namespace CraftVision.Domain.Entities
         public UploadedFile? UploadedFile { get; set; }
         
         public ICollection<AiChatMessage> Messages { get; set; } = new List<AiChatMessage>();
+        public ICollection<GiftSuggestion> Suggestions { get; set; } = new List<GiftSuggestion>();
         public DiyPlan? DiyPlan { get; set; }
     }
 }

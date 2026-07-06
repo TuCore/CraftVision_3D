@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<AiChatMessage> AiChatMessages { get; set; } = null!;
     public DbSet<KnowledgeMaterial> KnowledgeMaterials { get; set; } = null!;
     public DbSet<KnowledgeTutorial> KnowledgeTutorials { get; set; } = null!;
+    public DbSet<GiftSuggestion> GiftSuggestions { get; set; } = null!;
     public DbSet<DiyPlan> DiyPlans { get; set; } = null!;
     public DbSet<DiyPlanMaterial> DiyPlanMaterials { get; set; } = null!;
     public DbSet<DiyPlanTutorial> DiyPlanTutorials { get; set; } = null!;
@@ -43,6 +44,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<AiChatMessage>().ToTable("ai_chat_messages");
         modelBuilder.Entity<KnowledgeMaterial>().ToTable("knowledge_materials");
         modelBuilder.Entity<KnowledgeTutorial>().ToTable("knowledge_tutorials");
+        modelBuilder.Entity<GiftSuggestion>().ToTable("gift_suggestions");
         modelBuilder.Entity<DiyPlan>().ToTable("diy_plans");
         modelBuilder.Entity<DiyPlanMaterial>().ToTable("diy_plan_materials");
         modelBuilder.Entity<DiyPlanTutorial>().ToTable("diy_plan_tutorials");
@@ -53,6 +55,8 @@ public class ApplicationDbContext : DbContext
         // HNSW Vector Indexes for similarity search
         modelBuilder.Entity<KnowledgeMaterial>()
             .Property(m => m.Embedding)
+            .HasColumnType("vector(1536)");
+
             .HasColumnType("vector(768)");
             
         modelBuilder.Entity<KnowledgeMaterial>()
@@ -62,6 +66,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<KnowledgeTutorial>()
             .Property(t => t.Embedding)
+            .HasColumnType("vector(1536)");
             .HasColumnType("vector(768)");
 
         modelBuilder.Entity<KnowledgeTutorial>()
@@ -91,6 +96,12 @@ public class ApplicationDbContext : DbContext
             .HasOne(r => r.DiyPlan)
             .WithOne(p => p.Request)
             .HasForeignKey<DiyPlan>(p => p.RequestId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<AiRequest>()
+            .HasMany(r => r.Suggestions)
+            .WithOne(s => s.Request)
+            .HasForeignKey(s => s.RequestId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

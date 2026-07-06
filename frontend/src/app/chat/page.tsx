@@ -1,193 +1,115 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { Send, Sparkles, Bot, User, Loader2, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X } from "lucide-react";
+import { fetchApi } from "@/lib/apiClient";
 
-const API_BASE_URL = "http://localhost:5192/api/chat";
-const MOCK_USER_ID = "11111111-1111-1111-1111-111111111111";
-
-interface ChatSession {
-  id: string;
-  title: string;
-  createdAt: string;
-}
-
-interface ChatMessage {
-  id: string;
-  role: number; // 0 = User, 1 = Assistant, 2 = System
+type Message = {
+  role: "user" | "ai";
   content: string;
-}
-
-const SAMPLE_JSON_RESPONSE = JSON.stringify({
-  text: "Tuyệt vời! Mình đã chọn **3 ý tưởng phù hợp** với ngân sách và phong cách pastel của bạn — từ cơ bản đến nâng cao:",
-  suggestions: [
-    { level: "Cơ bản", title: "Thiệp pop-up trái tim", time: "45 phút", price: "~30.000đ" },
-    { level: "Trung bình", title: "Hộp quà 3D hoa giấy", time: "2 giờ", price: "~148.000đ" },
-    { level: "Nâng cao", "title": "Hộp nhạc handmade phát QR", time: "5 giờ", price: "~380.000đ" }
-  ],
-  featuredIdea: {
-    title: "Hộp quà 3D hoa giấy",
-    totalCost: "148.000đ",
-    totalTime: "2 giờ",
-    materialsCount: 5,
-    materials: [
-      { name: "Giấy mỹ thuật A4 (20 tờ)", price: "45.000đ", link: "https://shopee.vn/search?keyword=giay+my+thuat+a4", keyword: "giấy mỹ thuật A4" },
-      { name: "Kéo cắt giấy chuyên dụng", price: "35.000đ", link: "https://shopee.vn/search?keyword=keo+cat+giay", keyword: "kéo cắt giấy" },
-      { name: "Keo sữa Elmer's 118ml", price: "28.000đ", link: "https://shopee.vn/search?keyword=keo+sua+elmers", keyword: "keo sữa Elmer's" },
-      { name: "Ruy băng satin 10mm (5m)", price: "22.000đ", link: "https://shopee.vn/search?keyword=ruy+bang+satin", keyword: "ruy băng satin" },
-      { name: "Hộp giấy kraft 15x15cm", price: "18.000đ", link: "https://shopee.vn/search?keyword=hop+giay+kraft", keyword: "hộp giấy kraft" }
-    ],
-    tutorial: {
-      title: "DIY 3D Paper Flower Gift Box — Hướng dẫn chi tiết",
-      url: "https://www.youtube.com/results?search_query=diy+3d+paper+flower+gift+box",
-      duration: "18 phút",
-      views: "1.2M lượt xem"
-    }
-  }
-});
+  imageUrl?: string;
+  suggestions?: any[];
+};
 
 export default function ChatPage() {
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showSampleModal, setShowSampleModal] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetchSessions();
-  }, []);
-
-  useEffect(() => {
-    if (currentSessionId) {
-      fetchMessages(currentSessionId);
-    } else {
-      setMessages([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "ai",
+      content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
     }
-  }, [currentSessionId]);
+  ]);
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  // Settings for the request
+  const [maxCost, setMaxCost] = useState(150000);
+  const [occasion, setOccasion] = useState("Birthday");
+  const [difficulty, setDifficulty] = useState("Easy");
+  
+  // Image Upload State
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
-  }, [messages, isLoading]);
-
-  const fetchSessions = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/sessions`, {
-        headers: { "X-User-Id": MOCK_USER_ID }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSessions(data);
-        if (data.length > 0 && !currentSessionId) {
-          setCurrentSessionId(data[0].id);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch sessions:", error);
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  const fetchMessages = async (sessionId: string) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/sessions/${sessionId}/messages`, {
-        headers: { "X-User-Id": MOCK_USER_ID }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMessages(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch messages:", error);
-    }
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleNewSession = () => {
-    setCurrentSessionId(null);
-    setMessages([]);
-    setInputValue("");
-  };
-
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
-
-    const userText = inputValue.trim();
-    setInputValue("");
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
     
-    const tempUserMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: 0, // User
-      content: userText
-    };
-    setMessages(prev => [...prev, tempUserMsg]);
-    setIsLoading(true);
+    // fetchApi doesn't set Content-Type if body is FormData
+    const res = await fetchApi("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+    return res.url;
+  };
+
+  const handleSend = async () => {
+    if (!prompt.trim() && !imageFile) return;
+
+    let finalImageUrl = "";
+    
+    // Optimistic UI Update
+    const userMsg: Message = { role: "user", content: prompt, imageUrl: imagePreviewUrl || undefined };
+    setMessages(prev => [...prev, userMsg]);
+    setPrompt("");
+    setLoading(true);
 
     try {
-      let sessionId = currentSessionId;
-      
-      if (!sessionId) {
-        const res = await fetch(`${API_BASE_URL}/sessions`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "X-User-Id": MOCK_USER_ID 
-          },
-          body: JSON.stringify({ title: userText })
-        });
-        if (res.ok) {
-          const newSession = await res.json();
-          sessionId = newSession.id;
-          setCurrentSessionId(sessionId);
-          setSessions(prev => [newSession, ...prev]);
-        } else {
-          throw new Error("Failed to create session");
-        }
+      if (imageFile) {
+        finalImageUrl = await uploadImage(imageFile);
       }
+      
+      const payload = {
+        userId: localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000000",
+        prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý quà tặng",
+        imageUrl: finalImageUrl || "",
+        maxCost: maxCost,
+        occasion: occasion,
+        difficulty: difficulty
+      };
 
-      const msgRes = await fetch(`${API_BASE_URL}/sessions/${sessionId}/messages`, {
+      const res = await fetchApi("/api/gift-chat/suggestions", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "X-User-Id": MOCK_USER_ID 
-        },
-        body: JSON.stringify({ content: userText })
+        body: JSON.stringify(payload)
       });
 
-      if (msgRes.ok) {
-        const data = await msgRes.json();
-        const aiMsg: ChatMessage = {
-          ...data.message
-        };
-        setMessages(prev => [...prev, aiMsg]);
-      } else {
-        console.error("Failed to send message", await msgRes.text());
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
+      setMessages(prev => [...prev, {
+        role: "ai",
+        content: `Tuyệt vời! Mình đã tìm thấy ${res.length} ý tưởng phù hợp với bạn:`,
+        suggestions: res
+      }]);
+
+    } catch (err: any) {
+      setMessages(prev => [...prev, {
+        role: "ai",
+        content: `❌ Lỗi: ${err.message}`
+      }]);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
+      removeImage();
     }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const handleShowSample = () => {
-    setShowSampleModal(true);
   };
 
   return (
     <AppShell active="chat">
-      <div className="mx-auto max-w-5xl relative">
+      <div className="mx-auto max-w-5xl flex flex-col h-[calc(100vh-6rem)]">
         {/* Chat header */}
-        <div className="glass-strong rounded-t-3xl px-6 py-4 flex items-center justify-between border-b border-white/40 relative">
+        <div className="glass-strong rounded-t-3xl px-6 py-4 flex items-center justify-between border-b border-white/40 shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative h-11 w-11 rounded-2xl btn-hero grid place-items-center">
               <Sparkles className="h-5 w-5" />
@@ -198,82 +120,117 @@ export default function ChatPage() {
               <p className="text-xs text-muted-foreground">AI · Sẵn sàng gợi ý ý tưởng quà tặng</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handleShowSample}
-              className="text-xs px-3 py-1.5 rounded-xl bg-orange-100 text-orange-700 hover:bg-orange-200 font-bold transition-colors shadow-sm"
-              title="Xem giao diện mẫu nguyên bản"
-            >
-              👁 Xem bản mẫu
-            </button>
-            <button 
-              onClick={handleNewSession}
-              className="text-sm px-3 py-1.5 rounded-xl bg-white/70 hover:bg-white font-medium transition-colors"
-            >
-              + Cuộc trò chuyện mới
-            </button>
+          <div className="flex gap-2">
+             <select value={difficulty} onChange={e=>setDifficulty(e.target.value)} className="text-xs rounded-xl bg-white/70 px-2 py-1 outline-none">
+               <option value="Easy">Dễ</option>
+               <option value="Medium">Vừa</option>
+               <option value="Hard">Khó</option>
+             </select>
+             <button onClick={() => setMessages([])} className="text-sm px-3 py-1.5 rounded-xl bg-white/70 hover:bg-white font-medium">+ Mới</button>
           </div>
         </div>
 
-        {/* Messages */}
-        <div 
-          ref={scrollContainerRef}
-          className="glass-card rounded-b-3xl p-6 md:p-8 space-y-6 min-h-[60vh] max-h-[60vh] overflow-y-auto custom-scrollbar"
-        >
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center opacity-70">
-              <div className="h-16 w-16 rounded-3xl btn-hero grid place-items-center mb-4">
-                <Bot className="h-8 w-8" />
-              </div>
-              <h2 className="font-semibold text-lg">Chào bạn!</h2>
-              <p className="text-sm text-muted-foreground max-w-sm mt-1">
-                Mình là AI của CraftVision. Bạn muốn làm quà gì, ngân sách bao nhiêu? Gợi ý giúp bạn nhé!
-              </p>
-            </div>
-          ) : (
-            messages.map((msg, index) => (
-              <AiMessageRenderer key={index} msg={msg} />
-            ))
-          )}
-          
-          {isLoading && (
-            <MessageRow role="ai">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground h-6">
-                <Loader2 className="h-4 w-4 animate-spin" /> Đang tổng hợp ý tưởng...
-              </div>
+        {/* Messages Scroll Area */}
+        <div className="glass-card rounded-none p-6 md:p-8 space-y-6 flex-1 overflow-y-auto">
+          {messages.map((m, idx) => (
+            <MessageRow key={idx} role={m.role}>
+              {m.imageUrl && (
+                 <img src={m.imageUrl} alt="Uploaded" className="w-48 h-48 object-cover rounded-xl mb-3 border border-white/40 shadow-sm" />
+              )}
+              <p className="whitespace-pre-wrap text-sm">{m.content}</p>
+
+              {m.suggestions && m.suggestions.length > 0 && (
+                <div className="mt-4 space-y-4">
+                  {m.suggestions.map((s: any, i: number) => (
+                    <div key={i} className="bg-white/70 rounded-2xl overflow-hidden border border-white/60">
+                      <div className="p-4 flex gap-3 hover:bg-white/90 transition-colors">
+                        <div className={`h-10 w-10 shrink-0 rounded-xl grid place-items-center font-bold text-white ${i === 0 ? "bg-green-500" : i === 1 ? "bg-orange-500" : "bg-rose-500"}`}>{i + 1}</div>
+                        <div>
+                          <div className="font-semibold">{s.name || "Ý tưởng quà tặng"}</div>
+                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.description}</div>
+                          <div className="mt-2 flex gap-2">
+                             <Chip icon={Wallet} label={s.estimatedCostRange || "Chưa rõ"} tone="ok" />
+                             <Chip icon={Clock} label={s.estimatedTime || "Chưa rõ"} />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Materials List */}
+                      {s.materials && s.materials.length > 0 && (
+                        <div className="bg-white/50 border-t border-white/50 px-4 py-3">
+                          <div className="text-xs font-semibold mb-2 flex items-center gap-1"><Package className="w-3.5 h-3.5"/> Cần chuẩn bị:</div>
+                          <ul className="text-xs space-y-1 pl-5 list-disc text-muted-foreground">
+                            {s.materials.map((mat: string, j: number) => (
+                              <li key={j}>{mat}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </MessageRow>
+          ))}
+          {loading && (
+             <MessageRow role="ai">
+               <div className="flex gap-1 items-center h-5">
+                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{animationDelay:"0ms"}}></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{animationDelay:"150ms"}}></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{animationDelay:"300ms"}}></div>
+               </div>
+             </MessageRow>
           )}
         </div>
 
         {/* Composer */}
-        <div className="sticky bottom-4 mt-4">
-          <div className="glass-strong rounded-2xl p-2 flex items-end gap-2 shadow-soft">
+        <div className="glass-strong rounded-b-3xl p-4 shrink-0 border-t border-white/40">
+          
+          {/* Image Preview Area */}
+          {imagePreviewUrl && (
+            <div className="mb-3 relative inline-block">
+              <img src={imagePreviewUrl} alt="Preview" className="h-20 w-20 object-cover rounded-xl border border-white shadow-sm" />
+              <button onClick={removeImage} className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 hover:bg-rose-600 shadow-md">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
+          <div className="bg-white/60 rounded-2xl p-2 flex items-end gap-2 border border-white/50 shadow-inner">
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleImageSelect}
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="h-11 w-11 rounded-xl grid place-items-center shrink-0 text-muted-foreground hover:bg-white/80 hover:text-primary transition-colors"
+              title="Đính kèm ảnh"
+            >
+              <ImageIcon className="h-5 w-5" />
+            </button>
+            
             <textarea
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              placeholder="Mô tả món quà bạn muốn tạo…"
-              className="flex-1 bg-transparent resize-none px-4 py-3 outline-none placeholder:text-muted-foreground text-sm max-h-32"
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              onKeyDown={e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+              placeholder="Mô tả món quà, hoặc gửi ảnh mẫu cho AI..."
+              className="flex-1 bg-transparent resize-none px-2 py-3 outline-none placeholder:text-muted-foreground text-sm max-h-32"
             />
+            
             <button 
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isLoading}
+              onClick={handleSend}
+              disabled={loading || (!prompt.trim() && !imageFile)}
               className="btn-hero h-11 w-11 rounded-xl grid place-items-center shrink-0 disabled:opacity-50 transition-opacity"
             >
               <Send className="h-4 w-4" />
             </button>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2 justify-center">
-            {["Quà 20/10", "Quà cưới handmade", "DIY dưới 100k", "Thiệp sinh nhật"].map((q) => (
-              <button 
-                key={q} 
-                onClick={() => setInputValue(q)}
-                className="text-xs px-3 py-1.5 rounded-full bg-white/70 hover:bg-white text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {q}
-              </button>
-            ))}
           </div>
         </div>
       </div>
@@ -486,14 +443,12 @@ function AiMessageRenderer({ msg }: { msg: ChatMessage }) {
 function MessageRow({ role, children }: { role: "user" | "ai"; children: React.ReactNode }) {
   const isUser = role === "user";
   return (
-    <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"}`}>
-      <div className={`flex gap-3 max-w-[85%] ${isUser ? "flex-row-reverse" : ""}`}>
-        <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${isUser ? "bg-white/80" : "btn-hero"}`}>
-          {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-        </div>
-        <div className={`rounded-2xl px-5 py-3.5 shadow-soft ${isUser ? "bg-primary text-primary-foreground" : "bg-white/80 border border-white"}`}>
-          {children}
-        </div>
+    <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
+      <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${isUser ? "bg-white/80 shadow-sm" : "btn-hero shadow-md"}`}>
+        {isUser ? <User className="h-4 w-4 text-primary" /> : <Bot className="h-4 w-4" />}
+      </div>
+      <div className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-sm ${isUser ? "bg-primary text-primary-foreground" : "bg-white/80 border border-white/60"}`}>
+        {children}
       </div>
     </div>
   );
@@ -501,8 +456,8 @@ function MessageRow({ role, children }: { role: "user" | "ai"; children: React.R
 
 function Chip({ icon: Icon, label, tone }: { icon: React.ComponentType<{ className?: string }>; label: string; tone?: "ok" }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium ${
-      tone === "ok" ? "bg-green-100 text-green-700" : "bg-white/70 text-muted-foreground"
+    <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
+      tone === "ok" ? "bg-green-100 text-green-700" : "bg-black/5 text-muted-foreground"
     }`}>
       <Icon className="h-3.5 w-3.5" /> {label}
     </span>

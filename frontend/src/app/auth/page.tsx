@@ -5,9 +5,45 @@ import { Box, Mail, Lock, User, Sparkles, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { fetchApi } from "@/lib/apiClient";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      if (mode === "register") {
+        const res = await fetchApi("/api/auth/register", {
+          method: "POST",
+          body: JSON.stringify({ email, password, fullName: name }),
+        });
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("userId", res.userId);
+        window.location.href = "/chat";
+      } else {
+        const res = await fetchApi("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ email, password }),
+        });
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("userId", res.userId);
+        window.location.href = "/chat";
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-x-clip grid lg:grid-cols-2">
@@ -94,13 +130,18 @@ export default function AuthPage() {
                 : "Bắt đầu hành trình tạo quà tặng thủ công của bạn."}
             </p>
 
-            <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+              {error && (
+                <div className="p-3 bg-rose-50 text-rose-600 text-sm rounded-xl border border-rose-100">
+                  {error}
+                </div>
+              )}
               {mode === "register" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Họ và tên</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="name" placeholder="Nguyễn Văn A" className="pl-10 h-11 bg-white/80" />
+                    <Input id="name" value={name} onChange={e => setName(e.target.value)} required placeholder="Nguyễn Văn A" className="pl-10 h-11 bg-white/80" />
                   </div>
                 </div>
               )}
@@ -108,14 +149,14 @@ export default function AuthPage() {
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="email" type="email" placeholder="you@example.com" className="pl-10 h-11 bg-white/80" />
+                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" className="pl-10 h-11 bg-white/80" />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="password">Mật khẩu</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-11 bg-white/80" />
+                  <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className="pl-10 h-11 bg-white/80" />
                 </div>
               </div>
 
@@ -133,13 +174,14 @@ export default function AuthPage() {
                 </label>
               )}
 
-              <Link
-                href="/home"
-                className="btn-hero w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold"
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-hero w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
               >
-                {mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
+                {loading ? "Đang xử lý..." : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </button>
 
               <div className="flex items-center gap-3 my-2">
                 <div className="h-px flex-1 bg-border" />

@@ -5,6 +5,7 @@ using CraftVision.Domain.Enums;
 using CraftVision.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -14,9 +15,11 @@ using Pgvector;
 namespace CraftVision.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260706011731_UpdateKnowledgeMetadata")]
+    partial class UpdateKnowledgeMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -453,7 +456,7 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnName("difficulty");
 
                     b.Property<Vector>("Embedding")
-                        .HasColumnType("vector(1536)")
+                        .HasColumnType("vector")
                         .HasColumnName("embedding");
 
                     b.Property<decimal?>("EstimatedCost")
@@ -463,10 +466,6 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<int?>("EstimatedMinutes")
                         .HasColumnType("integer")
                         .HasColumnName("estimated_minutes");
-
-                    b.Property<Vector>("Embedding")
-                        .HasColumnType("vector(768)")
-                        .HasColumnName("embedding");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text")
@@ -529,15 +528,12 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnName("difficulty");
 
                     b.Property<Vector>("Embedding")
-                        .HasColumnType("vector(1536)")
+                        .HasColumnType("vector")
                         .HasColumnName("embedding");
 
                     b.Property<decimal?>("EstimatedCost")
                         .HasColumnType("numeric")
                         .HasColumnName("estimated_cost");
-
-                        .HasColumnType("vector(768)")
-                        .HasColumnName("embedding");
 
                     b.Property<int?>("EstimatedMinutes")
                         .HasColumnType("integer")
