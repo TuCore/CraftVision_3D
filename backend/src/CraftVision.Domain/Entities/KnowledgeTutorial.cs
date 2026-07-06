@@ -12,8 +12,10 @@ namespace CraftVision.Domain.Entities
         
 
         public Difficulty? Difficulty { get; set; }
+        public string? Occasion { get; set; }
         
         public int? EstimatedMinutes { get; set; }
+        public decimal? EstimatedCost { get; set; }
         public Vector? Embedding { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

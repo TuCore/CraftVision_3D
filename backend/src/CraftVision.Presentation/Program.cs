@@ -1,8 +1,10 @@
 using System.Text;
+using CraftVision.Application;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Providers;
 using CraftVision.Application.Interfaces.Repositories;
 using CraftVision.Application.Services;
+using CraftVision.Infrastructure;
 using CraftVision.Infrastructure.Data;
 using CraftVision.Infrastructure.Providers;
 using CraftVision.Infrastructure.Repositories;
@@ -16,15 +18,51 @@ using Npgsql.NameTranslation;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // Configure OpenAPI (Swagger)
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+        document.Components.SecuritySchemes ??= new System.Collections.Generic.Dictionary<string, Microsoft.OpenApi.IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes.Add("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+        {
+            Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = Microsoft.OpenApi.ParameterLocation.Header,
+            Description = "JWT Authorization header using the Bearer scheme."
+        });
+
+        var requirement = new Microsoft.OpenApi.OpenApiSecurityRequirement
+        {
+            [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = new System.Collections.Generic.List<string>()
+        };
+
+        foreach (var path in document.Paths.Values)
+        {
+            foreach (var operation in path.Operations.Values)
+            {
+                operation.Security ??= new System.Collections.Generic.List<Microsoft.OpenApi.OpenApiSecurityRequirement>();
+                operation.Security.Add(requirement);
+            }
+        }
+
+        return System.Threading.Tasks.Task.CompletedTask;
+    });
+});
 
 // --- 1. CONFIG DATABASE CONNECTION ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.UseVector();
 var nullTranslator = new NpgsqlNullNameTranslator();
 dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.UserTier>("user_tier_enum", nullTranslator);
 dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.FileType>("file_type_enum", nullTranslator);
@@ -81,6 +119,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 

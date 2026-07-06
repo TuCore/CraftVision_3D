@@ -11,8 +11,13 @@ namespace CraftVision.Domain.Entities
         public string? Category { get; set; }
         public decimal? CurrentPrice { get; set; }
         
-
         public MaterialUnit? Unit { get; set; }
+        
+        // Metadata for RAG filtering
+        public Difficulty? Difficulty { get; set; }
+        public string? Occasion { get; set; }
+        public int? EstimatedMinutes { get; set; }
+        public decimal? EstimatedCost { get; set; }
         
         public string? PurchaseUrl { get; set; }
         public string? ImageUrl { get; set; }
