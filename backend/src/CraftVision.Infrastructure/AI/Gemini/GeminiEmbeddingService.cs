@@ -17,7 +17,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
         {
             var requestPayload = new GeminiEmbedContentRequest
             {
-                Model = "models/gemini-embedding-001",
+                Model = "models/gemini-embedding-2",
                 Content = new GeminiContent
                 {
                     Parts = new List<GeminiPart>
@@ -28,7 +28,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
                 OutputDimensionality = 1536 // Match PostgreSQL configuration
             };
 
-            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-embedding-001:embedContent", requestPayload);
+            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-embedding-2:embedContent", requestPayload);
             apiResponse.EnsureSuccessStatusCode();
 
             var responseData = await apiResponse.Content.ReadFromJsonAsync<GeminiEmbedContentResponse>();

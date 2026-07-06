@@ -12,6 +12,9 @@ namespace CraftVision.Infrastructure
             // Register Repositories
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IKnowledgeRepository, CraftVision.Infrastructure.Repositories.KnowledgeRepository>();
 
+            services.AddHttpContextAccessor();
+            services.AddScoped<CraftVision.Application.Interfaces.Providers.IObjectStorageService, CraftVision.Infrastructure.Providers.LocalObjectStorageService>();
+
             // Register Gemini AI Services with Polly retry policy
             var retryPolicy = GetRetryPolicy();
             var geminiApiKey = configuration["AiSettings:Gemini:ApiKey"] ?? throw new InvalidOperationException("Gemini API Key is missing");

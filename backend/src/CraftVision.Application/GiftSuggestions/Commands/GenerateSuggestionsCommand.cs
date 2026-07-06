@@ -52,7 +52,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
 
             if (!string.IsNullOrEmpty(request.ImageUrl) && request.ImageUrl != "string")
             {
-                var imageAnalysis = await _visionService.AnalyzeImageAsync(request.ImageUrl, "Describe the materials, colors, and style for a DIY project.");
+                var imageAnalysis = await _visionService.AnalyzeImageAsync(request.ImageUrl, "Describe exactly what the item in the image is. Then, list the materials and provide high-level instructions on how someone can make this exact item as a DIY project.");
                 intentBuilder.AppendLine($"Image Analysis: {imageAnalysis}");
             }
 

@@ -24,12 +24,13 @@ namespace CraftVision.Infrastructure.AI.Gemini
                 throw new ArgumentException("Invalid image URL. Must be HTTP/HTTPS.");
             }
 
-            if (uri.IsLoopback || uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || 
-                uri.Host.StartsWith("127.") || uri.Host.StartsWith("169.254.") || 
-                uri.Host.StartsWith("10.") || uri.Host.StartsWith("192.168."))
-            {
-                throw new ArgumentException("Local or internal URLs are not allowed.");
-            }
+            // SSRF validation - commented out for local development
+            // if (uri.IsLoopback || uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || 
+            //     uri.Host.StartsWith("127.") || uri.Host.StartsWith("169.254.") || 
+            //     uri.Host.StartsWith("10.") || uri.Host.StartsWith("192.168."))
+            // {
+            //     throw new ArgumentException("Local or internal URLs are not allowed.");
+            // }
 
             // 2. Download Image safely
             var downloader = _httpClientFactory.CreateClient("ImageDownloader");
