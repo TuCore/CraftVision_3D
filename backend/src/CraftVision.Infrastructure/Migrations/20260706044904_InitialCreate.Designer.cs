@@ -5,6 +5,7 @@ using CraftVision.Domain.Enums;
 using CraftVision.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -14,9 +15,11 @@ using Pgvector;
 namespace CraftVision.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260706044904_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -339,51 +342,6 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("diy_plan_tutorials", (string)null);
                 });
 
-            modelBuilder.Entity("CraftVision.Domain.Entities.GiftSuggestion", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<Difficulty?>("Difficulty")
-                        .HasColumnType("difficulty_enum")
-                        .HasColumnName("difficulty");
-
-                    b.Property<string>("EstimatedCostRange")
-                        .HasColumnType("text")
-                        .HasColumnName("estimated_cost_range");
-
-                    b.Property<string>("EstimatedTime")
-                        .HasColumnType("text")
-                        .HasColumnName("estimated_time");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<Guid>("RequestId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("request_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_gift_suggestions");
-
-                    b.HasIndex("RequestId")
-                        .HasDatabaseName("ix_gift_suggestions_request_id");
-
-                    b.ToTable("gift_suggestions", (string)null);
-                });
-
             modelBuilder.Entity("CraftVision.Domain.Entities.ImageAnalysisResult", b =>
                 {
                     b.Property<Guid>("Id")
@@ -448,22 +406,6 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("current_price");
 
-                    b.Property<Difficulty?>("Difficulty")
-                        .HasColumnType("difficulty_enum")
-                        .HasColumnName("difficulty");
-
-                    b.Property<Vector>("Embedding")
-                        .HasColumnType("vector(1536)")
-                        .HasColumnName("embedding");
-
-                    b.Property<decimal?>("EstimatedCost")
-                        .HasColumnType("numeric")
-                        .HasColumnName("estimated_cost");
-
-                    b.Property<int?>("EstimatedMinutes")
-                        .HasColumnType("integer")
-                        .HasColumnName("estimated_minutes");
-
                     b.Property<Vector>("Embedding")
                         .HasColumnType("vector(768)")
                         .HasColumnName("embedding");
@@ -484,10 +426,6 @@ namespace CraftVision.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
-
-                    b.Property<string>("Occasion")
-                        .HasColumnType("text")
-                        .HasColumnName("occasion");
 
                     b.Property<string>("PurchaseUrl")
                         .HasColumnType("text")
@@ -529,23 +467,12 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnName("difficulty");
 
                     b.Property<Vector>("Embedding")
-                        .HasColumnType("vector(1536)")
-                        .HasColumnName("embedding");
-
-                    b.Property<decimal?>("EstimatedCost")
-                        .HasColumnType("numeric")
-                        .HasColumnName("estimated_cost");
-
                         .HasColumnType("vector(768)")
                         .HasColumnName("embedding");
 
                     b.Property<int?>("EstimatedMinutes")
                         .HasColumnType("integer")
                         .HasColumnName("estimated_minutes");
-
-                    b.Property<string>("Occasion")
-                        .HasColumnType("text")
-                        .HasColumnName("occasion");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -816,18 +743,6 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("Tutorial");
                 });
 
-            modelBuilder.Entity("CraftVision.Domain.Entities.GiftSuggestion", b =>
-                {
-                    b.HasOne("CraftVision.Domain.Entities.AiRequest", "Request")
-                        .WithMany("Suggestions")
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_gift_suggestions_ai_requests_request_id");
-
-                    b.Navigation("Request");
-                });
-
             modelBuilder.Entity("CraftVision.Domain.Entities.ImageAnalysisResult", b =>
                 {
                     b.HasOne("CraftVision.Domain.Entities.UploadedFile", "UploadedFile")
@@ -876,8 +791,6 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("DiyPlan");
 
                     b.Navigation("Messages");
-
-                    b.Navigation("Suggestions");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>

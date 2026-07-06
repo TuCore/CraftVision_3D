@@ -16,6 +16,7 @@ namespace CraftVision.Domain.Entities
         
         public int? EstimatedMinutes { get; set; }
         public decimal? EstimatedCost { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public Vector? Embedding { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

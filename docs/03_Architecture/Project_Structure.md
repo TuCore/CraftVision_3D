@@ -56,16 +56,47 @@ CraftVision_3D/
   - `3d-models/`: Chứa các file 3D gốc (GLTF, FBX, OBJ).
   - `ui-ux/`: Chứa các bản thiết kế Figma, Mockups đồ họa.
 
-### 5. `/backend/` (Khối lõi .NET)
-- **Tác dụng:** Nơi chứa toàn bộ mã nguồn xử lý logic hệ thống, tương tác cơ sở dữ liệu.
+### 5. `/backend/` (Khối lõi .NET - Clean Architecture)
+- **Tác dụng:** Nơi chứa toàn bộ mã nguồn xử lý logic hệ thống, tương tác cơ sở dữ liệu. Dự án áp dụng chặt chẽ mô hình **Clean Architecture**.
+- **Lộ trình và Luồng viết code (Từ trong ra ngoài):** `Domain` -> `Application (Interfaces)` -> `Infrastructure (Implementations)` -> `Application (Services)` -> `Presentation (Controllers)`.
 - **Bên trong:**
   - `tests/`: Nơi chứa mã kiểm thử (Unit Test, Integration Test) độc lập.
   - `src/`: Nơi chứa mã nguồn thực thi:
     - `CraftVision.sln`: File Solution tổng hợp toàn bộ các project.
-    - **`CraftVision.Domain/`**: (Tầng Cốt Lõi) Chứa Entities, Enums, Value Objects. Không phụ thuộc thư viện ngoài.
-    - **`CraftVision.Application/`**: (Tầng Ứng Dụng) Chứa Use Cases, Interfaces. Xử lý nghiệp vụ phần mềm.
-    - **`CraftVision.Infrastructure/`**: (Tầng Hạ Tầng) Xử lý Database (EF Core), API bên ngoài (AI APIs), Message Queue (RabbitMQ).
-    - **`CraftVision.Presentation/`**: (Tầng Giao Diện Web API) Chứa Controllers nhận request từ Frontend.
+    
+    #### 5.1. `CraftVision.Domain/` (Tầng Cốt Lõi)
+    - **Tác dụng:** Chứa các đối tượng nghiệp vụ cốt lõi, hoàn toàn KHÔNG phụ thuộc vào bất kỳ thư viện hoặc framework nào (kể cả EF Core).
+    - **Thành phần & Naming Convention:**
+      - `Entities/`: Chứa các class đại diện cho các bảng trong CSDL. Ví dụ: `KnowledgeMaterial.cs`, `KnowledgeTutorial.cs`.
+      - `Enums/`: Định nghĩa các kiểu dữ liệu Enum.
+
+    #### 5.2. `CraftVision.Application/` (Tầng Ứng Dụng - Khai báo Hợp đồng & Logic)
+    - **Tác dụng:** Tầng này **chỉ khai báo Interface** (hợp đồng) để các tầng ngoài implement, tuyệt đối không chứa logic gọi DB hay API ngoài. Chứa các quy tắc nghiệp vụ (Business Rules).
+    - **Thành phần & Naming Convention:**
+      - `Interfaces/Repositories/`: Nơi khai báo hợp đồng tương tác với DB. 
+        - Lớp: `IKnowledgeMaterialRepository.cs` (Khai báo hàm thêm, sửa, tìm kiếm vector).
+      - `Interfaces/Providers/`: Nơi khai báo hợp đồng tương tác với API bên thứ 3 (AI, Payment). 
+        - Lớp: `IEmbeddingProvider.cs` (Khai báo hàm lấy Vector).
+      - `Services/`: Nơi chứa Business Logic thực tế. Lớp này đứng giữa (Orchestrator), tiêm (inject) các Interface vào để hoàn thành 1 luồng công việc.
+        - Lớp: `KnowledgeRetrievalService.cs` (Nhận text -> Gọi `IEmbeddingProvider` biến chữ thành vector -> Gọi `IKnowledgeMaterialRepository` chọc xuống DB tìm nguyên liệu giống vector đó -> Trả về kết quả).
+
+    #### 5.3. `CraftVision.Infrastructure/` (Tầng Hạ Tầng - Triển khai thực tế)
+    - **Tác dụng:** Nơi triển khai (Implement) các Interface đã khai báo ở tầng Application. Đây là nơi đụng trực tiếp tới Entity Framework Core, SQL, và gọi HTTP Request (kéo API Key Gemini/ChatGPT về).
+    - **Thành phần & Naming Convention:**
+      - `Data/`: Chứa cấu hình kết nối DB (`ApplicationDbContext.cs`).
+      - `Repositories/`: Nơi viết code SQL/EF Core thực sự.
+        - Lớp: `KnowledgeMaterialRepository.cs` (Implement `IKnowledgeMaterialRepository`, dùng EF Core gọi hàm `.CosineDistance()` của pgvector để tính toán vector).
+      - `Providers/`: Nơi viết code gọi HTTP Client ra bên ngoài.
+        - Lớp: `GeminiEmbeddingProvider.cs` (Implement `IEmbeddingProvider`, có tác dụng kéo API Key từ `appsettings.json` vào để call API thực tế của Google/OpenAI, lấy mảng vector trả về cho Service).
+
+    #### 5.4. `CraftVision.Presentation/` (Tầng Giao Diện Web API)
+    - **Tác dụng:** Nơi tiếp nhận Request từ Frontend (người dùng), điều hướng tới tầng Application, và trả về Response (JSON). Tầng này không chứa logic nghiệp vụ.
+    - **Thành phần & Naming Convention:**
+      - `Controllers/`: Chứa các Endpoints API.
+        - Lớp: `KnowledgeBaseController.cs` (Nhận file JSON từ Admin, ném xuống `KnowledgeRetrievalService` để xử lý, sau đó trả HTTP 200 OK về cho Frontend).
+      - `Program.cs` & `appsettings.json`: Nơi cấu hình khởi chạy server, tiêm (DI) các Service vào hệ thống, và lưu trữ các biến môi trường nhạy cảm (Database connection string, API Keys của Gemini/OpenAI).
+
+    #### 5.5. Các thư mục khác
     - `Gateway/`: Cổng API duy nhất phân luồng request (Ocelot/YARP).
     - `BuildingBlocks/`: Thư viện dùng chung (Shared Kernel) cho các services.
 

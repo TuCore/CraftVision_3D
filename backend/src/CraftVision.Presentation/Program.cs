@@ -3,6 +3,7 @@ using CraftVision.Application;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Providers;
 using CraftVision.Application.Interfaces.Repositories;
+using CraftVision.Application.Interfaces.Services;
 using CraftVision.Application.Services;
 using CraftVision.Infrastructure;
 using CraftVision.Infrastructure.Data;
@@ -70,8 +71,20 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 // --- 1. CONFIG DATABASE CONNECTION ---
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var activeConnName = builder.Configuration["ActiveConnection"] ?? "DockerConnection";
+var connectionString = builder.Configuration.GetConnectionString(activeConnName);
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 dataSourceBuilder.UseVector();
@@ -134,6 +147,15 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+// AI & Knowledge Base DI
+builder.Services.AddHttpClient<IEmbeddingProvider, GeminiEmbeddingProvider>();
+builder.Services.AddHttpClient<IAiChatProvider, GeminiChatProvider>();
+builder.Services.AddScoped<IKnowledgeMaterialRepository, KnowledgeMaterialRepository>();
+builder.Services.AddScoped<IKnowledgeTutorialRepository, KnowledgeTutorialRepository>();
+builder.Services.AddScoped<IAiChatSessionRepository, AiChatSessionRepository>();
+builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
+builder.Services.AddScoped<IKnowledgeRetrievalService, KnowledgeRetrievalService>();
+builder.Services.AddScoped<IAiChatService, AiChatService>();
 
 var app = builder.Build();
 

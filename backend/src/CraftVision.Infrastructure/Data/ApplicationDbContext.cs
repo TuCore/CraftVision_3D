@@ -57,6 +57,8 @@ public class ApplicationDbContext : DbContext
             .Property(m => m.Embedding)
             .HasColumnType("vector(1536)");
 
+            .HasColumnType("vector(768)");
+            
         modelBuilder.Entity<KnowledgeMaterial>()
             .HasIndex(m => m.Embedding)
             .HasMethod("hnsw")
@@ -65,6 +67,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<KnowledgeTutorial>()
             .Property(t => t.Embedding)
             .HasColumnType("vector(1536)");
+            .HasColumnType("vector(768)");
 
         modelBuilder.Entity<KnowledgeTutorial>()
             .HasIndex(t => t.Embedding)

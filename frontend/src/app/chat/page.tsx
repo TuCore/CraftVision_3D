@@ -213,6 +213,9 @@ export default function ChatPage() {
             </button>
             
             <textarea
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
               rows={1}
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
@@ -231,7 +234,209 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+      
+      {/* Sample Modal Popup */}
+      {showSampleModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white/90 backdrop-blur-md w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden border border-white flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-black/5 flex justify-between items-center bg-white/50">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-orange-100 text-orange-600 grid place-items-center">👁</div>
+                <h3 className="font-bold text-lg font-display">Giao diện mẫu (Demo)</h3>
+              </div>
+              <button 
+                onClick={() => setShowSampleModal(false)} 
+                className="h-8 w-8 rounded-full bg-black/5 hover:bg-black/10 grid place-items-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto custom-scrollbar">
+              <div className="space-y-6">
+                <MessageRow role="user">
+                  <div className="text-sm">Mình muốn làm quà sinh nhật cho bạn gái, ngân sách khoảng 150k, ưa thích màu pastel. Gợi ý giúp mình nhé!</div>
+                </MessageRow>
+                <AiMessageRenderer msg={{ id: "sample", role: 1, content: SAMPLE_JSON_RESPONSE }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
+  );
+}
+
+function AiMessageRenderer({ msg }: { msg: ChatMessage }) {
+  const isUser = msg.role === 0;
+
+  if (isUser) {
+    return (
+      <MessageRow role="user">
+        <div className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</div>
+      </MessageRow>
+    );
+  }
+
+  // AI Message Parsing
+  let parsedData: any = null;
+  let plainText = msg.content;
+
+  try {
+    let rawJsonStr = "";
+    const jsonMatch = msg.content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      rawJsonStr = jsonMatch[1];
+    } else {
+      const firstBrace = msg.content.indexOf('{');
+      const lastBrace = msg.content.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+         rawJsonStr = msg.content.substring(firstBrace, lastBrace + 1);
+      }
+    }
+    
+    if (rawJsonStr) {
+      // Fix common JSON errors like trailing commas
+      rawJsonStr = rawJsonStr.replace(/,\s*([\]}])/g, '$1');
+      parsedData = JSON.parse(rawJsonStr);
+    }
+  } catch (e) {
+    console.error("Failed to parse JSON from AI response", e);
+  }
+
+  if (parsedData && parsedData.text) {
+    return (
+      <MessageRow role="ai">
+        <p className="text-sm">{parsedData.text}</p>
+        
+        {/* Suggestion list */}
+        {parsedData.suggestions && parsedData.suggestions.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {parsedData.suggestions.map((s: any, i: number) => (
+              <a 
+                key={i} 
+                href={s.link || `https://www.youtube.com/results?search_query=${encodeURIComponent(s.title + ' hướng dẫn cách làm')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 bg-white/70 rounded-xl p-3 hover:bg-white transition-colors cursor-pointer group"
+              >
+                <div className={`h-9 w-9 rounded-lg grid place-items-center font-bold text-white ${
+                  i === 0 ? "bg-green-500" : i === 1 ? "bg-orange-500" : "bg-rose-500"
+                }`}>{i + 1}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{s.title}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{s.level || "Cơ bản"}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">⏱ {s.time} · 💰 {s.price}</div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+              </a>
+            ))}
+          </div>
+        )}
+
+        {parsedData.featuredIdea && (
+          <>
+            <p className="mt-5 text-sm">Gợi ý chi tiết cho <strong>{parsedData.featuredIdea.title}</strong>:</p>
+            
+            {/* Materials table card */}
+            {parsedData.featuredIdea.materials && (
+              <div className="mt-3 bg-white/80 rounded-2xl overflow-hidden border border-white/60">
+                <div className="px-5 py-4 flex items-center justify-between border-b border-border/50">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <Package className="h-4 w-4 text-primary" /> Bộ nguyên liệu cần mua
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-semibold">{parsedData.featuredIdea.materialsCount || parsedData.featuredIdea.materials.length} món</span>
+                </div>
+                <table className="w-full text-sm">
+                  <thead className="bg-white/50 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="text-left px-5 py-2.5 font-medium">Nguyên liệu</th>
+                      <th className="text-right px-3 py-2.5 font-medium">Giá</th>
+                      <th className="text-center px-5 py-2.5 font-medium">Mua ngay</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {parsedData.featuredIdea.materials.map((m: any, i: number) => (
+                      <tr key={i} className="border-t border-border/30 hover:bg-white/60">
+                        <td className="px-5 py-3">
+                          <div className="font-medium">{m.name}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                            <Copy className="h-3 w-3" /> từ khoá: <span className="font-mono text-primary">{m.keyword || m.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-right font-semibold">{m.price}</td>
+                        <td className="px-5 py-3 text-center">
+                          <a href={m.link || `https://shopee.vn/search?keyword=${m.keyword || m.name}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                            Link <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-gradient-to-r from-primary/10 to-[color:var(--coral)]/10 border-t border-border">
+                      <td className="px-5 py-3.5 font-semibold">Tổng chi phí</td>
+                      <td className="px-3 py-3.5 text-right">
+                        <span className="text-lg font-bold gradient-text">{parsedData.featuredIdea.totalCost}</span>
+                      </td>
+                      <td className="px-5 py-3.5 text-center text-xs text-muted-foreground">
+                        <Clock className="inline h-3.5 w-3.5 mr-1" /> {parsedData.featuredIdea.totalTime}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+
+            {/* Summary chips */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {parsedData.featuredIdea.totalCost && <Chip icon={Wallet} label={`Ngân sách: ${parsedData.featuredIdea.totalCost}`} tone="ok" />}
+              {parsedData.featuredIdea.totalTime && <Chip icon={Clock} label={`Thời gian: ${parsedData.featuredIdea.totalTime}`} />}
+              {parsedData.featuredIdea.materialsCount && <Chip icon={Package} label={`${parsedData.featuredIdea.materialsCount} nguyên liệu`} />}
+            </div>
+
+            {/* Tutorial video card */}
+            {parsedData.featuredIdea.tutorial && (
+              <a
+                href={parsedData.featuredIdea.tutorial.url || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 flex items-center gap-4 bg-gradient-to-r from-rose-50 to-orange-50 rounded-2xl p-4 border border-white/60 hover:shadow-soft transition-all group"
+              >
+                <div className="h-14 w-24 rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 grid place-items-center relative overflow-hidden">
+                  <Video className="h-6 w-6 text-white relative z-10" />
+                  <div className="absolute inset-0 bg-black/10" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium text-rose-600">🎬 Video hướng dẫn từng bước</div>
+                  <div className="font-semibold truncate">{parsedData.featuredIdea.tutorial.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{parsedData.featuredIdea.tutorial.duration} · {parsedData.featuredIdea.tutorial.views || "1M lượt xem"}</div>
+                </div>
+                <ExternalLink className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+              </a>
+            )}
+
+            {/* Actions */}
+            <div className="mt-4 flex gap-2">
+              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white font-medium">
+                <Bookmark className="h-3.5 w-3.5" /> Lưu ý tưởng
+              </button>
+              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white font-medium">
+                Bắt đầu dự án
+              </button>
+            </div>
+          </>
+        )}
+      </MessageRow>
+    );
+  }
+
+  // Fallback to plain text if parsing fails or standard conversation
+  return (
+    <MessageRow role="ai">
+      <div className="whitespace-pre-wrap text-sm leading-relaxed">{plainText}</div>
+    </MessageRow>
   );
 }
 
