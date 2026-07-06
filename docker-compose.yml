@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: craftvision_password
       POSTGRES_DB: craftvision_db
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - ./databases:/docker-entrypoint-initdb.d
       - pgdata:/var/lib/postgresql/data

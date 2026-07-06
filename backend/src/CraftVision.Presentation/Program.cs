@@ -2,6 +2,7 @@ using System.Text;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Providers;
 using CraftVision.Application.Interfaces.Repositories;
+using CraftVision.Application.Interfaces.Services;
 using CraftVision.Application.Services;
 using CraftVision.Infrastructure.Data;
 using CraftVision.Infrastructure.Providers;
@@ -16,15 +17,32 @@ using Npgsql.NameTranslation;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 // Configure OpenAPI (Swagger)
 builder.Services.AddOpenApi();
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 // --- 1. CONFIG DATABASE CONNECTION ---
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var activeConnName = builder.Configuration["ActiveConnection"] ?? "DockerConnection";
+var connectionString = builder.Configuration.GetConnectionString(activeConnName);
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.UseVector(); // REQUIRED for writing Pgvector.Vector types
 var nullTranslator = new NpgsqlNullNameTranslator();
 dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.UserTier>("user_tier_enum", nullTranslator);
 dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.FileType>("file_type_enum", nullTranslator);
@@ -82,6 +100,16 @@ builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// AI & Knowledge Base DI
+builder.Services.AddHttpClient<IEmbeddingProvider, GeminiEmbeddingProvider>();
+builder.Services.AddHttpClient<IAiChatProvider, GeminiChatProvider>();
+builder.Services.AddScoped<IKnowledgeMaterialRepository, KnowledgeMaterialRepository>();
+builder.Services.AddScoped<IKnowledgeTutorialRepository, KnowledgeTutorialRepository>();
+builder.Services.AddScoped<IAiChatSessionRepository, AiChatSessionRepository>();
+builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
+builder.Services.AddScoped<IKnowledgeRetrievalService, KnowledgeRetrievalService>();
+builder.Services.AddScoped<IAiChatService, AiChatService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -97,6 +125,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

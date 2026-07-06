@@ -14,6 +14,7 @@ namespace CraftVision.Domain.Entities
         public Difficulty? Difficulty { get; set; }
         
         public int? EstimatedMinutes { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public Vector? Embedding { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -52,9 +52,17 @@ public class ApplicationDbContext : DbContext
         
         // HNSW Vector Indexes for similarity search
         modelBuilder.Entity<KnowledgeMaterial>()
+            .Property(m => m.Embedding)
+            .HasColumnType("vector(768)");
+            
+        modelBuilder.Entity<KnowledgeMaterial>()
             .HasIndex(m => m.Embedding)
             .HasMethod("hnsw")
             .HasOperators("vector_cosine_ops");
+
+        modelBuilder.Entity<KnowledgeTutorial>()
+            .Property(t => t.Embedding)
+            .HasColumnType("vector(768)");
 
         modelBuilder.Entity<KnowledgeTutorial>()
             .HasIndex(t => t.Embedding)
