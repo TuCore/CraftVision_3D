@@ -213,9 +213,6 @@ export default function ChatPage() {
             </button>
             
             <textarea
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
               rows={1}
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
@@ -235,39 +232,12 @@ export default function ChatPage() {
         </div>
       </div>
       
-      {/* Sample Modal Popup */}
-      {showSampleModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white/90 backdrop-blur-md w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden border border-white flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-black/5 flex justify-between items-center bg-white/50">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-orange-100 text-orange-600 grid place-items-center">👁</div>
-                <h3 className="font-bold text-lg font-display">Giao diện mẫu (Demo)</h3>
-              </div>
-              <button 
-                onClick={() => setShowSampleModal(false)} 
-                className="h-8 w-8 rounded-full bg-black/5 hover:bg-black/10 grid place-items-center transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto custom-scrollbar">
-              <div className="space-y-6">
-                <MessageRow role="user">
-                  <div className="text-sm">Mình muốn làm quà sinh nhật cho bạn gái, ngân sách khoảng 150k, ưa thích màu pastel. Gợi ý giúp mình nhé!</div>
-                </MessageRow>
-                <AiMessageRenderer msg={{ id: "sample", role: 1, content: SAMPLE_JSON_RESPONSE }} />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </AppShell>
   );
 }
 
-function AiMessageRenderer({ msg }: { msg: ChatMessage }) {
-  const isUser = msg.role === 0;
+function AiMessageRenderer({ msg }: { msg: Message }) {
+  const isUser = msg.role === "user";
 
   if (isUser) {
     return (

@@ -30,7 +30,11 @@ namespace CraftVision.Presentation.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Error = ex.Message, Stack = ex.StackTrace });
+                return StatusCode(500, new { 
+                    Error = ex.Message, 
+                    InnerError = ex.InnerException?.Message, 
+                    Stack = ex.StackTrace 
+                });
             }
         }
 

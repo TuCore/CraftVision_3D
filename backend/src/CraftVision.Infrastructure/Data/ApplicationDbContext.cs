@@ -55,8 +55,6 @@ public class ApplicationDbContext : DbContext
         // HNSW Vector Indexes for similarity search
         modelBuilder.Entity<KnowledgeMaterial>()
             .Property(m => m.Embedding)
-            .HasColumnType("vector(1536)");
-
             .HasColumnType("vector(768)");
             
         modelBuilder.Entity<KnowledgeMaterial>()
@@ -66,7 +64,6 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<KnowledgeTutorial>()
             .Property(t => t.Embedding)
-            .HasColumnType("vector(1536)");
             .HasColumnType("vector(768)");
 
         modelBuilder.Entity<KnowledgeTutorial>()

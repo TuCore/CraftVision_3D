@@ -58,12 +58,18 @@ builder.Services.AddOpenApi(options =>
             [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = new System.Collections.Generic.List<string>()
         };
 
-        foreach (var path in document.Paths.Values)
+        if (document.Paths != null)
         {
-            foreach (var operation in path.Operations.Values)
+            foreach (var path in document.Paths.Values)
             {
-                operation.Security ??= new System.Collections.Generic.List<Microsoft.OpenApi.OpenApiSecurityRequirement>();
-                operation.Security.Add(requirement);
+                if (path.Operations != null)
+                {
+                    foreach (var operation in path.Operations.Values)
+                    {
+                        operation.Security ??= new System.Collections.Generic.List<Microsoft.OpenApi.OpenApiSecurityRequirement>();
+                        operation.Security.Add(requirement);
+                    }
+                }
             }
         }
 

@@ -24,9 +24,31 @@ namespace CraftVision.Application.Services
 
         public async Task SeedKnowledgeBaseFromFilesAsync()
         {
-            var materials = await ReadAndDeserializeAsync<KnowledgeMaterial>("materials.json");
+            var materialDtos = await ReadAndDeserializeAsync<MaterialSeedDto>("materials.json");
+            var materials = materialDtos.Select(m => new KnowledgeMaterial
+            {
+                Name = m.Name,
+                Category = m.Category,
+                CurrentPrice = m.CurrentPrice,
+                Unit = MapVietnameseUnit(m.Unit),
+                PurchaseUrl = m.PurchaseUrl,
+                ImageUrl = m.ImageUrl
+            }).ToList();
+
             var tutorials = await ReadAndDeserializeAsync<KnowledgeTutorial>("tutorials.json");
             await SeedKnowledgeBaseAsync(materials, tutorials);
+        }
+
+        private CraftVision.Domain.Enums.MaterialUnit? MapVietnameseUnit(string unitStr)
+        {
+            if (string.IsNullOrEmpty(unitStr)) return null;
+            var s = unitStr.ToLower();
+            if (s.Contains("mét")) return CraftVision.Domain.Enums.MaterialUnit.meter;
+            if (s.Contains("gói") || s.Contains("bịch") || s.Contains("hộp") || s.Contains("hũ")) return CraftVision.Domain.Enums.MaterialUnit.pack;
+            if (s.Contains("bộ") || s.Contains("combo")) return CraftVision.Domain.Enums.MaterialUnit.set;
+            if (s.Contains("kg") || (s.Contains("g") && !s.Contains("gói"))) return CraftVision.Domain.Enums.MaterialUnit.gram;
+            if (s.Contains("chai") || s.Contains("ml") || s.Contains("lít")) return CraftVision.Domain.Enums.MaterialUnit.liter;
+            return CraftVision.Domain.Enums.MaterialUnit.piece; // cuộn, cái, dây, vv.
         }
 
         private async Task<List<T>> ReadAndDeserializeAsync<T>(string fileName)
@@ -94,5 +116,15 @@ namespace CraftVision.Application.Services
             var queryVector = new Vector(vectorArray);
             return await _unitOfWork.KnowledgeTutorials.FindSimilarAsync(queryVector, topK, similarityThreshold);
         }
+    }
+
+    public class MaterialSeedDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Category { get; set; }
+        public decimal? CurrentPrice { get; set; }
+        public string? Unit { get; set; }
+        public string? PurchaseUrl { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }
