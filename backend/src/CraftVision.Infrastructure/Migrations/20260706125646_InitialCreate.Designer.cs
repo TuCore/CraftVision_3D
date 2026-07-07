@@ -15,8 +15,8 @@ using Pgvector;
 namespace CraftVision.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260706011731_UpdateKnowledgeMetadata")]
-    partial class UpdateKnowledgeMetadata
+    [Migration("20260706125646_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -456,7 +456,7 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnName("difficulty");
 
                     b.Property<Vector>("Embedding")
-                        .HasColumnType("vector")
+                        .HasColumnType("vector(768)")
                         .HasColumnName("embedding");
 
                     b.Property<decimal?>("EstimatedCost")
@@ -528,7 +528,7 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnName("difficulty");
 
                     b.Property<Vector>("Embedding")
-                        .HasColumnType("vector")
+                        .HasColumnType("vector(768)")
                         .HasColumnName("embedding");
 
                     b.Property<decimal?>("EstimatedCost")
