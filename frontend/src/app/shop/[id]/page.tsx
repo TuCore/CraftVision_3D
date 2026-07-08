@@ -30,10 +30,11 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const ambientLight = useMemo(() => {
     if (!product) return { primary: "var(--coral)", secondary: "var(--butter)" };
     switch (product.category) {
-      case "Handmade Kit": return { primary: "oklch(0.6 0.2 300)", secondary: "var(--sage)" }; // Tím mộng mơ
+      case "Móc khoá": return { primary: "oklch(0.6 0.2 300)", secondary: "var(--sage)" }; // Tím mộng mơ
       case "Charm": return { primary: "var(--coral)", secondary: "var(--butter)" };
-      case "Beads": return { primary: "oklch(0.65 0.15 220)", secondary: "var(--sage)" }; // Xanh biển
-      case "Bracelet String": return { primary: "var(--clay)", secondary: "var(--butter)" };
+      case "Vòng tay": return { primary: "oklch(0.65 0.15 220)", secondary: "var(--sage)" }; // Xanh biển
+      case "Dây chuyền": return { primary: "var(--clay)", secondary: "var(--butter)" };
+      case "Đồ trang trí": return { primary: "oklch(0.7 0.2 100)", secondary: "var(--butter)" };
       default: return { primary: "var(--coral)", secondary: "var(--butter)" };
     }
   }, [product]);
