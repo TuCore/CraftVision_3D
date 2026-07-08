@@ -9,6 +9,7 @@ using CraftVision.Infrastructure;
 using CraftVision.Infrastructure.Data;
 using CraftVision.Infrastructure.Providers;
 using CraftVision.Infrastructure.Repositories;
+using CraftVision.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -151,6 +152,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -178,7 +180,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Bỏ qua HTTPS Redirect khi dev để Next.js proxy (http://localhost:5192) hoạt động
 app.UseStaticFiles(); // Allow serving uploaded images
 
 app.UseCors("AllowAll");

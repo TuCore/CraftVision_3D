@@ -16,6 +16,19 @@ namespace CraftVision.Domain.Entities
         public string? EstimatedTime { get; set; }
         public string? Description { get; set; }
         
+        [NotMapped]
+        public string? TotalCost { get; set; }
+        
+        [NotMapped]
+        public string? SearchKeyword { get; set; }
+        
+        [NotMapped]
+        public string? VideoUrl { get; set; }
+        
+        [NotMapped]
+        public string? MaterialsJson { get; set; } // JSON string array of materials
+        
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation

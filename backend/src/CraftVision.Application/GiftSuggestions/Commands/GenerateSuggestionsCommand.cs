@@ -69,11 +69,21 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                 difficulty: request.Difficulty, 
                 maxCost: request.MaxCost);
 
+            var tutorials = await _knowledgeRepository.SearchSimilarTutorialsAsync(
+                queryVector: vector,
+                topK: 3);
+
             var contextBuilder = new StringBuilder();
             contextBuilder.AppendLine("Materials Found:");
             foreach (var m in materials)
             {
-                contextBuilder.AppendLine($"- {m.Name} (${m.EstimatedCost})");
+                contextBuilder.AppendLine($"- Name: {m.Name}, Price: {m.CurrentPrice}, Link: {m.PurchaseUrl}");
+            }
+
+            contextBuilder.AppendLine("Tutorials Found:");
+            foreach (var t in tutorials)
+            {
+                contextBuilder.AppendLine($"- Title: {t.Title}, VideoLink: {t.VideoUrl}");
             }
 
             // 5. Generate Suggestions via LLM
@@ -87,7 +97,11 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                 Difficulty = s.Difficulty,
                 EstimatedCostRange = s.EstimatedCostRange,
                 EstimatedTime = s.EstimatedTime,
-                Description = s.Description
+                Description = s.Description,
+                TotalCost = s.TotalCost,
+                SearchKeyword = s.SearchKeyword,
+                VideoUrl = s.VideoUrl,
+                MaterialsJson = s.MaterialsJson
             }).ToList();
         }
     }

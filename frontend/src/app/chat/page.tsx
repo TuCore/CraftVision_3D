@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { AppShell } from "@/components/AppShell";
-import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X } from "lucide-react";
+import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check } from "lucide-react";
 import { fetchApi } from "@/lib/apiClient";
+import { useRouter } from "next/navigation";
 
 type Message = {
   role: "user" | "ai";
@@ -14,8 +15,8 @@ type Message = {
 };
 
 const modes = [
-  {id:"vision", title:"Vision Plus", subtitle:"Chat & phân tích hình ảnh", badge:"Pro"},
-  {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản"},
+  {id:"vision", title:"Vision Plus", subtitle:"Chat & phân tích hình ảnh", badge:"Free"},
+  {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản", badge:"Pro"},
 ];
 
 export default function ChatPage() {
@@ -37,7 +38,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "ai",
-      content: "Chào bạn! Mình là trợ lý AI CraftVision3D. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
+      content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
     }
   ]);
   const [prompt, setPrompt] = useState("");
@@ -129,28 +130,42 @@ export default function ChatPage() {
   return (
     <AppShell active="chat">
       <div className="mx-auto max-w-5xl flex flex-col h-[calc(100vh-6rem)]">
-        {/* Chat header */}
-        <div className="glass-strong rounded-t-3xl px-6 py-4 flex items-center justify-between border-b border-white/40 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="relative h-11 w-11 rounded-2xl btn-hero grid place-items-center">
-              <Sparkles className="h-5 w-5" />
-              <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-white" />
-            </div>
-            <div>
-              <h1 className="font-bold font-display">Trợ lý <span className="text-[#FF37C0]/60">CraftVision</span></h1>
-              <p className="text-xs text-muted-foreground">AI · Sẵn sàng gợi ý ý tưởng quà tặng</p>
-            </div>
+        {/* Top bar */}
+        <header className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/40 glass-strong rounded-t-3xl relative">
+          <div className="relative">
+            <button 
+              ref={buttonRef}
+              onClick={() => setIsMenuOpen(!isMenuOpen)} 
+              className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover-accent transition-colors"
+            >
+              <span>{modes.find(m => m.id === chatMode)?.title}</span>
+              <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            
+            {isMenuOpen && (
+              <div ref={menuRef} className="absolute left-0 top-full mt-1.5 w-[320px] rounded-2xl border border-border bg-popover p-1.5 shadow-xl z-50">
+                {modes.map(m => (
+                  <button 
+                    key={m.id}
+                    onClick={() => { setChatMode(m.id as any); setIsMenuOpen(false); }}
+                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover-accent transition-colors"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+                      <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">{m.title}</div>
+                      <div className="truncate text-xs text-muted-foreground">{m.subtitle}</div>
+                    </div>
+                    {m.badge && m.id !== chatMode && <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">{m.badge}</span>}
+                    {m.id === chatMode && <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-3">
-             <button className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm hover-accent font-medium text-[color:var(--coral)]">
-               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5A2.5 2.5 0 0 1 7.5 2C11 2 12 7 12 7"/><path d="M12 7h4.5A2.5 2.5 0 0 0 16.5 2C13 2 12 7 12 7"/></svg>
-               Ưu đãi miễn phí
-             </button>
-             <button className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover-accent">
-               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
-             </button>
-          </div>
-        </div>
+
+        </header>
 
         {chatMode === "vision" ? (
           <>
@@ -162,44 +177,59 @@ export default function ChatPage() {
               {m.imageUrl && (
                  <img src={m.imageUrl} alt="Uploaded" className="w-48 h-48 object-cover rounded-xl mb-3 border border-white/40 shadow-sm" />
               )}
-              <p className="whitespace-pre-wrap text-sm">
-                {m.content.split(/(CraftVision3D|CraftVision)/).map((part, i) => 
-                  part === "CraftVision3D" || part === "CraftVision" ? (
-                    <span key={i} className="text-[#FF37C0]/60">{part}</span>
-                  ) : (
-                    part
-                  )
-                )}
-              </p>
+              <p className="whitespace-pre-wrap text-sm">{m.content}</p>
+
               {m.suggestions && m.suggestions.length > 0 && (
-                <div className="mt-4 space-y-4">
-                  {m.suggestions.map((s: any, i: number) => (
-                    <div key={i} className="bg-white/70 rounded-2xl overflow-hidden border border-white/60">
-                      <div className="p-4 flex gap-3 hover:bg-white/90 transition-colors">
-                        <div className={`h-10 w-10 shrink-0 rounded-xl grid place-items-center font-bold text-white ${i === 0 ? "bg-green-500" : i === 1 ? "bg-orange-500" : "bg-rose-500"}`}>{i + 1}</div>
-                        <div>
-                          <div className="font-semibold">{s.name || "Ý tưởng quà tặng"}</div>
-                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.description}</div>
-                          <div className="mt-2 flex gap-2">
-                             <Chip icon={Wallet} label={s.estimatedCostRange || "Chưa rõ"} tone="ok" />
-                             <Chip icon={Clock} label={s.estimatedTime || "Chưa rõ"} />
+                <div className="ideas mt-4">
+                  {m.suggestions.map((s: any, i: number) => {
+                    let materials = [];
+                    try {
+                      if (typeof s.materialsJson === 'string') materials = JSON.parse(s.materialsJson);
+                      else if (Array.isArray(s.materials)) materials = s.materials;
+                    } catch(e){}
+
+                    return (
+                      <div key={i} className="idea">
+                        <div className={`idea-num ${i === 0 ? "n1" : i === 1 ? "n2" : "n3"}`}>{i + 1}</div>
+                        <div className="idea-body">
+                          <div className="idea-title">{s.name || "Ý tưởng quà tặng"}</div>
+                          <div className="idea-desc">{s.description}</div>
+                          <div className="idea-meta">
+                            {s.estimatedCostRange && <span className="tag tag-price">💰 {s.estimatedCostRange}</span>}
+                            {s.estimatedTime && <span className="tag tag-time">🕐 {s.estimatedTime}</span>}
+                            {s.difficulty && <span className="tag tag-level">🌱 {s.difficulty}</span>}
                           </div>
+
+                          {materials && materials.length > 0 && (
+                            <div className="detail-block">
+                              <div className="detail-head"><span className="dot"></span> Nguyên liệu & chi phí</div>
+                              <table className="mat">
+                                <thead><tr><th>Nguyên liệu</th><th>SL</th><th>Đơn giá</th><th className="num">Thành tiền</th></tr></thead>
+                                <tbody>
+                                  {materials.map((mat: any, j: number) => (
+                                    <tr key={j}>
+                                      <td>{mat.name}</td>
+                                      <td>{mat.quantity}</td>
+                                      <td>{mat.price}</td>
+                                      <td className="num">{mat.total}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                                <tfoot><tr><td colSpan={3}>Tổng chi phí</td><td className="num">{s.totalCost || "Chưa rõ"}</td></tr></tfoot>
+                              </table>
+                              <div className="links-row">
+                                {materials.filter((m: any) => !!m.purchaseUrl).map((mat: any, j: number) => (
+                                  <a key={j} className="link-chip" href={mat.purchaseUrl} target="_blank" rel="noreferrer">🛒 Mua {mat.name}</a>
+                                ))}
+                                {s.searchKeyword && <a className="link-chip keyword" href={`https://shopee.vn/search?keyword=${encodeURIComponent(s.searchKeyword)}`} target="_blank" rel="noreferrer">🔎 "{s.searchKeyword}"</a>}
+                                {s.videoUrl && <a className="link-chip video" href={s.videoUrl} target="_blank" rel="noreferrer">▶ Video hướng dẫn</a>}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      
-                      {/* Materials List */}
-                      {s.materials && s.materials.length > 0 && (
-                        <div className="bg-white/50 border-t border-white/50 px-4 py-3">
-                          <div className="text-xs font-semibold mb-2 flex items-center gap-1"><Package className="w-3.5 h-3.5"/> Cần chuẩn bị:</div>
-                          <ul className="text-xs space-y-1 pl-5 list-disc text-muted-foreground">
-                            {s.materials.map((mat: string, j: number) => (
-                              <li key={j}>{mat}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </MessageRow>
@@ -273,11 +303,23 @@ export default function ChatPage() {
 }
 
 function Studio3DView() {
+  const router = useRouter();
   const [sourceType, setSourceType] = useState<"image" | "text">("image");
   const [quality, setQuality] = useState<"fast" | "balance" | "high">("balance");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [currentModel, setCurrentModel] = useState("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
+  const [uploadImage, setUploadImage] = useState<string | null>(null);
+  const [style, setStyle] = useState("Cách điệu");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const url = URL.createObjectURL(e.target.files[0]);
+      setUploadImage(url);
+    }
+  };
 
   useEffect(() => {
     // Load model-viewer script dynamically for the demo
@@ -290,7 +332,8 @@ function Studio3DView() {
   }, []);
 
   const handleMockGenerate = () => {
-    // TODO: Khi nào có API thật thì thay thế logic ở đây
+    setCurrentModel("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
+
     setIsGenerating(true);
     setProgress(0);
     setShowResult(false);
@@ -326,12 +369,30 @@ function Studio3DView() {
         </div>
         
         {sourceType === "image" ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center hover:bg-card/80 transition-colors cursor-pointer">
-            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent">
-              <svg className="h-5 w-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
-            </div>
-            <div className="text-sm font-medium">Kéo thả ảnh vào đây</div>
-            <div className="text-xs text-muted-foreground mt-1">PNG, JPG tối đa 10MB</div>
+          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center hover:bg-card/80 transition-colors cursor-pointer relative overflow-hidden min-h-[140px] flex flex-col justify-center items-center" onClick={() => fileInputRef.current?.click()}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleImageSelect}
+            />
+            {uploadImage ? (
+               <>
+                 <img src={uploadImage} alt="Uploaded" className="max-h-40 w-full object-contain" />
+                 <button onClick={(e) => { e.stopPropagation(); setUploadImage(null); }} className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 shadow-md z-10">
+                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                 </button>
+               </>
+            ) : (
+               <>
+                 <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent">
+                   <svg className="h-5 w-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+                 </div>
+                 <div className="text-sm font-medium">Kéo thả ảnh vào đây</div>
+                 <div className="text-xs text-muted-foreground mt-1">PNG, JPG tối đa 10MB</div>
+               </>
+            )}
           </div>
         ) : (
            <div>
@@ -350,10 +411,13 @@ function Studio3DView() {
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Phong cách</label>
           <div className="grid grid-cols-2 gap-2">
-            <button className="chip-btn rounded-lg py-2 text-sm hover-accent transition-colors">Thực tế</button>
-            <button className="rounded-lg py-2 text-sm text-white shadow-md btn-hero">Cách điệu</button>
-            <button className="chip-btn rounded-lg py-2 text-sm hover-accent transition-colors">Hoạt hình</button>
-            <button className="chip-btn rounded-lg py-2 text-sm hover-accent transition-colors">Điêu khắc</button>
+            {["Thực tế", "Cách điệu", "Hoạt hình", "Điêu khắc"].map(s => (
+               <button 
+                 key={s}
+                 onClick={() => setStyle(s)}
+                 className={style === s ? "rounded-lg py-2 text-sm text-white shadow-md btn-hero" : "chip-btn rounded-lg py-2 text-sm hover-accent transition-colors"}
+               >{s}</button>
+            ))}
           </div>
         </div>
         
@@ -386,12 +450,20 @@ function Studio3DView() {
             </div>
           </div>
         ) : (
-          <button 
-            onClick={handleMockGenerate}
-            className="mt-2 rounded-xl py-3 text-sm font-semibold text-white shadow-lg btn-hero"
-          >
-            Tạo mô hình 3D (Demo)
-          </button>
+          <div className="mt-2 flex flex-col gap-2">
+            <button 
+              onClick={handleMockGenerate}
+              className="rounded-xl py-3 text-sm font-semibold text-white shadow-lg btn-hero w-full"
+            >
+              Tạo mô hình 3D (Demo)
+            </button>
+            <button 
+              onClick={() => router.push('/pricing')}
+              className="rounded-xl py-3 text-sm font-semibold text-[color:var(--coral)] border border-[color:var(--coral)] bg-transparent hover:bg-[color:var(--coral)]/5 transition-colors w-full"
+            >
+              Tạo mô hình 3D chuẩn
+            </button>
+          </div>
         )}
       </div>
 
@@ -400,9 +472,9 @@ function Studio3DView() {
         <div className="absolute inset-6 rounded-3xl radial-bg opacity-30 dark:opacity-10 pointer-events-none"></div>
         
         {showResult ? (
-          <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center">
+          <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center p-8 pb-16">
             {React.createElement('model-viewer', {
-              src: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
+              src: currentModel,
               "auto-rotate": true,
               "camera-controls": true,
               style: { width: '100%', height: '100%', outline: 'none' },
@@ -419,7 +491,7 @@ function Studio3DView() {
             </div>
           </div>
         )}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 w-max">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 w-max z-20">
           <button className="chip-btn rounded-full px-4 py-2 text-sm hover-accent transition-colors flex items-center gap-1.5">
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             Xoay
@@ -428,9 +500,9 @@ function Studio3DView() {
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
             Tinh chỉnh
           </button>
-          <button className="rounded-full px-4 py-2 text-sm font-medium text-white shadow-md btn-hero flex items-center gap-1.5">
+          <button className="rounded-full px-5 py-2 text-sm text-white font-medium shadow-md btn-hero flex items-center gap-1.5">
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-            Xuất .GLB
+            Lưu model
           </button>
         </div>
       </div>

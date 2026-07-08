@@ -65,13 +65,17 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
         [JsonPropertyName("responseSchema")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? ResponseSchema { get; set; }
+
+        [JsonPropertyName("maxOutputTokens")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? MaxOutputTokens { get; set; }
     }
 
     // Embeddings Requests
     public class GeminiEmbedContentRequest
     {
         [JsonPropertyName("model")]
-        public string Model { get; set; } = "models/text-embedding-004";
+        public string Model { get; set; } = "models/gemini-embedding-2";
 
         [JsonPropertyName("content")]
         public GeminiContent Content { get; set; } = new();
@@ -126,6 +130,36 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
         
         [JsonPropertyName("description")]
         public string? Description { get; set; }
+
+        [JsonPropertyName("totalCost")]
+        public string? TotalCost { get; set; }
+
+        [JsonPropertyName("searchKeyword")]
+        public string? SearchKeyword { get; set; }
+
+        [JsonPropertyName("videoUrl")]
+        public string? VideoUrl { get; set; }
+
+        [JsonPropertyName("materials")]
+        public List<GeminiSuggestionMaterialDto>? Materials { get; set; }
+    }
+
+    public class GeminiSuggestionMaterialDto
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+        
+        [JsonPropertyName("quantity")]
+        public string Quantity { get; set; } = string.Empty;
+        
+        [JsonPropertyName("price")]
+        public string Price { get; set; } = string.Empty;
+        
+        [JsonPropertyName("total")]
+        public string Total { get; set; } = string.Empty;
+        
+        [JsonPropertyName("purchaseUrl")]
+        public string? PurchaseUrl { get; set; }
     }
 
     public class GeminiPlanResponseDto

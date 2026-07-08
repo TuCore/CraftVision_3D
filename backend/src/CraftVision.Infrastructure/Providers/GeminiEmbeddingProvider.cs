@@ -23,7 +23,7 @@ namespace CraftVision.Infrastructure.Providers
         public async Task<float[]> GenerateEmbeddingAsync(string text)
         {
             var apiKey = _configuration["AiSettings:Gemini:ApiKey"];
-            var model = _configuration["AiSettings:Gemini:EmbeddingModel"] ?? "text-embedding-004";
+            var model = _configuration["AiSettings:Gemini:EmbeddingModel"] ?? "gemini-embedding-2";
 
             if (string.IsNullOrEmpty(apiKey) || apiKey == "REPLACE_GEMINI_API_KEY")
             {

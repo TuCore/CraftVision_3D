@@ -4,6 +4,8 @@ import "./globals.css";
 import { CartProvider } from "@/components/CartProvider";
 import { Toaster } from "@/components/ui/sonner";
 
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
 const poppins = Poppins({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -25,16 +27,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+
   return (
     <html
       lang="vi"
       className={`${poppins.variable} ${plusJakartaSans.variable} antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
-        <CartProvider>
-          {children}
-          <Toaster position="top-center" />
-        </CartProvider>
+      <body suppressHydrationWarning className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
+        <GoogleOAuthProvider clientId={googleClientId}>
+          <CartProvider>
+            {children}
+            <Toaster position="top-center" />
+          </CartProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

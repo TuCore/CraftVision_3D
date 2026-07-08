@@ -13,12 +13,24 @@ Return ONLY a JSON array of suggestions with the following format:
   {
     ""name"": ""string"",
     ""difficulty"": ""Easy|Medium|Hard"",
-    ""estimatedCostRange"": ""string"",
+    ""estimatedCostRange"": ""string (e.g. 100.000đ - 150.000đ)"",
     ""estimatedTime"": ""string"",
-    ""description"": ""string""
+    ""description"": ""string"",
+    ""totalCost"": ""string (e.g. 150.000đ)"",
+    ""searchKeyword"": ""string (e.g. hạt pha lê 8mm)"",
+    ""videoUrl"": ""string (url from context)"",
+    ""materials"": [
+      {
+        ""name"": ""string"",
+        ""quantity"": ""string (e.g. 20 hạt)"",
+        ""price"": ""string (e.g. 1.500đ)"",
+        ""total"": ""string (e.g. 30.000đ)"",
+        ""purchaseUrl"": ""string (url from context or empty)""
+      }
+    ]
   }
 ]
-Ensure valid JSON.";
+Ensure valid JSON. IMPORTANT: You MUST use the provided Context (materials and tutorials) to fill out purchaseUrl and videoUrl. Calculate the material `total` and `totalCost`.";
 
         public static string BuildUserPrompt(string intent, string context)
         {
