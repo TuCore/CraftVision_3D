@@ -37,7 +37,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "ai",
-      content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
+      content: "Chào bạn! Mình là trợ lý AI CraftVision3D. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
     }
   ]);
   const [prompt, setPrompt] = useState("");
@@ -129,39 +129,17 @@ export default function ChatPage() {
   return (
     <AppShell active="chat">
       <div className="mx-auto max-w-5xl flex flex-col h-[calc(100vh-6rem)]">
-        {/* Top bar */}
-        <header className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/40 glass-strong rounded-t-3xl relative">
-          <div className="relative">
-            <button 
-              ref={buttonRef}
-              onClick={() => setIsMenuOpen(!isMenuOpen)} 
-              className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover-accent transition-colors"
-            >
-              <span>{modes.find(m => m.id === chatMode)?.title}</span>
-              <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            
-            {isMenuOpen && (
-              <div ref={menuRef} className="absolute left-0 top-full mt-1.5 w-[320px] rounded-2xl border border-border bg-popover p-1.5 shadow-xl z-50">
-                {modes.map(m => (
-                  <button 
-                    key={m.id}
-                    onClick={() => { setChatMode(m.id as any); setIsMenuOpen(false); }}
-                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover-accent transition-colors"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                      <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium">{m.title}</div>
-                      <div className="truncate text-xs text-muted-foreground">{m.subtitle}</div>
-                    </div>
-                    {m.badge && m.id !== chatMode && <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">{m.badge}</span>}
-                    {m.id === chatMode && <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>}
-                  </button>
-                ))}
-              </div>
-            )}
+        {/* Chat header */}
+        <div className="glass-strong rounded-t-3xl px-6 py-4 flex items-center justify-between border-b border-white/40 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="relative h-11 w-11 rounded-2xl btn-hero grid place-items-center">
+              <Sparkles className="h-5 w-5" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-white" />
+            </div>
+            <div>
+              <h1 className="font-bold font-display">Trợ lý <span className="text-[#FF37C0]/60">CraftVision</span></h1>
+              <p className="text-xs text-muted-foreground">AI · Sẵn sàng gợi ý ý tưởng quà tặng</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
              <button className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm hover-accent font-medium text-[color:var(--coral)]">
@@ -184,8 +162,15 @@ export default function ChatPage() {
               {m.imageUrl && (
                  <img src={m.imageUrl} alt="Uploaded" className="w-48 h-48 object-cover rounded-xl mb-3 border border-white/40 shadow-sm" />
               )}
-              <p className="whitespace-pre-wrap text-sm">{m.content}</p>
-
+              <p className="whitespace-pre-wrap text-sm">
+                {m.content.split(/(CraftVision3D|CraftVision)/).map((part, i) => 
+                  part === "CraftVision3D" || part === "CraftVision" ? (
+                    <span key={i} className="text-[#FF37C0]/60">{part}</span>
+                  ) : (
+                    part
+                  )
+                )}
+              </p>
               {m.suggestions && m.suggestions.length > 0 && (
                 <div className="mt-4 space-y-4">
                   {m.suggestions.map((s: any, i: number) => (
