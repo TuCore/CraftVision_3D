@@ -198,3 +198,46 @@
 .animate-cart-bump {
   animation: cart-bump 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
+
+@utility hover-accent {
+  &:hover {
+    background: var(--color-accent);
+  }
+}
+
+@utility brand-gradient {
+  background: linear-gradient(90deg, #f0a860, #f5cf7a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility radial-bg {
+  background: radial-gradient(circle at 50% 45%, #ffe8c2 0%, #f6d19a 45%, #e8b378 100%);
+}
+
+@utility chip-btn {
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-card) 70%, transparent);
+}
+
+.cube {
+  transform-style: preserve-3d;
+  animation: spin 12s linear infinite;
+}
+.cube .face {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(74, 52, 35, 0.2);
+}
+.fA { background: linear-gradient(135deg, #f6b978, #e89b52); transform: translateZ(70px); }
+.fB { background: linear-gradient(135deg, #f4d29a, #e8ae63); transform: rotateY(180deg) translateZ(70px); }
+.fC { background: linear-gradient(135deg, #f2c07f, #d98d40); transform: rotateY(90deg) translateZ(70px); }
+.fD { background: linear-gradient(135deg, #f7dcae, #eab470); transform: rotateY(-90deg) translateZ(70px); }
+.fE { background: linear-gradient(135deg, #ffe0b0, #f0b878); transform: rotateX(90deg) translateZ(70px); }
+.fF { background: linear-gradient(135deg, #e8a15c, #c67a30); transform: rotateX(-90deg) translateZ(70px); }
+
+@keyframes spin {
+  from { transform: rotateX(-25deg) rotateY(0); }
+  to { transform: rotateX(-25deg) rotateY(360deg); }
+}

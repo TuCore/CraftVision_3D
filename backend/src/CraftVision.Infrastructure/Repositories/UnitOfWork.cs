@@ -12,6 +12,8 @@ public class UnitOfWork : IUnitOfWork
     public IKnowledgeTutorialRepository KnowledgeTutorials { get; }
     public IAiChatSessionRepository AiChatSessions { get; }
     public IAiChatMessageRepository AiChatMessages { get; }
+    public IAi3dRequestRepository Ai3dRequests { get; }
+    public IUploadedFileRepository UploadedFiles { get; }
 
     public UnitOfWork(
         ApplicationDbContext dbContext,
@@ -19,7 +21,9 @@ public class UnitOfWork : IUnitOfWork
         IKnowledgeMaterialRepository knowledgeMaterialRepository,
         IKnowledgeTutorialRepository knowledgeTutorialRepository,
         IAiChatSessionRepository aiChatSessionRepository,
-        IAiChatMessageRepository aiChatMessageRepository)
+        IAiChatMessageRepository aiChatMessageRepository,
+        IAi3dRequestRepository ai3dRequestRepository,
+        IUploadedFileRepository uploadedFileRepository)
     {
         _dbContext = dbContext;
         Users = userRepository;
@@ -27,6 +31,8 @@ public class UnitOfWork : IUnitOfWork
         KnowledgeTutorials = knowledgeTutorialRepository;
         AiChatSessions = aiChatSessionRepository;
         AiChatMessages = aiChatMessageRepository;
+        Ai3dRequests = ai3dRequestRepository;
+        UploadedFiles = uploadedFileRepository;
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
