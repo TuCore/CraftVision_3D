@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<DiyPlan> DiyPlans { get; set; } = null!;
     public DbSet<DiyPlanMaterial> DiyPlanMaterials { get; set; } = null!;
     public DbSet<DiyPlanTutorial> DiyPlanTutorials { get; set; } = null!;
+    public DbSet<Ai3dRequest> Ai3dRequests { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +49,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<DiyPlan>().ToTable("diy_plans");
         modelBuilder.Entity<DiyPlanMaterial>().ToTable("diy_plan_materials");
         modelBuilder.Entity<DiyPlanTutorial>().ToTable("diy_plan_tutorials");
+        modelBuilder.Entity<Ai3dRequest>().ToTable("ai_3d_requests");
 
         // Indexes
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
@@ -70,6 +72,13 @@ public class ApplicationDbContext : DbContext
             .HasIndex(t => t.Embedding)
             .HasMethod("hnsw")
             .HasOperators("vector_cosine_ops");
+
+        // Ai3dRequest Indexes
+        modelBuilder.Entity<Ai3dRequest>().HasIndex(x => x.TripoTaskId).IsUnique();
+        modelBuilder.Entity<Ai3dRequest>().HasIndex(x => x.IdempotencyKey).IsUnique();
+        modelBuilder.Entity<Ai3dRequest>()
+            .HasIndex(x => new { x.Status, x.LockedUntil })
+            .HasFilter("status IN ('queued', 'running')");
 
         // JSONB Columns mapping
         modelBuilder.Entity<AiRequest>().Property(r => r.ParsedIntent).HasColumnType("jsonb");

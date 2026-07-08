@@ -9,9 +9,11 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
         public List<GeminiContent> Contents { get; set; } = new();
 
         [JsonPropertyName("generationConfig")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public GeminiGenerationConfig? GenerationConfig { get; set; }
 
         [JsonPropertyName("systemInstruction")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public GeminiSystemInstruction? SystemInstruction { get; set; }
     }
 
@@ -33,9 +35,11 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
     public class GeminiPart
     {
         [JsonPropertyName("text")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Text { get; set; }
 
         [JsonPropertyName("inlineData")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public GeminiInlineData? InlineData { get; set; }
     }
 
@@ -51,12 +55,15 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
     public class GeminiGenerationConfig
     {
         [JsonPropertyName("temperature")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public float? Temperature { get; set; }
 
         [JsonPropertyName("responseMimeType")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ResponseMimeType { get; set; }
 
         [JsonPropertyName("responseSchema")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? ResponseSchema { get; set; }
     }
 
@@ -64,12 +71,13 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
     public class GeminiEmbedContentRequest
     {
         [JsonPropertyName("model")]
-        public string Model { get; set; } = "models/gemini-embedding-001";
+        public string Model { get; set; } = "models/text-embedding-004";
 
         [JsonPropertyName("content")]
         public GeminiContent Content { get; set; } = new();
 
         [JsonPropertyName("outputDimensionality")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? OutputDimensionality { get; set; }
     }
 
