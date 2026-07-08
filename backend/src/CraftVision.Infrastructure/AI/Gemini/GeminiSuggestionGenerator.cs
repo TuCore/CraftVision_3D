@@ -58,7 +58,11 @@ namespace CraftVision.Infrastructure.AI.Gemini
                 }
             };
 
-            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-3.5-flash:generateContent", requestPayload);
+            var jsonOptions = new System.Text.Json.JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            };
+            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-1.5-flash:generateContent", requestPayload, jsonOptions);
             apiResponse.EnsureSuccessStatusCode();
 
             var responseData = await apiResponse.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>();

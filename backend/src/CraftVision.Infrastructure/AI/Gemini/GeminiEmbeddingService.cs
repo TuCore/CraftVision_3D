@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CraftVision.Application.Interfaces.AI;
-using CraftVision.Infrastructure.AI.Gemini.Models;
 
 namespace CraftVision.Infrastructure.AI.Gemini
 {
@@ -15,30 +17,52 @@ namespace CraftVision.Infrastructure.AI.Gemini
 
         public async Task<float[]> GenerateEmbeddingAsync(string text)
         {
-            var requestPayload = new GeminiEmbedContentRequest
+            // Build a minimal, clean JSON payload manually to avoid
+            // sending extra fields (role, inlineData, outputDimensionality)
+            // that the Embedding API rejects with 400 Bad Request.
+            var requestJson = JsonSerializer.Serialize(new
             {
-                Model = "models/gemini-embedding-2",
-                Content = new GeminiContent
+                model = "models/text-embedding-004",
+                content = new
                 {
-                    Parts = new List<GeminiPart>
-                    {
-                        new GeminiPart { Text = text }
-                    }
+                    parts = new[] { new { text = text } }
                 },
-                OutputDimensionality = 1536 // Match PostgreSQL configuration
-            };
+                outputDimensionality = 768
+            });
 
-            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-embedding-2:embedContent", requestPayload);
-            apiResponse.EnsureSuccessStatusCode();
+            var httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
+            var apiResponse = await _geminiClient.PostAsync(
+                "models/text-embedding-004:embedContent",
+                httpContent);
 
-            var responseData = await apiResponse.Content.ReadFromJsonAsync<GeminiEmbedContentResponse>();
-            
-            if (responseData?.Embedding?.Values == null || responseData.Embedding.Values.Count == 0)
+            if (!apiResponse.IsSuccessStatusCode)
+            {
+                var errorBody = await apiResponse.Content.ReadAsStringAsync();
+                throw new HttpRequestException(
+                    $"Gemini Embedding API returned {(int)apiResponse.StatusCode}: {errorBody}");
+            }
+
+            var responseData = await apiResponse.Content.ReadFromJsonAsync<EmbedResponse>();
+
+            if (responseData?.Embedding?.Values == null || responseData.Embedding.Values.Length == 0)
             {
                 throw new Exception("Gemini embedding returned empty or invalid values.");
             }
 
-            return responseData.Embedding.Values.ToArray();
+            return responseData.Embedding.Values;
+        }
+
+        // Minimal response DTOs – only what we need
+        private class EmbedResponse
+        {
+            [JsonPropertyName("embedding")]
+            public EmbedValues? Embedding { get; set; }
+        }
+
+        private class EmbedValues
+        {
+            [JsonPropertyName("values")]
+            public float[]? Values { get; set; }
         }
     }
 }
