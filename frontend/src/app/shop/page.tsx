@@ -42,11 +42,11 @@ export default function ShopPage() {
           
           <div className="relative z-10 max-w-2xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-extrabold font-display leading-tight">
-              Khám phá nguyên liệu <br />
+              Khám phá sản phẩm <br />
               <span className="gradient-text">handmade độc đáo</span>
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Tìm kiếm các loại hạt, charm, dây và bộ kit tự làm để tạo ra những tác phẩm nghệ thuật của riêng bạn.
+              Tìm kiếm các loại hạt, charm, dây và bộ kit tự làm có tích hợp NFC để tạo ra những tác phẩm nghệ thuật của riêng bạn.
             </p>
           </div>
         </section>

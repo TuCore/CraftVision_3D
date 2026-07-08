@@ -1,6 +1,6 @@
 // src/lib/apiClient.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7133";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5192";
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;

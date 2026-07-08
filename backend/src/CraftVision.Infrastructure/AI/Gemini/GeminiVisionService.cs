@@ -77,7 +77,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
             };
 
             // 4. Send to Gemini 3.5 Flash
-            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-1.5-flash:generateContent", requestPayload);
+            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-2.5-flash:generateContent", requestPayload);
             apiResponse.EnsureSuccessStatusCode();
 
             var responseData = await apiResponse.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>();

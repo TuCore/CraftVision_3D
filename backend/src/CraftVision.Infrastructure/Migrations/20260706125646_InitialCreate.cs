@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CraftVision.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -9,7 +9,7 @@ using Pgvector;
 namespace CraftVision.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateKnowledgeMetadata : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -42,7 +42,7 @@ namespace CraftVision.Infrastructure.Migrations
                     image_url = table.Column<string>(type: "text", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
                     last_checked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    embedding = table.Column<Vector>(type: "vector(1536)", nullable: true),
+                    embedding = table.Column<Vector>(type: "vector(768)", nullable: true),
                     search_keywords = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -62,7 +62,7 @@ namespace CraftVision.Infrastructure.Migrations
                     occasion = table.Column<string>(type: "text", nullable: true),
                     estimated_minutes = table.Column<int>(type: "integer", nullable: true),
                     estimated_cost = table.Column<decimal>(type: "numeric", nullable: true),
-                    embedding = table.Column<Vector>(type: "vector(1536)", nullable: true),
+                    embedding = table.Column<Vector>(type: "vector(768)", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>

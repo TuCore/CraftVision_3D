@@ -62,7 +62,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
             {
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
-            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-1.5-flash:generateContent", requestPayload, jsonOptions);
+            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-2.5-flash:generateContent", requestPayload, jsonOptions);
             apiResponse.EnsureSuccessStatusCode();
 
             var responseData = await apiResponse.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>();
