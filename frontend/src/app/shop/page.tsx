@@ -10,13 +10,24 @@ import { DIYProjectWidget } from "@/components/DIYProjectWidget";
 
 import { TiltCard } from "@/components/TiltCard";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 const categories: ("Tất cả" | Category)[] = [
   "Tất cả",
-  "Beads",
+  "Móc khoá",
+  "Vòng tay",
+  "Dây chuyền",
   "Charm",
-  "Bracelet String",
-  "Handmade Kit",
-  "Packaging",
+  "Đồ trang trí",
 ];
 
 export default function ShopPage() {
@@ -79,6 +90,56 @@ export default function ShopPage() {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Pre-order Banner */}
+        <section className="glass-card border-primary/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-up">
+          <div>
+            <h3 className="font-bold text-lg text-primary flex items-center gap-2">
+              <Sparkles className="h-5 w-5" /> Thiết kế theo yêu cầu (Pre-order)
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Bạn muốn mẫu độc lạ? Thời gian hoàn thiện từ 7-10 ngày. Để lại SĐT để được tư vấn thiết kế riêng!
+            </p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="btn-hero px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform">
+                Nhận tư vấn ngay
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px] bg-white border-primary/20 rounded-3xl shadow-coral-glow p-6">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-extrabold font-display text-primary flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" /> Nhận tư vấn thiết kế riêng
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground text-sm leading-relaxed pt-1">
+                  Hãy để lại thông tin, đội ngũ <span className="text-[#FF37C0]/60">CraftVision 3D</span> sẽ liên hệ lại với bạn trong thời gian sớm nhất!
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name" className="font-semibold text-foreground/80">Họ và tên</Label>
+                  <Input id="name" placeholder="Ví dụ: Nguyễn Văn A" className="rounded-xl border-primary/20 bg-white shadow-sm focus-visible:ring-primary/30" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone" className="font-semibold text-foreground/80">Số điện thoại</Label>
+                  <Input id="phone" placeholder="09xxxx..." className="rounded-xl border-primary/20 bg-white shadow-sm focus-visible:ring-primary/30" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="idea" className="font-semibold text-foreground/80">Ý tưởng của bạn</Label>
+                  <Textarea 
+                    id="idea" 
+                    placeholder="Bạn muốn thiết kế móc khóa hình gì, màu sắc ra sao..." 
+                    className="min-h-[100px] rounded-xl border-primary/20 bg-white shadow-sm focus-visible:ring-primary/30"
+                  />
+                </div>
+              </div>
+              <button className="btn-hero w-full py-2.5 rounded-xl font-semibold text-white">
+                Gửi yêu cầu
+              </button>
+            </DialogContent>
+          </Dialog>
         </section>
 
         {/* Product Grid */}

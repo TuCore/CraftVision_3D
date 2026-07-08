@@ -86,7 +86,7 @@ export default function SettingsPage() {
             )}
 
             {tab === "notifications" && (
-              <Section title="Thông báo" desc="Chọn cách bạn muốn nhận thông báo từ CraftVision3D.">
+              <Section title="Thông báo" desc={<>Chọn cách bạn muốn nhận thông báo từ <span className="text-[#FF37C0]/60">CraftVision3D</span>.</>}>
                 <ToggleRow label="Gợi ý ý tưởng hàng ngày" desc="Nhận cảm hứng sáng tạo mỗi sáng." defaultChecked />
                 <ToggleRow label="Cập nhật dự án đang làm" desc="Nhắc nhở tiếp tục nơi bạn dừng lại." defaultChecked />
                 <ToggleRow label="Tương tác cộng đồng" desc="Ai đó thích hoặc bình luận về tác phẩm của bạn." />
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                 <div className="rounded-2xl p-5 bg-gradient-to-r from-primary/10 to-[color:var(--coral)]/10 border border-white/60 flex items-center justify-between">
                   <div>
                     <div className="text-xs font-semibold text-primary uppercase">Gói hiện tại</div>
-                    <div className="text-xl font-bold font-display mt-1">CraftVision PRO</div>
+                    <div className="text-xl font-bold font-display mt-1"><span className="text-[#FF37C0]/60">CraftVision</span> PRO</div>
                     <div className="text-sm text-muted-foreground">99.000đ / tháng · Gia hạn 15/07/2026</div>
                   </div>
                   <button className="btn-hero rounded-xl px-4 py-2 text-sm font-semibold">Quản lý</button>
@@ -188,7 +188,7 @@ export default function SettingsPage() {
   );
 }
 
-function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
+function Section({ title, desc, children }: { title: string; desc?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="glass-card rounded-3xl p-6 md:p-8 space-y-5">
       <div>
