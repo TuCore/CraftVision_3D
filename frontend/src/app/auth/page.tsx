@@ -53,20 +53,20 @@ export default function AuthPage() {
       {/* Left brand panel */}
       <div className="relative hidden lg:flex flex-col justify-between p-12 z-10">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <span className="grid h-10 w-10 place-items-center rounded-xl btn-hero">
-            <Box className="h-5 w-5" />
-          </span>
-          <span className="font-display">
-            <span className="gradient-text">Craft</span>Vision<span className="text-[color:var(--coral)]">3D</span>
+          <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
+          <span className="font-display text-[#FF37C0]/60">
+            <span className="text-[#FF37C0]/60">CraftVision3D</span>
           </span>
         </Link>
 
-        <div className="max-w-md">
+        <div className="max-w-lg">
           <span className="inline-flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-semibold text-primary">
             <Sparkles className="h-3.5 w-3.5" /> AI · Handmade · 3D
           </span>
           <h1 className="mt-5 text-4xl md:text-5xl font-extrabold leading-tight font-display">
-            Tạo <span className="gradient-text">món quà thủ công</span> đầy ý nghĩa cùng AI
+            Tạo <span className="gradient-text pb-1">món quà thủ công</span><br />
+            đầy ý nghĩa<br />
+            cùng AI
           </h1>
           <p className="mt-4 text-muted-foreground">
             Gợi ý ý tưởng, danh sách nguyên liệu, ước tính chi phí, thời gian và video hướng dẫn — tất cả trong một trợ lý sáng tạo.
@@ -86,18 +86,16 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground">© 2026 CraftVision3D. Made with ♥ in Vietnam.</p>
+        <p className="text-sm text-muted-foreground">© 2026 <span className="text-[#FF37C0]/60">CraftVision3D</span>. Made with ♥ in Vietnam.</p>
       </div>
 
       {/* Right form panel */}
       <div className="relative flex items-center justify-center p-6 md:p-12 z-10">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center font-bold text-lg">
-            <span className="grid h-9 w-9 place-items-center rounded-xl btn-hero">
-              <Box className="h-5 w-5" />
-            </span>
-            <span className="font-display">
-              <span className="gradient-text">Craft</span>Vision<span className="text-[color:var(--coral)]">3D</span>
+            <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-12 h-12 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
+            <span className="font-display text-[#FF37C0]/60">
+              <span className="text-[#FF37C0]/60">CraftVision3D</span>
             </span>
           </div>
 

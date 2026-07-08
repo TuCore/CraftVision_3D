@@ -28,10 +28,10 @@ builder.Services.AddControllers()
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNextJs",
+    options.AddPolicy("AllowAll",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
+            policy.SetIsOriginAllowed(origin => true) // Cho phép frontend từ ngrok gọi API
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -78,16 +78,7 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-// Configure CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
-});
+
 
 // --- 1. CONFIG DATABASE CONNECTION ---
 var activeConnName = builder.Configuration["ActiveConnection"] ?? "DockerConnection";
@@ -181,7 +172,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // Allow serving uploaded images
 
-app.UseCors("AllowNextJs");
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

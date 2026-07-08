@@ -36,9 +36,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
       <header className="sticky top-0 z-50 px-4 pt-4">
         <div className="mx-auto max-w-7xl bg-white/85 backdrop-blur-md border border-white/60 shadow-soft rounded-2xl px-5 py-3 flex items-center justify-between">
           <Link href="/home" className="flex items-center gap-2 font-bold text-lg">
-            <span className="grid h-9 w-9 place-items-center rounded-xl btn-hero">
-              <Box className="h-5 w-5" />
-            </span>
+            <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
             <span className="font-display">
               <span className="gradient-text">Craft</span>Vision
               <span className="text-[color:var(--coral)]">3D</span>

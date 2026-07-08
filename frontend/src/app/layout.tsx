@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Poppins, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartProvider";
 import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({
+const poppins = Poppins({
   variable: "--font-sans",
-  subsets: ["vietnamese", "latin"],
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${inter.variable} ${plusJakartaSans.variable} antialiased`}
+      className={`${poppins.variable} ${plusJakartaSans.variable} antialiased`}
     >
       <body className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
         <CartProvider>

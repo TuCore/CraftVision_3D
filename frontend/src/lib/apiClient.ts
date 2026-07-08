@@ -1,6 +1,9 @@
 // src/lib/apiClient.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5192";
+// Cấu hình URL cho API: 
+// 1. Nếu chạy trên trình duyệt (client-side), để chuỗi rỗng "" để Next.js tự động proxy request qua rewrites.
+// 2. Nếu chạy trên Server (SSR), dùng localhost:5192
+const API_BASE_URL = typeof window !== 'undefined' ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5192");
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
@@ -14,6 +17,9 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   if (!(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
+
+  // Bypass ngrok browser warning for API calls
+  headers.set("ngrok-skip-browser-warning", "true");
 
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   

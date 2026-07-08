@@ -16,7 +16,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "ai",
-      content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
+      content: "Chào bạn! Mình là trợ lý AI CraftVision3D. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
     }
   ]);
   const [prompt, setPrompt] = useState("");
@@ -116,7 +116,7 @@ export default function ChatPage() {
               <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-white" />
             </div>
             <div>
-              <h1 className="font-bold font-display">Trợ lý CraftVision</h1>
+              <h1 className="font-bold font-display">Trợ lý <span className="text-[#FF37C0]/60">CraftVision</span></h1>
               <p className="text-xs text-muted-foreground">AI · Sẵn sàng gợi ý ý tưởng quà tặng</p>
             </div>
           </div>
@@ -137,8 +137,15 @@ export default function ChatPage() {
               {m.imageUrl && (
                  <img src={m.imageUrl} alt="Uploaded" className="w-48 h-48 object-cover rounded-xl mb-3 border border-white/40 shadow-sm" />
               )}
-              <p className="whitespace-pre-wrap text-sm">{m.content}</p>
-
+              <p className="whitespace-pre-wrap text-sm">
+                {m.content.split(/(CraftVision3D|CraftVision)/).map((part, i) => 
+                  part === "CraftVision3D" || part === "CraftVision" ? (
+                    <span key={i} className="text-[#FF37C0]/60">{part}</span>
+                  ) : (
+                    part
+                  )
+                )}
+              </p>
               {m.suggestions && m.suggestions.length > 0 && (
                 <div className="mt-4 space-y-4">
                   {m.suggestions.map((s: any, i: number) => (

@@ -11,7 +11,7 @@ export default function Landing() {
       <header className="sticky top-0 z-50 px-4 pt-4">
         <div className="mx-auto max-w-7xl glass-strong rounded-2xl px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-lg">
-            <span className="grid h-9 w-9 place-items-center rounded-xl btn-hero"><Box className="h-5 w-5" /></span>
+            <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
             <span className="font-display"><span className="gradient-text">Craft</span>Vision<span className="text-[color:var(--coral)]">3D</span></span>
           </div>
           <div className="flex items-center gap-2">
@@ -22,12 +22,14 @@ export default function Landing() {
       </header>
 
       <section className="relative px-4 pt-20 pb-24 text-center z-10">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-5xl">
           <span className="inline-flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-semibold text-primary">
             <Sparkles className="h-3.5 w-3.5" /> AI · Handmade · 3D
           </span>
-          <h1 className="mt-6 text-5xl md:text-7xl font-extrabold font-display leading-[1.05]">
-            Tạo <span className="gradient-text">món quà thủ công</span> đầy ý nghĩa cùng AI
+          <h1 className="mt-6 text-5xl md:text-7xl font-extrabold font-display leading-[1.15]">
+            <span className="whitespace-nowrap">Tạo <span className="gradient-text pb-1">món quà thủ công</span></span><br />
+            đầy ý nghĩa<br />
+            cùng AI
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto">
             Gợi ý ý tưởng, danh sách nguyên liệu, ước tính chi phí và video hướng dẫn — chỉ trong vài giây.

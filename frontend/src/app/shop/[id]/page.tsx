@@ -148,12 +148,12 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
           
           <div className="text-center mb-16 relative z-10 animate-fade-up">
             <h2 className="text-3xl md:text-4xl font-extrabold font-display gradient-text">Hành trình chế tác</h2>
-            <p className="text-muted-foreground mt-3 text-sm md:text-base">Dự kiến hoàn thành: 45 phút — Trải nghiệm sự thư thái trong từng nhịp thở.</p>
+            <p className="text-muted-foreground mt-3 text-sm md:text-base">Tận tâm trong từng quá trình thực hiện.</p>
           </div>
 
           <div className="space-y-12 relative z-10">
             {[
-              { step: 1, title: "Chuẩn bị nguyên liệu", desc: "Nhận hộp CraftVision, kiểm tra hạt cườm, charm và dây xem đã đủ chưa. Sắp xếp ra khay gỗ để dễ lấy." },
+              { step: 1, title: "Chuẩn bị nguyên liệu", desc: <>Nhận hộp <span className="text-[#FF37C0]/60">CraftVision</span>, kiểm tra hạt cườm, charm và dây xem đã đủ chưa. Sắp xếp ra khay gỗ để dễ lấy.</> },
               { step: 2, title: "Bắt đầu xâu vòng", desc: "Xâu từng hạt theo pattern màu sắc bạn yêu thích. Nhớ đan xen charm ở giữa để tạo điểm nhấn cá nhân nhé!" },
               { step: 3, title: "Thắt nút cố định", desc: "Sử dụng nút thắt đôi hoặc ba vòng để đảm bảo dây không bị tuột. Nhỏ thêm một giọt keo tàng hình nếu cần." },
               { step: 4, title: "Hoàn thiện & Tận hưởng", desc: "Đeo thử kiệt tác lên tay, chụp một bức ảnh check-in hoặc đóng hộp cẩn thận để làm quà tặng người thương." }
