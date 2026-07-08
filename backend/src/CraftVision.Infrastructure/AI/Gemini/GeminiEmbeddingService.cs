@@ -9,20 +9,24 @@ namespace CraftVision.Infrastructure.AI.Gemini
     public class GeminiEmbeddingService : IEmbeddingService
     {
         private readonly HttpClient _geminiClient;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
-        public GeminiEmbeddingService(HttpClient geminiClient)
+        public GeminiEmbeddingService(HttpClient geminiClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _geminiClient = geminiClient;
+            _configuration = configuration;
         }
 
         public async Task<float[]> GenerateEmbeddingAsync(string text)
         {
+            var modelName = _configuration["AiSettings:Gemini:EmbeddingModel"] ?? "text-embedding-005";
+
             // Build a minimal, clean JSON payload manually to avoid
             // sending extra fields (role, inlineData, outputDimensionality)
             // that the Embedding API rejects with 400 Bad Request.
             var requestJson = JsonSerializer.Serialize(new
             {
-                model = "models/text-embedding-004",
+                model = $"models/{modelName}",
                 content = new
                 {
                     parts = new[] { new { text = text } }
@@ -32,7 +36,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
 
             var httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
             var apiResponse = await _geminiClient.PostAsync(
-                "models/text-embedding-004:embedContent",
+                $"models/{modelName}:embedContent",
                 httpContent);
 
             if (!apiResponse.IsSuccessStatusCode)

@@ -42,5 +42,19 @@ namespace CraftVision.Presentation.Controllers
                 return Unauthorized(new { Message = ex.Message });
             }
         }
+
+        [HttpPost("google")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try
+            {
+                var response = await _authService.GoogleLoginAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+        }
     }
 }

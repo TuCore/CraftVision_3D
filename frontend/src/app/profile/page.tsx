@@ -1,8 +1,20 @@
+"use client";
 
 import { AppShell } from "@/components/AppShell";
 import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function ProfilePage() {
+  const [fullName, setFullName] = useState("Nguyễn Minh");
+  const [email, setEmail] = useState("minh@craft.vn");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("fullName");
+    const storedEmail = localStorage.getItem("email");
+    if (storedName) setFullName(storedName);
+    if (storedEmail) setEmail(storedEmail);
+  }, []);
+
   const badges = [
     { icon: Award, label: "Creator cấp 5", color: "from-amber-400 to-orange-500" },
     { icon: Gift, label: "12 dự án", color: "from-emerald-400 to-teal-500" },
@@ -33,7 +45,7 @@ export default function ProfilePage() {
           <div className="px-6 md:px-10 pb-8 -mt-16 relative flex flex-col items-center text-center">
             <div className="relative mb-4">
               <div className="h-28 w-28 md:h-32 md:w-32 rounded-full bg-white grid place-items-center text-4xl font-bold text-primary border-4 border-white shadow-soft overflow-hidden">
-                <img src="https://ui-avatars.com/api/?name=Nguyễn+Minh&background=random" alt="Avatar" className="w-full h-full object-cover" />
+                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`} alt="Avatar" className="w-full h-full object-cover" />
               </div>
               <button className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-white shadow-soft grid place-items-center hover:bg-primary hover:text-white transition-colors border border-border">
                 <Camera className="h-4 w-4" />
@@ -43,13 +55,13 @@ export default function ProfilePage() {
             {/* Tên và thông tin kéo xuống dưới khung màu và avatar */}
             <div className="flex flex-col items-center mb-4">
               <div className="flex items-center gap-2 justify-center">
-                <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">Nguyễn Minh</h1>
+                <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">{fullName}</h1>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">PRO</span>
               </div>
               <p className="text-muted-foreground mt-2">"Sáng tạo là hạnh phúc." — Handmade creator 💛</p>
               <div className="flex flex-wrap gap-4 mt-3 justify-center text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Hà Nội, Việt Nam</span>
-                <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> minh@craft.vn</span>
+                <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {email}</span>
                 <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Tham gia 03/2026</span>
               </div>
             </div>

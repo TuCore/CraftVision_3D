@@ -38,6 +38,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
                 GenerationConfig = new GeminiGenerationConfig
                 {
                     ResponseMimeType = "application/json",
+                    MaxOutputTokens = 8192,
                     ResponseSchema = new
                     {
                         type = "object",
@@ -78,6 +79,18 @@ namespace CraftVision.Infrastructure.AI.Gemini
             {
                 throw new Exception("Gemini returned empty text content.");
             }
+
+            // Cleanup json formatting if Gemini wrapped it in markdown
+            jsonText = jsonText.Trim();
+            if (jsonText.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+            {
+                jsonText = jsonText.Substring(7);
+            }
+            if (jsonText.EndsWith("```"))
+            {
+                jsonText = jsonText.Substring(0, jsonText.Length - 3);
+            }
+            jsonText = jsonText.Trim();
 
             try
             {

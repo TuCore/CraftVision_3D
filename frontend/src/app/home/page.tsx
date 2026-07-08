@@ -1,8 +1,19 @@
+"use client";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { Sparkles, MessageCircle, Heart, Gift, Clock, TrendingUp, ArrowRight, Palette, Scissors, Package, Box } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
+  const [firstName, setFirstName] = useState("bạn");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("fullName");
+    if (storedName) {
+      setFirstName(storedName.split(' ').pop() || "bạn");
+    }
+  }, []);
+
   const projects = [
     { title: "Bó hoa giấy pastel", progress: 70, cost: "125.000đ", time: "2h", color: "oklch(0.78 0.18 25)" },
     { title: "Hộp quà 3D + QR", progress: 40, cost: "210.000đ", time: "3.5h", color: "oklch(0.82 0.16 85)" },
@@ -27,7 +38,7 @@ export default function HomePage() {
             {/* Cột trái */}
             <div className="text-left">
               <span className="inline-flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-semibold text-primary">
-                <Sparkles className="h-3.5 w-3.5" /> Chào Minh, sẵn sàng sáng tạo?
+                <Sparkles className="h-3.5 w-3.5" /> Chào {firstName}, sẵn sàng sáng tạo?
               </span>
               <h1 className="mt-6 text-4xl md:text-5xl font-extrabold font-display leading-[1.15] text-foreground">
                 Hôm nay bạn muốn tạo<br/>

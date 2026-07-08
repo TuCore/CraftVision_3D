@@ -13,3 +13,7 @@ obj/
 
 # macOS
 .DS_Store
+
+# Production Secrets
+.env.production
+*.pem

@@ -50,9 +50,28 @@ namespace CraftVision.Infrastructure.AI.Gemini
                                 difficulty = new { type = "string", @enum = new[] { "Easy", "Medium", "Hard" } },
                                 estimatedCostRange = new { type = "string" },
                                 estimatedTime = new { type = "string" },
-                                description = new { type = "string" }
+                                description = new { type = "string" },
+                                totalCost = new { type = "string" },
+                                searchKeyword = new { type = "string" },
+                                videoUrl = new { type = "string" },
+                                materials = new
+                                {
+                                    type = "array",
+                                    items = new
+                                    {
+                                        type = "object",
+                                        properties = new
+                                        {
+                                            name = new { type = "string" },
+                                            quantity = new { type = "string" },
+                                            price = new { type = "string" },
+                                            total = new { type = "string" },
+                                            purchaseUrl = new { type = "string" }
+                                        }
+                                    }
+                                }
                             },
-                            required = new[] { "name", "difficulty", "description" }
+                            required = new[] { "name", "difficulty", "description", "materials" }
                         }
                     }
                 }
@@ -96,7 +115,11 @@ namespace CraftVision.Infrastructure.AI.Gemini
                     Difficulty = Enum.TryParse<Difficulty>(dto.Difficulty, true, out var parsedDiff) ? parsedDiff : Difficulty.Medium,
                     EstimatedCostRange = dto.EstimatedCostRange,
                     EstimatedTime = dto.EstimatedTime,
-                    Description = dto.Description
+                    Description = dto.Description,
+                    TotalCost = dto.TotalCost,
+                    SearchKeyword = dto.SearchKeyword,
+                    VideoUrl = dto.VideoUrl,
+                    MaterialsJson = dto.Materials != null ? JsonSerializer.Serialize(dto.Materials) : null
                 }).ToList();
             }
             catch (JsonException ex)

@@ -5,10 +5,19 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function SettingsPage() {
   const [tab, setTab] = useState("account");
+  const [fullName, setFullName] = useState("Nguyễn Minh");
+  const [email, setEmail] = useState("minh@craft.vn");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("fullName");
+    const storedEmail = localStorage.getItem("email");
+    if (storedName) setFullName(storedName);
+    if (storedEmail) setEmail(storedEmail);
+  }, []);
 
   const tabs = [
     { key: "account", label: "Tài khoản", icon: User },
@@ -58,16 +67,16 @@ export default function SettingsPage() {
             {tab === "account" && (
               <Section title="Thông tin cá nhân" desc="Cập nhật ảnh đại diện, tên và email của bạn.">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="h-16 w-16 rounded-2xl btn-hero grid place-items-center text-2xl font-bold text-white">M</div>
+                  <div className="h-16 w-16 rounded-2xl btn-hero grid place-items-center text-2xl font-bold text-white">{fullName.charAt(0)}</div>
                   <div className="flex gap-2">
                     <button className="text-sm px-3 py-2 rounded-lg bg-white/80 hover:bg-white font-medium">Tải ảnh mới</button>
                     <button className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium">Xoá</button>
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <Field label="Họ và tên" defaultValue="Nguyễn Minh" />
-                  <Field label="Tên hiển thị" defaultValue="@minh.crafts" />
-                  <Field label="Email" defaultValue="minh@craft.vn" type="email" />
+                  <Field key={`name-${fullName}`} label="Họ và tên" defaultValue={fullName} />
+                  <Field key={`display-${fullName}`} label="Tên hiển thị" defaultValue={`@${fullName.split(' ').pop()?.toLowerCase() || 'user'}.crafts`} />
+                  <Field key={`email-${email}`} label="Email" defaultValue={email} type="email" />
                   <Field label="Số điện thoại" defaultValue="+84 987 654 321" />
                 </div>
                 <div className="mt-4">
