@@ -14,9 +14,9 @@ namespace CraftVision.Application.GiftSuggestions.Commands
         public string? ImageUrl { get; set; }
         
         // Constraints
-        public string? MaxCost { get; set; }
+        public decimal? MaxCost { get; set; }
         public string? Occasion { get; set; }
-        public string? Difficulty { get; set; }
+        public CraftVision.Domain.Enums.Difficulty? Difficulty { get; set; }
     }
 
     public class GenerateSuggestionsCommandHandler : IRequestHandler<GenerateSuggestionsCommand, GiftChatResponseDto>
