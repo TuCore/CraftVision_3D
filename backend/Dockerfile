@@ -27,5 +27,9 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# Tắt GC Server (dành cho gói Free RAM thấp) và tắt Diagnostics (giúp tránh lỗi 139 trên Render)
+ENV DOTNET_SYSTEM_GC_SERVER=false
+ENV DOTNET_EnableDiagnostics=0
+
 # Định nghĩa lệnh khởi chạy khi Container chạy
 ENTRYPOINT ["dotnet", "CraftVision.Presentation.dll"]
