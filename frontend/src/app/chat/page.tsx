@@ -157,7 +157,7 @@ export default function ChatPage() {
 
   return (
     <AppShell active="chat">
-      <div className="mx-auto max-w-5xl flex flex-col h-[calc(100vh-12rem)] md:h-[calc(100vh-14rem)] shadow-xl overflow-hidden rounded-3xl border border-white/50 bg-white/20">
+      <div className="mx-auto max-w-6xl flex flex-col h-[calc(100vh-11.5rem)] md:h-[calc(100vh-12.5rem)] shadow-xl overflow-hidden rounded-3xl border border-white/50 bg-white/20">
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/40 glass-strong rounded-t-3xl relative">
           <div className="relative">
