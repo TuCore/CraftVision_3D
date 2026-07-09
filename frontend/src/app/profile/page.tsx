@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import Link from "next/link";
 import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { fetchApi } from "@/lib/apiClient";
 
 export default function ProfilePage() {
   const [fullName, setFullName] = useState("Nguyễn Minh");
@@ -14,22 +15,27 @@ export default function ProfilePage() {
   const [joinedDate, setJoinedDate] = useState("");
 
   useEffect(() => {
-    const storedName = localStorage.getItem("fullName");
-    const storedEmail = localStorage.getItem("email");
-    const storedCreatedAt = localStorage.getItem("createdAt");
-    const storedBio = localStorage.getItem("bio");
-
-    if (storedName) setFullName(storedName);
-    if (storedEmail) setEmail(storedEmail);
-    if (storedBio) setBio(storedBio);
-    if (storedCreatedAt) {
-      const d = new Date(storedCreatedAt);
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      setJoinedDate(`Tham gia ${mm}/${yyyy}`);
-    } else {
-      setJoinedDate("Thành viên mới");
-    }
+    const loadProfile = async () => {
+      try {
+        const data = await fetchApi("/api/user/profile");
+        if (data.fullName) setFullName(data.fullName);
+        if (data.email) setEmail(data.email);
+        if (data.bio) setBio(data.bio);
+        
+        if (data.createdAt) {
+          const d = new Date(data.createdAt);
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const yyyy = d.getFullYear();
+          setJoinedDate(`Tham gia ${mm}/${yyyy}`);
+        } else {
+          setJoinedDate("Thành viên mới");
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải hồ sơ:", error);
+      }
+    };
+    
+    loadProfile();
 
     // Lấy vị trí qua IP
     fetch("https://ipapi.co/json/")

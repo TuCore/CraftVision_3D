@@ -29,6 +29,16 @@ public class UserRepository : IUserRepository
         _dbContext.Users.Add(user);
     }
 
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        return await _dbContext.Users.FindAsync(id);
+    }
+
+    public void Update(User user)
+    {
+        _dbContext.Users.Update(user);
+    }
+
     public void AddQuota(UserQuota quota)
     {
         _dbContext.UserQuotas.Add(quota);

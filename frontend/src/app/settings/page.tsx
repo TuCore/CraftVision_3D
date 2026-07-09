@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
+import { fetchApi } from "@/lib/apiClient";
 
 export default function SettingsPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState("account");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -16,20 +18,40 @@ export default function SettingsPage() {
   const [bio, setBio] = useState("");
 
   useEffect(() => {
-    setFullName(localStorage.getItem("fullName") || "Tuấn Vũ Đức");
-    setEmail(localStorage.getItem("email") || "tugia24052004@gmail.com");
-    setDisplayName(localStorage.getItem("displayName") || "@đức.crafts");
-    setPhone(localStorage.getItem("phone") || "+84 987 654 321");
-    setBio(localStorage.getItem("bio") || "Sáng tạo là hạnh phúc. Handmade creator 💛");
+    const loadProfile = async () => {
+      try {
+        const data = await fetchApi("/api/user/profile");
+        setFullName(data.fullName || "");
+        setEmail(data.email || "");
+        setDisplayName(data.displayName || "");
+        setPhone(data.phone || "");
+        setBio(data.bio || "");
+      } catch (error) {
+        console.error("Lỗi khi tải hồ sơ:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProfile();
   }, []);
 
-  const handleSave = () => {
-    localStorage.setItem("fullName", fullName);
-    localStorage.setItem("email", email);
-    localStorage.setItem("displayName", displayName);
-    localStorage.setItem("phone", phone);
-    localStorage.setItem("bio", bio);
-    import("sonner").then(({ toast }) => toast.success("Đã lưu thay đổi thành công!"));
+  const handleSave = async () => {
+    try {
+      await fetchApi("/api/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({
+          fullName,
+          displayName,
+          phone,
+          bio
+        })
+      });
+      // Vẫn lưu name lên local storage để Navbar có thể hiển thị nếu cần thiết
+      localStorage.setItem("fullName", fullName);
+      import("sonner").then(({ toast }) => toast.success("Đã lưu thay đổi thành công!"));
+    } catch (error: any) {
+      import("sonner").then(({ toast }) => toast.error(error.message || "Không thể lưu hồ sơ"));
+    }
   };
 
   const tabs = [
@@ -79,32 +101,40 @@ export default function SettingsPage() {
           <div className="space-y-6">
             {tab === "account" && (
               <Section title="Thông tin cá nhân" desc="Cập nhật ảnh đại diện, tên và email của bạn.">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="h-16 w-16 rounded-2xl btn-hero grid place-items-center text-2xl font-bold text-white">{fullName.charAt(0)}</div>
-                  <div className="flex gap-2">
-                    <button className="text-sm px-3 py-2 rounded-lg bg-white/80 hover:bg-white font-medium">Tải ảnh mới</button>
-                    <button className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium">Xoá</button>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Field label="Họ và tên" value={fullName} onChange={setFullName} />
-                  <Field label="Tên hiển thị" value={displayName} onChange={setDisplayName} />
-                  <Field label="Email" value={email} onChange={setEmail} type="email" />
-                  <Field label="Số điện thoại" value={phone} onChange={setPhone} />
-                </div>
-                <div className="mt-4">
-                  <Label className="text-sm">Giới thiệu</Label>
-                  <textarea
-                    rows={3}
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl bg-white/80 border border-border px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
-                  />
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button onClick={handleSave} className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
-                  <button className="rounded-xl bg-white/70 hover:bg-white px-5 py-2.5 text-sm font-medium">Huỷ</button>
-                </div>
+                {isLoading ? (
+                  <div className="flex justify-center p-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="h-16 w-16 rounded-2xl btn-hero grid place-items-center text-2xl font-bold text-white">
+                        {fullName ? fullName.charAt(0) : "?"}
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="text-sm px-3 py-2 rounded-lg bg-white/80 hover:bg-white font-medium">Tải ảnh mới</button>
+                        <button className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium">Xoá</button>
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Field label="Họ và tên" value={fullName} onChange={setFullName} />
+                      <Field label="Tên hiển thị" value={displayName} onChange={setDisplayName} />
+                      <Field label="Email" value={email} onChange={setEmail} type="email" />
+                      <Field label="Số điện thoại" value={phone} onChange={setPhone} />
+                    </div>
+                    <div className="mt-4">
+                      <Label className="text-sm">Giới thiệu</Label>
+                      <textarea
+                        rows={3}
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl bg-white/80 border border-border px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={handleSave} className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
+                      <button className="rounded-xl bg-white/70 hover:bg-white px-5 py-2.5 text-sm font-medium">Huỷ</button>
+                    </div>
+                  </>
+                )}
               </Section>
             )}
 
