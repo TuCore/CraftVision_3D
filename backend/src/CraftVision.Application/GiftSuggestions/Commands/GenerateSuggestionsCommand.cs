@@ -41,8 +41,9 @@ namespace CraftVision.Application.GiftSuggestions.Commands
 
         public async Task<List<GiftSuggestionDto>> Handle(GenerateSuggestionsCommand request, CancellationToken cancellationToken)
         {
-            // 1. Quota Check (TODO: Inject IUserRepository or QuotaService and check if user has available quota)
-            
+            // Tạm thời comment logic gọi AI thật để tránh lỗi API và test giao diện mượt mà (Mock Data)
+            /*
+            // 1. Quota Check
             // 2. Parse Intent (from Image or Text)
             var intentBuilder = new StringBuilder();
             if (!string.IsNullOrEmpty(request.Prompt))
@@ -103,6 +104,40 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                 VideoUrl = s.VideoUrl,
                 MaterialsJson = s.MaterialsJson
             }).ToList();
+            */
+
+            // Giả lập AI đang suy nghĩ trong 1.5 giây
+            await Task.Delay(1500, cancellationToken);
+
+            return new List<GiftSuggestionDto>
+            {
+                new GiftSuggestionDto
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Giả lập Mock AI: Bạn vừa yêu cầu '{request.Prompt}'",
+                    Difficulty = CraftVision.Domain.Enums.Difficulty.Beginner,
+                    EstimatedCostRange = "50.000đ - 100.000đ",
+                    EstimatedTime = "2 giờ",
+                    Description = "Đây là kết quả giả lập để đội Frontend tha hồ test giao diện cực mượt mà không lo lỗi API hay tốn tiền.",
+                    TotalCost = "75.000đ",
+                    SearchKeyword = "Đồ handmade",
+                    VideoUrl = "https://youtube.com/watch?v=mock1",
+                    MaterialsJson = "[{\"Name\": \"Vật liệu 1\", \"Price\": 10000}, {\"Name\": \"Vật liệu 2\", \"Price\": 5000}]"
+                },
+                new GiftSuggestionDto
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Lồng đèn Trung Thu handmade",
+                    Difficulty = CraftVision.Domain.Enums.Difficulty.Intermediate,
+                    EstimatedCostRange = "100.000đ - 200.000đ",
+                    EstimatedTime = "4 giờ",
+                    Description = "Sử dụng tre và giấy kiếng để làm lồng đèn truyền thống cực đẹp.",
+                    TotalCost = "150.000đ",
+                    SearchKeyword = "Giấy kiếng lồng đèn",
+                    VideoUrl = "https://youtube.com/watch?v=mock2",
+                    MaterialsJson = "[{\"Name\": \"Thanh tre\", \"Price\": 20000}, {\"Name\": \"Giấy kiếng\", \"Price\": 30000}]"
+                }
+            };
         }
     }
 }
