@@ -9,15 +9,28 @@ import { useState, useEffect } from "react";
 
 export default function SettingsPage() {
   const [tab, setTab] = useState("account");
-  const [fullName, setFullName] = useState("Nguyễn Minh");
-  const [email, setEmail] = useState("minh@craft.vn");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
 
   useEffect(() => {
-    const storedName = localStorage.getItem("fullName");
-    const storedEmail = localStorage.getItem("email");
-    if (storedName) setFullName(storedName);
-    if (storedEmail) setEmail(storedEmail);
+    setFullName(localStorage.getItem("fullName") || "Tuấn Vũ Đức");
+    setEmail(localStorage.getItem("email") || "tugia24052004@gmail.com");
+    setDisplayName(localStorage.getItem("displayName") || "@đức.crafts");
+    setPhone(localStorage.getItem("phone") || "+84 987 654 321");
+    setBio(localStorage.getItem("bio") || "Sáng tạo là hạnh phúc. Handmade creator 💛");
   }, []);
+
+  const handleSave = () => {
+    localStorage.setItem("fullName", fullName);
+    localStorage.setItem("email", email);
+    localStorage.setItem("displayName", displayName);
+    localStorage.setItem("phone", phone);
+    localStorage.setItem("bio", bio);
+    import("sonner").then(({ toast }) => toast.success("Đã lưu thay đổi thành công!"));
+  };
 
   const tabs = [
     { key: "account", label: "Tài khoản", icon: User },
@@ -74,21 +87,22 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <Field key={`name-${fullName}`} label="Họ và tên" defaultValue={fullName} />
-                  <Field key={`display-${fullName}`} label="Tên hiển thị" defaultValue={`@${fullName.split(' ').pop()?.toLowerCase() || 'user'}.crafts`} />
-                  <Field key={`email-${email}`} label="Email" defaultValue={email} type="email" />
-                  <Field label="Số điện thoại" defaultValue="+84 987 654 321" />
+                  <Field label="Họ và tên" value={fullName} onChange={setFullName} />
+                  <Field label="Tên hiển thị" value={displayName} onChange={setDisplayName} />
+                  <Field label="Email" value={email} onChange={setEmail} type="email" />
+                  <Field label="Số điện thoại" value={phone} onChange={setPhone} />
                 </div>
                 <div className="mt-4">
                   <Label className="text-sm">Giới thiệu</Label>
                   <textarea
                     rows={3}
-                    defaultValue="Sáng tạo là hạnh phúc. Handmade creator 💛"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
                     className="mt-1.5 w-full rounded-xl bg-white/80 border border-border px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
-                  <button className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
+                  <button onClick={handleSave} className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
                   <button className="rounded-xl bg-white/70 hover:bg-white px-5 py-2.5 text-sm font-medium">Huỷ</button>
                 </div>
               </Section>
@@ -209,11 +223,11 @@ function Section({ title, desc, children }: { title: string; desc?: React.ReactN
   );
 }
 
-function Field({ label, defaultValue, type = "text" }: { label: string; defaultValue?: string; type?: string }) {
+function Field({ label, value, onChange, type = "text" }: { label: string; value?: string; onChange?: (v: string) => void; type?: string }) {
   return (
     <div>
       <Label className="text-sm">{label}</Label>
-      <Input defaultValue={defaultValue} type={type} className="mt-1.5 bg-white/80 h-11" />
+      <Input value={value} onChange={e => onChange?.(e.target.value)} type={type} className="mt-1.5 bg-white/80 h-11" />
     </div>
   );
 }

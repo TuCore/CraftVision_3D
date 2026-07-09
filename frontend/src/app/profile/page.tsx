@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 export default function ProfilePage() {
   const [fullName, setFullName] = useState("Nguyễn Minh");
   const [email, setEmail] = useState("minh@craft.vn");
+  const [bio, setBio] = useState('"Sáng tạo là hạnh phúc." — Handmade creator 💛');
 
   const [location, setLocation] = useState("Đang tải...");
   const [joinedDate, setJoinedDate] = useState("");
@@ -16,9 +17,11 @@ export default function ProfilePage() {
     const storedName = localStorage.getItem("fullName");
     const storedEmail = localStorage.getItem("email");
     const storedCreatedAt = localStorage.getItem("createdAt");
+    const storedBio = localStorage.getItem("bio");
 
     if (storedName) setFullName(storedName);
     if (storedEmail) setEmail(storedEmail);
+    if (storedBio) setBio(storedBio);
     if (storedCreatedAt) {
       const d = new Date(storedCreatedAt);
       const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -84,7 +87,7 @@ export default function ProfilePage() {
                 <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">{fullName}</h1>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">PRO</span>
               </div>
-              <p className="text-muted-foreground mt-2">"Sáng tạo là hạnh phúc." — Handmade creator 💛</p>
+              <p className="text-muted-foreground mt-2 whitespace-pre-wrap">{bio}</p>
               <div className="flex flex-wrap gap-4 mt-3 justify-center text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {location}</span>
                 <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {email}</span>
