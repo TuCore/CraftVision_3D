@@ -12,6 +12,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const router = useRouter();
   const [isBumping, setIsBumping] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -22,10 +23,26 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
         const token = localStorage.getItem("token");
         if (!token) {
           router.replace("/auth");
+        } else {
+          setIsCheckingAuth(false);
         }
+      } else {
+        setIsCheckingAuth(false);
       }
     }
   }, [pathname, router]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex gap-2">
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"0ms"}}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"150ms"}}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"300ms"}}></div>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (cartCount > 0) {
