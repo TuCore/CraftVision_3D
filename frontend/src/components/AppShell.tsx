@@ -28,7 +28,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   ] as const;
 
   return (
-    <div className="relative min-h-screen overflow-x-clip">
+    <div className="relative min-h-screen overflow-clip">
       <div className="blob animate-pulse-glow" style={{ top: -120, left: -100, width: 420, height: 420, background: "oklch(0.78 0.22 35)" }} />
       <div className="blob animate-pulse-glow" style={{ top: "40%", right: -140, width: 500, height: 500, background: "oklch(0.88 0.18 95)", animationDelay: "1s" }} />
       <div className="blob animate-pulse-glow" style={{ bottom: -120, left: "30%", width: 460, height: 460, background: "oklch(0.86 0.2 140)", animationDelay: "2s" }} />
