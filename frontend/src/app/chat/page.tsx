@@ -19,11 +19,21 @@ const modes = [
   {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản", badge:"Pro"},
 ];
 
+const mockHistory = [
+  { id: 1, title: "Làm lồng đèn trung thu", date: "Hôm qua", time: "14:30" },
+  { id: 2, title: "Quà sinh nhật cho bạn gái", date: "Hôm qua", time: "09:15" },
+  { id: 3, title: "Mô hình nhà gỗ", date: "3 ngày trước", time: "20:00" },
+  { id: 4, title: "Đan len cơ bản", date: "Tuần trước", time: "16:45" },
+];
+
 export default function ChatPage() {
   const [chatMode, setChatMode] = useState<"vision" | "three-d">("vision");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
+  const historyBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // Đọc URL query parameter để mở thẳng Studio 3D nếu có ?mode=three-d
@@ -37,6 +47,9 @@ export default function ChatPage() {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node) && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
+      }
+      if (historyRef.current && !historyRef.current.contains(event.target as Node) && historyBtnRef.current && !historyBtnRef.current.contains(event.target as Node)) {
+        setIsHistoryOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -193,12 +206,37 @@ export default function ChatPage() {
             )}
           </div>
 
-          <button 
-            className="flex items-center gap-1.5 rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-white/50 transition-colors"
-            title="Lịch sử phiên chat"
-          >
-            <History className="h-5 w-5" />
-          </button>
+          <div className="relative">
+            <button 
+              ref={historyBtnRef}
+              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              className="flex items-center gap-1.5 rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-white/50 transition-colors"
+              title="Lịch sử phiên chat"
+            >
+              <History className="h-5 w-5" />
+            </button>
+            
+            {isHistoryOpen && (
+              <div ref={historyRef} className="absolute right-0 top-full mt-1.5 w-[300px] rounded-2xl border border-border bg-popover p-1.5 shadow-xl z-50 animate-fade-in-page">
+                <div className="px-3 py-2 text-sm font-semibold text-foreground border-b border-border/50 mb-1">
+                  Lịch sử gần đây
+                </div>
+                <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {mockHistory.map(h => (
+                    <button key={h.id} className="w-full text-left p-2.5 hover:bg-muted rounded-xl transition-colors mb-1 group">
+                      <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{h.title}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{h.date} • {h.time}</div>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-1 border-t border-border/50 pt-1">
+                  <button className="w-full text-center text-xs text-primary font-medium p-2 hover:bg-muted rounded-xl transition-colors">
+                    Xem tất cả
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </header>
 
         {chatMode === "vision" ? (
