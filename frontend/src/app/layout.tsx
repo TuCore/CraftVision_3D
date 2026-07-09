@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/CartProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const poppins = Poppins({
   variable: "--font-sans",
@@ -36,12 +37,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body suppressHydrationWarning className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
-        <GoogleOAuthProvider clientId={googleClientId}>
-          <CartProvider>
-            {children}
-            <Toaster position="top-center" />
-          </CartProvider>
-        </GoogleOAuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <GoogleOAuthProvider clientId={googleClientId}>
+            <CartProvider>
+              {children}
+              <Toaster position="top-center" />
+            </CartProvider>
+          </GoogleOAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

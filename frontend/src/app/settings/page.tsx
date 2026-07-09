@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/apiClient";
+import { useTheme } from "next-themes";
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState("account");
   const [fullName, setFullName] = useState("");
@@ -163,11 +165,15 @@ export default function SettingsPage() {
               <Section title="Giao diện" desc="Tuỳ chọn màu sắc chủ đề.">
                 <div className="grid grid-cols-3 gap-4">
                   {[
-                    { label: "Sáng", grad: "linear-gradient(135deg, #fff9f0, #ffe4c4)", active: true },
-                    { label: "Tối", grad: "linear-gradient(135deg, #2a1e14, #4a2f1e)" },
-                    { label: "Tự động", grad: "linear-gradient(135deg, #fff9f0 50%, #2a1e14 50%)" },
+                    { id: "light", label: "Sáng", grad: "linear-gradient(135deg, #fff9f0, #ffe4c4)" },
+                    { id: "dark", label: "Tối", grad: "linear-gradient(135deg, #2a1e14, #4a2f1e)" },
+                    { id: "system", label: "Tự động", grad: "linear-gradient(135deg, #fff9f0 50%, #2a1e14 50%)" },
                   ].map((t) => (
-                    <button key={t.label} className={`rounded-2xl p-1 ${t.active ? "ring-2 ring-primary" : ""}`}>
+                    <button 
+                      key={t.id} 
+                      onClick={() => setTheme(t.id)}
+                      className={`rounded-2xl p-1 ${theme === t.id ? "ring-2 ring-primary" : ""}`}
+                    >
                       <div className="h-24 rounded-xl" style={{ background: t.grad }} />
                       <div className="text-sm font-medium mt-2">{t.label}</div>
                     </button>
