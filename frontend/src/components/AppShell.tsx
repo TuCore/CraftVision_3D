@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Box, Home, MessageCircle, Settings, User, LogOut, ShoppingBag, Store } from "lucide-react";
 import { useState, useEffect, type ReactNode } from "react";
 import { useCart } from "@/components/CartProvider";
@@ -9,14 +9,23 @@ import { useCart } from "@/components/CartProvider";
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
   const { cartCount } = useCart();
   const pathname = usePathname();
+  const router = useRouter();
   const [isBumping, setIsBumping] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsDemo(new URLSearchParams(window.location.search).get("demo") === "true");
+      const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
+      setIsDemo(isDemoMode);
+      
+      if (!isDemoMode) {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          router.replace("/auth");
+        }
+      }
     }
-  }, [pathname]);
+  }, [pathname, router]);
 
   useEffect(() => {
     if (cartCount > 0) {
@@ -95,13 +104,20 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 <span className="absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full bg-[color:var(--coral)]" />
               )}
             </Link>
-            <Link
-              href="/auth"
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("email");
+                localStorage.removeItem("fullName");
+                localStorage.removeItem("createdAt");
+                router.replace("/auth");
+              }}
               className="inline-flex items-center gap-1.5 rounded-xl bg-white/70 px-3 py-2 text-sm font-medium hover:bg-white"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Đăng xuất</span>
-            </Link>
+            </button>
               </>
             ) : (
               <Link
