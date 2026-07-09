@@ -63,14 +63,14 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
   return (
     <div className="relative min-h-screen overflow-clip">
-      <div className="blob animate-pulse-glow" style={{ top: -120, left: -100, width: 420, height: 420, background: "oklch(0.78 0.22 35)" }} />
-      <div className="blob animate-pulse-glow" style={{ top: "40%", right: -140, width: 500, height: 500, background: "oklch(0.88 0.18 95)", animationDelay: "1s" }} />
-      <div className="blob animate-pulse-glow" style={{ bottom: -120, left: "30%", width: 460, height: 460, background: "oklch(0.86 0.2 140)", animationDelay: "2s" }} />
+      <div className="blob animate-pulse-glow" style={{ top: -120, left: -100, width: 420, height: 420, background: "var(--color-primary)" }} />
+      <div className="blob animate-pulse-glow" style={{ top: "40%", right: -140, width: 500, height: 500, background: "var(--color-secondary)", animationDelay: "1s" }} />
+      <div className="blob animate-pulse-glow" style={{ bottom: -120, left: "30%", width: 460, height: 460, background: "var(--color-coral)", animationDelay: "2s" }} />
 
       <header className="sticky top-0 z-50 px-4 pt-4">
-        <div className="mx-auto max-w-7xl bg-white/85 backdrop-blur-md border border-white/60 shadow-soft rounded-2xl px-5 py-3 flex items-center justify-between">
+        <div className="mx-auto max-w-7xl bg-card/85 backdrop-blur-md border border-border shadow-soft rounded-2xl px-5 py-3 flex items-center justify-between">
           <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg">
-            <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
+            <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-border" />
             <span className="font-display">
               <span className="gradient-text">Craft</span>Vision
               <span className="text-[color:var(--coral)]">3D</span>
@@ -88,8 +88,8 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   href={item.to}
                   className={`relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-white/80 text-primary shadow-soft"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/50"
+                      ? "bg-card/80 text-primary shadow-soft"
+                      : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                   } ${isCart && isBumping ? 'animate-cart-bump' : ''}`}
                 >
                   <Icon className="h-4 w-4" />
@@ -113,7 +113,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 <Link
               href="/settings"
               className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                active === "settings" ? "bg-white/80 text-primary shadow-soft" : "bg-white/70 hover:bg-white text-muted-foreground hover:text-foreground"
+                active === "settings" ? "bg-card/80 text-primary shadow-soft" : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
               }`}
               title="Cài đặt"
             >
@@ -131,7 +131,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 localStorage.removeItem("createdAt");
                 router.replace("/auth");
               }}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white/70 px-3 py-2 text-sm font-medium hover:bg-white"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-card/70 px-3 py-2 text-sm font-medium hover:bg-card"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Đăng xuất</span>

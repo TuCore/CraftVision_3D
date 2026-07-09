@@ -85,7 +85,7 @@ export default function SettingsPage() {
                   key={t.key}
                   onClick={() => setTab(t.key)}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    active ? "bg-white/90 text-foreground shadow-soft" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                    active ? "bg-card/90 text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/60 hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-4 w-4" /> {t.label}
@@ -112,7 +112,7 @@ export default function SettingsPage() {
                         {fullName ? fullName.charAt(0) : "?"}
                       </div>
                       <div className="flex gap-2">
-                        <button className="text-sm px-3 py-2 rounded-lg bg-white/80 hover:bg-white font-medium">Tải ảnh mới</button>
+                        <button className="text-sm px-3 py-2 rounded-lg bg-card/80 hover:bg-card font-medium">Tải ảnh mới</button>
                         <button className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium">Xoá</button>
                       </div>
                     </div>
@@ -128,12 +128,12 @@ export default function SettingsPage() {
                         rows={3}
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
-                        className="mt-1.5 w-full rounded-xl bg-white/80 border border-border px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
+                        className="mt-1.5 w-full rounded-xl bg-card/80 border border-border px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
                       />
                     </div>
                     <div className="flex gap-3 pt-2">
                       <button onClick={handleSave} className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
-                      <button className="rounded-xl bg-white/70 hover:bg-white px-5 py-2.5 text-sm font-medium">Huỷ</button>
+                      <button className="rounded-xl bg-card/70 hover:bg-card px-5 py-2.5 text-sm font-medium">Huỷ</button>
                     </div>
                   </>
                 )}
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                   <div className="mt-2 flex flex-wrap gap-2">
                     {["Pastel", "Vintage", "Tối giản", "Rustic", "Kawaii", "Boho"].map((s, i) => (
                       <button key={s} className={`px-3.5 py-1.5 rounded-full text-sm font-medium ${
-                        i < 2 ? "btn-hero" : "bg-white/70 hover:bg-white text-muted-foreground"
+                        i < 2 ? "btn-hero" : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
                       }`}>{s}</button>
                     ))}
                   </div>
@@ -263,7 +263,7 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
   return (
     <div>
       <Label className="text-sm">{label}</Label>
-      <Input value={value} onChange={e => onChange?.(e.target.value)} type={type} className="mt-1.5 bg-white/80 h-11" />
+      <Input value={value} onChange={e => onChange?.(e.target.value)} type={type} className="mt-1.5 bg-card/80 h-11" />
     </div>
   );
 }
@@ -272,7 +272,7 @@ function SelectField({ label, options }: { label: string; options: string[] }) {
   return (
     <div>
       <Label className="text-sm">{label}</Label>
-      <select className="mt-1.5 w-full h-11 rounded-xl bg-white/80 border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
+      <select className="mt-1.5 w-full h-11 rounded-xl bg-card/80 border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
         {options.map((o) => <option key={o}>{o}</option>)}
       </select>
     </div>
