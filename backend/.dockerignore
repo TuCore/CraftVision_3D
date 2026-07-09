@@ -1,0 +1,11 @@
+**/.vs
+**/.idea
+**/bin
+**/obj
+**/node_modules
+**/.git
+.env
+.env.local
+.env.*
+appsettings.Development.json
+appsettings.Local.json
