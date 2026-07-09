@@ -72,17 +72,17 @@ export default function ProfilePage() {
         <div className="glass-strong rounded-3xl overflow-hidden">
           {/* Đổi background thành màu pastel trơn */}
           <div className="h-40 md:h-56 relative" style={{ background: "oklch(0.95 0.03 340)" }}>
-            <button className="absolute top-4 right-4 rounded-xl bg-white/80 backdrop-blur px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 hover:bg-white transition-colors">
+            <button className="absolute top-4 right-4 rounded-xl bg-card/80 backdrop-blur px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 hover:bg-card transition-colors">
               <Camera className="h-3.5 w-3.5" /> Đổi ảnh bìa
             </button>
           </div>
           
           <div className="px-6 md:px-10 pb-8 -mt-16 relative flex flex-col items-center text-center">
             <div className="relative mb-4">
-              <div className="h-28 w-28 md:h-32 md:w-32 rounded-full bg-white grid place-items-center text-4xl font-bold text-primary border-4 border-white shadow-soft overflow-hidden">
+              <div className="h-28 w-28 md:h-32 md:w-32 rounded-full bg-card grid place-items-center text-4xl font-bold text-primary border-4 border-card shadow-soft overflow-hidden">
                 <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`} alt="Avatar" className="w-full h-full object-cover" />
               </div>
-              <button className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-white shadow-soft grid place-items-center hover:bg-primary hover:text-white transition-colors border border-border">
+              <button className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-card shadow-soft grid place-items-center hover:bg-primary hover:text-primary-foreground transition-colors border border-border">
                 <Camera className="h-4 w-4" />
               </button>
             </div>
@@ -106,7 +106,7 @@ export default function ProfilePage() {
             </Link>
 
             {/* Stats row - Đã sửa theo yêu cầu */}
-            <div className="w-full max-w-lg mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl bg-white/60 py-4 border border-border/50">
+            <div className="w-full max-w-lg mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl bg-card/60 py-4 border border-border/50">
               {[
                 { v: "12", l: "Dự án handmade" },
                 { v: "5", l: "Sản phẩm đã mua" },
@@ -127,7 +127,7 @@ export default function ProfilePage() {
             {badges.map((b) => {
               const Icon = b.icon;
               return (
-                <div key={b.label} className="flex items-center gap-3 bg-white/70 rounded-xl p-3">
+                <div key={b.label} className="flex items-center gap-3 bg-card/70 rounded-xl p-3">
                   <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${b.color} grid place-items-center text-white shrink-0`}>
                     <Icon className="h-5 w-5" />
                   </div>
@@ -142,7 +142,7 @@ export default function ProfilePage() {
         <section>
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-2xl font-bold font-display">Bộ sưu tập của tôi</h2>
-            <div className="flex gap-1 p-1 bg-white/60 rounded-xl text-sm">
+            <div className="flex gap-1 p-1 bg-card/60 rounded-xl text-sm">
               <button className="px-3 py-1.5 rounded-lg btn-hero">Đã hoàn thành</button>
               <button className="px-3 py-1.5 rounded-lg text-muted-foreground">Đã lưu</button>
             </div>
