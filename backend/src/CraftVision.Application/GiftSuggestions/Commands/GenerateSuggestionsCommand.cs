@@ -7,19 +7,19 @@ using System.Text;
 
 namespace CraftVision.Application.GiftSuggestions.Commands
 {
-    public class GenerateSuggestionsCommand : IRequest<List<GiftSuggestionDto>>
+    public class GenerateSuggestionsCommand : IRequest<GiftChatResponseDto>
     {
         public Guid UserId { get; set; }
         public string? Prompt { get; set; }
         public string? ImageUrl { get; set; }
         
         // Constraints
-        public decimal? MaxCost { get; set; }
+        public string? MaxCost { get; set; }
         public string? Occasion { get; set; }
-        public CraftVision.Domain.Enums.Difficulty? Difficulty { get; set; }
+        public string? Difficulty { get; set; }
     }
 
-    public class GenerateSuggestionsCommandHandler : IRequestHandler<GenerateSuggestionsCommand, List<GiftSuggestionDto>>
+    public class GenerateSuggestionsCommandHandler : IRequestHandler<GenerateSuggestionsCommand, GiftChatResponseDto>
     {
         private readonly IGeminiVisionService _visionService;
         private readonly IEmbeddingService _embeddingService;
@@ -39,8 +39,28 @@ namespace CraftVision.Application.GiftSuggestions.Commands
             _suggestionGenerator = suggestionGenerator;
         }
 
-        public async Task<List<GiftSuggestionDto>> Handle(GenerateSuggestionsCommand request, CancellationToken cancellationToken)
+        public async Task<GiftChatResponseDto> Handle(GenerateSuggestionsCommand request, CancellationToken cancellationToken)
         {
+            // Check if prompt is conversational
+            var lowerPrompt = request.Prompt?.ToLower().Trim() ?? "";
+            var conversationalKeywords = new[] { "chào", "hello", "hi", "xin chào", "bạn là ai", "chúc", "hey" };
+            
+            bool isConversational = false;
+            if (lowerPrompt.Length < 25 && conversationalKeywords.Any(k => lowerPrompt.Contains(k)))
+            {
+                isConversational = true;
+            }
+
+            if (isConversational)
+            {
+                await Task.Delay(500, cancellationToken); // Simulate typing
+                return new GiftChatResponseDto
+                {
+                    Reply = "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
+                    Suggestions = new List<GiftSuggestionDto>()
+                };
+            }
+
             // Tạm thời comment logic gọi AI thật để tránh lỗi API và test giao diện mượt mà (Mock Data)
             /*
             // 1. Quota Check
@@ -246,7 +266,11 @@ namespace CraftVision.Application.GiftSuggestions.Commands
             
             selectedIdeas[1].Id = Guid.NewGuid();
 
-            return selectedIdeas;
+            return new GiftChatResponseDto
+            {
+                Reply = $"Tuyệt vời! Mình đã tìm thấy {selectedIdeas.Count} ý tưởng phù hợp với bạn:",
+                Suggestions = selectedIdeas
+            };
         }
     }
 }

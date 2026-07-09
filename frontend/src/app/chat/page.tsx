@@ -127,10 +127,21 @@ export default function ChatPage() {
         body: JSON.stringify(payload)
       });
 
+      let aiContent = "";
+      let aiSuggestions = [];
+
+      if (res.reply) {
+        aiContent = res.reply;
+        aiSuggestions = res.suggestions || [];
+      } else {
+        aiContent = `Tuyệt vời! Mình đã tìm thấy ${res.length || 0} ý tưởng phù hợp với bạn:`;
+        aiSuggestions = res.length ? res : [];
+      }
+
       setMessages(prev => [...prev, {
         role: "ai",
-        content: `Tuyệt vời! Mình đã tìm thấy ${res.length} ý tưởng phù hợp với bạn:`,
-        suggestions: res
+        content: aiContent,
+        suggestions: aiSuggestions
       }]);
 
     } catch (err: any) {
