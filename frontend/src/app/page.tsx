@@ -38,7 +38,7 @@ export default function Landing() {
             <Link href="/auth" className="btn-hero inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 font-semibold">
               Bắt đầu miễn phí <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl bg-white/80 px-6 py-3.5 font-semibold hover:bg-white">
+            <Link href="/chat?demo=true" className="inline-flex items-center gap-2 rounded-2xl bg-white/80 px-6 py-3.5 font-semibold hover:bg-white">
               <MessageCircle className="h-4 w-4" /> Xem demo chatbot
             </Link>
           </div>

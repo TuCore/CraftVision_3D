@@ -10,6 +10,13 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const { cartCount } = useCart();
   const pathname = usePathname();
   const [isBumping, setIsBumping] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsDemo(new URLSearchParams(window.location.search).get("demo") === "true");
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (cartCount > 0) {
@@ -35,13 +42,14 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
       <header className="sticky top-0 z-50 px-4 pt-4">
         <div className="mx-auto max-w-7xl bg-white/85 backdrop-blur-md border border-white/60 shadow-soft rounded-2xl px-5 py-3 flex items-center justify-between">
-          <Link href="/home" className="flex items-center gap-2 font-bold text-lg">
+          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg">
             <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
             <span className="font-display">
               <span className="gradient-text">Craft</span>Vision
               <span className="text-[color:var(--coral)]">3D</span>
             </span>
           </Link>
+          {!isDemo && (
           <nav className="hidden md:flex items-center gap-1">
             {nav.map((item) => {
               const Icon = item.icon;
@@ -71,8 +79,11 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
               );
             })}
           </nav>
+          )}
           <div className="flex items-center gap-2">
-            <Link
+            {!isDemo ? (
+              <>
+                <Link
               href="/settings"
               className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                 active === "settings" ? "bg-white/80 text-primary shadow-soft" : "bg-white/70 hover:bg-white text-muted-foreground hover:text-foreground"
@@ -91,6 +102,16 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Đăng xuất</span>
             </Link>
+              </>
+            ) : (
+              <Link
+                href="/auth"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:opacity-90"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Thoát Demo</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
