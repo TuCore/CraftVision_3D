@@ -26,6 +26,14 @@ export default function ChatPage() {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    // Đọc URL query parameter để mở thẳng Studio 3D nếu có ?mode=three-d
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "three-d") {
+        setChatMode("three-d");
+      }
+    }
+
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node) && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
