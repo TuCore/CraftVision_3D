@@ -240,4 +240,12 @@ app.MapGet("/api/test-entities", async (ApplicationDbContext db) =>
 })
 .WithName("TestEntitiesMapping");
 
+// --- AUTO MIGRATE DATABASE ---
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    // Tự động chạy tất cả các file Migration để tạo bảng trong Database (nếu chưa có)
+    db.Database.Migrate();
+}
+
 app.Run();
