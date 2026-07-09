@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { AppShell } from "@/components/AppShell";
-import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check } from "lucide-react";
+import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History } from "lucide-react";
 import { fetchApi } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +24,15 @@ export default function ChatPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
 
   useEffect(() => {
     // Đọc URL query parameter để mở thẳng Studio 3D nếu có ?mode=three-d
@@ -137,7 +146,7 @@ export default function ChatPage() {
 
   return (
     <AppShell active="chat">
-      <div className="mx-auto max-w-5xl flex flex-col h-[calc(100vh-6rem)]">
+      <div className="mx-auto max-w-5xl flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] shadow-xl overflow-hidden rounded-3xl border border-white/50 bg-white/20">
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/40 glass-strong rounded-t-3xl relative">
           <div className="relative">
@@ -173,13 +182,19 @@ export default function ChatPage() {
             )}
           </div>
 
+          <button 
+            className="flex items-center gap-1.5 rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-white/50 transition-colors"
+            title="Lịch sử phiên chat"
+          >
+            <History className="h-5 w-5" />
+          </button>
         </header>
 
         {chatMode === "vision" ? (
           <>
 
         {/* Messages Scroll Area */}
-        <div className="glass-card rounded-none p-6 md:p-8 space-y-6 flex-1 overflow-y-auto">
+        <div className="glass-card rounded-none p-6 md:p-8 space-y-6 flex-1 min-h-0 overflow-y-auto scroll-smooth">
           {messages.map((m, idx) => (
             <MessageRow key={idx} role={m.role}>
               {m.imageUrl && (
@@ -251,6 +266,7 @@ export default function ChatPage() {
                </div>
              </MessageRow>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Composer */}
