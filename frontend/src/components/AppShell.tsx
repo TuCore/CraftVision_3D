@@ -24,7 +24,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/shop", label: "Cửa hàng", icon: Store, key: "shop" },
     { to: "/chat", label: "Trợ lý AI", icon: MessageCircle, key: "chat" },
     { to: "/profile", label: "Hồ sơ", icon: User, key: "profile" },
-    { to: "/settings", label: "Cài đặt", icon: Settings, key: "settings" },
+    { to: "/cart", label: "Giỏ hàng", icon: ShoppingBag, key: "cart" },
   ] as const;
 
   return (
@@ -46,6 +46,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {nav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
+              const isCart = item.key === "cart";
               return (
                 <Link
                   key={item.key}
@@ -54,10 +55,15 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                     isActive
                       ? "bg-white/80 text-primary shadow-soft"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/50"
-                  }`}
+                  } ${isCart && isBumping ? 'animate-cart-bump' : ''}`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
+                  {isCart && cartCount > 0 && (
+                    <span className="ml-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                      {cartCount}
+                    </span>
+                  )}
                   {isActive && (
                     <span className="absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full bg-[color:var(--coral)]" />
                   )}
@@ -67,18 +73,14 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </nav>
           <div className="flex items-center gap-2">
             <Link
-              href="/cart"
+              href="/settings"
               className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                active === "cart" ? "bg-white/80 text-primary shadow-soft" : "bg-white/70 hover:bg-white text-muted-foreground hover:text-foreground"
-              } ${isBumping ? 'animate-cart-bump' : ''}`}
+                active === "settings" ? "bg-white/80 text-primary shadow-soft" : "bg-white/70 hover:bg-white text-muted-foreground hover:text-foreground"
+              }`}
+              title="Cài đặt"
             >
-              <ShoppingBag className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                  {cartCount}
-                </span>
-              )}
-              {active === "cart" && (
+              <Settings className="h-5 w-5" />
+              {active === "settings" && (
                 <span className="absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full bg-[color:var(--coral)]" />
               )}
             </Link>
