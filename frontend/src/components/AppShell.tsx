@@ -32,17 +32,6 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     }
   }, [pathname, router]);
 
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex gap-2">
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"0ms"}}></div>
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"150ms"}}></div>
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"300ms"}}></div>
-        </div>
-      </div>
-    );
-  }
 
   useEffect(() => {
     if (cartCount > 0) {
@@ -59,6 +48,18 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/profile", label: "Hồ sơ", icon: User, key: "profile" },
     { to: "/cart", label: "Giỏ hàng", icon: ShoppingBag, key: "cart" },
   ] as const;
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex gap-2">
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"0ms"}}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"150ms"}}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"300ms"}}></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen overflow-clip">
