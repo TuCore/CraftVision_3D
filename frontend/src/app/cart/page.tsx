@@ -36,7 +36,7 @@ export default function CartPage() {
   };
 
   return (
-    <AppShell active="shop">
+    <AppShell active="cart">
       <div className="mx-auto max-w-6xl">
         <h1 className="text-3xl md:text-4xl font-extrabold font-display mb-8 text-foreground">
           Giỏ hàng của bạn
