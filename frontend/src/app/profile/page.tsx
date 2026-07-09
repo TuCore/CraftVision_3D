@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/AppShell";
+import Link from "next/link";
 import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -91,9 +92,9 @@ export default function ProfilePage() {
               </div>
             </div>
             
-            <button className="btn-hero inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold mb-8 hover:scale-105 transition-transform">
+            <Link href="/settings" className="btn-hero inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold mb-8 hover:scale-105 transition-transform">
               <Edit3 className="h-4 w-4" /> Chỉnh sửa
-            </button>
+            </Link>
 
             {/* Stats row - Đã sửa theo yêu cầu */}
             <div className="w-full max-w-lg mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl bg-white/60 py-4 border border-border/50">
