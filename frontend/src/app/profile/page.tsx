@@ -8,11 +8,36 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState("Nguyễn Minh");
   const [email, setEmail] = useState("minh@craft.vn");
 
+  const [location, setLocation] = useState("Đang tải...");
+  const [joinedDate, setJoinedDate] = useState("");
+
   useEffect(() => {
     const storedName = localStorage.getItem("fullName");
     const storedEmail = localStorage.getItem("email");
+    const storedCreatedAt = localStorage.getItem("createdAt");
+
     if (storedName) setFullName(storedName);
     if (storedEmail) setEmail(storedEmail);
+    if (storedCreatedAt) {
+      const d = new Date(storedCreatedAt);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      setJoinedDate(`Tham gia ${mm}/${yyyy}`);
+    } else {
+      setJoinedDate("Thành viên mới");
+    }
+
+    // Lấy vị trí qua IP
+    fetch("https://ipapi.co/json/")
+      .then(r => r.json())
+      .then(data => {
+        if(data.city && data.country_name) {
+          setLocation(`${data.city}, ${data.country_name}`);
+        } else {
+          setLocation("Không xác định");
+        }
+      })
+      .catch(() => setLocation("Hà Nội, Việt Nam"));
   }, []);
 
   const badges = [
@@ -60,9 +85,9 @@ export default function ProfilePage() {
               </div>
               <p className="text-muted-foreground mt-2">"Sáng tạo là hạnh phúc." — Handmade creator 💛</p>
               <div className="flex flex-wrap gap-4 mt-3 justify-center text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Hà Nội, Việt Nam</span>
+                <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {location}</span>
                 <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {email}</span>
-                <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Tham gia 03/2026</span>
+                <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {joinedDate}</span>
               </div>
             </div>
             

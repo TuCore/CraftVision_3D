@@ -33,6 +33,7 @@ export default function AuthPage() {
         localStorage.setItem("userId", res.userId);
         localStorage.setItem("email", res.email);
         localStorage.setItem("fullName", res.fullName);
+        if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
         window.location.href = "/chat";
       } else {
         const res = await fetchApi("/api/auth/login", {
@@ -43,6 +44,7 @@ export default function AuthPage() {
         localStorage.setItem("userId", res.userId);
         localStorage.setItem("email", res.email);
         localStorage.setItem("fullName", res.fullName);
+        if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
         window.location.href = "/chat";
       }
     } catch (err: any) {
@@ -210,6 +212,7 @@ export default function AuthPage() {
                         localStorage.setItem("userId", res.userId);
                         localStorage.setItem("email", res.email);
                         localStorage.setItem("fullName", res.fullName);
+                        if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
                         toast.success("Đăng nhập Google thành công!");
                         window.location.href = "/chat";
                       } catch (err: any) {
