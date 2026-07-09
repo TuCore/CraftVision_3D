@@ -429,7 +429,7 @@ function Studio3DView() {
   return (
     <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-[380px_1fr] bg-card/40 rounded-b-3xl">
       {/* Controls */}
-      <div className="flex flex-col gap-4 overflow-y-auto border-r border-border p-5">
+      <div className="flex flex-col gap-2.5 overflow-y-auto custom-scrollbar border-r border-border p-4">
         <div className="flex rounded-xl bg-muted p-1 text-sm">
           <button 
             onClick={() => setSourceType("image")}
@@ -442,7 +442,7 @@ function Studio3DView() {
         </div>
         
         {sourceType === "image" ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center hover:bg-card/80 transition-colors cursor-pointer relative overflow-hidden min-h-[140px] flex flex-col justify-center items-center" onClick={() => fileInputRef.current?.click()}>
+          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-4 text-center hover:bg-card/80 transition-colors cursor-pointer relative overflow-hidden min-h-[90px] flex flex-col justify-center items-center" onClick={() => fileInputRef.current?.click()}>
             <input 
               type="file" 
               accept="image/*" 
@@ -452,59 +452,59 @@ function Studio3DView() {
             />
             {uploadImage ? (
                <>
-                 <img src={uploadImage} alt="Uploaded" className="max-h-40 w-full object-contain" />
+                 <img src={uploadImage} alt="Uploaded" className="max-h-24 w-full object-contain" />
                  <button onClick={(e) => { e.stopPropagation(); setUploadImage(null); }} className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 shadow-md z-10">
                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                  </button>
                </>
             ) : (
                <>
-                 <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent">
-                   <svg className="h-5 w-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+                 <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent">
+                   <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
                  </div>
                  <div className="text-sm font-medium">Kéo thả ảnh vào đây</div>
-                 <div className="text-xs text-muted-foreground mt-1">PNG, JPG tối đa 10MB</div>
+                 <div className="text-xs text-muted-foreground mt-0.5">PNG, JPG tối đa 10MB</div>
                </>
             )}
           </div>
         ) : (
            <div>
-             <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Mô tả vật thể</label>
-             <textarea rows={4} placeholder="Ví dụ: chiếc cốc gốm sứ màu cam pastel..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-3 text-sm outline-none placeholder:text-muted-foreground" />
+             <label className="mb-1 block text-xs font-medium text-muted-foreground">Mô tả vật thể</label>
+             <textarea rows={2} placeholder="Ví dụ: chiếc cốc gốm sứ màu cam pastel..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-2.5 text-sm outline-none placeholder:text-muted-foreground" />
            </div>
         )}
 
         {sourceType === "image" && (
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Mô tả bổ sung (tuỳ chọn)</label>
-            <textarea rows={2} placeholder="Chi tiết bạn muốn AI chú ý..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-3 text-sm outline-none placeholder:text-muted-foreground"></textarea>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Mô tả bổ sung (tuỳ chọn)</label>
+            <textarea rows={1} placeholder="Chi tiết bạn muốn AI chú ý..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-2.5 text-sm outline-none placeholder:text-muted-foreground"></textarea>
           </div>
         )}
         
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Phong cách</label>
-          <div className="grid grid-cols-2 gap-2">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">Phong cách</label>
+          <div className="grid grid-cols-2 gap-1.5">
             {["Thực tế", "Cách điệu", "Hoạt hình", "Điêu khắc"].map(s => (
                <button 
                  key={s}
                  onClick={() => setStyle(s)}
-                 className={style === s ? "rounded-lg py-2 text-sm text-white shadow-md btn-hero" : "chip-btn rounded-lg py-2 text-sm hover-accent transition-colors"}
+                 className={style === s ? "rounded-lg py-1.5 text-sm text-white shadow-md btn-hero" : "chip-btn rounded-lg py-1.5 text-sm hover-accent transition-colors"}
                >{s}</button>
             ))}
           </div>
         </div>
         
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Chất lượng</label>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">Chất lượng</label>
           <div className="flex rounded-xl bg-muted p-1 text-xs">
-            <button onClick={() => setQuality("fast")} className={`flex-1 rounded-lg px-2 py-1.5 ${quality === "fast" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Nhanh</button>
-            <button onClick={() => setQuality("balance")} className={`flex-1 rounded-lg px-2 py-1.5 ${quality === "balance" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cân bằng</button>
-            <button onClick={() => setQuality("high")} className={`flex-1 rounded-lg px-2 py-1.5 ${quality === "high" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cao</button>
+            <button onClick={() => setQuality("fast")} className={`flex-1 rounded-lg px-2 py-1 ${quality === "fast" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Nhanh</button>
+            <button onClick={() => setQuality("balance")} className={`flex-1 rounded-lg px-2 py-1 ${quality === "balance" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cân bằng</button>
+            <button onClick={() => setQuality("high")} className={`flex-1 rounded-lg px-2 py-1 ${quality === "high" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cao</button>
           </div>
         </div>
         
         {isGenerating ? (
-          <div className="mt-2 rounded-xl p-4 border border-border bg-card/50">
+          <div className="mt-1 rounded-xl p-3 border border-border bg-card/50">
             <div className="flex justify-between items-center mb-2 text-xs font-medium">
               <span className="text-primary flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
@@ -512,7 +512,7 @@ function Studio3DView() {
               </span>
               <span>{progress}%</span>
             </div>
-            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-primary to-[color:var(--coral)] transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -523,16 +523,16 @@ function Studio3DView() {
             </div>
           </div>
         ) : (
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-1 flex flex-col gap-1.5">
             <button 
               onClick={handleMockGenerate}
-              className="rounded-xl py-3 text-sm font-semibold text-white shadow-lg btn-hero w-full"
+              className="rounded-xl py-2.5 text-sm font-semibold text-white shadow-lg btn-hero w-full"
             >
               Tạo mô hình 3D (Demo)
             </button>
             <button 
               onClick={() => router.push('/pricing')}
-              className="rounded-xl py-3 text-sm font-semibold text-[color:var(--coral)] border border-[color:var(--coral)] bg-transparent hover:bg-[color:var(--coral)]/5 transition-colors w-full"
+              className="rounded-xl py-2 text-sm font-semibold text-[color:var(--coral)] border border-[color:var(--coral)] bg-transparent hover:bg-[color:var(--coral)]/5 transition-colors w-full"
             >
               Tạo mô hình 3D chuẩn
             </button>
