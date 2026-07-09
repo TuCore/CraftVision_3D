@@ -114,15 +114,15 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                 new GiftSuggestionDto
                 {
                     Id = Guid.NewGuid(),
-                    Name = $"Giả lập Mock AI: Bạn vừa yêu cầu '{request.Prompt}'",
+                    Name = $"Làm quà tặng theo ý tưởng: '{request.Prompt}'",
                     Difficulty = CraftVision.Domain.Enums.Difficulty.Easy,
                     EstimatedCostRange = "50.000đ - 100.000đ",
                     EstimatedTime = "2 giờ",
-                    Description = "Đây là kết quả giả lập để đội Frontend tha hồ test giao diện cực mượt mà không lo lỗi API hay tốn tiền.",
+                    Description = "Một món quà tự làm mang đầy tâm huyết và tình cảm, rất dễ thực hiện cho người mới bắt đầu.",
                     TotalCost = "75.000đ",
                     SearchKeyword = "Đồ handmade",
                     VideoUrl = "https://youtube.com/watch?v=mock1",
-                    MaterialsJson = "[{\"Name\": \"Vật liệu 1\", \"Price\": 10000}, {\"Name\": \"Vật liệu 2\", \"Price\": 5000}]"
+                    MaterialsJson = "[{\"name\": \"Giấy nhún màu sắc\", \"quantity\": \"5 cuộn\", \"price\": \"10.000đ\", \"total\": \"50.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Keo nến\", \"quantity\": \"5 cây\", \"price\": \"2.000đ\", \"total\": \"10.000đ\"}, {\"name\": \"Đèn LED đóm mini\", \"quantity\": \"1 dây\", \"price\": \"15.000đ\", \"total\": \"15.000đ\"}]"
                 },
                 new GiftSuggestionDto
                 {
@@ -132,10 +132,10 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     EstimatedCostRange = "100.000đ - 200.000đ",
                     EstimatedTime = "4 giờ",
                     Description = "Sử dụng tre và giấy kiếng để làm lồng đèn truyền thống cực đẹp.",
-                    TotalCost = "150.000đ",
+                    TotalCost = "55.000đ",
                     SearchKeyword = "Giấy kiếng lồng đèn",
                     VideoUrl = "https://youtube.com/watch?v=mock2",
-                    MaterialsJson = "[{\"Name\": \"Thanh tre\", \"Price\": 20000}, {\"Name\": \"Giấy kiếng\", \"Price\": 30000}]"
+                    MaterialsJson = "[{\"name\": \"Thanh tre vót sẵn\", \"quantity\": \"10 thanh\", \"price\": \"2.000đ\", \"total\": \"20.000đ\"}, {\"name\": \"Giấy kiếng đủ màu\", \"quantity\": \"5 tờ\", \"price\": \"5.000đ\", \"total\": \"25.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Kẽm buộc\", \"quantity\": \"1 cuộn\", \"price\": \"10.000đ\", \"total\": \"10.000đ\"}]"
                 }
             };
         }
