@@ -115,7 +115,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                 {
                     Id = Guid.NewGuid(),
                     Name = $"Giả lập Mock AI: Bạn vừa yêu cầu '{request.Prompt}'",
-                    Difficulty = CraftVision.Domain.Enums.Difficulty.Beginner,
+                    Difficulty = CraftVision.Domain.Enums.Difficulty.Easy,
                     EstimatedCostRange = "50.000đ - 100.000đ",
                     EstimatedTime = "2 giờ",
                     Description = "Đây là kết quả giả lập để đội Frontend tha hồ test giao diện cực mượt mà không lo lỗi API hay tốn tiền.",
@@ -128,7 +128,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                 {
                     Id = Guid.NewGuid(),
                     Name = "Lồng đèn Trung Thu handmade",
-                    Difficulty = CraftVision.Domain.Enums.Difficulty.Intermediate,
+                    Difficulty = CraftVision.Domain.Enums.Difficulty.Medium,
                     EstimatedCostRange = "100.000đ - 200.000đ",
                     EstimatedTime = "4 giờ",
                     Description = "Sử dụng tre và giấy kiếng để làm lồng đèn truyền thống cực đẹp.",
