@@ -34,7 +34,7 @@ export default function AuthPage() {
         localStorage.setItem("email", res.email);
         localStorage.setItem("fullName", res.fullName);
         if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
-        window.location.href = "/chat";
+        window.location.href = "/home";
       } else {
         const res = await fetchApi("/api/auth/login", {
           method: "POST",
@@ -45,7 +45,7 @@ export default function AuthPage() {
         localStorage.setItem("email", res.email);
         localStorage.setItem("fullName", res.fullName);
         if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
-        window.location.href = "/chat";
+        window.location.href = "/home";
       }
     } catch (err: any) {
       setError(err.message);
@@ -214,7 +214,7 @@ export default function AuthPage() {
                         localStorage.setItem("fullName", res.fullName);
                         if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
                         toast.success("Đăng nhập Google thành công!");
-                        window.location.href = "/chat";
+                        window.location.href = "/home";
                       } catch (err: any) {
                         setError("Đăng nhập Google thất bại: " + err.message);
                       } finally {
