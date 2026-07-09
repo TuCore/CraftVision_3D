@@ -5,8 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { Box, Home, MessageCircle, Settings, User, LogOut, ShoppingBag, Store } from "lucide-react";
 import { useState, useEffect, type ReactNode } from "react";
 import { useCart } from "@/components/CartProvider";
+import { useTranslation } from "@/components/LanguageProvider";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
+  const { t } = useTranslation();
   const { cartCount } = useCart();
   const pathname = usePathname();
   const router = useRouter();
@@ -42,11 +44,11 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   }, [cartCount]);
   
   const nav = [
-    { to: "/home", label: "Trang chủ", icon: Home, key: "home" },
-    { to: "/shop", label: "Cửa hàng", icon: Store, key: "shop" },
-    { to: "/chat", label: "Trợ lý AI", icon: MessageCircle, key: "chat" },
-    { to: "/profile", label: "Hồ sơ", icon: User, key: "profile" },
-    { to: "/cart", label: "Giỏ hàng", icon: ShoppingBag, key: "cart" },
+    { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
+    { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
+    { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
+    { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
+    { to: "/cart", label: t("nav.cart"), icon: ShoppingBag, key: "cart" },
   ] as const;
 
   if (isCheckingAuth) {
@@ -134,7 +136,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
               className="inline-flex items-center gap-1.5 rounded-xl bg-card/70 px-3 py-2 text-sm font-medium hover:bg-card"
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Đăng xuất</span>
+              <span className="hidden sm:inline">{t("nav.logout")}</span>
             </button>
               </>
             ) : (

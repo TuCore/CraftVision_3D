@@ -8,9 +8,12 @@ import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Tra
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/apiClient";
 import { useTheme } from "next-themes";
+import { useTranslation } from "@/components/LanguageProvider";
+import { Language } from "@/lib/dictionaries";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { t, language, setLanguage } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState("account");
   const [fullName, setFullName] = useState("");
@@ -57,13 +60,13 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { key: "account", label: "Tài khoản", icon: User },
-    { key: "notifications", label: "Thông báo", icon: Bell },
-    { key: "privacy", label: "Bảo mật", icon: Lock },
-    { key: "appearance", label: "Giao diện", icon: Palette },
-    { key: "ai", label: "Trợ lý AI", icon: Sparkles },
-    { key: "billing", label: "Thanh toán", icon: CreditCard },
-    { key: "language", label: "Ngôn ngữ", icon: Globe },
+    { key: "account", label: t("settings.account"), icon: User },
+    { key: "notifications", label: t("settings.notifications"), icon: Bell },
+    { key: "privacy", label: t("settings.security"), icon: Lock },
+    { key: "appearance", label: t("settings.appearance"), icon: Palette },
+    { key: "ai", label: t("settings.ai_assistant"), icon: Sparkles },
+    { key: "billing", label: t("settings.billing"), icon: CreditCard },
+    { key: "language", label: t("settings.language"), icon: Globe },
   ];
 
   return (
@@ -221,11 +224,19 @@ export default function SettingsPage() {
             )}
 
             {tab === "language" && (
-              <Section title="Ngôn ngữ & Khu vực">
+              <Section title={t("settings.lang_region")}>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <SelectField label="Ngôn ngữ" options={["Tiếng Việt", "English", "日本語"]} />
-                  <SelectField label="Múi giờ" options={["GMT+7 (Hanoi)", "GMT+9 (Tokyo)", "GMT+0 (London)"]} />
-                  <SelectField label="Tiền tệ" options={["VND (đ)", "USD ($)", "EUR (€)"]} />
+                  <SelectField 
+                    label={t("settings.lang_label")} 
+                    options={[
+                      { value: "vi", label: "Tiếng Việt" },
+                      { value: "en", label: "English" },
+                    ]} 
+                    value={language}
+                    onChange={(val) => setLanguage(val as Language)}
+                  />
+                  <SelectField label={t("settings.timezone")} options={[{value: "gmt7", label: "GMT+7 (Hanoi)"}, {value: "gmt9", label: "GMT+9 (Tokyo)"}]} />
+                  <SelectField label={t("settings.currency")} options={[{value: "vnd", label: "VND (đ)"}, {value: "usd", label: "USD ($)"}]} />
                 </div>
               </Section>
             )}
@@ -233,11 +244,11 @@ export default function SettingsPage() {
             {/* Danger zone */}
             <div className="glass-card rounded-3xl p-6 border border-destructive/20">
               <h3 className="font-bold font-display text-destructive flex items-center gap-2">
-                <Trash2 className="h-4 w-4" /> Vùng nguy hiểm
+                <Trash2 className="h-4 w-4" /> {t("settings.danger_zone")}
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">Xoá tài khoản sẽ xoá toàn bộ dự án và không thể khôi phục.</p>
+              <p className="text-sm text-muted-foreground mt-1">{t("settings.danger_desc")}</p>
               <button className="mt-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground px-4 py-2 text-sm font-semibold transition-colors">
-                Xoá tài khoản
+                {t("settings.delete_account")}
               </button>
             </div>
           </div>
@@ -268,12 +279,16 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
   );
 }
 
-function SelectField({ label, options }: { label: string; options: string[] }) {
+function SelectField({ label, options, value, onChange }: { label: string; options: {value: string, label: string}[]; value?: string; onChange?: (val: string) => void }) {
   return (
     <div>
       <Label className="text-sm">{label}</Label>
-      <select className="mt-1.5 w-full h-11 rounded-xl bg-card/80 border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
-        {options.map((o) => <option key={o}>{o}</option>)}
+      <select 
+        value={value}
+        onChange={e => onChange?.(e.target.value)}
+        className="mt-1.5 w-full h-11 rounded-xl bg-card/80 border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+      >
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
   );

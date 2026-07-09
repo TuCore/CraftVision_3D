@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
+import { LanguageProvider } from "@/components/LanguageProvider";
+
 const poppins = Poppins({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -38,12 +40,14 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <GoogleOAuthProvider clientId={googleClientId}>
-            <CartProvider>
-              {children}
-              <Toaster position="top-center" />
-            </CartProvider>
-          </GoogleOAuthProvider>
+          <LanguageProvider>
+            <GoogleOAuthProvider clientId={googleClientId}>
+              <CartProvider>
+                {children}
+                <Toaster position="top-center" />
+              </CartProvider>
+            </GoogleOAuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>
