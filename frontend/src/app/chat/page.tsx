@@ -177,7 +177,6 @@ export default function ChatPage() {
             <button 
               ref={buttonRef}
               onClick={() => setIsMenuOpen(!isMenuOpen)} 
-              className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover-accent transition-colors"
               className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover:bg-muted transition-colors"
             >
               <span>{modes.find(m => m.id === chatMode)?.title}</span>
