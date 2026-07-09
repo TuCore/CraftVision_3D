@@ -140,7 +140,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Sử dụng tre và giấy kiếng để làm lồng đèn truyền thống cực đẹp.",
                     TotalCost = "150.000đ",
                     SearchKeyword = "Giấy kiếng lồng đèn",
-                    VideoUrl = "https://youtube.com/watch?v=mock2",
+                    VideoUrl = "https://youtu.be/hvKnNrQobPc?si=rjMDr-yVlwa4Eso2",
                     MaterialsJson = "[{\"name\": \"Thanh tre vót sẵn\", \"quantity\": \"10 thanh\", \"price\": \"2.000đ\", \"total\": \"20.000đ\"}, {\"name\": \"Giấy kiếng đủ màu\", \"quantity\": \"5 tờ\", \"price\": \"5.000đ\", \"total\": \"25.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Kẽm buộc\", \"quantity\": \"1 cuộn\", \"price\": \"10.000đ\", \"total\": \"10.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -152,7 +152,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Làm thiệp 3D đơn giản mà vô cùng ý nghĩa để tặng người thương.",
                     TotalCost = "35.000đ",
                     SearchKeyword = "Giấy mỹ thuật",
-                    VideoUrl = "https://youtube.com/watch?v=mock3",
+                    VideoUrl = "https://youtu.be/iLhhRjkjStc?si=p7QCaQzZVdIy-zVu",
                     MaterialsJson = "[{\"name\": \"Giấy bìa màu cứng\", \"quantity\": \"3 tờ\", \"price\": \"5.000đ\", \"total\": \"15.000đ\"}, {\"name\": \"Keo dán giấy\", \"quantity\": \"1 chai\", \"price\": \"10.000đ\", \"total\": \"10.000đ\"}, {\"name\": \"Kéo cắt viền\", \"quantity\": \"1 cái\", \"price\": \"10.000đ\", \"total\": \"10.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -164,7 +164,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Hộp quà bất ngờ với nhiều lớp mở ra chứa đầy hình ảnh kỷ niệm.",
                     TotalCost = "210.000đ",
                     SearchKeyword = "Phụ kiện làm exploding box",
-                    VideoUrl = "https://youtube.com/watch?v=mock4",
+                    VideoUrl = "https://youtu.be/nsTiQ98VSwc?si=V8GvrB59uZJ5ambZ",
                     MaterialsJson = "[{\"name\": \"Giấy kraft dày\", \"quantity\": \"5 tờ\", \"price\": \"10.000đ\", \"total\": \"50.000đ\"}, {\"name\": \"Băng keo 2 mặt siêu dính\", \"quantity\": \"2 cuộn\", \"price\": \"15.000đ\", \"total\": \"30.000đ\"}, {\"name\": \"Sticker trang trí\", \"quantity\": \"3 bộ\", \"price\": \"20.000đ\", \"total\": \"60.000đ\"}, {\"name\": \"In ảnh mini\", \"quantity\": \"20 tấm\", \"price\": \"3.500đ\", \"total\": \"70.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -176,7 +176,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Tự đun sáp và tạo ra ly nến thơm mang đậm dấu ấn cá nhân.",
                     TotalCost = "250.000đ",
                     SearchKeyword = "Sáp nến đậu nành",
-                    VideoUrl = "https://youtube.com/watch?v=mock5",
+                    VideoUrl = "https://youtu.be/uDEmEUlQQYo?si=e9q_It3k6_dQUh3F",
                     MaterialsJson = "[{\"name\": \"Sáp đậu nành (Soy Wax)\", \"quantity\": \"500g\", \"price\": \"80.000đ\", \"total\": \"80.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Tinh dầu thiên nhiên\", \"quantity\": \"1 lọ 10ml\", \"price\": \"100.000đ\", \"total\": \"100.000đ\"}, {\"name\": \"Hoa khô trang trí\", \"quantity\": \"1 hộp\", \"price\": \"40.000đ\", \"total\": \"40.000đ\"}, {\"name\": \"Bấc nến gỗ\", \"quantity\": \"5 cái\", \"price\": \"6.000đ\", \"total\": \"30.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -188,7 +188,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Sáng tạo khung ảnh độc lạ từ những chiếc cúc áo nhiều màu sắc.",
                     TotalCost = "85.000đ",
                     SearchKeyword = "Cúc áo mix màu",
-                    VideoUrl = "https://youtube.com/watch?v=mock6",
+                    VideoUrl = "https://youtu.be/5b5tz78jwpQ?si=3QoGha-Q-LHvtaX4",
                     MaterialsJson = "[{\"name\": \"Khung ảnh gỗ trơn\", \"quantity\": \"1 cái\", \"price\": \"40.000đ\", \"total\": \"40.000đ\"}, {\"name\": \"Cúc áo nhiều màu\", \"quantity\": \"1 bịch 100g\", \"price\": \"35.000đ\", \"total\": \"35.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Keo nến\", \"quantity\": \"5 cây\", \"price\": \"2.000đ\", \"total\": \"10.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -200,7 +200,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Đan vòng tay họa tiết Boho siêu xinh bằng dây cotton.",
                     TotalCost = "45.000đ",
                     SearchKeyword = "Dây cotton macrame",
-                    VideoUrl = "https://youtube.com/watch?v=mock7",
+                    VideoUrl = "https://youtu.be/DufzhEmgBGU?si=Ks14bCtIdQq3D4tb",
                     MaterialsJson = "[{\"name\": \"Dây cotton macrame 2mm\", \"quantity\": \"1 cuộn\", \"price\": \"25.000đ\", \"total\": \"25.000đ\"}, {\"name\": \"Hạt cườm gỗ\", \"quantity\": \"20 hạt\", \"price\": \"1.000đ\", \"total\": \"20.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -212,7 +212,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Nặn chậu sen đá siêu thực không bao giờ tàn.",
                     TotalCost = "115.000đ",
                     SearchKeyword = "Đất sét tự khô",
-                    VideoUrl = "https://youtube.com/watch?v=mock8",
+                    VideoUrl = "https://youtu.be/tGB-1fnB3VA?si=ds8aUXuGssKbBImc",
                     MaterialsJson = "[{\"name\": \"Đất sét tự khô Thái Lan\", \"quantity\": \"1 cục 250g\", \"price\": \"50.000đ\", \"total\": \"50.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Màu nước Acrylic\", \"quantity\": \"1 bộ 12 màu\", \"price\": \"45.000đ\", \"total\": \"45.000đ\"}, {\"name\": \"Chậu sứ mini\", \"quantity\": \"1 cái\", \"price\": \"20.000đ\", \"total\": \"20.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -224,7 +224,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Tự khâu sổ tay phong cách cổ điển với bìa giả da.",
                     TotalCost = "120.000đ",
                     SearchKeyword = "Da PU làm đồ handmade",
-                    VideoUrl = "https://youtube.com/watch?v=mock9",
+                    VideoUrl = "https://youtu.be/ulx2d1XAVXQ?si=24iJsOOfxABjh6X7",
                     MaterialsJson = "[{\"name\": \"Giấy kraft ruột sổ\", \"quantity\": \"100 tờ\", \"price\": \"40.000đ\", \"total\": \"40.000đ\"}, {\"name\": \"Da PU mềm\", \"quantity\": \"1 tấm 30x40cm\", \"price\": \"60.000đ\", \"total\": \"60.000đ\"}, {\"name\": \"Chỉ sáp khâu da\", \"quantity\": \"1 cuộn\", \"price\": \"20.000đ\", \"total\": \"20.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -236,7 +236,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Món quà đòi hỏi sự kiên nhẫn nhưng thành quả cực kỳ lấp lánh.",
                     TotalCost = "180.000đ",
                     SearchKeyword = "Set tranh đính đá",
-                    VideoUrl = "https://youtube.com/watch?v=mock10",
+                    VideoUrl = "https://youtube.com/shorts/HBcGfgIONyQ?si=ykIh3pPgeRNhnzoR",
                     MaterialsJson = "[{\"name\": \"Set tranh đính đá hoa cúc\", \"quantity\": \"1 set\", \"price\": \"120.000đ\", \"total\": \"120.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Khung tranh gỗ\", \"quantity\": \"1 cái\", \"price\": \"60.000đ\", \"total\": \"60.000đ\"}]"
                 },
                 new GiftSuggestionDto
@@ -248,7 +248,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                     Description = "Dùng kim chọc len để tạo hình thú cưng bông xù siêu đáng yêu.",
                     TotalCost = "65.000đ",
                     SearchKeyword = "Set len chọc",
-                    VideoUrl = "https://youtube.com/watch?v=mock11",
+                    VideoUrl = "https://youtu.be/5qUC_MgeFRU?si=sEylgy6sCxjeulQG",
                     MaterialsJson = "[{\"name\": \"Set len chọc cơ bản\", \"quantity\": \"1 set\", \"price\": \"50.000đ\", \"total\": \"50.000đ\", \"purchaseUrl\": \"https://shopee.vn/\"}, {\"name\": \"Phôi móc khóa\", \"quantity\": \"5 cái\", \"price\": \"3.000đ\", \"total\": \"15.000đ\"}]"
                 }
             };
