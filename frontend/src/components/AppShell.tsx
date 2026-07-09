@@ -116,7 +116,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
         </div>
       </header>
 
-      <main key={pathname} className="relative z-10 px-4 py-8 md:py-12 animate-fade-in-page">
+      <main key={pathname} className={`relative z-10 px-4 animate-fade-in-page ${pathname.startsWith('/chat') ? 'py-4 md:py-6' : 'py-8 md:py-12'}`}>
         {children}
       </main>
       
