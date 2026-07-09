@@ -1,4 +1,5 @@
 using System.Text;
+using CraftVision.Presentation.HostedServices;
 using CraftVision.Application;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Providers;
@@ -166,6 +167,9 @@ builder.Services.AddScoped<IAiChatSessionRepository, AiChatSessionRepository>();
 builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
 builder.Services.AddScoped<IKnowledgeRetrievalService, KnowledgeRetrievalService>();
 builder.Services.AddScoped<IAiChatService, AiChatService>();
+
+// Register Hosted Services
+builder.Services.AddHostedService<MemoryMonitorService>();
 
 var app = builder.Build();
 
