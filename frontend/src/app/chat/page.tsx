@@ -178,18 +178,19 @@ export default function ChatPage() {
               ref={buttonRef}
               onClick={() => setIsMenuOpen(!isMenuOpen)} 
               className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover-accent transition-colors"
+              className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover:bg-muted transition-colors"
             >
               <span>{modes.find(m => m.id === chatMode)?.title}</span>
               <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             
             {isMenuOpen && (
-              <div ref={menuRef} className="absolute left-0 top-full mt-1.5 w-[320px] rounded-2xl border border-border bg-popover p-1.5 shadow-xl z-50">
+              <div ref={menuRef} className="absolute z-50 left-0 top-full mt-2 w-72 bg-card/95 backdrop-blur-md rounded-2xl shadow-xl border border-border p-2">
                 {modes.map(m => (
                   <button 
                     key={m.id}
                     onClick={() => { setChatMode(m.id as any); setIsMenuOpen(false); }}
-                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover-accent transition-colors"
+                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-muted transition-colors"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
                       <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
@@ -210,20 +211,20 @@ export default function ChatPage() {
             <button 
               ref={historyBtnRef}
               onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-              className="flex items-center gap-1.5 rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-white/50 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               title="Lịch sử phiên chat"
             >
               <History className="h-5 w-5" />
             </button>
             
             {isHistoryOpen && (
-              <div ref={historyRef} className="absolute right-0 top-full mt-1.5 w-[300px] rounded-2xl border border-border bg-popover p-1.5 shadow-xl z-50 animate-fade-in-page">
+              <div ref={historyRef} className="absolute z-50 right-0 top-full mt-2 w-80 bg-card/95 backdrop-blur-md rounded-2xl shadow-xl border border-border p-2 animate-fade-in-page">
                 <div className="px-3 py-2 text-sm font-semibold text-foreground border-b border-border/50 mb-1">
                   Lịch sử gần đây
                 </div>
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                   {mockHistory.map(h => (
-                    <button key={h.id} className="w-full text-left p-2.5 hover:bg-muted rounded-xl transition-colors mb-1 group">
+                    <button key={h.id} className="w-full text-left p-3 hover:bg-muted rounded-xl transition-colors mb-1 group">
                       <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{h.title}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">{h.date} • {h.time}</div>
                     </button>
@@ -319,7 +320,7 @@ export default function ChatPage() {
         </div>
 
         {/* Composer */}
-        <div className="glass-strong rounded-b-3xl p-4 shrink-0 border-t border-white/40">
+        <div className="glass-strong rounded-b-3xl p-4 shrink-0 border-t border-border">
           
           {/* Image Preview Area */}
           {imagePreviewUrl && (
@@ -331,7 +332,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          <div className="bg-white/60 rounded-2xl p-2 flex items-end gap-2 border border-white/50 shadow-inner">
+          <div className="bg-card/60 rounded-2xl p-2 flex items-end gap-2 border border-border shadow-inner">
             <input 
               type="file" 
               accept="image/*" 
@@ -341,7 +342,7 @@ export default function ChatPage() {
             />
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="h-11 w-11 rounded-xl grid place-items-center shrink-0 text-muted-foreground hover:bg-white/80 hover:text-primary transition-colors"
+              className="h-11 w-11 rounded-xl grid place-items-center shrink-0 text-muted-foreground hover:bg-card/80 hover:text-primary transition-colors"
               title="Đính kèm ảnh"
             >
               <ImageIcon className="h-5 w-5" />
@@ -719,7 +720,7 @@ function AiMessageRenderer({ msg }: { msg: Message }) {
                 href={parsedData.featuredIdea.tutorial.url || "#"}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 flex items-center gap-4 bg-gradient-to-r from-rose-50 to-orange-50 rounded-2xl p-4 border border-white/60 hover:shadow-soft transition-all group"
+                className="mt-4 flex items-center gap-4 bg-muted/30 rounded-2xl p-4 border border-border hover:shadow-soft transition-all group"
               >
                 <div className="h-14 w-24 rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 grid place-items-center relative overflow-hidden">
                   <Video className="h-6 w-6 text-white relative z-10" />
@@ -736,10 +737,10 @@ function AiMessageRenderer({ msg }: { msg: Message }) {
 
             {/* Actions */}
             <div className="mt-4 flex gap-2">
-              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white font-medium">
+              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-card/80 hover:bg-card font-medium">
                 <Bookmark className="h-3.5 w-3.5" /> Lưu ý tưởng
               </button>
-              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white font-medium">
+              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-card/80 hover:bg-card font-medium">
                 Bắt đầu dự án
               </button>
             </div>
@@ -761,10 +762,10 @@ function MessageRow({ role, children }: { role: "user" | "ai"; children: React.R
   const isUser = role === "user";
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
-      <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${isUser ? "bg-white/80 shadow-sm" : "btn-hero shadow-md"}`}>
+      <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${isUser ? "bg-card/80 shadow-sm" : "btn-hero shadow-md"}`}>
         {isUser ? <User className="h-4 w-4 text-primary" /> : <Bot className="h-4 w-4" />}
       </div>
-      <div className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-sm ${isUser ? "bg-primary text-primary-foreground" : "bg-white/80 border border-white/60"}`}>
+      <div className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-sm ${isUser ? "bg-primary text-primary-foreground" : "bg-card/80 border border-border"}`}>
         {children}
       </div>
     </div>
@@ -774,7 +775,7 @@ function MessageRow({ role, children }: { role: "user" | "ai"; children: React.R
 function Chip({ icon: Icon, label, tone }: { icon: React.ComponentType<{ className?: string }>; label: string; tone?: "ok" }) {
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
-      tone === "ok" ? "bg-green-100 text-green-700" : "bg-black/5 text-muted-foreground"
+      tone === "ok" ? "bg-green-500/20 text-green-700 dark:text-green-400" : "bg-muted text-muted-foreground"
     }`}>
       <Icon className="h-3.5 w-3.5" /> {label}
     </span>
