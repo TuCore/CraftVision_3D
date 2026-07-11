@@ -17,3 +17,7 @@ obj/
 # Production Secrets
 .env.production
 *.pem
+
+# Logs
+**/logs/
+logs/
