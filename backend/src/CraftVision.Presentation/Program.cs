@@ -1,5 +1,6 @@
 using System.Text;
 using CraftVision.Presentation.HostedServices;
+using CraftVision.Presentation.Middlewares;
 using CraftVision.Application;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Providers;
@@ -172,6 +173,8 @@ builder.Services.AddScoped<IAiChatService, AiChatService>();
 builder.Services.AddHostedService<MemoryMonitorService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ApiProfilerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

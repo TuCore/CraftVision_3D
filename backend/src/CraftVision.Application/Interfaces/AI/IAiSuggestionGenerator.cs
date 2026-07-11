@@ -2,8 +2,10 @@ using CraftVision.Domain.Entities;
 
 namespace CraftVision.Application.Interfaces.AI
 {
+    public record AiSuggestionResponse(List<GiftSuggestion> Suggestions, string FinishReason);
+
     public interface IAiSuggestionGenerator
     {
-        Task<List<GiftSuggestion>> GenerateSuggestionsAsync(string intent, string retrievedContext);
+        Task<AiSuggestionResponse> GenerateSuggestionsAsync(string intent, string retrievedContext);
     }
 }
