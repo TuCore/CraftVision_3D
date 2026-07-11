@@ -103,17 +103,13 @@ namespace CraftVision.Application.Services
             }
         }
 
-        public async Task<List<KnowledgeMaterial>> SearchMaterialsAsync(string queryText, int topK = 5, double similarityThreshold = 0.7)
+        public async Task<List<KnowledgeMaterial>> SearchMaterialsAsync(Vector queryVector, int topK = 5, double similarityThreshold = 0.7)
         {
-            var vectorArray = await _embeddingProvider.GenerateEmbeddingAsync(queryText);
-            var queryVector = new Vector(vectorArray);
             return await _unitOfWork.KnowledgeMaterials.FindSimilarAsync(queryVector, topK, similarityThreshold);
         }
 
-        public async Task<List<KnowledgeTutorial>> SearchTutorialsAsync(string queryText, int topK = 3, double similarityThreshold = 0.7)
+        public async Task<List<KnowledgeTutorial>> SearchTutorialsAsync(Vector queryVector, int topK = 3, double similarityThreshold = 0.7)
         {
-            var vectorArray = await _embeddingProvider.GenerateEmbeddingAsync(queryText);
-            var queryVector = new Vector(vectorArray);
             return await _unitOfWork.KnowledgeTutorials.FindSimilarAsync(queryVector, topK, similarityThreshold);
         }
     }

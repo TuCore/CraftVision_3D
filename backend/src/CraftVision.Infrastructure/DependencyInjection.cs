@@ -20,6 +20,9 @@ namespace CraftVision.Infrastructure
 
             services.AddHttpContextAccessor();
             services.AddScoped<CraftVision.Application.Interfaces.Providers.IObjectStorageService, CraftVision.Infrastructure.Providers.LocalObjectStorageService>();
+            
+            services.AddSingleton<CraftVision.Infrastructure.Diagnostics.IMarkdownWriter, CraftVision.Infrastructure.Diagnostics.MarkdownWriter>();
+            services.AddScoped<CraftVision.Application.Common.Diagnostics.IAiProfiler, CraftVision.Infrastructure.Diagnostics.AiProfiler>();
 
             // Register Gemini AI Services with Polly retry policy
             var retryPolicy = GetRetryPolicy();

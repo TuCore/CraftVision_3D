@@ -5,6 +5,11 @@ using CraftVision.Application.Interfaces.Services;
 using CraftVision.Domain.Entities;
 using CraftVision.Domain.Enums;
 using System.Text;
+using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using CraftVision.Application.Common.Diagnostics;
+using CraftVision.Application.Common.Diagnostics.Models;
+using Pgvector;
 
 namespace CraftVision.Application.Services
 {
@@ -13,15 +18,24 @@ namespace CraftVision.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAiChatProvider _aiChatProvider;
         private readonly IKnowledgeRetrievalService _knowledgeService;
+        private readonly IEmbeddingProvider _embeddingProvider;
+        private readonly IAiProfiler _profiler;
+        private readonly IConfiguration _configuration;
 
         public AiChatService(
             IUnitOfWork unitOfWork,
             IAiChatProvider aiChatProvider,
-            IKnowledgeRetrievalService knowledgeService)
+            IKnowledgeRetrievalService knowledgeService,
+            IEmbeddingProvider embeddingProvider,
+            IAiProfiler profiler,
+            IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _aiChatProvider = aiChatProvider;
             _knowledgeService = knowledgeService;
+            _embeddingProvider = embeddingProvider;
+            _profiler = profiler;
+            _configuration = configuration;
         }
 
         public async Task<AiChatSession> CreateSessionAsync(Guid userId, string? title = null)
@@ -51,60 +65,122 @@ namespace CraftVision.Application.Services
 
         public async Task<ChatMessageResult> SendMessageAsync(Guid userId, Guid sessionId, string content)
         {
-            var session = await _unitOfWork.AiChatSessions.GetByIdAsync(sessionId);
-            if (session == null || session.UserId != userId)
-                throw new UnauthorizedAccessException("Session not found or access denied.");
+            var totalSw = Stopwatch.StartNew();
+            var stepSw = new Stopwatch();
 
-            session.LastActiveAt = DateTime.UtcNow;
-
-            var userMessage = new AiChatMessage
+            var profile = new AiChatProfile
             {
                 SessionId = sessionId,
-                Role = MessageRole.User,
-                Content = content
+                UserQuestion = content,
+                UserQuestionLength = content.Length,
+                ModelName = _configuration["AiSettings:Gemini:Model"] ?? "gemini-2.5-flash",
+                EmbeddingModel = _configuration["AiSettings:Gemini:EmbeddingModel"] ?? "text-embedding-004",
+                EmbeddingDimension = int.TryParse(_configuration["AiSettings:Gemini:EmbeddingDimension"], out var dim) ? dim : 768,
+                TopKMaterials = 3,
+                TopKTutorials = 2
             };
-            await _unitOfWork.AiChatMessages.AddAsync(userMessage);
 
-            var materials = await _knowledgeService.SearchMaterialsAsync(content, topK: 3);
-            var tutorials = await _knowledgeService.SearchTutorialsAsync(content, topK: 2);
-
-            var systemPrompt = BuildSystemPrompt(materials, tutorials);
-
-            var history = await _unitOfWork.AiChatMessages.GetRecentMessagesBySessionIdAsync(sessionId, 10);
-            var recentHistory = history.Select(m => (m.Role.ToString(), m.Content)).ToList();
-
-            var aiResponseContent = await _aiChatProvider.GenerateChatResponseAsync(systemPrompt, recentHistory, content);
-
-            var sources = materials.Select(m => new ChatSourceDto { Id = m.Id, Type = "Material", Name = m.Name })
-                .Concat(tutorials.Select(t => new ChatSourceDto { Id = t.Id, Type = "Tutorial", Name = t.Title }))
-                .ToList();
-
-            var retrievedContextIds = materials.Select(m => m.Id)
-                .Concat(tutorials.Select(t => t.Id))
-                .ToList();
-
-            var aiMessage = new AiChatMessage
+            try
             {
-                SessionId = sessionId,
-                Role = MessageRole.Assistant,
-                Content = aiResponseContent,
-                RetrievedContextIds = retrievedContextIds.Any() ? retrievedContextIds : null
-            };
-            
-            await _unitOfWork.AiChatMessages.AddAsync(aiMessage);
-            
-            if (string.IsNullOrEmpty(session.Title) || session.Title == "New Chat")
-            {
-                session.Title = content.Length > 30 ? content.Substring(0, 30) + "..." : content;
+                var session = await _unitOfWork.AiChatSessions.GetByIdAsync(sessionId);
+                if (session == null || session.UserId != userId)
+                    throw new UnauthorizedAccessException("Session not found or access denied.");
+
+                session.LastActiveAt = DateTime.UtcNow;
+
+                var userMessage = new AiChatMessage
+                {
+                    SessionId = sessionId,
+                    Role = MessageRole.User,
+                    Content = content
+                };
+                await _unitOfWork.AiChatMessages.AddAsync(userMessage);
+
+                stepSw.Restart();
+                var vectorArray = await _embeddingProvider.GenerateEmbeddingAsync(content);
+                var queryVector = new Vector(vectorArray);
+                profile.EmbeddingTimeMs = stepSw.ElapsedMilliseconds;
+
+                stepSw.Restart();
+                var materials = await _knowledgeService.SearchMaterialsAsync(queryVector, topK: profile.TopKMaterials);
+                var tutorials = await _knowledgeService.SearchTutorialsAsync(queryVector, topK: profile.TopKTutorials);
+                profile.SearchTimeMs = stepSw.ElapsedMilliseconds;
+                profile.RetrievedMaterials = materials.Count;
+                profile.RetrievedTutorials = tutorials.Count;
+                profile.RetrievedSources.AddRange(materials.Select(m => $"[Material] {m.Name}"));
+                profile.RetrievedSources.AddRange(tutorials.Select(t => $"[Tutorial] {t.Title}"));
+
+                stepSw.Restart();
+                var systemPrompt = BuildSystemPrompt(materials, tutorials);
+                var history = await _unitOfWork.AiChatMessages.GetRecentMessagesBySessionIdAsync(sessionId, 10);
+                var recentHistory = history.Select(m => (m.Role.ToString(), m.Content)).ToList();
+                
+                profile.PromptBuildTimeMs = stepSw.ElapsedMilliseconds;
+                profile.HistoryCount = recentHistory.Count;
+                profile.ContextLength = systemPrompt.Length;
+                profile.HistoryLength = string.Join(" ", recentHistory.Select(x => x.Item2)).Length;
+                profile.FinalPromptLength = profile.ContextLength + profile.HistoryLength + content.Length;
+                profile.PromptPreview = new string(systemPrompt.Take(200).ToArray());
+
+                stepSw.Restart();
+                var aiResponse = await _aiChatProvider.GenerateChatResponseAsync(systemPrompt, recentHistory, content);
+                var aiResponseContent = aiResponse.Content;
+                profile.GeminiTimeMs = stepSw.ElapsedMilliseconds;
+                profile.GeminiFinishReason = aiResponse.FinishReason;
+                profile.ResponseLength = aiResponseContent.Length;
+
+                stepSw.Restart();
+                var sources = materials.Select(m => new ChatSourceDto { Id = m.Id, Type = "Material", Name = m.Name })
+                    .Concat(tutorials.Select(t => new ChatSourceDto { Id = t.Id, Type = "Tutorial", Name = t.Title }))
+                    .ToList();
+
+                var retrievedContextIds = materials.Select(m => m.Id)
+                    .Concat(tutorials.Select(t => t.Id))
+                    .ToList();
+
+                var aiMessage = new AiChatMessage
+                {
+                    SessionId = sessionId,
+                    Role = MessageRole.Assistant,
+                    Content = aiResponseContent,
+                    RetrievedContextIds = retrievedContextIds.Any() ? retrievedContextIds : null
+                };
+                
+                await _unitOfWork.AiChatMessages.AddAsync(aiMessage);
+                
+                if (string.IsNullOrEmpty(session.Title) || session.Title == "New Chat")
+                {
+                    session.Title = content.Length > 30 ? content.Substring(0, 30) + "..." : content;
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                profile.SaveTimeMs = stepSw.ElapsedMilliseconds;
+
+                return new ChatMessageResult
+                {
+                    Message = aiMessage,
+                    Sources = sources.Any() ? sources : null
+                };
             }
-
-            await _unitOfWork.SaveChangesAsync();
-
-            return new ChatMessageResult
+            catch (System.Net.Http.HttpRequestException ex)
             {
-                Message = aiMessage,
-                Sources = sources.Any() ? sources : null
-            };
+                profile.IsSuccess = false;
+                profile.ErrorReason = $"{ex.GetType().Name}: {ex.Message}";
+                profile.GeminiStatus = ex.StatusCode.HasValue ? $"{(int)ex.StatusCode} {ex.StatusCode}" : "HTTP Error";
+                throw;
+            }
+            catch (Exception ex)
+            {
+                profile.IsSuccess = false;
+                profile.ErrorReason = $"{ex.GetType().Name}: {ex.Message}";
+                throw;
+            }
+            finally
+            {
+                totalSw.Stop();
+                profile.TotalTimeMs = totalSw.ElapsedMilliseconds;
+                _profiler.Log(profile);
+            }
         }
 
         private string BuildSystemPrompt(List<KnowledgeMaterial> materials, List<KnowledgeTutorial> tutorials)

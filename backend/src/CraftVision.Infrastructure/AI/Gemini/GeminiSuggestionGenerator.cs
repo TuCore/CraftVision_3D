@@ -17,7 +17,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
             _geminiClient = geminiClient;
         }
 
-        public async Task<List<GiftSuggestion>> GenerateSuggestionsAsync(string intent, string retrievedContext)
+        public async Task<AiSuggestionResponse> GenerateSuggestionsAsync(string intent, string retrievedContext)
         {
             var systemPrompt = SuggestionPromptTemplate.SystemPrompt;
             var userPrompt = SuggestionPromptTemplate.BuildUserPrompt(intent, retrievedContext);
@@ -106,9 +106,9 @@ namespace CraftVision.Infrastructure.AI.Gemini
             try
             {
                 var dtos = JsonSerializer.Deserialize<List<GeminiSuggestionResponseDto>>(jsonText);
-                if (dtos == null) return new List<GiftSuggestion>();
+                if (dtos == null) return new AiSuggestionResponse(new List<GiftSuggestion>(), candidate.FinishReason ?? "UNKNOWN");
 
-                return dtos.Select(dto => new GiftSuggestion
+                var list = dtos.Select(dto => new GiftSuggestion
                 {
                     Id = Guid.NewGuid(),
                     Name = dto.Name,
@@ -121,6 +121,8 @@ namespace CraftVision.Infrastructure.AI.Gemini
                     VideoUrl = dto.VideoUrl,
                     MaterialsJson = dto.Materials != null ? JsonSerializer.Serialize(dto.Materials) : null
                 }).ToList();
+
+                return new AiSuggestionResponse(list, candidate.FinishReason ?? "UNKNOWN");
             }
             catch (JsonException ex)
             {

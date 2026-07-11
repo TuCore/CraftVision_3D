@@ -18,7 +18,7 @@ namespace CraftVision.Infrastructure.Providers
             _logger = logger;
         }
 
-        public async Task<string> GenerateChatResponseAsync(string systemPrompt, IEnumerable<(string Role, string Content)> chatHistory, string userMessage)
+        public async Task<AiChatResponse> GenerateChatResponseAsync(string systemPrompt, IEnumerable<(string Role, string Content)> chatHistory, string userMessage)
         {
             var apiKey = _configuration["AiSettings:Gemini:ApiKey"];
             var model = _configuration["AiSettings:Gemini:ChatVisionModel"] ?? "gemini-1.5-flash";
@@ -26,7 +26,7 @@ namespace CraftVision.Infrastructure.Providers
             if (string.IsNullOrEmpty(apiKey) || apiKey == "REPLACE_GEMINI_API_KEY")
             {
                 _logger.LogWarning("Gemini API Key is missing. Returning fallback message.");
-                return "Đây là tin nhắn trả lời tự động do chưa cấu hình API Key của Gemini.";
+                return new AiChatResponse("Đây là tin nhắn trả lời tự động do chưa cấu hình API Key của Gemini.", "MOCK");
             }
 
             var requestUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
@@ -82,8 +82,11 @@ namespace CraftVision.Infrastructure.Providers
 
             var responseData = await response.Content.ReadFromJsonAsync<GeminiChatResponse>();
             
-            var responseText = responseData?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
-            return responseText ?? "Xin lỗi, tôi không thể trả lời lúc này.";
+            var candidate = responseData?.Candidates?.FirstOrDefault();
+            var responseText = candidate?.Content?.Parts?.FirstOrDefault()?.Text ?? "Xin lỗi, tôi không thể trả lời lúc này.";
+            var finishReason = candidate?.FinishReason ?? "UNKNOWN";
+            
+            return new AiChatResponse(responseText, finishReason);
         }
 
         private class GeminiChatResponse
@@ -94,6 +97,7 @@ namespace CraftVision.Infrastructure.Providers
         private class GeminiCandidate
         {
             public GeminiContent? Content { get; set; }
+            public string? FinishReason { get; set; }
         }
 
         private class GeminiContent

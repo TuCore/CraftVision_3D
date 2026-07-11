@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using CraftVision.Application.Interfaces.Services;
+using CraftVision.Application.Interfaces.Providers;
 using Microsoft.AspNetCore.Mvc;
+using Pgvector;
 
 namespace CraftVision.Presentation.Controllers
 {
@@ -10,10 +12,12 @@ namespace CraftVision.Presentation.Controllers
     public class KnowledgeBaseController : ControllerBase
     {
         private readonly IKnowledgeRetrievalService _knowledgeService;
+        private readonly IEmbeddingProvider _embeddingProvider;
 
-        public KnowledgeBaseController(IKnowledgeRetrievalService knowledgeService)
+        public KnowledgeBaseController(IKnowledgeRetrievalService knowledgeService, IEmbeddingProvider embeddingProvider)
         {
             _knowledgeService = knowledgeService;
+            _embeddingProvider = embeddingProvider;
         }
 
         [HttpPost("seed")]
@@ -44,13 +48,16 @@ namespace CraftVision.Presentation.Controllers
             if (string.IsNullOrWhiteSpace(query))
                 return BadRequest("Query cannot be empty.");
 
+            var vectorArray = await _embeddingProvider.GenerateEmbeddingAsync(query);
+            var queryVector = new Vector(vectorArray);
+
             if (type.ToLower() == "tutorial")
             {
-                var tutorials = await _knowledgeService.SearchTutorialsAsync(query);
+                var tutorials = await _knowledgeService.SearchTutorialsAsync(queryVector);
                 return Ok(tutorials);
             }
             
-            var materials = await _knowledgeService.SearchMaterialsAsync(query);
+            var materials = await _knowledgeService.SearchMaterialsAsync(queryVector);
             return Ok(materials);
         }
     }

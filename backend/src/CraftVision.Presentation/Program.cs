@@ -1,4 +1,5 @@
 using System.Text;
+using CraftVision.Presentation.Middlewares;
 using CraftVision.Application;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Providers;
@@ -167,6 +168,8 @@ builder.Services.AddScoped<IKnowledgeRetrievalService, KnowledgeRetrievalService
 builder.Services.AddScoped<IAiChatService, AiChatService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ApiProfilerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
