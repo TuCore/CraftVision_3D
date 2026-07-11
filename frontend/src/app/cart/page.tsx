@@ -36,7 +36,7 @@ export default function CartPage() {
   };
 
   return (
-    <AppShell active="shop">
+    <AppShell active="cart">
       <div className="mx-auto max-w-6xl">
         <h1 className="text-3xl md:text-4xl font-extrabold font-display mb-8 text-foreground">
           Giỏ hàng của bạn
@@ -90,7 +90,7 @@ export default function CartPage() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
-                        className="w-8 h-8 rounded-full glass-strong flex items-center justify-center hover:bg-white/50 transition-colors"
+                        className="w-8 h-8 rounded-full glass-strong flex items-center justify-center hover:bg-card/50 transition-colors"
                       >
                         <Minus className="h-3 w-3" />
                       </button>
@@ -99,7 +99,7 @@ export default function CartPage() {
                       </span>
                       <button
                         onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
-                        className="w-8 h-8 rounded-full glass-strong flex items-center justify-center hover:bg-white/50 transition-colors"
+                        className="w-8 h-8 rounded-full glass-strong flex items-center justify-center hover:bg-card/50 transition-colors"
                       >
                         <Plus className="h-3 w-3" />
                       </button>
@@ -144,8 +144,8 @@ export default function CartPage() {
                     </span>
                   </div>
                   {shipping > 0 && (
-                    <div className="text-xs text-muted-foreground bg-white/50 p-2 rounded-lg text-center">
-                      Mua thêm <span className="font-semibold">{formatPrice(500000 - subtotal)}</span> để được miễn phí giao hàng!
+                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-lg text-center">
+                      Mua thêm <span className="font-semibold text-foreground">{formatPrice(500000 - subtotal)}</span> để được miễn phí giao hàng!
                     </div>
                   )}
                 </div>

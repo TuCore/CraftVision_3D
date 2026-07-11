@@ -78,7 +78,8 @@ public class AuthService : IAuthService
             Token = token,
             UserId = user.Id,
             Email = user.Email ?? string.Empty,
-            FullName = user.FullName ?? string.Empty
+            FullName = user.FullName ?? string.Empty,
+            CreatedAt = user.CreatedAt
         };
     }
 
@@ -96,7 +97,8 @@ public class AuthService : IAuthService
             Token = token,
             UserId = user.Id,
             Email = user.Email ?? string.Empty,
-            FullName = user.FullName ?? string.Empty
+            FullName = user.FullName ?? string.Empty,
+            CreatedAt = user.CreatedAt
         };
     }
 
@@ -169,7 +171,8 @@ public class AuthService : IAuthService
             Token = token,
             UserId = user.Id,
             Email = user.Email ?? string.Empty,
-            FullName = user.FullName ?? string.Empty
+            FullName = user.FullName ?? string.Empty,
+            CreatedAt = user.CreatedAt
         };
     }
 }

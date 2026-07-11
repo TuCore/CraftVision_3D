@@ -51,8 +51,8 @@ export default function HomePage() {
                 <Link href="/chat" className="btn-hero inline-flex items-center gap-2 rounded-2xl px-7 py-4 font-semibold shadow-coral-glow">
                   <MessageCircle className="h-5 w-5" /> Trò chuyện với AI
                 </Link>
-                <Link href="/shop" className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors px-2 py-4">
-                  Vào cửa hàng <ArrowRight className="h-4 w-4" />
+                <Link href="/chat?mode=three-d" className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors px-2 py-4">
+                  Mở Studio 3D <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>

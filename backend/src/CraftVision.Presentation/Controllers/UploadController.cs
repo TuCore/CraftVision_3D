@@ -18,10 +18,14 @@ namespace CraftVision.Presentation.Controllers
         }
 
         [HttpPost]
+        [RequestSizeLimit(5 * 1024 * 1024)] // Chặn ngay từ cửa nếu file > 5MB
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");
+
+            if (file.Length > 5 * 1024 * 1024)
+                return BadRequest("Dung lượng file vượt quá giới hạn 5MB.");
 
             // Basic validation
             var contentType = file.ContentType;

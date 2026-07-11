@@ -80,7 +80,57 @@ namespace CraftVision.Application.Services
                 TopKTutorials = 2
             };
 
+<<<<<<< HEAD
             try
+=======
+            var materials = await _knowledgeService.SearchMaterialsAsync(content, topK: 3);
+            var tutorials = await _knowledgeService.SearchTutorialsAsync(content, topK: 2);
+
+            var systemPrompt = BuildSystemPrompt(materials, tutorials);
+
+            var history = await _unitOfWork.AiChatMessages.GetRecentMessagesBySessionIdAsync(sessionId, 10);
+            var recentHistory = history.Select(m => (m.Role.ToString(), m.Content)).ToList();
+
+            // Tạm thời comment dòng gọi AI thật để test giao diện cho mượt
+            // var aiResponseContent = await _aiChatProvider.GenerateChatResponseAsync(systemPrompt, recentHistory, content);
+            
+            // Trả về một chuỗi JSON ảo (Mock Data) đúng chuẩn Format của frontend
+            var aiResponseContent = $$"""
+            ```json
+            {
+              "text": "Xin chào! Bạn vừa chat câu: '{{content}}'. Hệ thống đang ở chế độ giả lập (Mock AI) để test giao diện nên tốc độ phản hồi sẽ cực kỳ nhanh mượt!",
+              "suggestions": [ 
+                { "level": "Cơ bản", "title": "Làm đồ handmade vui nhộn", "time": "1 giờ", "price": "50.000đ" },
+                { "level": "Trung bình", "title": "Mô hình giấy 3D", "time": "3 giờ", "price": "150.000đ" }
+              ],
+              "featuredIdea": {
+                 "title": "Ý tưởng nổi bật: Làm quà tặng ý nghĩa",
+                 "totalCost": "200.000đ",
+                 "totalTime": "2 giờ",
+                 "materialsCount": 3,
+                 "materials": [ 
+                    { "name": "Vật liệu 1", "price": "50.000đ", "link": "https://shopee.vn/search?keyword=handmade", "keyword": "handmade" },
+                    { "name": "Vật liệu 2", "price": "100.000đ", "link": "https://shopee.vn/search?keyword=thu+cong", "keyword": "thu cong" },
+                    { "name": "Vật liệu 3", "price": "50.000đ", "link": "https://shopee.vn/search?keyword=diy", "keyword": "diy" }
+                 ],
+                 "tutorial": { "title": "Video hướng dẫn làm chi tiết", "url": "https://youtube.com/watch?v=mock", "duration": "15 phút", "views": "100K" }
+              }
+            }
+            ```
+            """;
+
+            // Giả lập delay 1 tí (khoảng 1.5 giây) cho có cảm giác giống AI thật đang suy nghĩ
+            await Task.Delay(1500);
+            var sources = materials.Select(m => new ChatSourceDto { Id = m.Id, Type = "Material", Name = m.Name })
+                .Concat(tutorials.Select(t => new ChatSourceDto { Id = t.Id, Type = "Tutorial", Name = t.Title }))
+                .ToList();
+
+            var retrievedContextIds = materials.Select(m => m.Id)
+                .Concat(tutorials.Select(t => t.Id))
+                .ToList();
+
+            var aiMessage = new AiChatMessage
+>>>>>>> main
             {
                 var session = await _unitOfWork.AiChatSessions.GetByIdAsync(sessionId);
                 if (session == null || session.UserId != userId)
@@ -123,10 +173,46 @@ namespace CraftVision.Application.Services
                 profile.PromptPreview = new string(systemPrompt.Take(200).ToArray());
 
                 stepSw.Restart();
-                var aiResponse = await _aiChatProvider.GenerateChatResponseAsync(systemPrompt, recentHistory, content);
-                var aiResponseContent = aiResponse.Content;
-                profile.GeminiTimeMs = stepSw.ElapsedMilliseconds;
-                profile.GeminiFinishReason = aiResponse.FinishReason;
+                string aiResponseContent;
+                try
+                {
+                    var aiResponse = await _aiChatProvider.GenerateChatResponseAsync(systemPrompt, recentHistory, content);
+                    aiResponseContent = aiResponse.Content;
+                    profile.GeminiTimeMs = stepSw.ElapsedMilliseconds;
+                    profile.GeminiFinishReason = aiResponse.FinishReason;
+                }
+                catch (Exception ex)
+                {
+                    profile.IsSuccess = false;
+                    profile.ErrorReason = $"AI Fallback ({ex.GetType().Name}): {ex.Message}";
+                    
+                    // Trả về một chuỗi JSON ảo (Mock Data) khi gọi AI thật bị lỗi
+                    aiResponseContent = $$"""
+                    ```json
+                    {
+                      "text": "Xin chào! API AI đang lỗi hoặc quá tải. Mình gửi tạm dữ liệu giả lập (Mock Data) để test giao diện nhé!",
+                      "suggestions": [ 
+                        { "level": "Cơ bản", "title": "Làm đồ handmade vui nhộn", "time": "1 giờ", "price": "50.000đ" },
+                        { "level": "Trung bình", "title": "Mô hình giấy 3D", "time": "3 giờ", "price": "150.000đ" }
+                      ],
+                      "featuredIdea": {
+                         "title": "Ý tưởng nổi bật: Làm quà tặng ý nghĩa",
+                         "totalCost": "200.000đ",
+                         "totalTime": "2 giờ",
+                         "materialsCount": 3,
+                         "materials": [ 
+                            { "name": "Vật liệu 1", "price": "50.000đ", "link": "https://shopee.vn/search?keyword=handmade", "keyword": "handmade" },
+                            { "name": "Vật liệu 2", "price": "100.000đ", "link": "https://shopee.vn/search?keyword=thu+cong", "keyword": "thu cong" },
+                            { "name": "Vật liệu 3", "price": "50.000đ", "link": "https://shopee.vn/search?keyword=diy", "keyword": "diy" }
+                         ],
+                         "tutorial": { "title": "Video hướng dẫn làm chi tiết", "url": "https://youtube.com/watch?v=mock", "duration": "15 phút", "views": "100K" }
+                      }
+                    }
+                    ```
+                    """;
+                    await Task.Delay(1000); // Giả lập delay
+                }
+                
                 profile.ResponseLength = aiResponseContent.Length;
 
                 stepSw.Restart();

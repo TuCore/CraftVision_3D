@@ -6,27 +6,67 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
+import { fetchApi } from "@/lib/apiClient";
+import { useTheme } from "next-themes";
+import { useTranslation } from "@/components/LanguageProvider";
+import { Language } from "@/lib/dictionaries";
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+  const { t, language, setLanguage } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState("account");
-  const [fullName, setFullName] = useState("Nguyễn Minh");
-  const [email, setEmail] = useState("minh@craft.vn");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
 
   useEffect(() => {
-    const storedName = localStorage.getItem("fullName");
-    const storedEmail = localStorage.getItem("email");
-    if (storedName) setFullName(storedName);
-    if (storedEmail) setEmail(storedEmail);
+    const loadProfile = async () => {
+      try {
+        const data = await fetchApi("/api/user/profile");
+        setFullName(data.fullName || "");
+        setEmail(data.email || "");
+        setDisplayName(data.displayName || "");
+        setPhone(data.phone || "");
+        setBio(data.bio || "");
+      } catch (error) {
+        console.error("Lỗi khi tải hồ sơ:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProfile();
   }, []);
 
+  const handleSave = async () => {
+    try {
+      await fetchApi("/api/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({
+          fullName,
+          displayName,
+          phone,
+          bio
+        })
+      });
+      // Vẫn lưu name lên local storage để Navbar có thể hiển thị nếu cần thiết
+      localStorage.setItem("fullName", fullName);
+      import("sonner").then(({ toast }) => toast.success("Đã lưu thay đổi thành công!"));
+    } catch (error: any) {
+      import("sonner").then(({ toast }) => toast.error(error.message || "Không thể lưu hồ sơ"));
+    }
+  };
+
   const tabs = [
-    { key: "account", label: "Tài khoản", icon: User },
-    { key: "notifications", label: "Thông báo", icon: Bell },
-    { key: "privacy", label: "Bảo mật", icon: Lock },
-    { key: "appearance", label: "Giao diện", icon: Palette },
-    { key: "ai", label: "Trợ lý AI", icon: Sparkles },
-    { key: "billing", label: "Thanh toán", icon: CreditCard },
-    { key: "language", label: "Ngôn ngữ", icon: Globe },
+    { key: "account", label: t("settings.account"), icon: User },
+    { key: "notifications", label: t("settings.notifications"), icon: Bell },
+    { key: "privacy", label: t("settings.security"), icon: Lock },
+    { key: "appearance", label: t("settings.appearance"), icon: Palette },
+    { key: "ai", label: t("settings.ai_assistant"), icon: Sparkles },
+    { key: "billing", label: t("settings.billing"), icon: CreditCard },
+    { key: "language", label: t("settings.language"), icon: Globe },
   ];
 
   return (
@@ -48,7 +88,7 @@ export default function SettingsPage() {
                   key={t.key}
                   onClick={() => setTab(t.key)}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    active ? "bg-white/90 text-foreground shadow-soft" : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
+                    active ? "bg-card/90 text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/60 hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-4 w-4" /> {t.label}
@@ -66,31 +106,40 @@ export default function SettingsPage() {
           <div className="space-y-6">
             {tab === "account" && (
               <Section title="Thông tin cá nhân" desc="Cập nhật ảnh đại diện, tên và email của bạn.">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="h-16 w-16 rounded-2xl btn-hero grid place-items-center text-2xl font-bold text-white">{fullName.charAt(0)}</div>
-                  <div className="flex gap-2">
-                    <button className="text-sm px-3 py-2 rounded-lg bg-white/80 hover:bg-white font-medium">Tải ảnh mới</button>
-                    <button className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium">Xoá</button>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Field key={`name-${fullName}`} label="Họ và tên" defaultValue={fullName} />
-                  <Field key={`display-${fullName}`} label="Tên hiển thị" defaultValue={`@${fullName.split(' ').pop()?.toLowerCase() || 'user'}.crafts`} />
-                  <Field key={`email-${email}`} label="Email" defaultValue={email} type="email" />
-                  <Field label="Số điện thoại" defaultValue="+84 987 654 321" />
-                </div>
-                <div className="mt-4">
-                  <Label className="text-sm">Giới thiệu</Label>
-                  <textarea
-                    rows={3}
-                    defaultValue="Sáng tạo là hạnh phúc. Handmade creator 💛"
-                    className="mt-1.5 w-full rounded-xl bg-white/80 border border-border px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
-                  />
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
-                  <button className="rounded-xl bg-white/70 hover:bg-white px-5 py-2.5 text-sm font-medium">Huỷ</button>
-                </div>
+                {isLoading ? (
+                  <div className="flex justify-center p-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="h-16 w-16 rounded-2xl btn-hero grid place-items-center text-2xl font-bold text-white">
+                        {fullName ? fullName.charAt(0) : "?"}
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="text-sm px-3 py-2 rounded-lg bg-card/80 hover:bg-card font-medium">Tải ảnh mới</button>
+                        <button className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium">Xoá</button>
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Field label="Họ và tên" value={fullName} onChange={setFullName} />
+                      <Field label="Tên hiển thị" value={displayName} onChange={setDisplayName} />
+                      <Field label="Email" value={email} onChange={setEmail} type="email" />
+                      <Field label="Số điện thoại" value={phone} onChange={setPhone} />
+                    </div>
+                    <div className="mt-4">
+                      <Label className="text-sm">Giới thiệu</Label>
+                      <textarea
+                        rows={3}
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl bg-card/80 border border-border px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={handleSave} className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
+                      <button className="rounded-xl bg-card/70 hover:bg-card px-5 py-2.5 text-sm font-medium">Huỷ</button>
+                    </div>
+                  </>
+                )}
               </Section>
             )}
 
@@ -119,11 +168,15 @@ export default function SettingsPage() {
               <Section title="Giao diện" desc="Tuỳ chọn màu sắc chủ đề.">
                 <div className="grid grid-cols-3 gap-4">
                   {[
-                    { label: "Sáng", grad: "linear-gradient(135deg, #fff9f0, #ffe4c4)", active: true },
-                    { label: "Tối", grad: "linear-gradient(135deg, #2a1e14, #4a2f1e)" },
-                    { label: "Tự động", grad: "linear-gradient(135deg, #fff9f0 50%, #2a1e14 50%)" },
+                    { id: "light", label: "Sáng", grad: "linear-gradient(135deg, #fff9f0, #ffe4c4)" },
+                    { id: "dark", label: "Tối", grad: "linear-gradient(135deg, #2a1e14, #4a2f1e)" },
+                    { id: "system", label: "Tự động", grad: "linear-gradient(135deg, #fff9f0 50%, #2a1e14 50%)" },
                   ].map((t) => (
-                    <button key={t.label} className={`rounded-2xl p-1 ${t.active ? "ring-2 ring-primary" : ""}`}>
+                    <button 
+                      key={t.id} 
+                      onClick={() => setTheme(t.id)}
+                      className={`rounded-2xl p-1 ${theme === t.id ? "ring-2 ring-primary" : ""}`}
+                    >
                       <div className="h-24 rounded-xl" style={{ background: t.grad }} />
                       <div className="text-sm font-medium mt-2">{t.label}</div>
                     </button>
@@ -139,7 +192,7 @@ export default function SettingsPage() {
                   <div className="mt-2 flex flex-wrap gap-2">
                     {["Pastel", "Vintage", "Tối giản", "Rustic", "Kawaii", "Boho"].map((s, i) => (
                       <button key={s} className={`px-3.5 py-1.5 rounded-full text-sm font-medium ${
-                        i < 2 ? "btn-hero" : "bg-white/70 hover:bg-white text-muted-foreground"
+                        i < 2 ? "btn-hero" : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
                       }`}>{s}</button>
                     ))}
                   </div>
@@ -171,11 +224,19 @@ export default function SettingsPage() {
             )}
 
             {tab === "language" && (
-              <Section title="Ngôn ngữ & Khu vực">
+              <Section title={t("settings.lang_region")}>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <SelectField label="Ngôn ngữ" options={["Tiếng Việt", "English", "日本語"]} />
-                  <SelectField label="Múi giờ" options={["GMT+7 (Hanoi)", "GMT+9 (Tokyo)", "GMT+0 (London)"]} />
-                  <SelectField label="Tiền tệ" options={["VND (đ)", "USD ($)", "EUR (€)"]} />
+                  <SelectField 
+                    label={t("settings.lang_label")} 
+                    options={[
+                      { value: "vi", label: "Tiếng Việt" },
+                      { value: "en", label: "English" },
+                    ]} 
+                    value={language}
+                    onChange={(val) => setLanguage(val as Language)}
+                  />
+                  <SelectField label={t("settings.timezone")} options={[{value: "gmt7", label: "GMT+7 (Hanoi)"}, {value: "gmt9", label: "GMT+9 (Tokyo)"}]} />
+                  <SelectField label={t("settings.currency")} options={[{value: "vnd", label: "VND (đ)"}, {value: "usd", label: "USD ($)"}]} />
                 </div>
               </Section>
             )}
@@ -183,11 +244,11 @@ export default function SettingsPage() {
             {/* Danger zone */}
             <div className="glass-card rounded-3xl p-6 border border-destructive/20">
               <h3 className="font-bold font-display text-destructive flex items-center gap-2">
-                <Trash2 className="h-4 w-4" /> Vùng nguy hiểm
+                <Trash2 className="h-4 w-4" /> {t("settings.danger_zone")}
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">Xoá tài khoản sẽ xoá toàn bộ dự án và không thể khôi phục.</p>
+              <p className="text-sm text-muted-foreground mt-1">{t("settings.danger_desc")}</p>
               <button className="mt-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground px-4 py-2 text-sm font-semibold transition-colors">
-                Xoá tài khoản
+                {t("settings.delete_account")}
               </button>
             </div>
           </div>
@@ -209,21 +270,25 @@ function Section({ title, desc, children }: { title: string; desc?: React.ReactN
   );
 }
 
-function Field({ label, defaultValue, type = "text" }: { label: string; defaultValue?: string; type?: string }) {
+function Field({ label, value, onChange, type = "text" }: { label: string; value?: string; onChange?: (v: string) => void; type?: string }) {
   return (
     <div>
       <Label className="text-sm">{label}</Label>
-      <Input defaultValue={defaultValue} type={type} className="mt-1.5 bg-white/80 h-11" />
+      <Input value={value} onChange={e => onChange?.(e.target.value)} type={type} className="mt-1.5 bg-card/80 h-11" />
     </div>
   );
 }
 
-function SelectField({ label, options }: { label: string; options: string[] }) {
+function SelectField({ label, options, value, onChange }: { label: string; options: {value: string, label: string}[]; value?: string; onChange?: (val: string) => void }) {
   return (
     <div>
       <Label className="text-sm">{label}</Label>
-      <select className="mt-1.5 w-full h-11 rounded-xl bg-white/80 border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
-        {options.map((o) => <option key={o}>{o}</option>)}
+      <select 
+        value={value}
+        onChange={e => onChange?.(e.target.value)}
+        className="mt-1.5 w-full h-11 rounded-xl bg-card/80 border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+      >
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
   );

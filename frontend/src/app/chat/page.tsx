@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { AppShell } from "@/components/AppShell";
-import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check } from "lucide-react";
+import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History } from "lucide-react";
 import { fetchApi } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 
@@ -19,16 +19,37 @@ const modes = [
   {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản", badge:"Pro"},
 ];
 
+const mockHistory = [
+  { id: 1, title: "Làm lồng đèn trung thu", date: "Hôm qua", time: "14:30" },
+  { id: 2, title: "Quà sinh nhật cho bạn gái", date: "Hôm qua", time: "09:15" },
+  { id: 3, title: "Mô hình nhà gỗ", date: "3 ngày trước", time: "20:00" },
+  { id: 4, title: "Đan len cơ bản", date: "Tuần trước", time: "16:45" },
+];
+
 export default function ChatPage() {
   const [chatMode, setChatMode] = useState<"vision" | "three-d">("vision");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
+  const historyBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    // Đọc URL query parameter để mở thẳng Studio 3D nếu có ?mode=three-d
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "three-d") {
+        setChatMode("three-d");
+      }
+    }
+
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node) && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
+      }
+      if (historyRef.current && !historyRef.current.contains(event.target as Node) && historyBtnRef.current && !historyBtnRef.current.contains(event.target as Node)) {
+        setIsHistoryOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -43,6 +64,15 @@ export default function ChatPage() {
   ]);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
   
   // Settings for the request
   const [maxCost, setMaxCost] = useState(150000);
@@ -110,10 +140,21 @@ export default function ChatPage() {
         body: JSON.stringify(payload)
       });
 
+      let aiContent = "";
+      let aiSuggestions = [];
+
+      if (res.reply) {
+        aiContent = res.reply;
+        aiSuggestions = res.suggestions || [];
+      } else {
+        aiContent = `Tuyệt vời! Mình đã tìm thấy ${res.length || 0} ý tưởng phù hợp với bạn:`;
+        aiSuggestions = res.length ? res : [];
+      }
+
       setMessages(prev => [...prev, {
         role: "ai",
-        content: `Tuyệt vời! Mình đã tìm thấy ${res.length} ý tưởng phù hợp với bạn:`,
-        suggestions: res
+        content: aiContent,
+        suggestions: aiSuggestions
       }]);
 
     } catch (err: any) {
@@ -129,26 +170,26 @@ export default function ChatPage() {
 
   return (
     <AppShell active="chat">
-      <div className="mx-auto max-w-5xl flex flex-col h-[calc(100vh-6rem)]">
+      <div className="mx-auto max-w-6xl flex flex-col h-[calc(100vh-6.5rem)] md:h-[calc(100vh-8.5rem)] shadow-xl overflow-hidden rounded-3xl border border-white/50 bg-white/20">
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/40 glass-strong rounded-t-3xl relative">
           <div className="relative">
             <button 
               ref={buttonRef}
               onClick={() => setIsMenuOpen(!isMenuOpen)} 
-              className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover-accent transition-colors"
+              className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover:bg-muted transition-colors"
             >
               <span>{modes.find(m => m.id === chatMode)?.title}</span>
               <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             
             {isMenuOpen && (
-              <div ref={menuRef} className="absolute left-0 top-full mt-1.5 w-[320px] rounded-2xl border border-border bg-popover p-1.5 shadow-xl z-50">
+              <div ref={menuRef} className="absolute z-50 left-0 top-full mt-2 w-72 bg-card/95 backdrop-blur-md rounded-2xl shadow-xl border border-border p-2">
                 {modes.map(m => (
                   <button 
                     key={m.id}
                     onClick={() => { setChatMode(m.id as any); setIsMenuOpen(false); }}
-                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover-accent transition-colors"
+                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-muted transition-colors"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
                       <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
@@ -165,13 +206,44 @@ export default function ChatPage() {
             )}
           </div>
 
+          <div className="relative">
+            <button 
+              ref={historyBtnRef}
+              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              className="flex items-center gap-1.5 rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Lịch sử phiên chat"
+            >
+              <History className="h-5 w-5" />
+            </button>
+            
+            {isHistoryOpen && (
+              <div ref={historyRef} className="absolute z-50 right-0 top-full mt-2 w-80 bg-card/95 backdrop-blur-md rounded-2xl shadow-xl border border-border p-2 animate-fade-in-page">
+                <div className="px-3 py-2 text-sm font-semibold text-foreground border-b border-border/50 mb-1">
+                  Lịch sử gần đây
+                </div>
+                <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {mockHistory.map(h => (
+                    <button key={h.id} className="w-full text-left p-3 hover:bg-muted rounded-xl transition-colors mb-1 group">
+                      <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{h.title}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{h.date} • {h.time}</div>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-1 border-t border-border/50 pt-1">
+                  <button className="w-full text-center text-xs text-primary font-medium p-2 hover:bg-muted rounded-xl transition-colors">
+                    Xem tất cả
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </header>
 
         {chatMode === "vision" ? (
           <>
 
         {/* Messages Scroll Area */}
-        <div className="glass-card rounded-none p-6 md:p-8 space-y-6 flex-1 overflow-y-auto">
+        <div className="glass-card rounded-none p-6 md:p-8 space-y-6 flex-1 min-h-0 overflow-y-auto scroll-smooth">
           {messages.map((m, idx) => (
             <MessageRow key={idx} role={m.role}>
               {m.imageUrl && (
@@ -243,10 +315,11 @@ export default function ChatPage() {
                </div>
              </MessageRow>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Composer */}
-        <div className="glass-strong rounded-b-3xl p-4 shrink-0 border-t border-white/40">
+        <div className="glass-strong rounded-b-3xl p-4 shrink-0 border-t border-border">
           
           {/* Image Preview Area */}
           {imagePreviewUrl && (
@@ -258,7 +331,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          <div className="bg-white/60 rounded-2xl p-2 flex items-end gap-2 border border-white/50 shadow-inner">
+          <div className="bg-card/60 rounded-2xl p-2 flex items-end gap-2 border border-border shadow-inner">
             <input 
               type="file" 
               accept="image/*" 
@@ -268,7 +341,7 @@ export default function ChatPage() {
             />
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="h-11 w-11 rounded-xl grid place-items-center shrink-0 text-muted-foreground hover:bg-white/80 hover:text-primary transition-colors"
+              className="h-11 w-11 rounded-xl grid place-items-center shrink-0 text-muted-foreground hover:bg-card/80 hover:text-primary transition-colors"
               title="Đính kèm ảnh"
             >
               <ImageIcon className="h-5 w-5" />
@@ -356,7 +429,7 @@ function Studio3DView() {
   return (
     <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-[380px_1fr] bg-card/40 rounded-b-3xl">
       {/* Controls */}
-      <div className="flex flex-col gap-4 overflow-y-auto border-r border-border p-5">
+      <div className="flex flex-col gap-2.5 overflow-y-auto custom-scrollbar border-r border-border p-4">
         <div className="flex rounded-xl bg-muted p-1 text-sm">
           <button 
             onClick={() => setSourceType("image")}
@@ -369,7 +442,7 @@ function Studio3DView() {
         </div>
         
         {sourceType === "image" ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center hover:bg-card/80 transition-colors cursor-pointer relative overflow-hidden min-h-[140px] flex flex-col justify-center items-center" onClick={() => fileInputRef.current?.click()}>
+          <div className="rounded-2xl border border-dashed border-border bg-card/60 p-4 text-center hover:bg-card/80 transition-colors cursor-pointer relative overflow-hidden min-h-[90px] flex flex-col justify-center items-center" onClick={() => fileInputRef.current?.click()}>
             <input 
               type="file" 
               accept="image/*" 
@@ -379,59 +452,59 @@ function Studio3DView() {
             />
             {uploadImage ? (
                <>
-                 <img src={uploadImage} alt="Uploaded" className="max-h-40 w-full object-contain" />
+                 <img src={uploadImage} alt="Uploaded" className="max-h-24 w-full object-contain" />
                  <button onClick={(e) => { e.stopPropagation(); setUploadImage(null); }} className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 shadow-md z-10">
                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                  </button>
                </>
             ) : (
                <>
-                 <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent">
-                   <svg className="h-5 w-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+                 <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent">
+                   <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
                  </div>
                  <div className="text-sm font-medium">Kéo thả ảnh vào đây</div>
-                 <div className="text-xs text-muted-foreground mt-1">PNG, JPG tối đa 10MB</div>
+                 <div className="text-xs text-muted-foreground mt-0.5">PNG, JPG tối đa 10MB</div>
                </>
             )}
           </div>
         ) : (
            <div>
-             <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Mô tả vật thể</label>
-             <textarea rows={4} placeholder="Ví dụ: chiếc cốc gốm sứ màu cam pastel..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-3 text-sm outline-none placeholder:text-muted-foreground" />
+             <label className="mb-1 block text-xs font-medium text-muted-foreground">Mô tả vật thể</label>
+             <textarea rows={2} placeholder="Ví dụ: chiếc cốc gốm sứ màu cam pastel..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-2.5 text-sm outline-none placeholder:text-muted-foreground" />
            </div>
         )}
 
         {sourceType === "image" && (
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Mô tả bổ sung (tuỳ chọn)</label>
-            <textarea rows={2} placeholder="Chi tiết bạn muốn AI chú ý..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-3 text-sm outline-none placeholder:text-muted-foreground"></textarea>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Mô tả bổ sung (tuỳ chọn)</label>
+            <textarea rows={1} placeholder="Chi tiết bạn muốn AI chú ý..." className="w-full resize-none rounded-xl border border-border bg-card/70 p-2.5 text-sm outline-none placeholder:text-muted-foreground"></textarea>
           </div>
         )}
         
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Phong cách</label>
-          <div className="grid grid-cols-2 gap-2">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">Phong cách</label>
+          <div className="grid grid-cols-2 gap-1.5">
             {["Thực tế", "Cách điệu", "Hoạt hình", "Điêu khắc"].map(s => (
                <button 
                  key={s}
                  onClick={() => setStyle(s)}
-                 className={style === s ? "rounded-lg py-2 text-sm text-white shadow-md btn-hero" : "chip-btn rounded-lg py-2 text-sm hover-accent transition-colors"}
+                 className={style === s ? "rounded-lg py-1.5 text-sm text-white shadow-md btn-hero" : "chip-btn rounded-lg py-1.5 text-sm hover-accent transition-colors"}
                >{s}</button>
             ))}
           </div>
         </div>
         
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Chất lượng</label>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">Chất lượng</label>
           <div className="flex rounded-xl bg-muted p-1 text-xs">
-            <button onClick={() => setQuality("fast")} className={`flex-1 rounded-lg px-2 py-1.5 ${quality === "fast" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Nhanh</button>
-            <button onClick={() => setQuality("balance")} className={`flex-1 rounded-lg px-2 py-1.5 ${quality === "balance" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cân bằng</button>
-            <button onClick={() => setQuality("high")} className={`flex-1 rounded-lg px-2 py-1.5 ${quality === "high" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cao</button>
+            <button onClick={() => setQuality("fast")} className={`flex-1 rounded-lg px-2 py-1 ${quality === "fast" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Nhanh</button>
+            <button onClick={() => setQuality("balance")} className={`flex-1 rounded-lg px-2 py-1 ${quality === "balance" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cân bằng</button>
+            <button onClick={() => setQuality("high")} className={`flex-1 rounded-lg px-2 py-1 ${quality === "high" ? "bg-card shadow-sm font-medium" : "text-muted-foreground"}`}>Cao</button>
           </div>
         </div>
         
         {isGenerating ? (
-          <div className="mt-2 rounded-xl p-4 border border-border bg-card/50">
+          <div className="mt-1 rounded-xl p-3 border border-border bg-card/50">
             <div className="flex justify-between items-center mb-2 text-xs font-medium">
               <span className="text-primary flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
@@ -439,7 +512,7 @@ function Studio3DView() {
               </span>
               <span>{progress}%</span>
             </div>
-            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-primary to-[color:var(--coral)] transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -450,16 +523,16 @@ function Studio3DView() {
             </div>
           </div>
         ) : (
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-1 flex flex-col gap-1.5">
             <button 
               onClick={handleMockGenerate}
-              className="rounded-xl py-3 text-sm font-semibold text-white shadow-lg btn-hero w-full"
+              className="rounded-xl py-2.5 text-sm font-semibold text-white shadow-lg btn-hero w-full"
             >
               Tạo mô hình 3D (Demo)
             </button>
             <button 
               onClick={() => router.push('/pricing')}
-              className="rounded-xl py-3 text-sm font-semibold text-[color:var(--coral)] border border-[color:var(--coral)] bg-transparent hover:bg-[color:var(--coral)]/5 transition-colors w-full"
+              className="rounded-xl py-2 text-sm font-semibold text-[color:var(--coral)] border border-[color:var(--coral)] bg-transparent hover:bg-[color:var(--coral)]/5 transition-colors w-full"
             >
               Tạo mô hình 3D chuẩn
             </button>
@@ -646,7 +719,7 @@ function AiMessageRenderer({ msg }: { msg: Message }) {
                 href={parsedData.featuredIdea.tutorial.url || "#"}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 flex items-center gap-4 bg-gradient-to-r from-rose-50 to-orange-50 rounded-2xl p-4 border border-white/60 hover:shadow-soft transition-all group"
+                className="mt-4 flex items-center gap-4 bg-muted/30 rounded-2xl p-4 border border-border hover:shadow-soft transition-all group"
               >
                 <div className="h-14 w-24 rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 grid place-items-center relative overflow-hidden">
                   <Video className="h-6 w-6 text-white relative z-10" />
@@ -663,10 +736,10 @@ function AiMessageRenderer({ msg }: { msg: Message }) {
 
             {/* Actions */}
             <div className="mt-4 flex gap-2">
-              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white font-medium">
+              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-card/80 hover:bg-card font-medium">
                 <Bookmark className="h-3.5 w-3.5" /> Lưu ý tưởng
               </button>
-              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white font-medium">
+              <button className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-card/80 hover:bg-card font-medium">
                 Bắt đầu dự án
               </button>
             </div>
@@ -688,10 +761,10 @@ function MessageRow({ role, children }: { role: "user" | "ai"; children: React.R
   const isUser = role === "user";
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
-      <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${isUser ? "bg-white/80 shadow-sm" : "btn-hero shadow-md"}`}>
+      <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${isUser ? "bg-card/80 shadow-sm" : "btn-hero shadow-md"}`}>
         {isUser ? <User className="h-4 w-4 text-primary" /> : <Bot className="h-4 w-4" />}
       </div>
-      <div className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-sm ${isUser ? "bg-primary text-primary-foreground" : "bg-white/80 border border-white/60"}`}>
+      <div className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-sm ${isUser ? "bg-primary text-primary-foreground" : "bg-card/80 border border-border"}`}>
         {children}
       </div>
     </div>
@@ -701,7 +774,7 @@ function MessageRow({ role, children }: { role: "user" | "ai"; children: React.R
 function Chip({ icon: Icon, label, tone }: { icon: React.ComponentType<{ className?: string }>; label: string; tone?: "ok" }) {
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
-      tone === "ok" ? "bg-green-100 text-green-700" : "bg-black/5 text-muted-foreground"
+      tone === "ok" ? "bg-green-500/20 text-green-700 dark:text-green-400" : "bg-muted text-muted-foreground"
     }`}>
       <Icon className="h-3.5 w-3.5" /> {label}
     </span>

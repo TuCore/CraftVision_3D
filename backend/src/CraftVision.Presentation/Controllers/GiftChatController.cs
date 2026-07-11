@@ -20,7 +20,7 @@ namespace CraftVision.Presentation.Controllers
         }
 
         [HttpPost("suggestions")]
-        public async Task<ActionResult<List<GiftSuggestionDto>>> GenerateSuggestions([FromBody] GenerateSuggestionsCommand command)
+        public async Task<ActionResult<GiftChatResponseDto>> GenerateSuggestions([FromBody] GenerateSuggestionsCommand command)
         {
             // Set UserId from Claims
             if (Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))

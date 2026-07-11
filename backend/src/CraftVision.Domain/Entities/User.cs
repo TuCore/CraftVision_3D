@@ -10,6 +10,10 @@ namespace CraftVision.Domain.Entities
         public string? Email { get; set; }
         public string? PasswordHash { get; set; }
         
+        public string? DisplayName { get; set; }
+        public string? Phone { get; set; }
+        public string? Bio { get; set; }
+        
 
         public UserTier Tier { get; set; } = UserTier.Free;
         

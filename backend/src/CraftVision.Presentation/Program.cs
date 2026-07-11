@@ -1,4 +1,5 @@
 using System.Text;
+using CraftVision.Presentation.HostedServices;
 using CraftVision.Presentation.Middlewares;
 using CraftVision.Application;
 using CraftVision.Application.Interfaces;
@@ -153,6 +154,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddApplication();
@@ -166,6 +168,9 @@ builder.Services.AddScoped<IAiChatSessionRepository, AiChatSessionRepository>();
 builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
 builder.Services.AddScoped<IKnowledgeRetrievalService, KnowledgeRetrievalService>();
 builder.Services.AddScoped<IAiChatService, AiChatService>();
+
+// Register Hosted Services
+builder.Services.AddHostedService<MemoryMonitorService>();
 
 var app = builder.Build();
 
@@ -242,5 +247,13 @@ app.MapGet("/api/test-entities", async (ApplicationDbContext db) =>
     }
 })
 .WithName("TestEntitiesMapping");
+
+// --- AUTO MIGRATE DATABASE ---
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    // Tự động chạy tất cả các file Migration để tạo bảng trong Database (nếu chưa có)
+    db.Database.Migrate();
+}
 
 app.Run();

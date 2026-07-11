@@ -1,18 +1,53 @@
 "use client";
 
 import { AppShell } from "@/components/AppShell";
+import Link from "next/link";
 import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { fetchApi } from "@/lib/apiClient";
 
 export default function ProfilePage() {
   const [fullName, setFullName] = useState("Nguyễn Minh");
   const [email, setEmail] = useState("minh@craft.vn");
+  const [bio, setBio] = useState('"Sáng tạo là hạnh phúc." — Handmade creator 💛');
+
+  const [location, setLocation] = useState("Đang tải...");
+  const [joinedDate, setJoinedDate] = useState("");
 
   useEffect(() => {
-    const storedName = localStorage.getItem("fullName");
-    const storedEmail = localStorage.getItem("email");
-    if (storedName) setFullName(storedName);
-    if (storedEmail) setEmail(storedEmail);
+    const loadProfile = async () => {
+      try {
+        const data = await fetchApi("/api/user/profile");
+        if (data.fullName) setFullName(data.fullName);
+        if (data.email) setEmail(data.email);
+        if (data.bio) setBio(data.bio);
+        
+        if (data.createdAt) {
+          const d = new Date(data.createdAt);
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const yyyy = d.getFullYear();
+          setJoinedDate(`Tham gia ${mm}/${yyyy}`);
+        } else {
+          setJoinedDate("Thành viên mới");
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải hồ sơ:", error);
+      }
+    };
+    
+    loadProfile();
+
+    // Lấy vị trí qua IP
+    fetch("https://ipapi.co/json/")
+      .then(r => r.json())
+      .then(data => {
+        if(data.city && data.country_name) {
+          setLocation(`${data.city}, ${data.country_name}`);
+        } else {
+          setLocation("Không xác định");
+        }
+      })
+      .catch(() => setLocation("Hà Nội, Việt Nam"));
   }, []);
 
   const badges = [
@@ -37,17 +72,17 @@ export default function ProfilePage() {
         <div className="glass-strong rounded-3xl overflow-hidden">
           {/* Đổi background thành màu pastel trơn */}
           <div className="h-40 md:h-56 relative" style={{ background: "oklch(0.95 0.03 340)" }}>
-            <button className="absolute top-4 right-4 rounded-xl bg-white/80 backdrop-blur px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 hover:bg-white transition-colors">
+            <button className="absolute top-4 right-4 rounded-xl bg-card/80 backdrop-blur px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 hover:bg-card transition-colors">
               <Camera className="h-3.5 w-3.5" /> Đổi ảnh bìa
             </button>
           </div>
           
           <div className="px-6 md:px-10 pb-8 -mt-16 relative flex flex-col items-center text-center">
             <div className="relative mb-4">
-              <div className="h-28 w-28 md:h-32 md:w-32 rounded-full bg-white grid place-items-center text-4xl font-bold text-primary border-4 border-white shadow-soft overflow-hidden">
+              <div className="h-28 w-28 md:h-32 md:w-32 rounded-full bg-card grid place-items-center text-4xl font-bold text-primary border-4 border-card shadow-soft overflow-hidden">
                 <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`} alt="Avatar" className="w-full h-full object-cover" />
               </div>
-              <button className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-white shadow-soft grid place-items-center hover:bg-primary hover:text-white transition-colors border border-border">
+              <button className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-card shadow-soft grid place-items-center hover:bg-primary hover:text-primary-foreground transition-colors border border-border">
                 <Camera className="h-4 w-4" />
               </button>
             </div>
@@ -58,20 +93,20 @@ export default function ProfilePage() {
                 <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">{fullName}</h1>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">PRO</span>
               </div>
-              <p className="text-muted-foreground mt-2">"Sáng tạo là hạnh phúc." — Handmade creator 💛</p>
+              <p className="text-muted-foreground mt-2 whitespace-pre-wrap">{bio}</p>
               <div className="flex flex-wrap gap-4 mt-3 justify-center text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Hà Nội, Việt Nam</span>
+                <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {location}</span>
                 <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {email}</span>
-                <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Tham gia 03/2026</span>
+                <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {joinedDate}</span>
               </div>
             </div>
             
-            <button className="btn-hero inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold mb-8 hover:scale-105 transition-transform">
+            <Link href="/settings" className="btn-hero inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold mb-8 hover:scale-105 transition-transform">
               <Edit3 className="h-4 w-4" /> Chỉnh sửa
-            </button>
+            </Link>
 
             {/* Stats row - Đã sửa theo yêu cầu */}
-            <div className="w-full max-w-lg mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl bg-white/60 py-4 border border-border/50">
+            <div className="w-full max-w-lg mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl bg-card/60 py-4 border border-border/50">
               {[
                 { v: "12", l: "Dự án handmade" },
                 { v: "5", l: "Sản phẩm đã mua" },
@@ -92,7 +127,7 @@ export default function ProfilePage() {
             {badges.map((b) => {
               const Icon = b.icon;
               return (
-                <div key={b.label} className="flex items-center gap-3 bg-white/70 rounded-xl p-3">
+                <div key={b.label} className="flex items-center gap-3 bg-card/70 rounded-xl p-3">
                   <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${b.color} grid place-items-center text-white shrink-0`}>
                     <Icon className="h-5 w-5" />
                   </div>
@@ -107,7 +142,7 @@ export default function ProfilePage() {
         <section>
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-2xl font-bold font-display">Bộ sưu tập của tôi</h2>
-            <div className="flex gap-1 p-1 bg-white/60 rounded-xl text-sm">
+            <div className="flex gap-1 p-1 bg-card/60 rounded-xl text-sm">
               <button className="px-3 py-1.5 rounded-lg btn-hero">Đã hoàn thành</button>
               <button className="px-3 py-1.5 rounded-lg text-muted-foreground">Đã lưu</button>
             </div>
