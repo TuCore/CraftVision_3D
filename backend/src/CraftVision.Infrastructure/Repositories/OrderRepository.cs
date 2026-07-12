@@ -22,6 +22,10 @@ public class OrderRepository : IOrderRepository
     {
         return await _context.Set<Order>()
             .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Gift)
+                    .ThenInclude(g => g.NfcTag)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 
@@ -35,6 +39,14 @@ public class OrderRepository : IOrderRepository
     public async Task<(IEnumerable<Order> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int page, int size)
     {
         var query = _context.Set<Order>().Where(o => o.UserId == userId);
+        int total = await query.CountAsync();
+        var items = await query.OrderByDescending(o => o.CreatedAt).Skip((page - 1) * size).Take(size).ToListAsync();
+        return (items, total);
+    }
+
+    public async Task<(IEnumerable<Order> Items, int TotalCount)> GetAllAsync(int page, int size)
+    {
+        var query = _context.Set<Order>();
         int total = await query.CountAsync();
         var items = await query.OrderByDescending(o => o.CreatedAt).Skip((page - 1) * size).Take(size).ToListAsync();
         return (items, total);

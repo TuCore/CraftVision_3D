@@ -45,6 +45,13 @@ public class OrderController : ControllerBase
         return Ok(await _service.GetUserOrdersAsync(userId, page, size));
     }
 
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllOrders([FromQuery] int page = 1, [FromQuery] int size = 10)
+    {
+        return Ok(await _service.GetAllOrdersAsync(page, size));
+    }
+
     [HttpPatch("{id:guid}/status")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] CraftVision.Application.DTOs.Common.UpdateStatusDto dto)

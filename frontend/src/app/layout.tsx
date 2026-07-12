@@ -8,7 +8,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 import { LanguageProvider } from "@/components/LanguageProvider";
-
+import QueryProvider from "@/providers/QueryProvider";
 const poppins = Poppins({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -40,14 +40,16 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <LanguageProvider>
-            <GoogleOAuthProvider clientId={googleClientId}>
-              <CartProvider>
-                {children}
-                <Toaster position="top-center" />
-              </CartProvider>
-            </GoogleOAuthProvider>
-          </LanguageProvider>
+          <QueryProvider>
+            <LanguageProvider>
+              <GoogleOAuthProvider clientId={googleClientId}>
+                <CartProvider>
+                  {children}
+                  <Toaster position="top-center" />
+                </CartProvider>
+              </GoogleOAuthProvider>
+            </LanguageProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -6,6 +6,7 @@ using CraftVision.Application.DTOs.Common;
 using CraftVision.Application.DTOs.Order;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Repositories;
+using CraftVision.Application.DTOs.Gift;
 using CraftVision.Domain.Entities;
 using CraftVision.Domain.Enums;
 
@@ -199,13 +200,58 @@ public class OrderService : IOrderService
             OrderStatus = order.OrderStatus.ToString(),
             ReceiverName = order.ReceiverName,
             TotalAmount = order.TotalAmount,
-            CreatedAt = order.CreatedAt
+            CreatedAt = order.CreatedAt,
+            Items = order.OrderItems.Select(oi => new OrderItemDto
+            {
+                Id = oi.Id,
+                ProductId = oi.ProductId,
+                ProductName = oi.Product?.Name ?? "",
+                ProductType = oi.Product?.ProductType.ToString() ?? "",
+                Quantity = oi.Quantity,
+                UnitPrice = oi.UnitPrice,
+                SubTotal = oi.SubTotal,
+                Gift = oi.Gift != null ? new GiftSummaryDto
+                {
+                    Id = oi.Gift.Id,
+                    GiftTitle = oi.Gift.GiftTitle,
+                    SenderName = oi.Gift.SenderName,
+                    ReceiverName = oi.Gift.ReceiverName,
+                    NfcTagCode = oi.Gift.NfcTag?.TagCode,
+                    SecretKey = oi.Gift.NfcTag?.SecretKey,
+                    Status = oi.Gift.NfcTag?.Status.ToString() ?? ""
+                } : null
+            }).ToList()
         };
     }
 
     public async Task<PagedResult<OrderDto>> GetUserOrdersAsync(Guid userId, int page, int size)
     {
         var (items, total) = await _unitOfWork.Orders.GetByUserIdAsync(userId, page, size);
+        return new PagedResult<OrderDto>
+        {
+            Items = items.Select(order => new OrderDto
+            {
+                Id = order.Id,
+                OrderCode = order.OrderCode,
+                PaymentMethod = order.PaymentMethod.ToString(),
+                PaymentStatus = order.PaymentStatus.ToString(),
+                OrderStatus = order.OrderStatus.ToString(),
+                ReceiverName = order.ReceiverName,
+                TotalAmount = order.TotalAmount,
+                CreatedAt = order.CreatedAt
+            }).ToList(),
+            TotalItems = total,
+            Page = page,
+            PageSize = size
+        };
+    }
+
+    public async Task<PagedResult<OrderDto>> GetAllOrdersAsync(int page, int size)
+    {
+        // For simplicity, just use GetByUserIdAsync with empty logic or add a new method in repo.
+        // Wait, I need a generic GetAllAsync in repo.
+        // Let's implement this quickly directly via context or repository.
+        var (items, total) = await _unitOfWork.Orders.GetAllAsync(page, size);
         return new PagedResult<OrderDto>
         {
             Items = items.Select(order => new OrderDto

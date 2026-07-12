@@ -9,5 +9,6 @@ public class GiftSummaryDto
     public string? SenderName { get; set; }
     public string? ReceiverName { get; set; }
     public string? NfcTagCode { get; set; }
+    public string? SecretKey { get; set; }
     public string Status { get; set; } = string.Empty;
 }
