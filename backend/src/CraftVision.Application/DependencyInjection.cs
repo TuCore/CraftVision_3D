@@ -17,6 +17,14 @@ namespace CraftVision.Application
             // Services
             services.AddScoped<ITripo3dService, Tripo3dService>();
             services.AddScoped<IQuotaService, QuotaService>();
+            services.AddScoped<IProductCategoryService, ProductCategoryService>();
+            services.AddScoped<IGiftCategoryService, GiftCategoryService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IGiftService, GiftService>();
+            services.AddScoped<INfcTagService, NfcTagService>();
+            services.AddScoped<IMessageTemplateService, MessageTemplateService>();
+            services.AddScoped<IAiService, AiService>();
 
             return services;
         }

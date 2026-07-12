@@ -25,7 +25,18 @@ public class ApplicationDbContext : DbContext
     public DbSet<DiyPlanMaterial> DiyPlanMaterials { get; set; } = null!;
     public DbSet<DiyPlanTutorial> DiyPlanTutorials { get; set; } = null!;
     public DbSet<Ai3dRequest> Ai3dRequests { get; set; } = null!;
-
+    public DbSet<ProductCategory> ProductCategories { get; set; } = null!;
+    public DbSet<GiftCategory> GiftCategories { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<ProductImage> ProductImages { get; set; } = null!;
+    public DbSet<Order> Orders { get; set; } = null!;
+    public DbSet<OrderItem> OrderItems { get; set; } = null!;
+    public DbSet<NfcTag> NfcTags { get; set; } = null!;
+    public DbSet<Gift> Gifts { get; set; } = null!;
+    public DbSet<GiftMedia> GiftMediaList { get; set; } = null!;
+    public DbSet<GiftAiProfile> GiftAiProfiles { get; set; } = null!;
+    public DbSet<ScanHistory> ScanHistories { get; set; } = null!;
+    public DbSet<MessageTemplate> MessageTemplates { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -50,6 +61,30 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<DiyPlanMaterial>().ToTable("diy_plan_materials");
         modelBuilder.Entity<DiyPlanTutorial>().ToTable("diy_plan_tutorials");
         modelBuilder.Entity<Ai3dRequest>().ToTable("ai_3d_requests");
+        modelBuilder.Entity<ProductCategory>().ToTable("product_categories");
+        modelBuilder.Entity<GiftCategory>().ToTable("gift_categories");
+        modelBuilder.Entity<Product>().ToTable("products");
+        modelBuilder.Entity<ProductImage>().ToTable("product_images");
+        modelBuilder.Entity<Order>().ToTable("orders");
+        modelBuilder.Entity<OrderItem>().ToTable("order_items");
+        modelBuilder.Entity<NfcTag>().ToTable("nfc_tags");
+        modelBuilder.Entity<Gift>().ToTable("gifts");
+        modelBuilder.Entity<GiftMedia>().ToTable("gift_media");
+        modelBuilder.Entity<GiftAiProfile>().ToTable("gift_ai_profiles");
+        modelBuilder.Entity<ScanHistory>().ToTable("scan_histories");
+        modelBuilder.Entity<MessageTemplate>().ToTable("message_templates");
+
+        // Soft delete global query filters
+        modelBuilder.Entity<ProductCategory>().HasQueryFilter(e => e.IsActive);
+        modelBuilder.Entity<GiftCategory>().HasQueryFilter(e => e.IsActive);
+        modelBuilder.Entity<Product>().HasQueryFilter(e => e.IsActive);
+
+        // Optimistic Concurrency
+        modelBuilder.Entity<Product>()
+            .Property(p => p.RowVersion)
+            .IsRowVersion();
+
+        // Enums (EF Core maps enums to integer by default, can configure conversion if string is needed, but we keep default int/smallint)
 
         // Indexes
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
@@ -108,6 +143,60 @@ public class ApplicationDbContext : DbContext
             .HasMany(r => r.Suggestions)
             .WithOne(s => s.Request)
             .HasForeignKey(s => s.RequestId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Product>()
+            .HasOne(p => p.ProductCategory)
+            .WithMany(c => c.Products)
+            .HasForeignKey(p => p.ProductCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ProductImage>()
+            .HasOne(pi => pi.Product)
+            .WithMany(p => p.ProductImages)
+            .HasForeignKey(pi => pi.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Order>()
+            .HasMany(o => o.OrderItems)
+            .WithOne(oi => oi.Order)
+            .HasForeignKey(oi => oi.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(oi => oi.Product)
+            .WithMany()
+            .HasForeignKey(oi => oi.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Gift>()
+            .HasOne(g => g.OrderItem)
+            .WithOne(oi => oi.Gift)
+            .HasForeignKey<Gift>(g => g.OrderItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Gift>()
+            .HasOne(g => g.NfcTag)
+            .WithOne(n => n.Gift)
+            .HasForeignKey<Gift>(g => g.NfcTagId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<GiftAiProfile>()
+            .HasOne(gap => gap.Gift)
+            .WithOne(g => g.AiProfile)
+            .HasForeignKey<GiftAiProfile>(gap => gap.GiftId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GiftMedia>()
+            .HasOne(gm => gm.Gift)
+            .WithMany(g => g.MediaList)
+            .HasForeignKey(gm => gm.GiftId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ScanHistory>()
+            .HasOne(sh => sh.Gift)
+            .WithMany(g => g.ScanHistories)
+            .HasForeignKey(sh => sh.GiftId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
