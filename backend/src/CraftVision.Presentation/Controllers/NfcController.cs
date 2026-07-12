@@ -2,22 +2,24 @@ using System;
 using System.Threading.Tasks;
 using CraftVision.Application.DTOs.NfcTag;
 using CraftVision.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CraftVision.Presentation.Controllers;
 
 [ApiController]
-[Route("api/admin/nfc")]
-public class AdminNfcController : ControllerBase
+[Route("api/nfc-tags")]
+[Authorize(Roles = "Admin")]
+public class NfcController : ControllerBase
 {
     private readonly INfcTagService _service;
 
-    public AdminNfcController(INfcTagService service)
+    public NfcController(INfcTagService service)
     {
         _service = service;
     }
 
-    [HttpPost("import")]
+    [HttpPost("batch")]
     public async Task<IActionResult> ImportTags([FromBody] ImportNfcTagDto dto)
     {
         var result = await _service.ImportTagsAsync(dto);
@@ -30,10 +32,10 @@ public class AdminNfcController : ControllerBase
         return Ok(await _service.GetTagByCodeAsync(tagCode));
     }
 
-    [HttpPut("{id:guid}/status")]
-    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] CraftVision.Application.DTOs.Common.UpdateStatusDto dto)
     {
-        await _service.UpdateTagStatusAsync(id, status);
+        await _service.UpdateTagStatusAsync(id, dto.Status);
         return NoContent();
     }
 }

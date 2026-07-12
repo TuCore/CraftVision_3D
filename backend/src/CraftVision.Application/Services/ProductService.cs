@@ -39,7 +39,7 @@ public class ProductService : IProductService
         return new PagedResult<ProductDto>
         {
             Items = items.Select(MapToDto).ToList(),
-            TotalCount = total,
+            TotalItems = total,
             Page = filter.Page,
             PageSize = filter.PageSize
         };

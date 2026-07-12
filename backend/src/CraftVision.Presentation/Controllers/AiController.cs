@@ -1,13 +1,16 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CraftVision.Application.DTOs.Ai3d;
 using CraftVision.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CraftVision.Presentation.Controllers;
 
 [ApiController]
 [Route("api/ai")]
+[Authorize]
 public class AiController : ControllerBase
 {
     private readonly IAiService _service;
@@ -26,16 +29,18 @@ public class AiController : ControllerBase
     [HttpPost("models")]
     public async Task<IActionResult> Generate3DModel([FromBody] GenerateGift3DDto dto)
     {
-        // Mock userId
-        var userId = Guid.NewGuid();
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
         return Ok(await _service.Generate3DModelAsync(userId, dto));
     }
 
-    [HttpGet("models/{taskId:guid}/status")]
+    [HttpGet("models/{taskId:guid}")]
     public async Task<IActionResult> Get3DTaskStatus(Guid taskId)
     {
-        // Mock userId
-        var userId = Guid.NewGuid();
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
         return Ok(await _service.Get3DTaskStatusAsync(userId, taskId));
     }
 }

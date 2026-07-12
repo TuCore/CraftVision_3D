@@ -219,7 +219,7 @@ public class OrderService : IOrderService
                 TotalAmount = order.TotalAmount,
                 CreatedAt = order.CreatedAt
             }).ToList(),
-            TotalCount = total,
+            TotalItems = total,
             Page = page,
             PageSize = size
         };

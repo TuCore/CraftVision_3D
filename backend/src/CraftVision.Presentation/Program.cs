@@ -195,6 +195,8 @@ var app = builder.Build();
 app.UseMiddleware<ApiProfilerMiddleware>();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<CraftVision.Presentation.Middlewares.GlobalExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

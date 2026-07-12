@@ -16,8 +16,8 @@ public class GiftController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("scan/{secretKey}")]
-    public async Task<IActionResult> ScanGift(string secretKey)
+    [HttpGet]
+    public async Task<IActionResult> ScanGift([FromQuery] string secretKey)
     {
         var result = await _service.GetGiftPageBySecretKeyAsync(secretKey);
         return Ok(result);

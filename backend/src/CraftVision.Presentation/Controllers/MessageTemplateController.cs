@@ -18,21 +18,19 @@ public class MessageTemplateController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] Guid? categoryId)
     {
+        if (categoryId.HasValue)
+            return Ok(await _service.GetByCategoryIdAsync(categoryId.Value));
         return Ok(await _service.GetAllAsync());
-    }
-
-    [HttpGet("category/{categoryId:guid}")]
-    public async Task<IActionResult> GetByCategory(Guid categoryId)
-    {
-        return Ok(await _service.GetByCategoryIdAsync(categoryId));
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateMessageTemplateDto dto)
     {
-        return Ok(await _service.CreateAsync(dto));
+        var result = await _service.CreateAsync(dto);
+        // Note: No GetById method exists here natively in the generated code, so returning Created with URI
+        return Created($"/api/message-templates/{result.Id}", result);
     }
 
     [HttpPut("{id:guid}")]

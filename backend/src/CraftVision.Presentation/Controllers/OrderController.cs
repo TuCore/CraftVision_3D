@@ -1,13 +1,16 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CraftVision.Application.DTOs.Order;
 using CraftVision.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CraftVision.Presentation.Controllers;
 
 [ApiController]
 [Route("api/orders")]
+[Authorize]
 public class OrderController : ControllerBase
 {
     private readonly IOrderService _service;
@@ -20,9 +23,11 @@ public class OrderController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
     {
-        // Mock userId
-        var userId = Guid.NewGuid();
-        return Ok(await _service.CreateOrderAsync(userId, dto));
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
+        var result = await _service.CreateOrderAsync(userId, dto);
+        return CreatedAtAction(nameof(GetOrderById), new { id = result.Id }, result);
     }
 
     [HttpGet("{id:guid}")]
@@ -31,18 +36,20 @@ public class OrderController : ControllerBase
         return Ok(await _service.GetOrderByIdAsync(id));
     }
 
-    [HttpGet("my-orders")]
+    [HttpGet("me")]
     public async Task<IActionResult> GetUserOrders([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
-        // Mock userId
-        var userId = Guid.NewGuid();
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
         return Ok(await _service.GetUserOrdersAsync(userId, page, size));
     }
 
-    [HttpPut("{id:guid}/status")]
-    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
+    [HttpPatch("{id:guid}/status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] CraftVision.Application.DTOs.Common.UpdateStatusDto dto)
     {
-        await _service.UpdateOrderStatusAsync(id, status);
+        await _service.UpdateOrderStatusAsync(id, dto.Status);
         return NoContent();
     }
 }
