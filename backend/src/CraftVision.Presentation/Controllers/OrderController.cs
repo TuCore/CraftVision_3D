@@ -24,7 +24,10 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+        if (!Guid.TryParse(userIdString, out var userId)) 
+        {
+            return Unauthorized("User must be logged in to place an order.");
+        }
 
         var result = await _service.CreateOrderAsync(userId, dto);
         return CreatedAtAction(nameof(GetOrderById), new { id = result.Id }, result);

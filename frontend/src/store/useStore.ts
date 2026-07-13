@@ -1,55 +1,69 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface PreOrderState {
-  productId: string | null;
-  threeDPrompt: string;
-  threeDModelUrl: string | null;
-  previewImageUrl: string | null;
-  taskId: string | null;
-  nfcMediaId: string | null;
-  nfcMediaUrl: string | null;
-  giftMessage: string;
+export interface AiGiftDto {
+  recipientName: string;
+  relationship: string;
+  occasion: string;
+  writingStyle: string;
+  language: string;
+  length: string;
+  emojiLevel: string;
+  sharedMemories: string;
+  thingsToMention: string[];
+  thingsToAvoid: string[];
+}
+
+export interface GiftSummaryDto {
+  giftTitle: string;
   senderName: string;
   receiverName: string;
+  message: string;
+  messageSource: string;
+  theme: string;
+  threeDModelUrl: string | null;
+  previewImageUrl: string | null;
+  threeDModelType: string;
+  mediaFileIds: string[];
+}
+
+interface PreOrderState {
+  productId: string | null;
+  aiGiftData: AiGiftDto;
+  finalGiftData: GiftSummaryDto | null;
   setProductId: (id: string) => void;
-  setThreeDData: (prompt: string, modelUrl: string, previewUrl: string, taskId: string) => void;
-  setNfcMedia: (id: string, url: string) => void;
-  setGiftDetails: (message: string, sender: string, receiver: string) => void;
+  setAiGiftData: (data: Partial<AiGiftDto>) => void;
+  setFinalGiftData: (data: GiftSummaryDto) => void;
   resetPreOrder: () => void;
 }
+
+const initialAiGiftData: AiGiftDto = {
+  recipientName: '',
+  relationship: 'lover',
+  occasion: 'birthday',
+  writingStyle: 'romantic',
+  language: 'vi',
+  length: 'medium',
+  emojiLevel: 'low',
+  sharedMemories: '',
+  thingsToMention: [],
+  thingsToAvoid: []
+};
 
 export const usePreOrderStore = create<PreOrderState>()(
   persist(
     (set) => ({
       productId: null,
-      threeDPrompt: '',
-      threeDModelUrl: null,
-      previewImageUrl: null,
-      taskId: null,
-      nfcMediaId: null,
-      nfcMediaUrl: null,
-      giftMessage: '',
-      senderName: '',
-      receiverName: '',
+      aiGiftData: initialAiGiftData,
+      finalGiftData: null,
       setProductId: (id) => set({ productId: id }),
-      setThreeDData: (prompt, modelUrl, previewUrl, taskId) =>
-        set({ threeDPrompt: prompt, threeDModelUrl: modelUrl, previewImageUrl: previewUrl, taskId }),
-      setNfcMedia: (id, url) => set({ nfcMediaId: id, nfcMediaUrl: url }),
-      setGiftDetails: (message, sender, receiver) =>
-        set({ giftMessage: message, senderName: sender, receiverName: receiver }),
+      setAiGiftData: (data) => set((state) => ({ aiGiftData: { ...state.aiGiftData, ...data } })),
+      setFinalGiftData: (data) => set({ finalGiftData: data }),
       resetPreOrder: () =>
         set({
           productId: null,
-          threeDPrompt: '',
-          threeDModelUrl: null,
-          previewImageUrl: null,
-          taskId: null,
-          nfcMediaId: null,
-          nfcMediaUrl: null,
-          giftMessage: '',
-          senderName: '',
-          receiverName: '',
+          aiGiftData: initialAiGiftData,
+          finalGiftData: null,
         }),
     }),
     {

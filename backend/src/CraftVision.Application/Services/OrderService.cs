@@ -51,8 +51,14 @@ public class OrderService : IOrderService
             foreach (var itemDto in dto.Items)
             {
                 var product = await _unitOfWork.Products.GetByIdAsync(itemDto.ProductId);
-                if (product == null || !product.IsActive)
-                    throw new Exception($"Product with id {itemDto.ProductId} not found or inactive.");
+                if (product == null)
+                {
+                    throw new Exception($"Product with id {itemDto.ProductId} not found.");
+                }
+                else if (!product.IsActive)
+                {
+                    throw new Exception($"Product with id {itemDto.ProductId} is inactive.");
+                }
 
                 if (commonProductType == null)
                 {
@@ -107,7 +113,9 @@ public class OrderService : IOrderService
 
                     var availableTag = await _unitOfWork.NfcTags.GetFirstAvailableAsync();
                     if (availableTag == null)
-                        throw new Exception("No available NFC tags.");
+                    {
+                        throw new Exception("No available NFC tags in stock.");
+                    }
 
                     availableTag.Status = NfcStatus.Reserved;
                     availableTag.UpdatedAt = DateTime.UtcNow;

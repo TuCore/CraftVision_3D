@@ -36,6 +36,11 @@ public class NfcTagRepository : INfcTagRepository
         return await _context.Set<NfcTag>().FirstOrDefaultAsync(x => x.Status == CraftVision.Domain.Enums.NfcStatus.Available);
     }
 
+    public void Add(NfcTag tag)
+    {
+        _context.Set<NfcTag>().Add(tag);
+    }
+
     public void Update(NfcTag tag)
     {
         _context.Set<NfcTag>().Update(tag);

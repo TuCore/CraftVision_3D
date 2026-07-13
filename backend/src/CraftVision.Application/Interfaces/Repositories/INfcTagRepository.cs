@@ -10,5 +10,6 @@ public interface INfcTagRepository
     Task<NfcTag?> GetBySecretKeyAsync(string secretKey);
     Task<NfcTag?> GetByTagCodeAsync(string tagCode);
     Task<NfcTag?> GetFirstAvailableAsync();
+    void Add(NfcTag tag);
     void Update(NfcTag tag);
 }

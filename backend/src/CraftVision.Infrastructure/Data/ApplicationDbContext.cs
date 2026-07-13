@@ -79,10 +79,11 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<GiftCategory>().HasQueryFilter(e => e.IsActive);
         modelBuilder.Entity<Product>().HasQueryFilter(e => e.IsActive);
 
-        // Optimistic Concurrency
+        // Optimistic Concurrency — RowVersion with default value for PostgreSQL
         modelBuilder.Entity<Product>()
             .Property(p => p.RowVersion)
-            .IsRowVersion();
+            .IsRowVersion()
+            .HasDefaultValue(new byte[] { 0 });
 
         // Enums (EF Core maps enums to integer by default, can configure conversion if string is needed, but we keep default int/smallint)
 

@@ -4,7 +4,7 @@ import { use, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { mockProducts } from "@/lib/mock-products";
-import { ArrowLeft, ShoppingBag, Star, Minus, Plus } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
@@ -132,9 +132,32 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <ShoppingBag className="h-5 w-5" />
                 Thêm vào giỏ hàng
               </button>
+              
+              {/* Pre-order / AI Gift Generator Link */}
+              <div 
+                onClick={() => {
+                  // Need to import usePreOrderStore if doing it globally, but we can just push
+                  router.push(`/preorder/${product.id}`);
+                }}
+                className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Thiết kế quà tặng NFC & 3D (Pre-order)</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Ghi lời chúc AI, thêm thiệp NFC và mô hình 3D độc lạ.</p>
+                  </div>
+                </div>
+                <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
+                  Tạo quà ngay
+                </div>
+              </div>
+
               <button
                 onClick={() => router.push("/shop")}
-                className="w-full py-4 rounded-2xl glass-card border border-border hover:bg-white/50 transition-colors font-semibold flex items-center justify-center gap-2 text-foreground"
+                className="w-full mt-2 py-4 rounded-2xl glass-card border border-border hover:bg-white/50 transition-colors font-semibold flex items-center justify-center gap-2 text-foreground"
               >
                 <ArrowLeft className="h-5 w-5" />
                 Quay lại cửa hàng

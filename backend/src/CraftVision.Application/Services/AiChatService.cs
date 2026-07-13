@@ -134,33 +134,8 @@ namespace CraftVision.Application.Services
                 catch (Exception ex)
                 {
                     profile.IsSuccess = false;
-                    profile.ErrorReason = $"AI Fallback ({ex.GetType().Name}): {ex.Message}";
-                    
-                    // Trả về một chuỗi JSON ảo (Mock Data) khi gọi AI thật bị lỗi
-                    aiResponseContent = $$"""
-                    ```json
-                    {
-                      "text": "Xin chào! API AI đang lỗi hoặc quá tải. Mình gửi tạm dữ liệu giả lập (Mock Data) để test giao diện nhé!",
-                      "suggestions": [ 
-                        { "level": "Cơ bản", "title": "Làm đồ handmade vui nhộn", "time": "1 giờ", "price": "50.000đ" },
-                        { "level": "Trung bình", "title": "Mô hình giấy 3D", "time": "3 giờ", "price": "150.000đ" }
-                      ],
-                      "featuredIdea": {
-                         "title": "Ý tưởng nổi bật: Làm quà tặng ý nghĩa",
-                         "totalCost": "200.000đ",
-                         "totalTime": "2 giờ",
-                         "materialsCount": 3,
-                         "materials": [ 
-                            { "name": "Vật liệu 1", "price": "50.000đ", "link": "https://shopee.vn/search?keyword=handmade", "keyword": "handmade" },
-                            { "name": "Vật liệu 2", "price": "100.000đ", "link": "https://shopee.vn/search?keyword=thu+cong", "keyword": "thu cong" },
-                            { "name": "Vật liệu 3", "price": "50.000đ", "link": "https://shopee.vn/search?keyword=diy", "keyword": "diy" }
-                         ],
-                         "tutorial": { "title": "Video hướng dẫn làm chi tiết", "url": "https://youtube.com/watch?v=mock", "duration": "15 phút", "views": "100K" }
-                      }
-                    }
-                    ```
-                    """;
-                    await Task.Delay(1000); // Giả lập delay
+                    profile.ErrorReason = $"AI Provider Error ({ex.GetType().Name}): {ex.Message}";
+                    throw new Exception("Lỗi khi kết nối với dịch vụ AI. Vui lòng thử lại sau.", ex);
                 }
                 
                 profile.ResponseLength = aiResponseContent.Length;
