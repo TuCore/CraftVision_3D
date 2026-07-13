@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "occasion": "birthday",
+    "tone": "romantic",
+    "recipient": "gen_z",
+    "input": "Sender: Nam, Receiver: Lan, Memory: Cùng trú mưa ở trạm xe buýt, Gift: Dây chuyền",
+    "output": "Còn nhớ ngày mình đứng trú mưa dưới mái hiên trạm xe buýt nọ không? Giờ thì anh được đứng đây, tự tay đeo sợi dây chuyền này cho em trong ngày sinh nhật. Bầu trời của anh từ hôm đó không còn mưa nữa, vì có em."
+  },
+  {
+    "id": 2,
+    "occasion": "anniversary",
+    "tone": "funny",
+    "recipient": "extrovert",
+    "input": "Sender: Huy, Receiver: Tú, Memory: Làm cháy nồi thịt kho, Gift: Cây cảnh",
+    "output": "Chúc mừng kỷ niệm 3 năm chịu đựng nhau! Từ cái ngày em làm cháy đen cái nồi thịt kho, anh đã biết đời mình 'xong' rồi. Tặng em chậu cây này, cố gắng chăm nó sống dai như tình yêu của mình nhé!"
+  },
+  {
+    "id": 3,
+    "occasion": "teachers_day",
+    "tone": "respectful",
+    "recipient": "teacher_academic",
+    "input": "Sender: Lớp 12A1, Receiver: Thầy Bình, Memory: Thầy hay ở lại giảng bài muộn, Gift: Bút ký",
+    "output": "Những buổi chiều muộn lán lại lớp để giảng lại bài toán khó cho tụi em, ánh đèn hắt lên bảng xanh là hình ảnh lớp mình mãi không quên. Cảm ơn Thầy vì đã luôn kiên nhẫn. Chiếc bút này mong sẽ đồng hành cùng Thầy trong những trang giáo án sắp tới."
+  },
+  {
+    "id": 4,
+    "occasion": "graduation",
+    "tone": "motivational",
+    "recipient": "gen_z",
+    "input": "Sender: Chị Vy, Receiver: My, Memory: Đêm thức trắng chạy deadline đồ án, Gift: Hộp quà",
+    "output": "Vượt qua bao đêm thức trắng cày đồ án với ly cà phê đen đá, cuối cùng cô em gái nhỏ cũng đã khoác lên mình chiếc áo cử nhân! Chặng đường phía trước dẫu có gập ghềnh, cứ bản lĩnh và kiêu hãnh bước đi. Mở hộp quà ra và đón nhận bất ngờ nhé!"
+  },
+  {
+    "id": 5,
+    "occasion": "apology",
+    "tone": "healing",
+    "recipient": "introvert",
+    "input": "Sender: Quân, Receiver: Ngọc, Memory: Vô tâm để Ngọc khóc, Gift: Hoa sáp",
+    "output": "Anh biết những giọt nước mắt hôm qua là vì sự vô tâm của anh. Nhìn đóa hoa sáp này đi, dù không rực rỡ nhất nhưng nó không bao giờ tàn, giống như cách anh muốn được học cách kiên nhẫn và yêu thương em tốt hơn mỗi ngày. Xin lỗi em vì tất cả."
+  }
+]

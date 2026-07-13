@@ -17,6 +17,18 @@ namespace CraftVision.Infrastructure
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IKnowledgeRepository, CraftVision.Infrastructure.Repositories.KnowledgeRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IAi3dRequestRepository, CraftVision.Infrastructure.Repositories.Ai3dRequestRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IUploadedFileRepository, CraftVision.Infrastructure.Repositories.UploadedFileRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IProductCategoryRepository, CraftVision.Infrastructure.Repositories.ProductCategoryRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IGiftCategoryRepository, CraftVision.Infrastructure.Repositories.GiftCategoryRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IProductRepository, CraftVision.Infrastructure.Repositories.ProductRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IProductImageRepository, CraftVision.Infrastructure.Repositories.ProductImageRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IOrderRepository, CraftVision.Infrastructure.Repositories.OrderRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IOrderItemRepository, CraftVision.Infrastructure.Repositories.OrderItemRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.INfcTagRepository, CraftVision.Infrastructure.Repositories.NfcTagRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IGiftRepository, CraftVision.Infrastructure.Repositories.GiftRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IGiftMediaRepository, CraftVision.Infrastructure.Repositories.GiftMediaRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IGiftAiProfileRepository, CraftVision.Infrastructure.Repositories.GiftAiProfileRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IScanHistoryRepository, CraftVision.Infrastructure.Repositories.ScanHistoryRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IMessageTemplateRepository, CraftVision.Infrastructure.Repositories.MessageTemplateRepository>();
 
             services.AddHttpContextAccessor();
             services.AddScoped<CraftVision.Application.Interfaces.Providers.IObjectStorageService, CraftVision.Infrastructure.Providers.LocalObjectStorageService>();
@@ -45,6 +57,12 @@ namespace CraftVision.Infrastructure
                 .AddPolicyHandler(retryPolicy);
 
             services.AddHttpClient<CraftVision.Application.Interfaces.AI.IAiPlanGenerator, CraftVision.Infrastructure.AI.Gemini.GeminiPlanGenerator>(ConfigureGeminiClient)
+                .AddPolicyHandler(retryPolicy);
+
+            // Ai Greeting Infrastructure
+            services.Configure<CraftVision.Application.Models.AiGreeting.AiModelOptions>(configuration.GetSection("AiGreeting"));
+            services.AddSingleton<CraftVision.Application.Interfaces.AiGreeting.IJsonKnowledgeLoader, CraftVision.Infrastructure.Data.AiKnowledgeBase.JsonKnowledgeLoader>();
+            services.AddHttpClient<CraftVision.Application.Interfaces.AiGreeting.ILLMProvider, CraftVision.Infrastructure.Providers.GeminiProvider>(ConfigureGeminiClient)
                 .AddPolicyHandler(retryPolicy);
 
             // Register a plain HttpClient for downloading images (SSRF mitigated)

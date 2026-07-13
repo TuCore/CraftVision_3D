@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 import { Poppins, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/components/CartProvider";
 import { Toaster } from "@/components/ui/sonner";
-
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 import { LanguageProvider } from "@/components/LanguageProvider";
-
+import QueryProvider from "@/providers/QueryProvider";
 const poppins = Poppins({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -40,14 +38,14 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <LanguageProvider>
-            <GoogleOAuthProvider clientId={googleClientId}>
-              <CartProvider>
+          <QueryProvider>
+            <LanguageProvider>
+              <GoogleOAuthProvider clientId={googleClientId}>
                 {children}
                 <Toaster position="top-center" />
-              </CartProvider>
-            </GoogleOAuthProvider>
-          </LanguageProvider>
+              </GoogleOAuthProvider>
+            </LanguageProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

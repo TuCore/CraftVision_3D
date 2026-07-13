@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "theme": "Galaxy",
+    "style3D": "Stylized 3D / Sci-fi Fantasy",
+    "lighting": "Volumetric glowing lighting, cosmic luminescence",
+    "materials": "Translucent resin, metallic star dust particles",
+    "cameraAngle": "Macro close-up shot, floating centered product angle"
+  },
+  {
+    "id": 2,
+    "theme": "Flower",
+    "style3D": "Realistic PBR / Romantic Smooth",
+    "lighting": "Cinematic soft golden hour light, gentle sub-surface scattering",
+    "materials": "Soft matte organic flower petals, polished white marble base",
+    "cameraAngle": "Slightly high angle, soft focal depth of field background"
+  },
+  {
+    "id": 3,
+    "theme": "Minimal",
+    "style3D": "Minimalist Scandinavian Product Render",
+    "lighting": "Clean studio lighting, soft diffused shadows, bright setup",
+    "materials": "Matte porcelain, pure white chalk texture, elegant typography engraving",
+    "cameraAngle": "Front orthographic view, perfectly balanced composition"
+  },
+  {
+    "id": 4,
+    "theme": "Cyberpunk",
+    "style3D": "Futuristic Cyber Tech Art",
+    "lighting": "Vibrant neon pink and cyan dual-tone backlighting, high contrast",
+    "materials": "Glossy carbon fiber, emissive LED circuits, dark polished chrome",
+    "cameraAngle": "Dynamic low-angle dramatic view, sharp perspective lines"
+  },
+  {
+    "id": 5,
+    "theme": "Cozy Autumn",
+    "style3D": "Claymation / Warm Stylized Low-poly",
+    "lighting": "Warm indoor fireplace glow, cozy amber ambient lighting",
+    "materials": "Hand-painted clay textures, unglazed ceramic, soft woolen knits",
+    "cameraAngle": "Cozy isometric tabletop overview angle"
+  },
+  {
+    "id": 6,
+    "theme": "Retro Vintage",
+    "style3D": "Hyper-realistic Antique Diorama",
+    "lighting": "Muted nostalgic sepia tones, soft candle flame illumination",
+    "materials": "Tarnished brass, aged dark oak wood grain, weathered kraft paper",
+    "cameraAngle": "Three-quarter perspective studio shot"
+  },
+  {
+    "id": 7,
+    "theme": "Dark Luxury",
+    "style3D": "Premium High-end Commercial Render",
+    "lighting": "Rim lighting highlighting gold edges, deep mysterious shadows",
+    "materials": "Anodized black metal, brushed gold gilding, dark velvet fabric",
+    "cameraAngle": "Cinematic eye-level macro render focusing on luxury detail"
+  },
+  {
+    "id": 8,
+    "theme": "Botanical Green",
+    "style3D": "Modern Organic Visualization",
+    "lighting": "Bright morning sunlight filtering through leaves, organic shadow patterns",
+    "materials": "Translucent glassmorphism jars, realistic leaf veins, natural terracotta",
+    "cameraAngle": "Clean top-down flat lay look or straight product render"
+  },
+  {
+    "id": 9,
+    "theme": "Pastel Dream",
+    "style3D": "Cute Kawaii 3D Asset Style",
+    "lighting": "Fluffy shadowless lighting, bright dreamlike ambient glow",
+    "materials": "Glossy vinyl plastic, matte marshmallow texture, iridescent foil",
+    "cameraAngle": "Front-facing toy presentation view, cute proportion focus"
+  },
+  {
+    "id": 10,
+    "theme": "Y2K Aesthetic",
+    "style3D": "Retro-futuristic Millennial Pop Art",
+    "lighting": "High-gloss studio flash effect, metallic silver reflections",
+    "materials": "Liquid chrome metal, semi-transparent colored plastic, holographic foil",
+    "cameraAngle": "Extreme close-up macro, Y2K fish-eye lens simulation effect"
+  },
+  {
+    "id": 11,
+    "theme": "Ocean Breeze",
+    "style3D": "Refreshing Marine 3D Landscape",
+    "lighting": "Bright tropical midday sunlight, caustic light reflections through water",
+    "materials": "Clear liquid shaders, frosted glass sea-shells, fine white sand particle mesh",
+    "cameraAngle": "Low wide-angle view capturing water refraction beauty"
+  },
+  {
+    "id": 12,
+    "theme": "Watercolor Art",
+    "style3D": "Hand-crafted Origami / Non-photorealistic Render",
+    "lighting": "Soft evenly distributed art gallery lighting",
+    "materials": "Visible watercolor paper fiber textures, stylized ink bleed borders",
+    "cameraAngle": "Clean isometric papercraft art showcase presentation"
+  },
+  {
+    "id": 13,
+    "theme": "Cozy Winter",
+    "style3D": "Festive Holiday Whimsical Style",
+    "lighting": "Warm yellow lighting contrast against cool blue outdoor ambient shade",
+    "materials": "Fluffy crystalline snow mesh, shiny holiday glass ornaments, knit fabric",
+    "cameraAngle": "Enclosed diorama box view style"
+  },
+  {
+    "id": 14,
+    "theme": "Traditional Tet",
+    "style3D": "Cultural Festive PBR Style",
+    "lighting": "Opulent celebratory golden hour lighting, rich vibrant colors",
+    "materials": "Polished red lacquerware, highly reflective gold leaf coating, silk embroidery",
+    "cameraAngle": "Centered symmetric ceremonial presentation layout"
+  },
+  {
+    "id": 15,
+    "theme": "Gilded Marble",
+    "style3D": "Abstract High-fashion Design Asset",
+    "lighting": "Elegant soft studio panel light reflecting off polished floors",
+    "materials": "Highly polished liquid marble swirls, embedded solid gold geometric veins",
+    "cameraAngle": "Elegant close-up shot capturing natural texture flow pattern"
+  }
+]

@@ -96,12 +96,13 @@ public class Tripo3dService : ITripo3dService
     {
         return new Ai3dTaskStatusDto
         {
-            Id = entity.Id,
+            TaskId = entity.Id,
             Status = entity.Status,
-            TripoTaskId = entity.TripoTaskId,
-            ResultModelUrl = entity.ResultModelUrl,
-            Progress = entity.Progress,
-            ErrorMessage = entity.ErrorMessage
+            ModelUrl = entity.ResultModelUrl,
+            Progress = entity.Progress ?? 0,
+            ErrorMessage = entity.ErrorMessage,
+            CreatedAt = entity.CreatedAt,
+            CompletedAt = entity.UpdatedAt
         };
     }
 }

@@ -1,0 +1,107 @@
+[
+  {
+    "id": 1,
+    "slug": "flowers",
+    "name": "Bó hoa tươi / Hoa sáp",
+    "description": "Quà tặng truyền thống biểu trưng cho cái đẹp và tình cảm.",
+    "visualElement": "blooming petals, delicate wrapping paper, silk ribbons"
+  },
+  {
+    "id": 2,
+    "slug": "plush_toy",
+    "name": "Gấu bông / Thú nhồi bông",
+    "description": "Quà tặng mang lại cảm giác ấm áp, dễ thương và được che chở.",
+    "visualElement": "fluffy fabric texture, chubby proportions, cute expressions"
+  },
+  {
+    "id": 3,
+    "slug": "necklace",
+    "name": "Vòng cổ / Dây chuyền trang sức",
+    "description": "Quà tặng tinh tế, sang trọng và mang tính gắn kết lâu dài.",
+    "visualElement": "metallic chain, sparkling gemstone pendant, velvet box"
+  },
+  {
+    "id": 4,
+    "slug": "photo_album",
+    "name": "Album ảnh / Scrapbook handmade",
+    "description": "Nơi lưu giữ những kỷ niệm, khoảnh khắc đáng nhớ bằng hình ảnh.",
+    "visualElement": "open book layout, polaroid photos, handwritten notes layout"
+  },
+  {
+    "id": 5,
+    "slug": "nfc_card",
+    "name": "Thẻ thông minh NFC / Thiệp công nghệ",
+    "description": "Thiệp chạm thông minh mở ra bản nhạc hoặc video bí mật.",
+    "visualElement": "sleek plastic/wood matte card, minimalist embedded chip icon"
+  },
+  {
+    "id": 6,
+    "slug": "gift_box",
+    "name": "Hộp quà bí mật (Combo Box)",
+    "description": "Hộp quà lớn chứa nhiều món quà nhỏ bất ngờ bên trong.",
+    "visualElement": "square cardboard box, large satin bow ribbon, confetti"
+  },
+  {
+    "id": 7,
+    "slug": "scented_candle",
+    "name": "Nến thơm thảo mộc",
+    "description": "Mang lại hương thơm thư giãn và không gian ấm cúng.",
+    "visualElement": "amber glass jar, flickering warm flame, botanical stickers"
+  },
+  {
+    "id": 8,
+    "slug": "coffee_mug",
+    "name": "Ly sứ / Bình giữ nhiệt khắc tên",
+    "description": "Món quà thiết thực sử dụng mỗi ngày, nhắc nhớ người tặng.",
+    "visualElement": "ceramic gloss finish, elegant customized typography on surface"
+  },
+  {
+    "id": 9,
+    "slug": "chocolate_box",
+    "name": "Hộp Socola nghệ thuật",
+    "description": "Hộp quà ngọt ngào dành riêng cho những dịp lãng mạn.",
+    "visualElement": "assorted chocolate shapes, glossy praline textures, heart box"
+  },
+  {
+    "id": 10,
+    "slug": "watch",
+    "name": "Đồng hồ đeo tay",
+    "description": "Biểu tượng của thời gian vĩnh cửu và sự trưởng thành.",
+    "visualElement": "leather strap, metallic dial, luxury watch presentation stand"
+  },
+  {
+    "id": 11,
+    "slug": "perfume",
+    "name": "Nước hoa cao cấp",
+    "description": "Món quà tinh tế thể hiện sự thấu hiểu gu thẩm mỹ của nhau.",
+    "visualElement": "translucent crystal bottle, liquid refraction, gold spray nozzle"
+  },
+  {
+    "id": 12,
+    "slug": "desk_plant",
+    "name": "Chậu cây cảnh để bàn",
+    "description": "Mang lại không gian xanh và lời chúc cho sự phát triển bền vững.",
+    "visualElement": "terracotta pot, vibrant green succulent leaves, clean soil texture"
+  },
+  {
+    "id": 13,
+    "slug": "fountain_pen",
+    "name": "Bút ký cao cấp",
+    "description": "Quà tặng ý nghĩa cho doanh nhân, thầy cô hoặc đồng nghiệp.",
+    "visualElement": "lacquered barrel, metallic gold nib, premium presentation case"
+  },
+  {
+    "id": 14,
+    "slug": "music_box",
+    "name": "Hộp nhạc cổ điển",
+    "description": "Hộp nhạc cơ học phát ra giai điệu du dương khi xoay cót.",
+    "visualElement": "vintage wooden gears, spinning ballerina or carousel, brass key"
+  },
+  {
+    "id": 15,
+    "slug": "tote_bag",
+    "name": "Túi canvas / Túi vải vẽ tay",
+    "description": "Món quà thời trang năng động, thân thiện với môi trường.",
+    "visualElement": "woven canvas fabric texture, minimalist aesthetic print illustration"
+  }
+]

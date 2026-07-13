@@ -1,0 +1,137 @@
+[
+  {
+    "id": 1,
+    "slug": "romantic",
+    "name": "Lãng mạn",
+    "description": "Sâu lắng, ngọt ngào, tập trung vào cảm xúc đôi lứa.",
+    "rules": "Sử dụng các tính từ gợi cảm xúc (nồng nàn, duy nhất, bình yên). Đại từ ưu tiên: Anh - Em, Vợ - Chồng.",
+    "forbiddenTones": ["funny", "formal"],
+    "priority": 10
+  },
+  {
+    "id": 2,
+    "slug": "funny",
+    "name": "Hài hước / Lầy lội",
+    "description": "Vui nhộn, trào phúng, tạo tiếng cười thân mật.",
+    "rules": "Sử dụng từ ngữ đời thường, bắt trend vừa phải, cấu trúc câu bất ngờ. Đại từ ưu tiên: Mày - Tao, Cậu - Tớ, Anh em.",
+    "forbiddenTones": ["formal", "poetic"],
+    "priority": 5
+  },
+  {
+    "id": 3,
+    "slug": "formal",
+    "name": "Trang trọng / Lịch sự",
+    "description": "Chuẩn mực, tôn kính, giữ khoảng cách lịch sự phù hợp.",
+    "rules": "Sử dụng các từ hán việt mang tính tri ân, kính chúc. Câu cú đầy đủ chủ vị. Đại từ: Kính gửi Quý khách/Sếp/Thầy Cô.",
+    "forbiddenTones": ["funny", "cute", "gen_z_slang"],
+    "priority": 10
+  },
+  {
+    "id": 4,
+    "slug": "cute",
+    "name": "Đáng yêu / Kute",
+    "description": "Nhẹ nhàng, nũng nịu, mang lại cảm giác dễ thương.",
+    "rules": "Sử dụng từ láy, thán từ (nha, nhé, chụt, moa). Thêm thắt ký tự đặc biệt đáng yêu. Đại từ: Bé, Cậu - Tớ.",
+    "forbiddenTones": ["formal", "philosophical"],
+    "priority": 5
+  },
+  {
+    "id": 5,
+    "slug": "healing",
+    "name": "Chữa lành / An ủi",
+    "description": "Đồng cảm, nhẹ nhàng, xoa dịu tổn thương hoặc mệt mỏi.",
+    "rules": "Sử dụng nhịp điệu chậm, câu khẳng định mang tính nâng đỡ (không sao cả, luôn có tớ ở đây, bình yên nhé).",
+    "forbiddenTones": ["funny", "dramatic"],
+    "priority": 8
+  },
+  {
+    "id": 6,
+    "slug": "poetic",
+    "name": "Thơ mộng / Bay bổng",
+    "description": "Sử dụng nhiều hình ảnh ẩn dụ thiên nhiên, gieo vần nhẹ.",
+    "rules": "Lồng ghép hình ảnh trăng, sao, mây, gió, dòng thời gian để ẩn dụ cho tình cảm. Câu từ chau chuốt như tản văn.",
+    "forbiddenTones": ["funny", "gen_z_slang"],
+    "priority": 5
+  },
+  {
+    "id": 7,
+    "slug": "sincere",
+    "name": "Chân thành / Mộc mạc",
+    "description": "Giản dị, không hoa mỹ nhưng đi thẳng vào lòng người.",
+    "rules": "Tránh dùng từ ngữ đao to búa lớn. Tập trung nói về những điều nhỏ nhặt thường ngày và lời hứa giản dị.",
+    "forbiddenTones": ["dramatic", "gen_z_slang"],
+    "priority": 5
+  },
+  {
+    "id": 8,
+    "slug": "motivational",
+    "name": "Truyền cảm hứng",
+    "description": "Mạnh mẽ, thúc đẩy năng lượng và ý chí vươn lên.",
+    "rules": "Dùng các động từ mạnh (chinh phục, sải cánh, vững bước, kiên cường). Thúc đẩy cái tôi và tương lai phía trước.",
+    "forbiddenTones": ["apology", "healing"],
+    "priority": 8
+  },
+  {
+    "id": 9,
+    "slug": "nostalgic",
+    "name": "Hoài niệm / Kỷ niệm",
+    "description": "Gợi nhắc quá khứ, những chặng đường đã cùng đi qua.",
+    "rules": "Sử dụng cấu trúc nhắc nhớ thời gian (nhớ ngày đầu tiên, chớp mắt đã, ngoảnh lại nhìn). Gợi lại một chi tiết kỷ niệm cụ thể.",
+    "forbiddenTones": ["grand_opening"],
+    "priority": 5
+  },
+  {
+    "id": 10,
+    "slug": "gen_z_slang",
+    "name": "Trẻ trung / Hợp trend",
+    "description": "Phong cách năng động của giới trẻ mạng xã hội.",
+    "rules": "Cho phép sử dụng teencode nhẹ, các thuật ngữ thịnh hành (flex, lụy, mãi keo, đỉnh nóc kịch trần) một cách khéo léo.",
+    "forbiddenTones": ["formal", "respectful"],
+    "priority": 8
+  },
+  {
+    "id": 11,
+    "slug": "philosophical",
+    "name": "Chiêm nghiệm / Sâu sắc",
+    "description": "Mang tính triết lý nhẹ nhàng về cuộc sống và nhân sinh.",
+    "rules": "Nhìn nhận sự việc dưới góc độ thời gian, sự trưởng thành và các giá trị vô hình của cuộc sống.",
+    "forbiddenTones": ["funny", "cute"],
+    "priority": 8
+  },
+  {
+    "id": 12,
+    "slug": "enthusiastic",
+    "name": "Hào hứng / Nhiệt huyết",
+    "description": "Năng lượng cực cao, chúc tụng hoành tráng.",
+    "rules": "Sử dụng nhiều dấu chấm than (!), lập từ mang tính khẳng định (nhất định, chắc chắn, thành công rực rỡ).",
+    "forbiddenTones": ["healing", "apology"],
+    "priority": 5
+  },
+  {
+    "id": 13,
+    "slug": "witty",
+    "name": "Dí dỏm / Thông minh",
+    "description": "Chơi chữ tinh tế, vừa hài hước vừa có chiều sâu.",
+    "rules": "Sử dụng nghệ thuật hoán dụ hoặc đảo ngữ, tạo các phép so sánh ngầm thông minh khiến người đọc mỉm cười tán thưởng.",
+    "forbiddenTones": ["formal"],
+    "priority": 8
+  },
+  {
+    "id": 14,
+    "slug": "dramatic",
+    "name": "Hùng hồn / Ấn tượng",
+    "description": "Tạo cảm giác hoành tráng, như một lời tuyên ngôn.",
+    "rules": "Cấu trúc câu song hành, nhịp điệu mạnh mẽ, tạo ra bối cảnh vĩ mô để nâng tầm giá trị lời chúc.",
+    "forbiddenTones": ["cute", "healing"],
+    "priority": 5
+  },
+  {
+    "id": 15,
+    "slug": "respectful",
+    "name": "Kính trọng / Biết ơn",
+    "description": "Dành riêng cho người bề trên với sự tôn kính tuyệt đối.",
+    "rules": "Luôn có các từ thưa gửi, dạ vâng. Nhấn mạnh vào công lao, sự hy sinh và đức độ của người nhận.",
+    "forbiddenTones": ["funny", "gen_z_slang"],
+    "priority": 10
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "pattern": "^Chúc (bạn|em|anh|cháu|cô|chú)...",
+    "description": "Cách mở đầu quá phổ thông và nhàm chán.",
+    "suggestion": "Mở đầu bằng một câu hỏi, một kỷ niệm hoặc một câu trần thuật cảm xúc."
+  },
+  {
+    "id": 2,
+    "pattern": "Nhân dịp (sinh nhật|kỷ niệm|khai trương)...",
+    "description": "Cách dẫn dắt như văn mẫu hành chính.",
+    "suggestion": "Nhắc đến dịp lễ một cách khéo léo qua không khí, thời gian thay vì đọc tên trực tiếp."
+  },
+  {
+    "id": 3,
+    "pattern": "Tuổi mới (thêm nhiều niềm vui|thành công|hạnh phúc)",
+    "description": "Cụm từ sáo rỗng thường thấy trên thiệp in sẵn.",
+    "suggestion": "Dùng hình ảnh cụ thể: 'Mong mỗi sáng thức dậy đều thấy cậu cười'."
+  },
+  {
+    "id": 4,
+    "pattern": "Gửi đến (bạn|người ấy) ngàn lời chúc",
+    "description": "Lối diễn đạt cường điệu nhưng sáo rỗng.",
+    "suggestion": "Gửi gắm một điều ước nhỏ nhoi nhưng chân thành."
+  },
+  {
+    "id": 5,
+    "pattern": "Hy vọng (rằng)...",
+    "description": "Thể hiện sự thụ động, kém chắc chắn.",
+    "suggestion": "Sử dụng câu khẳng định mạnh mẽ hơn: 'Chắc chắn rằng...', 'Mình tin là...'."
+  }
+]

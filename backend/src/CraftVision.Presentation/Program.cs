@@ -106,6 +106,15 @@ dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.RequestStatus>("request_statu
 dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.Difficulty>("difficulty_enum", nullTranslator);
 dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.OptionLevel>("option_level_enum", nullTranslator);
 dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.MaterialUnit>("material_unit_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.OrderStatus>("order_status_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.PaymentMethod>("payment_method_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.PaymentStatus>("payment_status_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.NfcStatus>("nfc_status_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.MediaType>("media_type_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.GiftStatus>("gift_status_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.MessageSource>("message_source_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.ProductType>("product_type_enum", nullTranslator);
+dataSourceBuilder.MapEnum<CraftVision.Domain.Enums.ModelType>("model_type_enum", nullTranslator);
 var dataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -120,6 +129,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         o.MapEnum<CraftVision.Domain.Enums.Difficulty>("difficulty_enum", nameTranslator: nullTranslator);
         o.MapEnum<CraftVision.Domain.Enums.OptionLevel>("option_level_enum", nameTranslator: nullTranslator);
         o.MapEnum<CraftVision.Domain.Enums.MaterialUnit>("material_unit_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.OrderStatus>("order_status_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.PaymentMethod>("payment_method_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.PaymentStatus>("payment_status_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.NfcStatus>("nfc_status_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.MediaType>("media_type_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.GiftStatus>("gift_status_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.MessageSource>("message_source_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.ProductType>("product_type_enum", nameTranslator: nullTranslator);
+        o.MapEnum<CraftVision.Domain.Enums.ModelType>("model_type_enum", nameTranslator: nullTranslator);
     })
     .UseSnakeCaseNamingConvention()
 );
@@ -177,6 +195,8 @@ var app = builder.Build();
 app.UseMiddleware<ApiProfilerMiddleware>();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<CraftVision.Presentation.Middlewares.GlobalExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

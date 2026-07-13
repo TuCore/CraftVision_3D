@@ -14,6 +14,18 @@ public class UnitOfWork : IUnitOfWork
     public IAiChatMessageRepository AiChatMessages { get; }
     public IAi3dRequestRepository Ai3dRequests { get; }
     public IUploadedFileRepository UploadedFiles { get; }
+    public IProductCategoryRepository ProductCategories { get; }
+    public IGiftCategoryRepository GiftCategories { get; }
+    public IProductRepository Products { get; }
+    public IProductImageRepository ProductImages { get; }
+    public IOrderRepository Orders { get; }
+    public IOrderItemRepository OrderItems { get; }
+    public INfcTagRepository NfcTags { get; }
+    public IGiftRepository Gifts { get; }
+    public IGiftMediaRepository GiftMediaList { get; }
+    public IGiftAiProfileRepository GiftAiProfiles { get; }
+    public IScanHistoryRepository ScanHistories { get; }
+    public IMessageTemplateRepository MessageTemplates { get; }
 
     public UnitOfWork(
         ApplicationDbContext dbContext,
@@ -23,7 +35,19 @@ public class UnitOfWork : IUnitOfWork
         IAiChatSessionRepository aiChatSessionRepository,
         IAiChatMessageRepository aiChatMessageRepository,
         IAi3dRequestRepository ai3dRequestRepository,
-        IUploadedFileRepository uploadedFileRepository)
+        IUploadedFileRepository uploadedFileRepository,
+        IProductCategoryRepository productCategoryRepository,
+        IGiftCategoryRepository giftCategoryRepository,
+        IProductRepository productRepository,
+        IProductImageRepository productImageRepository,
+        IOrderRepository orderRepository,
+        IOrderItemRepository orderItemRepository,
+        INfcTagRepository nfcTagRepository,
+        IGiftRepository giftRepository,
+        IGiftMediaRepository giftMediaRepository,
+        IGiftAiProfileRepository giftAiProfileRepository,
+        IScanHistoryRepository scanHistoryRepository,
+        IMessageTemplateRepository messageTemplateRepository)
     {
         _dbContext = dbContext;
         Users = userRepository;
@@ -33,6 +57,18 @@ public class UnitOfWork : IUnitOfWork
         AiChatMessages = aiChatMessageRepository;
         Ai3dRequests = ai3dRequestRepository;
         UploadedFiles = uploadedFileRepository;
+        ProductCategories = productCategoryRepository;
+        GiftCategories = giftCategoryRepository;
+        Products = productRepository;
+        ProductImages = productImageRepository;
+        Orders = orderRepository;
+        OrderItems = orderItemRepository;
+        NfcTags = nfcTagRepository;
+        Gifts = giftRepository;
+        GiftMediaList = giftMediaRepository;
+        GiftAiProfiles = giftAiProfileRepository;
+        ScanHistories = scanHistoryRepository;
+        MessageTemplates = messageTemplateRepository;
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

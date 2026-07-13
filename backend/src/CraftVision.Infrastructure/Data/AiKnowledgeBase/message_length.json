@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "slug": "short",
+    "name": "Ngắn gọn / Gói gọn",
+    "description": "Lời chúc súc tích thích hợp in tag quà nhỏ hoặc ruy-băng.",
+    "maxWords": 15,
+    "formatHint": "Single sentence, highly focused impact."
+  },
+  {
+    "id": 2,
+    "slug": "medium",
+    "name": "Vừa phải / Tiêu chuẩn",
+    "description": "Độ dài tiêu chuẩn cho một tấm thiệp chúc mừng thông thường.",
+    "maxWords": 50,
+    "formatHint": "2-3 sentences. Greeting + Core Wish + Closing."
+  },
+  {
+    "id": 3,
+    "slug": "long",
+    "name": "Dài / Tâm sự",
+    "description": "Không gian rộng để viết những lời nhắn nhủ chi tiết và cảm xúc sâu sắc.",
+    "maxWords": 120,
+    "formatHint": "Paragraph structure. Includes memories and detailed wishes."
+  },
+  {
+    "id": 4,
+    "slug": "letter",
+    "name": "Thư tay / Bức tâm thư",
+    "description": "Định dạng như một bức thư hoàn chỉnh, đong đầy kỷ niệm.",
+    "maxWords": 300,
+    "formatHint": "Multi-paragraph letter with opening salutation and formal sign-off."
+  },
+  {
+    "id": 5,
+    "slug": "one_liner",
+    "name": "Thả thính / Một dòng",
+    "description": "Một câu nói duy nhất mang tính châm ngôn hoặc thả thính.",
+    "maxWords": 8,
+    "formatHint": "Punchline format, no punctuation overload."
+  },
+  {
+    "id": 6,
+    "slug": "haiku",
+    "name": "Thơ 3 câu / Haiku style",
+    "description": "Lời chúc cô đọng được ngắt dòng nghệ thuật.",
+    "maxWords": 20,
+    "formatHint": "3 short lines focusing on a seasonal or emotional image."
+  },
+  {
+    "id": 7,
+    "slug": "bullet_points",
+    "name": "Danh sách / Gạch đầu dòng",
+    "description": "Liệt kê các điều ước một cách trực quan, vui nhộn.",
+    "maxWords": 60,
+    "formatHint": "List format starting with emojis as bullet points."
+  },
+  {
+    "id": 8,
+    "slug": "couplet",
+    "name": "Câu đối vần",
+    "description": "Dạng thơ 2 vế đối nhau, đặc biệt thích hợp cho dịp Tết/Khai trương.",
+    "maxWords": 16,
+    "formatHint": "Two matching parallel phrases for traditional aesthetics."
+  },
+  {
+    "id": 9,
+    "slug": "acrostic",
+    "name": "Thơ ghép chữ đầu (Acrostic)",
+    "description": "Các chữ cái đầu dòng ghép lại thành tên người nhận.",
+    "maxWords": 40,
+    "formatHint": "Each line starts with a letter from the recipient's name."
+  },
+  {
+    "id": 10,
+    "slug": "tweet_style",
+    "name": "Hiện đại / Mạng xã hội",
+    "description": "Lời chúc siêu ngắn kèm hashtag cá nhân hóa.",
+    "maxWords": 25,
+    "formatHint": "Micro-blogging style ending with 2-3 customized hashtags."
+  },
+  {
+    "id": 11,
+    "slug": "mini_story",
+    "name": "Câu chuyện nhỏ",
+    "description": "Kể lại một khoảnh khắc ngắn đáng nhớ trước khi chúc.",
+    "maxWords": 80,
+    "formatHint": "Narrative arc: 'Remember when...' leading to the ultimate wish."
+  },
+  {
+    "id": 12,
+    "slug": "toast",
+    "name": "Lời chúc nâng ly",
+    "description": "Phong cách năng động như đang phát biểu trong bữa tiệc.",
+    "maxWords": 35,
+    "formatHint": "Exclamatory style, perfect for celebrations and gatherings."
+  },
+  {
+    "id": 13,
+    "slug": "praise_heavy",
+    "name": "Khen ngợi / Tôn vinh",
+    "description": "Tập trung liệt kê và khen ngợi những điểm tốt của đối phương.",
+    "maxWords": 70,
+    "formatHint": "Focuses 70% on appreciation and 30% on future wishes."
+  },
+  {
+    "id": 14,
+    "slug": "dual_language",
+    "name": "Song ngữ ngắn",
+    "description": "Một câu tiếng Việt đi kèm một câu dịch tiếng Anh tương đương.",
+    "maxWords": 40,
+    "formatHint": "Vietnamese sentence followed by its elegant English translation."
+  },
+  {
+    "id": 15,
+    "slug": "post_card",
+    "name": "Bưu thiếp du lịch",
+    "description": "Mang không khí phóng khoáng, tự do như viết từ một nơi xa.",
+    "maxWords": 45,
+    "formatHint": "Atmospheric, focus on sharing vibes and geographical warmth."
+  }
+]

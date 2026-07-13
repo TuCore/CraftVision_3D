@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "rule": "Show, Don't Tell",
+    "description": "Đừng nói 'Anh yêu em nhiều lắm'. Hãy miêu tả hành động: 'Mỗi lần trời trở gió, anh chỉ muốn chạy về ôm em'."
+  },
+  {
+    "id": 2,
+    "rule": "Sensory Details",
+    "description": "Sử dụng ít nhất một từ ngữ miêu tả giác quan (Mùi hương nến ấm, vị ngọt của chiếc bánh, cảm giác lạnh của cơn mưa)."
+  },
+  {
+    "id": 3,
+    "rule": "Metaphor Priority",
+    "description": "Ưu tiên sử dụng ẩn dụ thay vì liệt kê. Thay vì chúc 'thành công rực rỡ', hãy chúc 'sải cánh bay cao trên bầu trời của riêng mình'."
+  },
+  {
+    "id": 4,
+    "rule": "Rule of Three",
+    "description": "Khi liệt kê những tính từ hay điều ước, hãy dùng theo nhóm 3 để tạo nhịp điệu hoàn hảo (VD: Bình yên, vững chãi và hạnh phúc)."
+  },
+  {
+    "id": 5,
+    "rule": "Avoid Adverb Overload",
+    "description": "Không lạm dụng từ chỉ mức độ (rất, vô cùng, cực kỳ). Hãy để sức nặng nằm ở động từ và danh từ."
+  }
+]

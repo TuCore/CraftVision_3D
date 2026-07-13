@@ -24,10 +24,19 @@ namespace CraftVision.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "difficulty_enum", new[] { "Easy", "Hard", "Medium" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "file_type_enum", new[] { "Image" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "file_type_enum", new[] { "Image", "Video" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "gift_status_enum", new[] { "Active", "Disabled", "Draft" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "material_unit_enum", new[] { "gram", "liter", "meter", "pack", "piece", "set" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "media_type_enum", new[] { "Image", "Video" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "message_role_enum", new[] { "Assistant", "System", "User" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "message_source_enum", new[] { "AI", "Manual" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "model_type_enum", new[] { "GLB", "GLTF", "USDZ" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "nfc_status_enum", new[] { "Active", "Available", "Disabled", "Lost", "Reserved", "Sold" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "option_level_enum", new[] { "Advanced", "Basic", "Intermediate" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "order_status_enum", new[] { "Cancelled", "Delivered", "Pending", "Processing", "Producing", "ReadyToShip", "Shipped", "WaitingProduction" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method_enum", new[] { "Cod", "None" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_status_enum", new[] { "Failed", "Paid", "Refunded", "Unpaid" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "product_type_enum", new[] { "InStock", "PreOrder" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "request_status_enum", new[] { "Completed", "Failed", "Pending" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_tier_enum", new[] { "Free", "Premium" });
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pgcrypto");
@@ -439,6 +448,237 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("diy_plan_tutorials", (string)null);
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.Gift", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("GiftTitle")
+                        .HasColumnType("text")
+                        .HasColumnName("gift_title");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
+                    b.Property<MessageSource>("MessageSource")
+                        .HasColumnType("message_source_enum")
+                        .HasColumnName("message_source");
+
+                    b.Property<Guid>("NfcTagId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("nfc_tag_id");
+
+                    b.Property<Guid>("OrderItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_item_id");
+
+                    b.Property<string>("PreviewImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("preview_image_url");
+
+                    b.Property<string>("ReceiverName")
+                        .HasColumnType("text")
+                        .HasColumnName("receiver_name");
+
+                    b.Property<string>("SenderName")
+                        .HasColumnType("text")
+                        .HasColumnName("sender_name");
+
+                    b.Property<GiftStatus>("Status")
+                        .HasColumnType("gift_status_enum")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Theme")
+                        .HasColumnType("text")
+                        .HasColumnName("theme");
+
+                    b.Property<ModelType?>("ThreeDModelType")
+                        .HasColumnType("model_type_enum")
+                        .HasColumnName("three_d_model_type");
+
+                    b.Property<string>("ThreeDModelUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("three_d_model_url");
+
+                    b.Property<string>("ThreeDPrompt")
+                        .HasColumnType("text")
+                        .HasColumnName("three_d_prompt");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gifts");
+
+                    b.HasIndex("NfcTagId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_gifts_nfc_tag_id");
+
+                    b.HasIndex("OrderItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_gifts_order_item_id");
+
+                    b.ToTable("gifts", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.GiftAiProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AdditionalContext")
+                        .HasColumnType("text")
+                        .HasColumnName("additional_context");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DesignPrompt")
+                        .HasColumnType("text")
+                        .HasColumnName("design_prompt");
+
+                    b.Property<string>("EmojiLevel")
+                        .HasColumnType("text")
+                        .HasColumnName("emoji_level");
+
+                    b.Property<Guid>("GiftCategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("gift_category_id");
+
+                    b.Property<Guid>("GiftId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("gift_id");
+
+                    b.Property<string>("Language")
+                        .HasColumnType("text")
+                        .HasColumnName("language");
+
+                    b.Property<string>("MessageLength")
+                        .HasColumnType("text")
+                        .HasColumnName("message_length");
+
+                    b.Property<string>("Relationship")
+                        .HasColumnType("text")
+                        .HasColumnName("relationship");
+
+                    b.Property<string>("WritingStyle")
+                        .HasColumnType("text")
+                        .HasColumnName("writing_style");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gift_ai_profiles");
+
+                    b.HasIndex("GiftCategoryId")
+                        .HasDatabaseName("ix_gift_ai_profiles_gift_category_id");
+
+                    b.HasIndex("GiftId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_gift_ai_profiles_gift_id");
+
+                    b.ToTable("gift_ai_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.GiftCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("display_order");
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("text")
+                        .HasColumnName("icon");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PromptTemplate")
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_template");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("slug");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gift_categories");
+
+                    b.ToTable("gift_categories", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.GiftMedia", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Caption")
+                        .HasColumnType("text")
+                        .HasColumnName("caption");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("display_order");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<Guid>("GiftId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("gift_id");
+
+                    b.Property<MediaType>("MediaType")
+                        .HasColumnType("media_type_enum")
+                        .HasColumnName("media_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gift_media");
+
+                    b.HasIndex("FileId")
+                        .HasDatabaseName("ix_gift_media_file_id");
+
+                    b.HasIndex("GiftId")
+                        .HasDatabaseName("ix_gift_media_gift_id");
+
+                    b.ToTable("gift_media", (string)null);
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.GiftSuggestion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -661,7 +901,132 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("knowledge_tutorials", (string)null);
                 });
 
-            modelBuilder.Entity("CraftVision.Domain.Entities.UploadedFile", b =>
+            modelBuilder.Entity("CraftVision.Domain.Entities.MessageTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("GiftCategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("gift_category_id");
+
+                    b.Property<bool>("IsPremium")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_premium");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id")
+                        .HasName("pk_message_templates");
+
+                    b.HasIndex("GiftCategoryId")
+                        .HasDatabaseName("ix_message_templates_gift_category_id");
+
+                    b.ToTable("message_templates", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.NfcTag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activated_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("LastScanAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_scan_at");
+
+                    b.Property<string>("LinkedUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("linked_url");
+
+                    b.Property<int>("ScanCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("scan_count");
+
+                    b.Property<string>("SecretKey")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("secret_key");
+
+                    b.Property<NfcStatus>("Status")
+                        .HasColumnType("nfc_status_enum")
+                        .HasColumnName("status");
+
+                    b.Property<string>("TagCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tag_code");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_nfc_tags");
+
+                    b.ToTable("nfc_tags", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CreatedAt = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LastScanAt = new DateTime(2026, 7, 13, 10, 0, 0, 0, DateTimeKind.Utc),
+                            LinkedUrl = "https://craftvision.vn/nfc/abcxyz",
+                            ScanCount = 15,
+                            SecretKey = "abc",
+                            Status = NfcStatus.Active,
+                            TagCode = "NFC000001",
+                            UpdatedAt = new DateTime(2026, 7, 13, 10, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            CreatedAt = new DateTime(2026, 7, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ScanCount = 0,
+                            SecretKey = "def",
+                            Status = NfcStatus.Available,
+                            TagCode = "NFC000002",
+                            UpdatedAt = new DateTime(2026, 7, 11, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            CreatedAt = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LastScanAt = new DateTime(2026, 7, 12, 10, 0, 0, 0, DateTimeKind.Utc),
+                            LinkedUrl = "https://craftvision.vn/nfc/xyz123",
+                            ScanCount = 3,
+                            SecretKey = "ghi",
+                            Status = NfcStatus.Disabled,
+                            TagCode = "NFC000003",
+                            UpdatedAt = new DateTime(2026, 7, 12, 10, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -672,6 +1037,332 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("order_code");
+
+                    b.Property<OrderStatus>("OrderStatus")
+                        .HasColumnType("order_status_enum")
+                        .HasColumnName("order_status");
+
+                    b.Property<PaymentMethod>("PaymentMethod")
+                        .HasColumnType("payment_method_enum")
+                        .HasColumnName("payment_method");
+
+                    b.Property<PaymentStatus>("PaymentStatus")
+                        .HasColumnType("payment_status_enum")
+                        .HasColumnName("payment_status");
+
+                    b.Property<string>("ReceiverAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("receiver_address");
+
+                    b.Property<string>("ReceiverName")
+                        .HasColumnType("text")
+                        .HasColumnName("receiver_name");
+
+                    b.Property<string>("ReceiverPhone")
+                        .HasColumnType("text")
+                        .HasColumnName("receiver_phone");
+
+                    b.Property<decimal>("ShippingFee")
+                        .HasColumnType("numeric")
+                        .HasColumnName("shipping_fee");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("total_amount");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_orders");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_orders_user_id");
+
+                    b.ToTable("orders", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<Guid?>("ProductId1")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id1");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("numeric")
+                        .HasColumnName("sub_total");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_order_items");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_order_items_order_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_order_items_product_id");
+
+                    b.HasIndex("ProductId1")
+                        .HasDatabaseName("ix_order_items_product_id1");
+
+                    b.ToTable("order_items", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<int?>("EstimatedProductionDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("estimated_production_days");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric")
+                        .HasColumnName("price");
+
+                    b.Property<Guid>("ProductCategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_category_id");
+
+                    b.Property<ProductType>("ProductType")
+                        .HasColumnType("product_type_enum")
+                        .HasColumnName("product_type");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[] { 0 })
+                        .HasColumnName("row_version");
+
+                    b.Property<string>("SKU")
+                        .HasColumnType("text")
+                        .HasColumnName("sku");
+
+                    b.Property<string>("SampleImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("sample_image_url");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("integer")
+                        .HasColumnName("stock");
+
+                    b.Property<bool>("SupportsNfc")
+                        .HasColumnType("boolean")
+                        .HasColumnName("supports_nfc");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_products");
+
+                    b.HasIndex("ProductCategoryId")
+                        .HasDatabaseName("ix_products_product_category_id");
+
+                    b.ToTable("products", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.ProductCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("display_order");
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("text")
+                        .HasColumnName("icon");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_categories");
+
+                    b.ToTable("product_categories", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.ProductImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("display_order");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<bool>("IsThumbnail")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_thumbnail");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_images");
+
+                    b.HasIndex("FileId")
+                        .HasDatabaseName("ix_product_images_file_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_product_images_product_id");
+
+                    b.ToTable("product_images", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.ScanHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Device")
+                        .HasColumnType("text")
+                        .HasColumnName("device");
+
+                    b.Property<Guid>("GiftId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("gift_id");
+
+                    b.Property<string>("IPAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("ip_address");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("text")
+                        .HasColumnName("location");
+
+                    b.Property<DateTime>("ScannedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scanned_at");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("text")
+                        .HasColumnName("user_agent");
+
+                    b.HasKey("Id")
+                        .HasName("pk_scan_histories");
+
+                    b.HasIndex("GiftId")
+                        .HasDatabaseName("ix_scan_histories_gift_id");
+
+                    b.ToTable("scan_histories", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.UploadedFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CloudinaryId")
+                        .HasColumnType("text")
+                        .HasColumnName("cloudinary_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<double?>("Duration")
+                        .HasColumnType("double precision")
+                        .HasColumnName("duration");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("bigint")
+                        .HasColumnName("file_size");
+
                     b.Property<FileType>("FileType")
                         .HasColumnType("file_type_enum")
                         .HasColumnName("file_type");
@@ -681,9 +1372,21 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("file_url");
 
+                    b.Property<int?>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
+
+                    b.Property<string>("MimeType")
+                        .HasColumnType("text")
+                        .HasColumnName("mime_type");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
 
                     b.HasKey("Id")
                         .HasName("pk_uploaded_files");
@@ -704,6 +1407,10 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<string>("AuthProvider")
                         .HasColumnType("text")
                         .HasColumnName("auth_provider");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("avatar_url");
 
                     b.Property<string>("Bio")
                         .HasColumnType("text")
@@ -741,6 +1448,10 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("provider_id");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
                     b.Property<UserTier>("Tier")
                         .HasColumnType("user_tier_enum")
                         .HasColumnName("tier");
@@ -757,6 +1468,20 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDatabaseName("ix_users_email");
 
                     b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@craftvision.vn",
+                            FullName = "Admin",
+                            IsActive = true,
+                            PasswordHash = "$2a$11$fbsBU9IgXg5Uz9ROjmJC.ewxbazje/LgbxGyUEguwKqg1InK6wHjO",
+                            Role = 1,
+                            Tier = UserTier.Premium,
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.UserQuota", b =>
@@ -940,6 +1665,69 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("Tutorial");
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.Gift", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.NfcTag", "NfcTag")
+                        .WithOne("Gift")
+                        .HasForeignKey("CraftVision.Domain.Entities.Gift", "NfcTagId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_gifts_nfc_tags_nfc_tag_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.OrderItem", "OrderItem")
+                        .WithOne("Gift")
+                        .HasForeignKey("CraftVision.Domain.Entities.Gift", "OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_gifts_order_items_order_item_id");
+
+                    b.Navigation("NfcTag");
+
+                    b.Navigation("OrderItem");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.GiftAiProfile", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.GiftCategory", "GiftCategory")
+                        .WithMany("GiftAiProfiles")
+                        .HasForeignKey("GiftCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_gift_ai_profiles_gift_categories_gift_category_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Gift", "Gift")
+                        .WithOne("AiProfile")
+                        .HasForeignKey("CraftVision.Domain.Entities.GiftAiProfile", "GiftId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_gift_ai_profiles_gifts_gift_id");
+
+                    b.Navigation("Gift");
+
+                    b.Navigation("GiftCategory");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.GiftMedia", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.UploadedFile", "File")
+                        .WithMany("GiftMediaList")
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_gift_media_uploaded_files_file_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Gift", "Gift")
+                        .WithMany("MediaList")
+                        .HasForeignKey("GiftId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_gift_media_gifts_gift_id");
+
+                    b.Navigation("File");
+
+                    b.Navigation("Gift");
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.GiftSuggestion", b =>
                 {
                     b.HasOne("CraftVision.Domain.Entities.AiRequest", "Request")
@@ -962,6 +1750,101 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasConstraintName("fk_image_analysis_results_uploaded_files_uploaded_file_id");
 
                     b.Navigation("UploadedFile");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.MessageTemplate", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.GiftCategory", "GiftCategory")
+                        .WithMany("MessageTemplates")
+                        .HasForeignKey("GiftCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_message_templates_gift_categories_gift_category_id");
+
+                    b.Navigation("GiftCategory");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Order", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany("Orders")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_orders_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderItem", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_items_orders_order_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_items_products_product_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Product", null)
+                        .WithMany("OrderItems")
+                        .HasForeignKey("ProductId1")
+                        .HasConstraintName("fk_order_items_products_product_id1");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Product", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.ProductCategory", "ProductCategory")
+                        .WithMany("Products")
+                        .HasForeignKey("ProductCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_products_product_categories_product_category_id");
+
+                    b.Navigation("ProductCategory");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.ProductImage", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.UploadedFile", "File")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_images_uploaded_files_file_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_images_products_product_id");
+
+                    b.Navigation("File");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.ScanHistory", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Gift", "Gift")
+                        .WithMany("ScanHistories")
+                        .HasForeignKey("GiftId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_scan_histories_gifts_gift_id");
+
+                    b.Navigation("Gift");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.UploadedFile", b =>
@@ -1011,6 +1894,22 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("PlanTutorials");
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.Gift", b =>
+                {
+                    b.Navigation("AiProfile");
+
+                    b.Navigation("MediaList");
+
+                    b.Navigation("ScanHistories");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.GiftCategory", b =>
+                {
+                    b.Navigation("GiftAiProfiles");
+
+                    b.Navigation("MessageTemplates");
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.KnowledgeMaterial", b =>
                 {
                     b.Navigation("DiyPlanMaterials");
@@ -1021,9 +1920,40 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("DiyPlanTutorials");
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.NfcTag", b =>
+                {
+                    b.Navigation("Gift");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Order", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderItem", b =>
+                {
+                    b.Navigation("Gift");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Product", b =>
+                {
+                    b.Navigation("OrderItems");
+
+                    b.Navigation("ProductImages");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.ProductCategory", b =>
+                {
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.UploadedFile", b =>
                 {
+                    b.Navigation("GiftMediaList");
+
                     b.Navigation("ImageAnalysisResult");
+
+                    b.Navigation("ProductImages");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.User", b =>
@@ -1033,6 +1963,8 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("ChatSessions");
 
                     b.Navigation("DiyPlans");
+
+                    b.Navigation("Orders");
 
                     b.Navigation("Quota");
 

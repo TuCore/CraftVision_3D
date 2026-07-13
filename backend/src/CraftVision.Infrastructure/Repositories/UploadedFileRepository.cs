@@ -17,6 +17,11 @@ public class UploadedFileRepository : IUploadedFileRepository
 
     public async Task<UploadedFile?> GetByIdAsync(Guid id)
     {
-        return await _context.UploadedFiles.FirstOrDefaultAsync(x => x.Id == id);
+        return await _context.UploadedFiles.FindAsync(id);
+    }
+
+    public async Task AddAsync(UploadedFile file)
+    {
+        await _context.UploadedFiles.AddAsync(file);
     }
 }

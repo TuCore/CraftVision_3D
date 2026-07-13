@@ -13,9 +13,11 @@ namespace CraftVision.Domain.Entities
         public string? DisplayName { get; set; }
         public string? Phone { get; set; }
         public string? Bio { get; set; }
+        public string? AvatarUrl { get; set; }
         
 
         public UserTier Tier { get; set; } = UserTier.Free;
+        public UserRole Role { get; set; } = UserRole.Customer;
         
         public string? AuthProvider { get; set; }
         public string? ProviderId { get; set; }
@@ -30,5 +32,6 @@ namespace CraftVision.Domain.Entities
         public ICollection<AiChatSession> ChatSessions { get; set; } = new List<AiChatSession>();
         public ICollection<AiRequest> AiRequests { get; set; } = new List<AiRequest>();
         public ICollection<DiyPlan> DiyPlans { get; set; } = new List<DiyPlan>();
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

@@ -4,16 +4,17 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  category: Category;
+  category: Category | string;
   image: string;
   rating: number;
   description: string;
   matchScore: number;
+  productType?: string;
 }
 
 export const mockProducts: Product[] = [
   {
-    id: "p1",
+    id: "11111111-1111-1111-1111-111111111111",
     name: "Charm hạt cơ bản",
     price: 35000,
     category: "Charm",
@@ -23,7 +24,7 @@ export const mockProducts: Product[] = [
     matchScore: 95,
   },
   {
-    id: "p2",
+    id: "22222222-2222-2222-2222-222222222222",
     name: "Charm đất sét nặn",
     price: 35000,
     category: "Charm",
@@ -33,7 +34,7 @@ export const mockProducts: Product[] = [
     matchScore: 92,
   },
   {
-    id: "p3",
+    id: "33333333-3333-3333-3333-333333333333",
     name: "Charm nhựa trong suốt",
     price: 35000,
     category: "Charm",
@@ -43,7 +44,7 @@ export const mockProducts: Product[] = [
     matchScore: 90,
   },
   {
-    id: "p4",
+    id: "44444444-4444-4444-4444-444444444444",
     name: "Móc khóa nhựa dễ thương",
     price: 35000,
     category: "Móc khoá",
@@ -53,7 +54,7 @@ export const mockProducts: Product[] = [
     matchScore: 88,
   },
   {
-    id: "p5",
+    id: "55555555-5555-5555-5555-555555555555",
     name: "Móc khóa len gấu",
     price: 65000,
     category: "Móc khoá",
@@ -63,7 +64,7 @@ export const mockProducts: Product[] = [
     matchScore: 98,
   },
   {
-    id: "p6",
+    id: "66666666-6666-6666-6666-666666666666",
     name: "Móc khóa len hình thú",
     price: 65000,
     category: "Móc khoá",
@@ -73,7 +74,7 @@ export const mockProducts: Product[] = [
     matchScore: 94,
   },
   {
-    id: "p7",
+    id: "77777777-7777-7777-7777-777777777777",
     name: "Dây chuyền đính charm",
     price: 120000,
     category: "Dây chuyền",
@@ -83,7 +84,7 @@ export const mockProducts: Product[] = [
     matchScore: 96,
   },
   {
-    id: "p8",
+    id: "88888888-8888-8888-8888-888888888888",
     name: "Vòng tay chuỗi hạt",
     price: 100000,
     category: "Vòng tay",
@@ -93,7 +94,7 @@ export const mockProducts: Product[] = [
     matchScore: 97,
   },
   {
-    id: "p9",
+    id: "99999999-9999-9999-9999-999999999999",
     name: "Vòng tay chuỗi hạt màu sắc",
     price: 100000,
     category: "Vòng tay",
@@ -103,7 +104,7 @@ export const mockProducts: Product[] = [
     matchScore: 91,
   },
   {
-    id: "p10",
+    id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     name: "Vòng tay hạt dễ thương",
     price: 100000,
     category: "Vòng tay",
@@ -113,7 +114,7 @@ export const mockProducts: Product[] = [
     matchScore: 99,
   },
   {
-    id: "p11",
+    id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
     name: "Vòng tay kim loại cá tính",
     price: 150000,
     category: "Vòng tay",
