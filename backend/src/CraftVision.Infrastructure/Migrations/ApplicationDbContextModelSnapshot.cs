@@ -31,7 +31,7 @@ namespace CraftVision.Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "message_role_enum", new[] { "Assistant", "System", "User" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "message_source_enum", new[] { "AI", "Manual" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "model_type_enum", new[] { "GLB", "GLTF", "USDZ" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "nfc_status_enum", new[] { "Available", "Disabled", "Lost", "Reserved", "Sold" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "nfc_status_enum", new[] { "Active", "Available", "Disabled", "Lost", "Reserved", "Sold" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "option_level_enum", new[] { "Advanced", "Basic", "Intermediate" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "order_status_enum", new[] { "Cancelled", "Delivered", "Pending", "Processing", "Producing", "ReadyToShip", "Shipped", "WaitingProduction" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method_enum", new[] { "Cod", "None" });
@@ -954,6 +954,18 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTime?>("LastScanAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_scan_at");
+
+                    b.Property<string>("LinkedUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("linked_url");
+
+                    b.Property<int>("ScanCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("scan_count");
+
                     b.Property<string>("SecretKey")
                         .IsRequired()
                         .HasColumnType("text")
@@ -976,6 +988,42 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasName("pk_nfc_tags");
 
                     b.ToTable("nfc_tags", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CreatedAt = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LastScanAt = new DateTime(2026, 7, 13, 10, 0, 0, 0, DateTimeKind.Utc),
+                            LinkedUrl = "https://craftvision.vn/nfc/abcxyz",
+                            ScanCount = 15,
+                            SecretKey = "abc",
+                            Status = NfcStatus.Active,
+                            TagCode = "NFC000001",
+                            UpdatedAt = new DateTime(2026, 7, 13, 10, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            CreatedAt = new DateTime(2026, 7, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ScanCount = 0,
+                            SecretKey = "def",
+                            Status = NfcStatus.Available,
+                            TagCode = "NFC000002",
+                            UpdatedAt = new DateTime(2026, 7, 11, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            CreatedAt = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LastScanAt = new DateTime(2026, 7, 12, 10, 0, 0, 0, DateTimeKind.Utc),
+                            LinkedUrl = "https://craftvision.vn/nfc/xyz123",
+                            ScanCount = 3,
+                            SecretKey = "ghi",
+                            Status = NfcStatus.Disabled,
+                            TagCode = "NFC000003",
+                            UpdatedAt = new DateTime(2026, 7, 12, 10, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Order", b =>
@@ -1400,6 +1448,10 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("provider_id");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
                     b.Property<UserTier>("Tier")
                         .HasColumnType("user_tier_enum")
                         .HasColumnName("tier");
@@ -1416,6 +1468,20 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDatabaseName("ix_users_email");
 
                     b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@craftvision.vn",
+                            FullName = "Admin",
+                            IsActive = true,
+                            PasswordHash = "$2a$11$fbsBU9IgXg5Uz9ROjmJC.ewxbazje/LgbxGyUEguwKqg1InK6wHjO",
+                            Role = 1,
+                            Tier = UserTier.Premium,
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.UserQuota", b =>

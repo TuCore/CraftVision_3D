@@ -17,6 +17,7 @@ namespace CraftVision.Domain.Entities
         
 
         public UserTier Tier { get; set; } = UserTier.Free;
+        public UserRole Role { get; set; } = UserRole.Customer;
         
         public string? AuthProvider { get; set; }
         public string? ProviderId { get; set; }

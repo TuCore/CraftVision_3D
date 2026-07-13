@@ -67,4 +67,70 @@ public class NfcTagService : INfcTagService
             await _unitOfWork.SaveChangesAsync();
         }
     }
+
+    public async Task<System.Collections.Generic.IEnumerable<AdminNfcTagDto>> GetAllAdminTagsAsync()
+    {
+        var tags = await _unitOfWork.NfcTags.GetAllWithDetailsAsync();
+        return tags.Select(t => new AdminNfcTagDto
+        {
+            Id = t.Id,
+            TagCode = t.TagCode,
+            Status = t.Status.ToString(),
+            LinkedUrl = t.LinkedUrl,
+            ScanCount = t.ScanCount,
+            LastScanAt = t.LastScanAt,
+            CreatedAt = t.CreatedAt,
+            Gift = t.Gift == null ? null : new AdminNfcGiftDto
+            {
+                Id = t.Gift.Id,
+                OrderItem = t.Gift.OrderItem == null ? null : new AdminNfcOrderItemDto
+                {
+                    Order = t.Gift.OrderItem.Order == null ? null : new AdminNfcOrderDto
+                    {
+                        OrderCode = t.Gift.OrderItem.Order.OrderCode,
+                        ReceiverName = t.Gift.OrderItem.Order.ReceiverName
+                    }
+                }
+            }
+        });
+    }
+
+    public async Task SimulateScanAsync(string tagCode)
+    {
+        var tag = await _unitOfWork.NfcTags.GetByTagCodeAsync(tagCode);
+        if (tag == null) throw new Exception("NFC Tag not found");
+
+        tag.ScanCount++;
+        tag.LastScanAt = DateTime.UtcNow;
+        tag.UpdatedAt = DateTime.UtcNow;
+        
+        _unitOfWork.NfcTags.Update(tag);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task ResetScanCountAsync(string tagCode)
+    {
+        var tag = await _unitOfWork.NfcTags.GetByTagCodeAsync(tagCode);
+        if (tag == null) throw new Exception("NFC Tag not found");
+
+        tag.ScanCount = 0;
+        tag.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.NfcTags.Update(tag);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task UpdateTagStatusByCodeAsync(string tagCode, string status)
+    {
+        var tag = await _unitOfWork.NfcTags.GetByTagCodeAsync(tagCode);
+        if (tag == null) throw new Exception("NFC Tag not found");
+
+        if (Enum.TryParse<NfcStatus>(status, out var nfcStatus))
+        {
+            tag.Status = nfcStatus;
+            tag.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.NfcTags.Update(tag);
+            await _unitOfWork.SaveChangesAsync();
+        }
+    }
 }

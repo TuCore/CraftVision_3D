@@ -199,5 +199,26 @@ public class ApplicationDbContext : DbContext
             .WithMany(g => g.ScanHistories)
             .HasForeignKey(sh => sh.GiftId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Seed Admin User
+        modelBuilder.Entity<User>().HasData(new User
+        {
+            Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            Email = "admin@craftvision.vn",
+            FullName = "Admin",
+            Role = CraftVision.Domain.Enums.UserRole.Admin,
+            PasswordHash = "$2a$11$fbsBU9IgXg5Uz9ROjmJC.ewxbazje/LgbxGyUEguwKqg1InK6wHjO", // "admin" hashed with BCrypt
+            Tier = CraftVision.Domain.Enums.UserTier.Premium,
+            IsActive = true,
+            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        });
+
+        // Seed mock NFC tags
+        modelBuilder.Entity<NfcTag>().HasData(
+            new NfcTag { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), TagCode = "NFC000001", Status = CraftVision.Domain.Enums.NfcStatus.Active, SecretKey = "abc", ScanCount = 15, LastScanAt = new DateTime(2026, 7, 13, 10, 0, 0, DateTimeKind.Utc), LinkedUrl = "https://craftvision.vn/nfc/abcxyz", CreatedAt = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 7, 13, 10, 0, 0, DateTimeKind.Utc) },
+            new NfcTag { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), TagCode = "NFC000002", Status = CraftVision.Domain.Enums.NfcStatus.Available, SecretKey = "def", ScanCount = 0, CreatedAt = new DateTime(2026, 7, 11, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 7, 11, 0, 0, 0, DateTimeKind.Utc) },
+            new NfcTag { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), TagCode = "NFC000003", Status = CraftVision.Domain.Enums.NfcStatus.Disabled, SecretKey = "ghi", ScanCount = 3, LastScanAt = new DateTime(2026, 7, 12, 10, 0, 0, DateTimeKind.Utc), LinkedUrl = "https://craftvision.vn/nfc/xyz123", CreatedAt = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 7, 12, 10, 0, 0, DateTimeKind.Utc) }
+        );
     }
 }

@@ -45,4 +45,14 @@ public class NfcTagRepository : INfcTagRepository
     {
         _context.Set<NfcTag>().Update(tag);
     }
+
+    public async Task<System.Collections.Generic.IEnumerable<NfcTag>> GetAllWithDetailsAsync()
+    {
+        return await _context.Set<NfcTag>()
+            .Include(t => t.Gift)
+                .ThenInclude(g => g.OrderItem)
+                    .ThenInclude(oi => oi.Order)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+    }
 }

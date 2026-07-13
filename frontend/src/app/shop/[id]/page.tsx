@@ -1,31 +1,97 @@
 "use client";
 
-import { use, useState, useMemo } from "react";
+import { use, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { mockProducts } from "@/lib/mock-products";
+import { Product } from "@/lib/mock-products";
+// import { mockProducts } from "@/lib/mock-products";
 import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
 import { toast } from "sonner";
+import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
   const { addToCart } = useCart();
   
-  const product = useMemo(() => mockProducts.find((p) => p.id === id), [id]);
-  
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
 
-  const relatedProducts = useMemo(() => {
-    if (!product) return [];
-    return mockProducts
-      .filter((p) => p.category === product.category && p.id !== product.id)
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 4);
-  }, [product]);
+  useEffect(() => {
+    // Load model-viewer script dynamically for the demo
+    if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [prodRes, allRes] = await Promise.all([
+          fetch(`/api/products/${id}`),
+          fetch(`/api/products`)
+        ]);
+
+        if (prodRes.ok && allRes.ok) {
+          const p = await prodRes.json();
+          const allData = await allRes.json();
+          const all = allData.items || [];
+
+          const mappedProduct: Product = {
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.categoryName || "Khác",
+            image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
+            rating: 4.8,
+            description: p.description || "",
+            matchScore: 95,
+            productType: p.productType
+          };
+          setProduct(mappedProduct);
+
+          const mappedRelated = all
+            .filter((item: any) => item.id !== id && (item.categoryName === p.categoryName))
+            .map((item: any) => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              category: item.categoryName || "Khác",
+              image: item.sampleImageUrl || item.thumbnailUrl || "/image/placeholder.jpg",
+              rating: 4.7,
+              description: item.description || "",
+              matchScore: 90
+            }))
+            .slice(0, 4);
+          
+          setRelatedProducts(mappedRelated);
+        } else if (prodRes.status === 404) {
+          notFound();
+        }
+      } catch (error) {
+        console.error("Error fetching product", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
 
   const ambientLight = useMemo(() => {
     if (!product) return { primary: "var(--coral)", secondary: "var(--butter)" };
@@ -38,6 +104,16 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
       default: return { primary: "var(--coral)", secondary: "var(--butter)" };
     }
   }, [product]);
+
+  if (isLoading) {
+    return (
+      <AppShell active="shop">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!product) {
     notFound();
@@ -133,27 +209,61 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 Thêm vào giỏ hàng
               </button>
               
-              {/* Pre-order / AI Gift Generator Link */}
-              <div 
-                onClick={() => {
-                  // Need to import usePreOrderStore if doing it globally, but we can just push
-                  router.push(`/preorder/${product.id}`);
-                }}
-                className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
+              {product.productType === "InStock" ? (
+                <Dialog open={is3DViewerOpen} onOpenChange={setIs3DViewerOpen}>
+                  <DialogTrigger asChild>
+                    <div className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
+                          <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Xem mô hình 3D</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Xoay và xem trước sản phẩm thực tế dưới dạng 3D.</p>
+                        </div>
+                      </div>
+                      <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
+                        Xem 3D
+                      </div>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[600px] bg-white border-primary/20 rounded-3xl p-6">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold font-display text-primary flex items-center gap-2">
+                        <Sparkles className="h-5 w-5" /> Mô hình 3D: {product.name}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-white to-orange-50/50 border border-border relative mt-4">
+                      {is3DViewerOpen && React.createElement('model-viewer', {
+                        src: "https://modelviewer.dev/shared-assets/models/Astronaut.glb", // Dùng tạm model mẫu
+                        "auto-rotate": true,
+                        "camera-controls": true,
+                        style: { width: '100%', height: '100%', outline: 'none' },
+                        "environment-image": "neutral",
+                        exposure: "1"
+                      })}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <div 
+                  onClick={() => router.push(`/studio/${product.id}`)}
+                  className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
+                      <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Thiết kế 3D (Pre-order)</h3>
+                      <p className="text-xs text-muted-foreground mt-1">Sử dụng AI để tuỳ biến món đồ mang dấu ấn cá nhân của bạn.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Thiết kế quà tặng NFC & 3D (Pre-order)</h3>
-                    <p className="text-xs text-muted-foreground mt-1">Ghi lời chúc AI, thêm thiệp NFC và mô hình 3D độc lạ.</p>
+                  <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
+                    Tạo quà ngay
                   </div>
                 </div>
-                <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
-                  Tạo quà ngay
-                </div>
-              </div>
+              )}
 
               <button
                 onClick={() => router.push("/shop")}

@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { usePreOrderStore } from "@/store/useStore";
+import { useCart } from "@/components/CartProvider";
 import { toast } from "sonner";
-import { Truck, ShoppingCart, CreditCard } from "lucide-react";
+import { Truck, ShoppingCart, CreditCard, ArrowLeft, Wand2, Box } from "lucide-react";
 import api from "@/lib/api";
+import { AIGiftWidget } from "@/components/AIGiftWidget";
+import { useGreetingStore } from "@/store/useGreetingStore";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { productId, finalGiftData, resetPreOrder } = usePreOrderStore();
+  const { cartItems, clearCart } = useCart();
   
   const [shippingInfo, setShippingInfo] = useState({
     receiverName: "",
@@ -22,9 +24,34 @@ export default function CheckoutPage() {
     note: ""
   });
   
-  const [useNfcGift, setUseNfcGift] = useState(!!finalGiftData);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // NFC & AI Gift
+  const [useNfcGift, setUseNfcGift] = useState(false);
+  const [generatedMessage, setGeneratedMessage] = useState("");
+  
+  const [enable3D, setEnable3D] = useState(false);
+  const [theme3D, setTheme3D] = useState("Galaxy");
+  const [isGenerating3D, setIsGenerating3D] = useState(false);
+  const [preview3D, setPreview3D] = useState<string | null>(null);
+
+
+
+  const handleGenerate3D = () => {
+    setIsGenerating3D(true);
+    setTimeout(() => {
+      setPreview3D("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
+      setIsGenerating3D(false);
+    }, 2000);
+  };
+
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      toast.error("Giỏ hàng của bạn đang trống!");
+      router.push("/cart");
+    }
+  }, [cartItems, router]);
 
   const handlePlaceOrder = async () => {
     if (!shippingInfo.receiverName || !shippingInfo.phone || !shippingInfo.address) {
@@ -35,17 +62,8 @@ export default function CheckoutPage() {
       toast.error("Vui lòng đồng ý với điều khoản dịch vụ!");
       return;
     }
-    if (!productId) {
-      toast.error("Không tìm thấy sản phẩm. Vui lòng quay lại cửa hàng.");
-      return;
-    }
-
-    // Defensive check to ensure users with old localStorage cache (e.g. "p1") are forced to reload
-    const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!guidRegex.test(productId)) {
-      toast.error("Phiên làm việc đã cũ. Vui lòng quay lại trang Cửa hàng và chọn lại sản phẩm.");
-      resetPreOrder();
-      router.push("/shop");
+    if (cartItems.length === 0) {
+      toast.error("Giỏ hàng trống.");
       return;
     }
 
@@ -58,30 +76,28 @@ export default function CheckoutPage() {
         receiverPhone: shippingInfo.phone,
         receiverAddress: fullAddress,
         paymentMethod: "Cod",
-        items: [
-          {
-            productId: productId,
-            quantity: 1,
-            wantNfc: useNfcGift,
-            gift: useNfcGift && finalGiftData ? {
-              giftTitle: finalGiftData.giftTitle,
-              senderName: finalGiftData.senderName, // We can let user type it or leave it blank
-              receiverName: finalGiftData.receiverName,
-              message: finalGiftData.message,
-              messageSource: finalGiftData.messageSource,
-              theme: finalGiftData.theme,
-              threeDModelUrl: finalGiftData.threeDModelUrl,
-              previewImageUrl: finalGiftData.previewImageUrl,
-              threeDModelType: finalGiftData.threeDModelType,
-              mediaFileIds: finalGiftData.mediaFileIds
-            } : null
-          }
-        ]
+        items: cartItems.map(item => ({
+          productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
+          quantity: item.quantity,
+          wantNfc: useNfcGift || !!item.gift,
+          gift: (useNfcGift || item.gift) ? {
+            giftTitle: useNfcGift ? (useGreetingStore.getState().giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`) : (item.gift?.giftTitle || `Quà tặng cho ${shippingInfo.receiverName}`),
+            senderName: item.gift?.senderName !== "Khách hàng" && item.gift?.senderName ? item.gift.senderName : (useGreetingStore.getState().senderName || "Người gửi"),
+            receiverName: item.gift?.receiverName !== "Khách hàng" && item.gift?.receiverName ? item.gift.receiverName : (shippingInfo.receiverName || "Người nhận"),
+            message: useNfcGift ? generatedMessage : (item.gift?.message || ""),
+            messageSource: item.gift?.messageSource || "AI",
+            theme: useNfcGift ? (useGreetingStore.getState().tone || "sincere") : (item.gift?.theme || "sincere"),
+            threeDModelUrl: useNfcGift ? preview3D : (item.gift?.threeDModelUrl || null),
+            previewImageUrl: item.gift?.previewImageUrl || null,
+            threeDModelType: item.gift?.threeDModelType || "GLB",
+            mediaFileIds: item.gift?.mediaFileIds || []
+          } : null
+        }))
       };
 
       await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
-      resetPreOrder();
+      clearCart();
       router.push("/profile");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt hàng.");
@@ -90,10 +106,21 @@ export default function CheckoutPage() {
     }
   };
 
+  if (cartItems.length === 0) return null;
+
+  const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const shipping = subtotal > 500000 ? 0 : 30000;
+  const total = subtotal + shipping;
+
   return (
     <AppShell active="shop">
       <div className="mx-auto max-w-5xl py-12 px-4 space-y-8">
-        <h1 className="text-3xl font-extrabold font-display gradient-text">Checkout</h1>
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="p-2 hover:bg-muted rounded-full transition-colors">
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-3xl font-extrabold font-display gradient-text">Thanh toán</h1>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -151,42 +178,23 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* AI Gift Options if Product Supports NFC */}
-            <div className="glass-card p-6 rounded-3xl space-y-4">
+            {/* AI Generator Block */}
+            <div className="glass-card p-6 rounded-3xl space-y-6">
               <div className="flex items-center justify-between border-b border-border pb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">🎁 Dịch vụ Quà tặng NFC & 3D</h2>
+                <h2 className="text-xl font-bold flex items-center gap-2">🎁 Thiết kế thiệp NFC & 3D</h2>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={useNfcGift} onChange={(e) => setUseNfcGift(e.target.checked)} />
                   <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
 
-              {useNfcGift && finalGiftData && (
-                <div className="pt-4 space-y-4 animate-fade-up">
-                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
-                    <p className="text-sm font-medium mb-2 text-primary">Lời chúc đính kèm:</p>
-                    <textarea 
-                      value={finalGiftData.message}
-                      onChange={e => {
-                        // Allow minor edits at checkout before final submit
-                        const updated = {...finalGiftData, message: e.target.value};
-                        usePreOrderStore.getState().setFinalGiftData(updated);
-                      }}
-                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 h-24 resize-none text-sm" 
-                    />
-                  </div>
-                  {finalGiftData.threeDModelUrl && (
-                    <div className="bg-secondary/20 border border-secondary/30 rounded-xl p-4 flex items-center justify-between">
-                      <span className="text-sm font-medium">Đã bao gồm hộp quà 3D ({finalGiftData.theme})</span>
-                      <span className="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded-full">Kèm NFC</span>
-                    </div>
-                  )}
-                </div>
-              )}
-              {useNfcGift && !finalGiftData && (
-                <div className="pt-4 animate-fade-up">
-                  <p className="text-sm text-amber-500">Bạn chưa tạo nội dung quà tặng. <button onClick={() => router.push(`/preorder/${productId}`)} className="underline font-bold">Tạo ngay</button></p>
-                </div>
+              {useNfcGift && (
+                <AIGiftWidget 
+                  receiverName={shippingInfo.receiverName} 
+                  senderName="" 
+                  value={generatedMessage} 
+                  onChange={setGeneratedMessage} 
+                />
               )}
             </div>
           </div>
@@ -196,17 +204,35 @@ export default function CheckoutPage() {
             <div className="glass-card p-6 rounded-3xl space-y-6">
               <h2 className="text-xl font-bold flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary" /> Đơn hàng</h2>
               
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Sản phẩm (x1)</span>
-                <span className="font-semibold">35.000 đ</span>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {cartItems.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-sm border-b border-border/50 pb-2">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <p className="font-semibold truncate">{item.product.name}</p>
+                      <p className="text-xs text-muted-foreground">x{item.quantity}</p>
+                    </div>
+                    <span className="font-semibold whitespace-nowrap">
+                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.product.price * item.quantity)}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Phí giao hàng</span>
-                <span className="font-semibold">30.000 đ</span>
+
+              <div className="pt-2">
+                <div className="flex justify-between items-center text-sm mb-2">
+                  <span className="text-muted-foreground">Tạm tính</span>
+                  <span className="font-semibold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(subtotal)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Phí giao hàng</span>
+                  <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
+                </div>
               </div>
               <div className="border-t border-border pt-4 flex justify-between items-center">
                 <span className="font-bold">Tổng cộng</span>
-                <span className="text-2xl font-display font-extrabold gradient-text">65.000 đ</span>
+                <span className="text-2xl font-display font-extrabold gradient-text">
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}
+                </span>
               </div>
             </div>
 

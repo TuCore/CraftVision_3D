@@ -1,27 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { Search, Star, Sparkles } from "lucide-react";
-import { mockProducts, Category } from "@/lib/mock-products";
-
-import { DIYProjectWidget } from "@/components/DIYProjectWidget";
+import { Search, Star, Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Product, Category } from "@/lib/mock-products";
 
 import { TiltCard } from "@/components/TiltCard";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-const categories: ("Tất cả" | Category)[] = [
+const categories: ("Tất cả" | Category | string)[] = [
   "Tất cả",
   "Móc khoá",
   "Vòng tay",
@@ -32,16 +20,47 @@ const categories: ("Tất cả" | Category)[] = [
 
 export default function ShopPage() {
   const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<"Tất cả" | Category | string>("Tất cả");
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<"Tất cả" | Category>("Tất cả");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          const items = data.items || [];
+          // Map backend ProductDto to frontend Product interface
+          const mapped = items.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.categoryName || "Khác",
+            image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
+            rating: 4.8 + Math.random() * 0.2, // Fake rating for now
+            description: p.description || "",
+            matchScore: Math.floor(85 + Math.random() * 15), // Fake score
+          }));
+          setProducts(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter((product) => {
+    return products.filter((product) => {
       const matchSearch = product.name.toLowerCase().includes(search.toLowerCase());
       const matchCategory = selectedCategory === "Tất cả" || product.category === selectedCategory;
       return matchSearch && matchCategory;
     });
-  }, [search, selectedCategory]);
+  }, [search, selectedCategory, products]);
 
   return (
     <AppShell active="shop">
@@ -98,48 +117,16 @@ export default function ShopPage() {
             <h3 className="font-bold text-lg text-primary flex items-center gap-2">
               <Sparkles className="h-5 w-5" /> Thiết kế theo yêu cầu (Pre-order)
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Bạn muốn mẫu độc lạ? Thời gian hoàn thiện từ 7-10 ngày. Để lại SĐT để được tư vấn thiết kế riêng!
+            <p className="mt-2 text-sm text-muted-foreground">
+              Bạn muốn tự tay thiết kế món quà độc lạ từ trí tưởng tượng? Hãy thử dùng Studio AI của chúng tôi!
             </p>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="btn-hero px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform">
-                Nhận tư vấn ngay
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white border-primary/20 rounded-3xl shadow-coral-glow p-6">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-extrabold font-display text-primary flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" /> Nhận tư vấn thiết kế riêng
-                </DialogTitle>
-                <DialogDescription className="text-muted-foreground text-sm leading-relaxed pt-1">
-                  Hãy để lại thông tin, đội ngũ <span className="text-[#FF37C0]/60">CraftVision 3D</span> sẽ liên hệ lại với bạn trong thời gian sớm nhất!
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="font-semibold text-foreground/80">Họ và tên</Label>
-                  <Input id="name" placeholder="Ví dụ: Nguyễn Văn A" className="rounded-xl border-primary/20 bg-white shadow-sm focus-visible:ring-primary/30" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phone" className="font-semibold text-foreground/80">Số điện thoại</Label>
-                  <Input id="phone" placeholder="09xxxx..." className="rounded-xl border-primary/20 bg-white shadow-sm focus-visible:ring-primary/30" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="idea" className="font-semibold text-foreground/80">Ý tưởng của bạn</Label>
-                  <Textarea 
-                    id="idea" 
-                    placeholder="Bạn muốn thiết kế móc khóa hình gì, màu sắc ra sao..." 
-                    className="min-h-[100px] rounded-xl border-primary/20 bg-white shadow-sm focus-visible:ring-primary/30"
-                  />
-                </div>
-              </div>
-              <button className="btn-hero w-full py-2.5 rounded-xl font-semibold text-white">
-                Gửi yêu cầu
-              </button>
-            </DialogContent>
-          </Dialog>
+          <button 
+            onClick={() => router.push("/studio/custom-design")}
+            className="btn-hero px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
+          >
+            Tự thiết kế 3D ngay
+          </button>
         </section>
 
         {/* Product Grid */}

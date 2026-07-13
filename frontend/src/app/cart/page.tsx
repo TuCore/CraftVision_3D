@@ -160,13 +160,13 @@ export default function CartPage() {
                 </div>
 
                 <button
-                  onClick={() => router.push("/shop")}
+                  onClick={() => router.push("/checkout")}
                   className="w-full py-4 rounded-2xl btn-hero font-semibold text-base mb-3 shadow-coral"
                 >
-                  Tiếp tục mua sắm
+                  Tiếp tục đến Thanh toán
                 </button>
                 <div className="text-center text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  Thanh toán sẽ sớm ra mắt <span className="animate-pulse">💫</span>
+                  Thanh toán an toàn với CraftVision <span className="animate-pulse">🔒</span>
                 </div>
               </div>
             </div>

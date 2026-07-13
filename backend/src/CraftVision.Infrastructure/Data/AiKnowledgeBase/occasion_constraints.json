@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "categorySlug": "teachers_day",
+    "occasion": "Ngày Nhà Giáo Việt Nam 20/11",
+    "dos": "Bày tỏ lòng biết ơn sâu sắc đối với công ơn dạy dỗ, uốn nắn thành người.",
+    "donts": "Tuyệt đối không sử dụng giọng đùa cợt quá mức, trêu đùa khiếm nhã hoặc dùng tiếng lóng thô thiển.",
+    "priority": 10
+  },
+  {
+    "id": 2,
+    "categorySlug": "wedding",
+    "occasion": "Đám cưới / Hôn lễ",
+    "dos": "Chúc cho sự gắn kết bền chặt, trăm năm hạnh phúc, gia đình êm ấm.",
+    "donts": "Tránh nhắc đến người yêu cũ, các chủ đề ly hôn, rạn nứt hoặc trêu đùa quá đà về tiền bạc.",
+    "priority": 10
+  },
+  {
+    "id": 3,
+    "categorySlug": "apology",
+    "occasion": "Xin lỗi / Làm hòa",
+    "dos": "Thừa nhận lỗi sai một cách chân thành, hạ thấp cái tôi, thể hiện mong muốn sửa đổi.",
+    "donts": "Không ngụy biện, không dùng giọng văn thách thức, không đổ lỗi ngược lại cho người nhận.",
+    "priority": 10
+  },
+  {
+    "id": 4,
+    "categorySlug": "grand_opening",
+    "occasion": "Khai trương kinh doanh",
+    "dos": "Sử dụng các từ ngữ mang tính phong thủy tốt lành như phát tài, hồng phát, thuận buồm xuôi gió.",
+    "donts": "Nghiêm cấm nhắc đến các từ rủi ro, thua lỗ, phá sản, thất bại hoặc trắc trở.",
+    "priority": 10
+  },
+  {
+    "id": 5,
+    "categorySlug": "birthday",
+    "occasion": "Sinh nhật",
+    "dos": "Tập trung chúc tuổi mới nhiều niềm vui, sức khỏe và đạt được dự định cá nhân.",
+    "donts": "Không chê bai tuổi tác, không nhấn mạnh quá sâu vào sự già nua một cách tiêu cực đối với người lớn tuổi.",
+    "priority": 5
+  },
+  {
+    "id": 6,
+    "categorySlug": "tet_holiday",
+    "occasion": "Tết Nguyên Đán",
+    "dos": "Chúc cho gia đình sum vầy, thịnh vượng, tài lộc dồi dào và sức khỏe dẻo dai.",
+    "donts": "Tránh hoàn toàn các từ ngữ gợi sự chia ly, mất mát, đau ốm hay xui xẻo đầu năm.",
+    "priority": 10
+  },
+  {
+    "id": 7,
+    "categorySlug": "graduation",
+    "occasion": "Tốt nghiệp",
+    "dos": "Tôn vinh nỗ lực học tập học đường, khích lệ tinh thần dũng cảm bước vào đời.",
+    "donts": "Tránh gây áp lực về chuyện thất nghiệp, cơm áo gạo tiền hay so sánh con nhà người ta ngay lập tức.",
+    "priority": 8
+  },
+  {
+    "id": 8,
+    "categorySlug": "baby_shower",
+    "occasion": "Đầy tháng / Thôi nôi",
+    "dos": "Chúc em bé hay ăn chóng lớn, khỏe mạnh, bình an và ngoan ngoãn.",
+    "donts": "Tránh quở quang theo quan niệm dân gian (không khen quá lời kiểu tiêu cực), không nhắc đến bệnh tật.",
+    "priority": 10
+  },
+  {
+    "id": 9,
+    "categorySlug": "valentines_day",
+    "occasion": "Lễ Tình Nhân 14/2",
+    "dos": "Bày tỏ tình cảm nồng nàn, sự gắn kết ngọt ngào giữa hai tâm hồn.",
+    "donts": "Không dùng giọng văn quá xã giao như đồng nghiệp, không chúc kiểu chung chung thiếu cá nhân hóa.",
+    "priority": 8
+  },
+  {
+    "id": 10,
+    "categorySlug": "womens_day",
+    "occasion": "Ngày Phụ Nữ 8/3 & 20/10",
+    "dos": "Tôn vinh vẻ đẹp, sự hy sinh, vai trò và tài năng của người phụ nữ.",
+    "donts": "Không đưa ra những định kiến giới cũ kỹ, không áp đặt nghĩa vụ làm vợ/làm mẹ làm tiêu chuẩn duy nhất.",
+    "priority": 8
+  },
+  {
+    "id": 11,
+    "categorySlug": "housewarming",
+    "occasion": "Tân gia nhà mới",
+    "dos": "Chúc ngôi nhà luôn tràn ngập sinh khí, gia đình hòa thuận, an cư lạc nghiệp.",
+    "donts": "Không chê bai thiết kế ngôi nhà, không bàn lùi về giá cả đất đai hay phong thủy xấu.",
+    "priority": 8
+  },
+  {
+    "id": 12,
+    "categorySlug": "thank_you",
+    "occasion": "Cảm ơn & Tri ân",
+    "dos": "Nhấn mạnh vào hành động giúp đỡ cụ thể và lòng tốt của đối phương.",
+    "donts": "Không viết hời hợt kiểu trả ơn cho xong chuyện, tránh gợi cảm giác vụ lợi.",
+    "priority": 10
+  },
+  {
+    "id": 13,
+    "categorySlug": "mid_autumn",
+    "occasion": "Tết Trung Thu",
+    "dos": "Đề cao giá trị gia đình đoàn viên, sự ấm áp của ánh trăng và tuổi thơ.",
+    "donts": "Tránh biến lời chúc thành một văn bản quảng cáo bán bánh trung thu thuần túy vô cảm.",
+    "priority": 5
+  },
+  {
+    "id": 14,
+    "categorySlug": "christmas",
+    "occasion": "Giáng Sinh",
+    "dos": "Mang lại không khí ấm áp, an lành, kỳ diệu của mùa lễ hội mùa đông.",
+    "donts": "Tránh mang sắc thái quá u tối, lạnh lẽo hoặc cô đơn vào thông điệp.",
+    "priority": 5
+  },
+  {
+    "id": 15,
+    "categorySlug": "anniversary",
+    "occasion": "Kỷ niệm ngày yêu/ngày cưới",
+    "dos": "Nhìn lại chặng đường gắn bó, cảm ơn đối phương vì đã luôn ở bên cạnh.",
+    "donts": "Tuyệt đối không nhắc lại những trận cãi vã lớn hay những vết nứt chưa lành trong quá khứ.",
+    "priority": 10
+  }
+]

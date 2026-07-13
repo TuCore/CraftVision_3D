@@ -5,6 +5,7 @@ public enum NfcStatus
     Available,
     Reserved,
     Sold,
+    Active,
     Disabled,
     Lost
 }

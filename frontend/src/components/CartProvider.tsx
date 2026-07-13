@@ -6,15 +6,17 @@ import { Product } from "@/lib/mock-products";
 interface CartItem {
   product: Product;
   quantity: number;
+  gift?: any;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   cartCount: number;
   cartTotal: number;
-  addToCart: (product: Product, quantity: number) => void;
+  addToCart: (product: Product, quantity: number, gift?: any) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -29,17 +31,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Optionally we could load from localStorage here, but prompt says no need to persist.
   }, []);
 
-  const addToCart = (product: Product, quantity: number) => {
+  const addToCart = (product: Product, quantity: number, gift?: any) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + quantity, gift: gift || item.gift }
             : item
         );
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product, quantity, gift }];
     });
   };
 
@@ -56,20 +58,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems((prev) => prev.filter((item) => item.product.id !== id));
   };
 
+  const clearCart = () => setCartItems([]);
+
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartTotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
   if (!mounted) {
     // Return empty state for SSR
     return (
-      <CartContext.Provider value={{ cartItems: [], cartCount: 0, cartTotal: 0, addToCart, updateQuantity, removeItem }}>
+      <CartContext.Provider value={{ cartItems: [], cartCount: 0, cartTotal: 0, addToCart, updateQuantity, removeItem, clearCart }}>
         {children}
       </CartContext.Provider>
     );
   }
 
   return (
-    <CartContext.Provider value={{ cartItems, cartCount, cartTotal, addToCart, updateQuantity, removeItem }}>
+    <CartContext.Provider value={{ cartItems, cartCount, cartTotal, addToCart, updateQuantity, removeItem, clearCart }}>
       {children}
     </CartContext.Provider>
   );

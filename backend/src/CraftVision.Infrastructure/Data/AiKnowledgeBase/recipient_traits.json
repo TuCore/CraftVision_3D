@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "slug": "introvert",
+    "name": "Người hướng nội",
+    "preferences": "Thích sự riêng tư, sâu sắc, tinh tế. Ghét những từ ngữ quá phô trương, ồn ào.",
+    "recommendedStyles": ["Sincere", "Healing", "Minimalist"],
+    "priority": 5
+  },
+  {
+    "id": 2,
+    "slug": "gen_z",
+    "name": "Thế hệ Gen Z",
+    "preferences": "Yêu thích sự sáng tạo, hài hước, bắt trend nhanh, không thích văn mẫu rập khuôn.",
+    "recommendedStyles": ["Gen Z Slang", "Funny", "Witty"],
+    "priority": 8
+  },
+  {
+    "id": 3,
+    "slug": "entrepreneur",
+    "name": "Doanh nhân / Người làm kinh doanh",
+    "preferences": "Trân trọng thời gian, thích sự chuyên nghiệp, lời chúc mang tính chiến lược và thịnh vượng.",
+    "recommendedStyles": ["Formal", "Motivational", "Dramatic"],
+    "priority": 8
+  },
+  {
+    "id": 4,
+    "slug": "children",
+    "name": "Trẻ em / Nhỏ tuổi",
+    "preferences": "Thích màu sắc sặc sỡ, thế giới cổ tích, từ ngữ nhân hóa vui nhộn, dễ hiểu.",
+    "recommendedStyles": ["Cute", "Enthusiastic"],
+    "priority": 10
+  },
+  {
+    "id": 5,
+    "slug": "teacher_academic",
+    "name": "Giáo viên / Học giả",
+    "preferences": "Đề cao tri thức, sự tôn sư trọng đạo, câu từ chuẩn mực ngữ pháp và tinh tế.",
+    "recommendedStyles": ["Formal", "Respectful", "Philosophical"],
+    "priority": 10
+  },
+  {
+    "id": 6,
+    "slug": "extrovert",
+    "name": "Người hướng ngoại",
+    "preferences": "Yêu sự sôi động, hào hứng, thích những lời chúc bùng nổ năng lượng và nhiều biểu cảm.",
+    "recommendedStyles": ["Enthusiastic", "Funny", "Dramatic"],
+    "priority": 5
+  },
+  {
+    "id": 7,
+    "slug": "artistic_soul",
+    "name": "Người nghệ sĩ / Tâm hồn nghệ thuật",
+    "preferences": "Gu thẩm mỹ cao, thích sự độc bản, yêu ngôn từ giàu tính hình tượng và ẩn dụ sâu sắc.",
+    "recommendedStyles": ["Poetic", "Nostalgic"],
+    "priority": 5
+  },
+  {
+    "id": 8,
+    "slug": "elderly",
+    "name": "Người cao tuổi / Người già",
+    "preferences": "Tập trung vào sức khỏe, sự bình an, sum vầy con cháu. Không thích từ ngữ hiện đại khó hiểu.",
+    "recommendedStyles": ["Respectful", "Sincere"],
+    "priority": 10
+  },
+  {
+    "id": 9,
+    "slug": "tech_geek",
+    "name": "Dân công nghệ / Developer / Geek",
+    "preferences": "Thích chơi chữ bằng thuật ngữ lập trình, hệ thống, phong cách sci-fi viễn tưởng.",
+    "recommendedStyles": ["Witty", "Funny"],
+    "priority": 8
+  },
+  {
+    "id": 10,
+    "slug": "minimalist_lover",
+    "name": "Người sống tối giản",
+    "preferences": "Ghét sự rườm rà hoa mỹ. Thích thông điệp đi thẳng vào vấn đề nhưng vẫn giữ nét lịch sự.",
+    "recommendedStyles": ["Minimalist", "Sincere"],
+    "priority": 5
+  },
+  {
+    "id": 11,
+    "slug": "romantic_dreamer",
+    "name": "Người mộng mơ / Nghiện lãng mạn",
+    "preferences": "Thích cảm giác ngôn tình, các lời hứa hẹn ngọt ngào, bay bổng như phim truyền hình.",
+    "recommendedStyles": ["Romantic", "Poetic", "Cute"],
+    "priority": 5
+  },
+  {
+    "id": 12,
+    "slug": "workaholic",
+    "name": "Người cuồng công việc",
+    "preferences": "Lời chúc nên mang tính xoa dịu mệt mỏi, nhắc nhở họ yêu thương bản thân và nghỉ ngơi.",
+    "recommendedStyles": ["Healing", "Sincere"],
+    "priority": 8
+  },
+  {
+    "id": 13,
+    "slug": "adventurer",
+    "name": "Người thích dịch chuyển / Khám phá",
+    "preferences": "Yêu tự do, thích những lời chúc mang tính mở đường, đồng hành trên các hành trình mới.",
+    "recommendedStyles": ["Motivational", "Enthusiastic"],
+    "priority": 5
+  },
+  {
+    "id": 14,
+    "slug": "family_oriented",
+    "name": "Người của gia đình",
+    "preferences": "Trân trọng tình thân gắn kết, lời chúc mang tính ấm áp, gợi cảm giác mái ấm che chở.",
+    "recommendedStyles": ["Sincere", "Warm", "Nostalgic"],
+    "priority": 5
+  },
+  {
+    "id": 15,
+    "slug": "fashionista",
+    "name": "Người sành điệu / Gu hiện đại",
+    "preferences": "Đề cao xu hướng thẩm mỹ thời thượng, sang chảnh và có tính độc đáo cao.",
+    "recommendedStyles": ["Witty", "Minimalist"],
+    "priority": 5
+  }
+]

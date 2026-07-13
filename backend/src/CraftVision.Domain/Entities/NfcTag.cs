@@ -11,6 +11,11 @@ public class NfcTag
     public NfcStatus Status { get; set; } = NfcStatus.Available;
     
     public DateTime? ActivatedAt { get; set; }
+    
+    public string? LinkedUrl { get; set; }
+    public int ScanCount { get; set; } = 0;
+    public DateTime? LastScanAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

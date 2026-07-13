@@ -59,6 +59,12 @@ namespace CraftVision.Infrastructure
             services.AddHttpClient<CraftVision.Application.Interfaces.AI.IAiPlanGenerator, CraftVision.Infrastructure.AI.Gemini.GeminiPlanGenerator>(ConfigureGeminiClient)
                 .AddPolicyHandler(retryPolicy);
 
+            // Ai Greeting Infrastructure
+            services.Configure<CraftVision.Application.Models.AiGreeting.AiModelOptions>(configuration.GetSection("AiGreeting"));
+            services.AddSingleton<CraftVision.Application.Interfaces.AiGreeting.IJsonKnowledgeLoader, CraftVision.Infrastructure.Data.AiKnowledgeBase.JsonKnowledgeLoader>();
+            services.AddHttpClient<CraftVision.Application.Interfaces.AiGreeting.ILLMProvider, CraftVision.Infrastructure.Providers.GeminiProvider>(ConfigureGeminiClient)
+                .AddPolicyHandler(retryPolicy);
+
             // Register a plain HttpClient for downloading images (SSRF mitigated)
             services.AddHttpClient("ImageDownloader", client =>
             {

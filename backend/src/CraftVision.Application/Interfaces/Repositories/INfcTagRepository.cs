@@ -12,4 +12,5 @@ public interface INfcTagRepository
     Task<NfcTag?> GetFirstAvailableAsync();
     void Add(NfcTag tag);
     void Update(NfcTag tag);
+    Task<System.Collections.Generic.IEnumerable<NfcTag>> GetAllWithDetailsAsync();
 }

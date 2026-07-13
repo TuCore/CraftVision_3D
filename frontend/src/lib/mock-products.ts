@@ -4,11 +4,12 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  category: Category;
+  category: Category | string;
   image: string;
   rating: number;
   description: string;
   matchScore: number;
+  productType?: string;
 }
 
 export const mockProducts: Product[] = [
