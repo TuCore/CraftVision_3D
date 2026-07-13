@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Product } from "@/lib/mock-products";
 // import { mockProducts } from "@/lib/mock-products";
-import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles, Heart } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { useCart } from "@/components/CartProvider";
+import { useWishlistStore } from "@/store/useWishlistStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import { toast } from "sonner";
 import React from "react";
 import {
@@ -22,7 +23,8 @@ import {
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
-  const { addToCart } = useCart();
+  const { toggleFavorite, isFavorite } = useWishlistStore();
+  const { setItem: setOrder } = useOrderStore();
   
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -200,13 +202,21 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             <div className="flex flex-col gap-4 mt-auto">
               <button 
                 onClick={() => {
-                  addToCart(product, quantity);
-                  toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`);
+                  toggleFavorite(product);
+                  if (!isFavorite(product.id)) {
+                    toast.success(`Đã thêm "${product.name}" vào danh sách yêu thích!`);
+                  } else {
+                    toast.info(`Đã gỡ "${product.name}" khỏi danh sách yêu thích.`);
+                  }
                 }}
-                className="w-full py-4 rounded-2xl btn-hero font-semibold flex items-center justify-center gap-2 text-base"
+                className={`w-full py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 text-base transition-colors ${
+                  isFavorite(product.id) 
+                    ? "bg-rose-100 text-rose-600 border border-rose-200"
+                    : "btn-hero text-white"
+                }`}
               >
-                <ShoppingBag className="h-5 w-5" />
-                Thêm vào giỏ hàng
+                <Heart className={`h-5 w-5 ${isFavorite(product.id) ? "fill-current" : ""}`} />
+                {isFavorite(product.id) ? "Đã yêu thích" : "Thêm vào yêu thích"}
               </button>
               
               {product.productType === "InStock" ? (
@@ -242,6 +252,24 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                         "environment-image": "neutral",
                         exposure: "1"
                       })}
+                    </div>
+                    <div className="mt-6 flex justify-end gap-3">
+                      <button 
+                        onClick={() => setIs3DViewerOpen(false)}
+                        className="px-6 py-2.5 rounded-xl border border-border text-foreground font-semibold hover:bg-muted transition-colors"
+                      >
+                        Đóng
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setOrder(product, quantity);
+                          setIs3DViewerOpen(false);
+                          router.push('/checkout');
+                        }}
+                        className="btn-hero px-6 py-2.5 rounded-xl text-white font-semibold flex items-center gap-2"
+                      >
+                        <ShoppingBag className="w-4 h-4" /> Thanh toán ngay
+                      </button>
                     </div>
                   </DialogContent>
                 </Dialog>

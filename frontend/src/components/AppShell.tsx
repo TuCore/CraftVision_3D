@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Box, Home, MessageCircle, Settings, User, LogOut, ShoppingBag, Store } from "lucide-react";
+import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store } from "lucide-react";
 import { useState, useEffect, type ReactNode } from "react";
-import { useCart } from "@/components/CartProvider";
+import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
   const { t } = useTranslation();
-  const { cartCount } = useCart();
+  const wishlistItems = useWishlistStore((state) => state.items);
+  const wishlistCount = wishlistItems.length;
   const pathname = usePathname();
   const router = useRouter();
   const [isBumping, setIsBumping] = useState(false);
@@ -36,19 +37,19 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
 
   useEffect(() => {
-    if (cartCount > 0) {
+    if (wishlistCount > 0) {
       setIsBumping(true);
       const timer = setTimeout(() => setIsBumping(false), 400);
       return () => clearTimeout(timer);
     }
-  }, [cartCount]);
+  }, [wishlistCount]);
   
   const nav = [
     { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
-    { to: "/cart", label: t("nav.cart"), icon: ShoppingBag, key: "cart" },
+    { to: "/wishlist", label: "Yêu thích", icon: Heart, key: "wishlist" },
   ] as const;
 
   if (isCheckingAuth) {
@@ -83,7 +84,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {nav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
-              const isCart = item.key === "cart";
+              const isWishlist = item.key === "wishlist";
               return (
                 <Link
                   key={item.key}
@@ -92,13 +93,13 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                     isActive
                       ? "bg-card/80 text-primary shadow-soft"
                       : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                  } ${isCart && isBumping ? 'animate-cart-bump' : ''}`}
+                  } ${isWishlist && isBumping ? 'animate-cart-bump' : ''}`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
-                  {isCart && cartCount > 0 && (
+                  {isWishlist && wishlistCount > 0 && (
                     <span className="ml-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                      {cartCount}
+                      {wishlistCount}
                     </span>
                   )}
                   {isActive && (

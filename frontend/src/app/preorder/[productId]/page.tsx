@@ -108,7 +108,7 @@ export default function PreOrderCheckoutPage({ params }: { params: Promise<{ pro
             gift: useNfcGift ? {
               giftTitle: useGreetingStore.getState().giftTitle || `Quà tặng từ ${useGreetingStore.getState().senderName || "Người gửi"}`,
               senderName: useGreetingStore.getState().senderName || "Người gửi",
-              receiverName: shippingInfo.receiverName || "Người nhận",
+              receiverName: useGreetingStore.getState().receiverName || shippingInfo.receiverName || "Người nhận",
               message: generatedMessage,
               messageSource: "AI",
               theme: useGreetingStore.getState().tone || "sincere",

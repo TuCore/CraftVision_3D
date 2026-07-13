@@ -62,6 +62,28 @@ export const AIGiftWidget: React.FC<AIGiftWidgetProps> = ({ receiverName, sender
         </div>
         
         <div className="space-y-2">
+          <label className="text-sm font-medium">Người gửi</label>
+          <input 
+            type="text"
+            value={store.senderName}
+            onChange={(e) => store.setField('senderName', e.target.value)}
+            placeholder="Tên của bạn..."
+            className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Người nhận</label>
+          <input 
+            type="text"
+            value={store.receiverName}
+            onChange={(e) => store.setField('receiverName', e.target.value)}
+            placeholder="Tên người nhận..."
+            className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+          />
+        </div>
+        
+        <div className="space-y-2">
           <label className="text-sm font-medium">Dịp tặng *</label>
           <select 
             value={store.occasion} 

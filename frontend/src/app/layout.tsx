@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/components/CartProvider";
 import { Toaster } from "@/components/ui/sonner";
-
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
@@ -43,10 +41,8 @@ export default function RootLayout({
           <QueryProvider>
             <LanguageProvider>
               <GoogleOAuthProvider clientId={googleClientId}>
-                <CartProvider>
-                  {children}
-                  <Toaster position="top-center" />
-                </CartProvider>
+                {children}
+                <Toaster position="top-center" />
               </GoogleOAuthProvider>
             </LanguageProvider>
           </QueryProvider>

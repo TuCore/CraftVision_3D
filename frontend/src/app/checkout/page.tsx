@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { useCart } from "@/components/CartProvider";
+import { useOrderStore } from "@/store/useOrderStore";
 import { toast } from "sonner";
 import { Truck, ShoppingCart, CreditCard, ArrowLeft, Wand2, Box } from "lucide-react";
 import api from "@/lib/api";
@@ -12,7 +12,7 @@ import { useGreetingStore } from "@/store/useGreetingStore";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cartItems, clearCart } = useCart();
+  const { item, clearItem } = useOrderStore();
   
   const [shippingInfo, setShippingInfo] = useState({
     receiverName: "",
@@ -47,11 +47,11 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
-    if (cartItems.length === 0) {
-      toast.error("Giỏ hàng của bạn đang trống!");
-      router.push("/cart");
+    if (!item) {
+      toast.error("Bạn chưa chọn món quà nào!");
+      router.push("/shop");
     }
-  }, [cartItems, router]);
+  }, [item, router]);
 
   const handlePlaceOrder = async () => {
     if (!shippingInfo.receiverName || !shippingInfo.phone || !shippingInfo.address) {
@@ -62,8 +62,8 @@ export default function CheckoutPage() {
       toast.error("Vui lòng đồng ý với điều khoản dịch vụ!");
       return;
     }
-    if (cartItems.length === 0) {
-      toast.error("Giỏ hàng trống.");
+    if (!item) {
+      toast.error("Vui lòng chọn một món quà để thanh toán.");
       return;
     }
 
@@ -76,14 +76,14 @@ export default function CheckoutPage() {
         receiverPhone: shippingInfo.phone,
         receiverAddress: fullAddress,
         paymentMethod: "Cod",
-        items: cartItems.map(item => ({
+        items: [{
           productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
           quantity: item.quantity,
           wantNfc: useNfcGift || !!item.gift,
           gift: (useNfcGift || item.gift) ? {
-            giftTitle: useNfcGift ? (useGreetingStore.getState().giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`) : (item.gift?.giftTitle || `Quà tặng cho ${shippingInfo.receiverName}`),
-            senderName: item.gift?.senderName !== "Khách hàng" && item.gift?.senderName ? item.gift.senderName : (useGreetingStore.getState().senderName || "Người gửi"),
-            receiverName: item.gift?.receiverName !== "Khách hàng" && item.gift?.receiverName ? item.gift.receiverName : (shippingInfo.receiverName || "Người nhận"),
+            giftTitle: useNfcGift ? (useGreetingStore.getState().giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`) : (item.gift?.giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`),
+            senderName: useNfcGift ? (useGreetingStore.getState().senderName || "Người gửi") : (item.gift?.senderName || "Người gửi"),
+            receiverName: useNfcGift ? (useGreetingStore.getState().receiverName || shippingInfo.receiverName || "Người nhận") : (item.gift?.receiverName || "Người nhận"),
             message: useNfcGift ? generatedMessage : (item.gift?.message || ""),
             messageSource: item.gift?.messageSource || "AI",
             theme: useNfcGift ? (useGreetingStore.getState().tone || "sincere") : (item.gift?.theme || "sincere"),
@@ -92,12 +92,12 @@ export default function CheckoutPage() {
             threeDModelType: item.gift?.threeDModelType || "GLB",
             mediaFileIds: item.gift?.mediaFileIds || []
           } : null
-        }))
+        }]
       };
 
       await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
-      clearCart();
+      clearItem();
       router.push("/profile");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt hàng.");
@@ -106,9 +106,9 @@ export default function CheckoutPage() {
     }
   };
 
-  if (cartItems.length === 0) return null;
+  if (!item) return null;
 
-  const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const subtotal = item.product.price * item.quantity;
   const shipping = subtotal > 500000 ? 0 : 30000;
   const total = subtotal + shipping;
 
@@ -204,9 +204,8 @@ export default function CheckoutPage() {
             <div className="glass-card p-6 rounded-3xl space-y-6">
               <h2 className="text-xl font-bold flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary" /> Đơn hàng</h2>
               
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {cartItems.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-sm border-b border-border/50 pb-2">
+              <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm border-b border-border/50 pb-2">
                     <div className="flex-1 min-w-0 pr-4">
                       <p className="font-semibold truncate">{item.product.name}</p>
                       <p className="text-xs text-muted-foreground">x{item.quantity}</p>
@@ -215,7 +214,6 @@ export default function CheckoutPage() {
                       {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.product.price * item.quantity)}
                     </span>
                   </div>
-                ))}
               </div>
 
               <div className="pt-2">

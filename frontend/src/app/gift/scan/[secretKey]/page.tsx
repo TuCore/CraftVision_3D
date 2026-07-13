@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Stage } from '@react-three/drei';
-import { Heart, Gift, Camera, Sparkles, Smile, Star, Zap } from 'lucide-react';
+import { Heart, Gift, Camera, Sparkles, Smile, Star, Zap, User } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 
@@ -106,6 +106,18 @@ export default function GiftScanPage() {
     }
   }, [showContent]);
 
+  const themeConfig = useMemo(() => {
+    const t = gift?.theme?.toLowerCase() || 'sincere';
+    const baseWarm = { bg1: 'oklch(0.92 0.05 60)', bg2: 'oklch(0.95 0.03 70)', bg3: 'oklch(0.96 0.02 80)', icon: Gift, iconColor: 'text-[#C8B4A0] fill-[#C8B4A0]/20' };
+    
+    if (t === 'romantic') return { ...baseWarm, icon: Heart, iconColor: 'text-rose-400 fill-rose-400/20' };
+    if (t === 'funny') return { ...baseWarm, icon: Smile, iconColor: 'text-amber-500 fill-amber-500/20' };
+    if (t === 'sincere') return { ...baseWarm, icon: Star, iconColor: 'text-orange-400 fill-orange-400/20' };
+    if (t === 'encouraging') return { ...baseWarm, icon: Zap, iconColor: 'text-emerald-500 fill-emerald-500/20' };
+    
+    return baseWarm;
+  }, [gift?.theme]);
+
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground relative overflow-hidden">
       <div className="blob animate-pulse-glow" style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 300, height: 300, background: "oklch(0.78 0.22 35)" }} />
@@ -128,18 +140,6 @@ export default function GiftScanPage() {
       </div>
     </div>
   );
-
-  const themeConfig = useMemo(() => {
-    const t = gift?.theme?.toLowerCase() || 'sincere';
-    const baseWarm = { bg1: 'oklch(0.92 0.05 60)', bg2: 'oklch(0.95 0.03 70)', bg3: 'oklch(0.96 0.02 80)', icon: Gift, iconColor: 'text-[#C8B4A0] fill-[#C8B4A0]/20' };
-    
-    if (t === 'romantic') return { ...baseWarm, icon: Heart, iconColor: 'text-rose-400 fill-rose-400/20' };
-    if (t === 'funny') return { ...baseWarm, icon: Smile, iconColor: 'text-amber-500 fill-amber-500/20' };
-    if (t === 'sincere') return { ...baseWarm, icon: Star, iconColor: 'text-orange-400 fill-orange-400/20' };
-    if (t === 'encouraging') return { ...baseWarm, icon: Zap, iconColor: 'text-emerald-500 fill-emerald-500/20' };
-    
-    return baseWarm;
-  }, [gift?.theme]);
 
   const ThemeIcon = themeConfig.icon;
 
@@ -176,31 +176,19 @@ export default function GiftScanPage() {
         </div>
       ) : (
         <main className="relative z-10 mx-auto px-6 pt-4 transition-[max-width] duration-700 max-w-5xl">
-          {/* Ribbon eyebrow */}
-          <div className="mb-10 flex items-center justify-center gap-4 animate-reveal">
-            <div className="h-px w-16 bg-clay/20" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-clay/60">
-              №{String(gift.scanCount || 1).padStart(3, '0')} · Lễ nghi đã hoàn tất
-            </span>
-            <div className="h-px w-16 bg-clay/20" />
-          </div>
 
-          {/* Title + attribution */}
-          <header className="mb-16 text-center animate-reveal" style={{ animationDelay: "150ms" }}>
-            <h1 className="mb-6 whitespace-pre-line text-5xl font-extrabold leading-[0.92] tracking-[-0.03em] text-clay md:text-7xl">
-              {gift.giftTitle || 'Quà Tặng Đặc Biệt'}
-            </h1>
-            <OrnamentDivider />
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm font-medium">
-              <span className="text-clay/60">Gửi từ</span>
-              <span className="rounded-full border border-clay/10 bg-clay/5 px-3 py-1 text-coral">
-                {gift.senderName}
-              </span>
-              <span className="text-clay/60">Dành cho</span>
-              <span className="rounded-full border border-clay/10 bg-clay/5 px-3 py-1 text-coral">
+
+          <header className="mb-14 text-center animate-reveal" style={{ animationDelay: "150ms" }}>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.3em] text-clay/50">
+              Một món quà thủ công
+            </p>
+            <h1 className="mb-8 font-display text-4xl font-medium italic leading-relaxed text-[#6B5A49] md:text-5xl">
+              Dành riêng cho <br />
+              <span className="mt-2 block text-5xl font-extrabold not-italic text-clay md:text-6xl">
                 {gift.receiverName}
               </span>
-            </div>
+            </h1>
+            <OrnamentDivider />
           </header>
 
           {/* Two-column showcase */}
@@ -260,15 +248,12 @@ export default function GiftScanPage() {
                 >
                   {gift.message || "Món quà này được làm riêng cho bạn bằng tất cả tình cảm."}
                 </p>
-                <div className="mt-6 flex items-center justify-between">
-                  <div className="flex gap-1">
-                    <div className="size-1 rounded-full bg-coral" />
-                    <div className="size-1 rounded-full bg-coral/50" />
-                    <div className="size-1 rounded-full bg-coral/20" />
+                <div className="mt-6 flex items-center justify-start">
+                  <div className="flex gap-1.5">
+                    <div className="size-1.5 rounded-full bg-coral" />
+                    <div className="size-1.5 rounded-full bg-coral/50" />
+                    <div className="size-1.5 rounded-full bg-coral/20" />
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-clay/50">
-                    — {gift.senderName}
-                  </span>
                 </div>
               </article>
               

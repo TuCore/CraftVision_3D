@@ -4,14 +4,14 @@ import React, { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { ArrowLeft, Sparkles, Upload } from "lucide-react";
-import { useCart } from "@/components/CartProvider";
+import { useOrderStore } from "@/store/useOrderStore";
 import { toast } from "sonner";
 import { Product } from "@/lib/mock-products";
 
 export default function StudioPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id: productId } = use(params);
-  const { addToCart } = useCart();
+  const { setItem } = useOrderStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(productId !== "custom-design");
 
@@ -114,7 +114,7 @@ export default function StudioPage({ params }: { params: Promise<{ id: string }>
 
     const quantity = 1;
     
-    addToCart(productToAdd, quantity, {
+    setItem(productToAdd, 1, {
       giftTitle: `Thiết kế 3D: ${product.name}`,
       senderName: "Khách hàng",
       receiverName: "Khách hàng",
@@ -127,7 +127,7 @@ export default function StudioPage({ params }: { params: Promise<{ id: string }>
       mediaFileIds: []
     });
 
-    toast.success("Đã thêm mô hình vào giỏ hàng! Đang chuyển đến trang thanh toán...");
+    toast.success("Đã lưu thiết kế! Đang chuyển đến trang thanh toán...");
     router.push("/checkout");
   };
 
