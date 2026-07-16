@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGreetingStore } from '../store/useGreetingStore';
 import { GreetingApi } from '../services/GreetingApi';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AIGiftWidgetProps {
   receiverName: string;
@@ -33,8 +34,8 @@ export const AIGiftWidget: React.FC<AIGiftWidgetProps> = ({ receiverName, sender
         recipientTrait: store.recipientTrait || 'friend',
         giftType: store.giftType || 'nfc_card',
         visualStyle: store.visualStyle || 'Minimalist',
-        senderName: senderName || 'Người tặng',
-        receiverName: receiverName || 'Người nhận',
+        senderName: store.senderName || senderName || 'Người tặng',
+        receiverName: store.receiverName || receiverName || 'Người nhận',
         specialMemory: store.specialMemory || ''
       });
       store.setResult(data);
@@ -85,18 +86,18 @@ export const AIGiftWidget: React.FC<AIGiftWidgetProps> = ({ receiverName, sender
         
         <div className="space-y-2">
           <label className="text-sm font-medium">Dịp tặng *</label>
-          <select 
-            value={store.occasion} 
-            onChange={(e) => store.setField('occasion', e.target.value)} 
-            className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-          >
-            <option value="">Chọn dịp...</option>
-            <option value="birthday">Sinh nhật</option>
-            <option value="anniversary">Kỷ niệm</option>
-            <option value="valentine">Valentine</option>
-            <option value="graduation">Tốt nghiệp</option>
-            <option value="just_because">Tặng không nhân dịp gì</option>
-          </select>
+          <Select value={store.occasion} onValueChange={(val) => store.setField('occasion', val)}>
+            <SelectTrigger className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 h-[46px] outline-none hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm">
+              <SelectValue placeholder="Chọn dịp..." />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-border bg-white shadow-xl p-1.5 animate-in fade-in-80 zoom-in-95">
+              <SelectItem value="birthday" className="rounded-lg cursor-pointer py-2.5 px-3 focus:bg-primary/10 focus:text-primary font-medium transition-colors">Sinh nhật</SelectItem>
+              <SelectItem value="anniversary" className="rounded-lg cursor-pointer py-2.5 px-3 focus:bg-primary/10 focus:text-primary font-medium transition-colors">Kỷ niệm</SelectItem>
+              <SelectItem value="valentine" className="rounded-lg cursor-pointer py-2.5 px-3 focus:bg-primary/10 focus:text-primary font-medium transition-colors">Valentine</SelectItem>
+              <SelectItem value="graduation" className="rounded-lg cursor-pointer py-2.5 px-3 focus:bg-primary/10 focus:text-primary font-medium transition-colors">Tốt nghiệp</SelectItem>
+              <SelectItem value="just_because" className="rounded-lg cursor-pointer py-2.5 px-3 focus:bg-primary/10 focus:text-primary font-medium transition-colors">Tặng không nhân dịp gì</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

@@ -26,6 +26,14 @@ public class GiftService : IGiftService
             ScannedAt = DateTime.UtcNow
         };
         _unitOfWork.ScanHistories.Add(scan);
+
+        if (gift.NfcTag != null)
+        {
+            gift.NfcTag.ScanCount += 1;
+            gift.NfcTag.LastScanAt = DateTime.UtcNow;
+            _unitOfWork.NfcTags.Update(gift.NfcTag);
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         return new GiftPageDto

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store } from "lucide-react";
-import { useState, useEffect, type ReactNode } from "react";
+import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart } from "lucide-react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 
@@ -16,6 +16,8 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const [isBumping, setIsBumping] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [bumpingKey, setBumpingKey] = useState<string | null>(null);
+  const prevCount = useRef(wishlistCount);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -37,19 +39,26 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
 
   useEffect(() => {
-    if (wishlistCount > 0) {
+    if (wishlistCount > prevCount.current) {
       setIsBumping(true);
       const timer = setTimeout(() => setIsBumping(false), 400);
+      prevCount.current = wishlistCount;
       return () => clearTimeout(timer);
     }
+    prevCount.current = wishlistCount;
   }, [wishlistCount]);
+
+  const handleNavClick = (key: string) => {
+    setBumpingKey(key);
+    setTimeout(() => setBumpingKey(null), 400);
+  };
   
   const nav = [
     { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
-    { to: "/wishlist", label: "Yêu thích", icon: Heart, key: "wishlist" },
+    { to: "/cart", label: "Giỏ hàng", icon: ShoppingCart, key: "cart" },
   ] as const;
 
   if (isCheckingAuth) {
@@ -70,6 +79,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
       <div className="blob animate-pulse-glow" style={{ top: "40%", right: -140, width: 500, height: 500, background: "var(--color-secondary)", animationDelay: "1s" }} />
       <div className="blob animate-pulse-glow" style={{ bottom: -120, left: "30%", width: 460, height: 460, background: "var(--color-coral)", animationDelay: "2s" }} />
 
+      {!(pathname?.startsWith('/admin')) && (
       <header className="sticky top-0 z-50 px-4 pt-4">
         <div className="mx-auto max-w-7xl bg-card/85 backdrop-blur-md border border-border shadow-soft rounded-2xl px-5 py-3 flex items-center justify-between">
           <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg">
@@ -84,20 +94,21 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {nav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
-              const isWishlist = item.key === "wishlist";
+              const isCart = item.key === "cart";
               return (
                 <Link
                   key={item.key}
                   href={item.to}
+                  onClick={() => handleNavClick(item.key)}
                   className={`relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
                     isActive
                       ? "bg-card/80 text-primary shadow-soft"
                       : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                  } ${isWishlist && isBumping ? 'animate-cart-bump' : ''}`}
+                  } ${(isCart && isBumping) || bumpingKey === item.key ? 'animate-cart-bump' : ''}`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
-                  {isWishlist && wishlistCount > 0 && (
+                  {isCart && wishlistCount > 0 && (
                     <span className="ml-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
                       {wishlistCount}
                     </span>
@@ -115,9 +126,10 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
               <>
                 <Link
               href="/settings"
+              onClick={() => handleNavClick("settings")}
               className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                 active === "settings" ? "bg-card/80 text-primary shadow-soft" : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
-              }`}
+              } ${bumpingKey === "settings" ? 'animate-cart-bump' : ''}`}
               title="Cài đặt"
             >
               <Settings className="h-5 w-5" />
@@ -152,6 +164,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </div>
         </div>
       </header>
+      )}
 
       <main key={pathname} className={`relative z-10 px-4 animate-fade-in-page ${pathname.startsWith('/chat') ? 'py-4 md:py-6' : 'py-8 md:py-12'}`}>
         {children}

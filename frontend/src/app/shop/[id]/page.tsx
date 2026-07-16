@@ -203,95 +203,31 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               <button 
                 onClick={() => {
                   toggleFavorite(product);
-                  if (!isFavorite(product.id)) {
-                    toast.success(`Đã thêm "${product.name}" vào danh sách yêu thích!`);
-                  } else {
-                    toast.info(`Đã gỡ "${product.name}" khỏi danh sách yêu thích.`);
-                  }
+                  toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
                 }}
-                className={`w-full py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 text-base transition-colors ${
-                  isFavorite(product.id) 
-                    ? "bg-rose-100 text-rose-600 border border-rose-200"
-                    : "btn-hero text-white"
-                }`}
+                className="w-full py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 text-base transition-colors btn-hero text-white"
               >
-                <Heart className={`h-5 w-5 ${isFavorite(product.id) ? "fill-current" : ""}`} />
-                {isFavorite(product.id) ? "Đã yêu thích" : "Thêm vào yêu thích"}
+                <ShoppingBag className="h-5 w-5" />
+                Thêm vào giỏ hàng
               </button>
               
-              {product.productType === "InStock" ? (
-                <Dialog open={is3DViewerOpen} onOpenChange={setIs3DViewerOpen}>
-                  <DialogTrigger asChild>
-                    <div className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
-                          <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Xem mô hình 3D</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Xoay và xem trước sản phẩm thực tế dưới dạng 3D.</p>
-                        </div>
-                      </div>
-                      <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
-                        Xem 3D
-                      </div>
-                    </div>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] bg-white border-primary/20 rounded-3xl p-6">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-bold font-display text-primary flex items-center gap-2">
-                        <Sparkles className="h-5 w-5" /> Mô hình 3D: {product.name}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-white to-orange-50/50 border border-border relative mt-4">
-                      {is3DViewerOpen && React.createElement('model-viewer', {
-                        src: "https://modelviewer.dev/shared-assets/models/Astronaut.glb", // Dùng tạm model mẫu
-                        "auto-rotate": true,
-                        "camera-controls": true,
-                        style: { width: '100%', height: '100%', outline: 'none' },
-                        "environment-image": "neutral",
-                        exposure: "1"
-                      })}
-                    </div>
-                    <div className="mt-6 flex justify-end gap-3">
-                      <button 
-                        onClick={() => setIs3DViewerOpen(false)}
-                        className="px-6 py-2.5 rounded-xl border border-border text-foreground font-semibold hover:bg-muted transition-colors"
-                      >
-                        Đóng
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setOrder(product, quantity);
-                          setIs3DViewerOpen(false);
-                          router.push('/checkout');
-                        }}
-                        className="btn-hero px-6 py-2.5 rounded-xl text-white font-semibold flex items-center gap-2"
-                      >
-                        <ShoppingBag className="w-4 h-4" /> Thanh toán ngay
-                      </button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              ) : (
-                <div 
-                  onClick={() => router.push(`/studio/${product.id}`)}
-                  className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
-                      <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Thiết kế 3D (Pre-order)</h3>
-                      <p className="text-xs text-muted-foreground mt-1">Sử dụng AI để tuỳ biến món đồ mang dấu ấn cá nhân của bạn.</p>
-                    </div>
+              <div 
+                onClick={() => router.push(`/shop/${product.id}/greeting`)}
+                className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
                   </div>
-                  <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
-                    Tạo quà ngay
+                  <div>
+                    <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Thiết kế câu chúc riêng</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Gửi gắm thông điệp cá nhân qua thiệp NFC thông minh.</p>
                   </div>
                 </div>
-              )}
+                <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
+                  Thiết kế ngay
+                </div>
+              </div>
 
               <button
                 onClick={() => router.push("/shop")}

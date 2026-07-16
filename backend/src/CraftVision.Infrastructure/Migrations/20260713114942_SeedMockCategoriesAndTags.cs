@@ -13,16 +13,14 @@ namespace CraftVision.Infrastructure.Migrations
             migrationBuilder.Sql(@"
                 -- Seed product_categories
                 INSERT INTO product_categories (id, name, slug, description, icon, display_order, is_active, created_at, updated_at) VALUES 
-                ('11111111-1111-1111-1111-111111111001', 'Birthday Gifts', 'birthday-gifts', 'Birthday gift collection', 'cake', 1, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111002', 'Wedding Gifts', 'wedding-gifts', 'Wedding collection', 'rings', 2, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111003', 'Anniversary Gifts', 'anniversary-gifts', 'Anniversary collection', 'heart', 3, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111004', 'Graduation Gifts', 'graduation-gifts', 'Graduation collection', 'graduation-cap', 4, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111005', 'Home Decor', 'home-decor', 'Decoration products', 'home', 5, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111006', 'Couple Collection', 'couple-collection', 'Gift for couples', 'gift', 6, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111007', 'Handmade', 'handmade', 'Handmade products', 'brush', 7, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111008', 'Premium', 'premium', 'Premium collection', 'diamond', 8, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111009', 'Limited Edition', 'limited-edition', 'Limited products', 'star', 9, true, now(), now()),
-                ('11111111-1111-1111-1111-111111111010', 'Seasonal', 'seasonal', 'Seasonal gifts', 'calendar', 10, true, now(), now())
+                ('11111111-1111-1111-1111-111111111001', 'Móc khoá', 'moc-khoa', 'Bộ sưu tập móc khoá dễ thương', 'key', 1, true, now(), now()),
+                ('11111111-1111-1111-1111-111111111002', 'Vòng tay', 'vong-tay', 'Bộ sưu tập vòng tay cá tính', 'watch', 2, true, now(), now()),
+                ('11111111-1111-1111-1111-111111111003', 'Dây chuyền', 'day-chuyen', 'Bộ sưu tập dây chuyền thanh lịch', 'gem', 3, true, now(), now()),
+                ('11111111-1111-1111-1111-111111111004', 'Charm', 'charm', 'Các loại charm trang trí', 'sparkles', 4, true, now(), now()),
+                ('11111111-1111-1111-1111-111111111005', 'Đồ trang trí', 'do-trang-tri', 'Đồ trang trí handmade độc đáo', 'home', 5, true, now(), now()),
+                ('11111111-1111-1111-1111-111111111006', 'Phụ kiện', 'phu-kien', 'Phụ kiện handmade khác', 'gift', 6, true, now(), now()),
+                ('11111111-1111-1111-1111-111111111007', 'Handmade', 'handmade', 'Sản phẩm handmade chung', 'brush', 7, true, now(), now()),
+                ('11111111-1111-1111-1111-111111111008', 'Nguyên liệu', 'nguyen-lieu', 'Nguyên liệu làm đồ handmade', 'box', 8, true, now(), now())
                 ON CONFLICT DO NOTHING;
 
                 -- Seed gift_categories

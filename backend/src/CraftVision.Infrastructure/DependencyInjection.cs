@@ -31,7 +31,7 @@ namespace CraftVision.Infrastructure
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IMessageTemplateRepository, CraftVision.Infrastructure.Repositories.MessageTemplateRepository>();
 
             services.AddHttpContextAccessor();
-            services.AddScoped<CraftVision.Application.Interfaces.Providers.IObjectStorageService, CraftVision.Infrastructure.Providers.LocalObjectStorageService>();
+            services.AddScoped<CraftVision.Application.Interfaces.Providers.IObjectStorageService, CraftVision.Infrastructure.Providers.CloudinaryObjectStorageService>();
             
             services.AddSingleton<CraftVision.Infrastructure.Diagnostics.IMarkdownWriter, CraftVision.Infrastructure.Diagnostics.MarkdownWriter>();
             services.AddScoped<CraftVision.Application.Common.Diagnostics.IAiProfiler, CraftVision.Infrastructure.Diagnostics.AiProfiler>();

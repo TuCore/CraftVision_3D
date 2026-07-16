@@ -1,19 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 
 export interface Product {
   id: string;
-  productCategoryId: string;
   name: string;
-  description: string;
+  sku?: string;
+  description?: string;
   price: number;
   stock: number;
-  supportsNfc: boolean;
-  isActive: boolean;
+  thumbnailUrl?: string;
+  sampleImageUrl?: string;
+  images: string[];
   productType: string;
+  supportsNfc: boolean;
   estimatedProductionDays?: number;
-  createdAt: string;
-  images: { id: string; url: string; isPrimary: boolean }[];
+  categoryName?: string;
   primaryImageUrl?: string;
 }
 
@@ -31,7 +32,7 @@ export function useProducts(page = 1, size = 12, type?: string) {
   return useQuery({
     queryKey: ['products', page, size, type],
     queryFn: async () => {
-      let url = `/api/products?page=${page}&size=${size}`;
+      let url = `/api/products?page=${page}&pageSize=${size}`;
       if (type) {
         url += `&type=${type}`;
       }
@@ -39,8 +40,7 @@ export function useProducts(page = 1, size = 12, type?: string) {
       
       // Compute primaryImageUrl for convenience
       data.items = data.items.map(p => {
-        const primary = p.images?.find(i => i.isPrimary) || p.images?.[0];
-        return { ...p, primaryImageUrl: primary?.url || 'https://placehold.co/600x400/png' };
+        return { ...p, primaryImageUrl: p.sampleImageUrl || p.thumbnailUrl || (p.images && p.images[0]) || 'https://placehold.co/600x400/png' };
       });
       
       return data;
@@ -53,10 +53,49 @@ export function useProduct(id: string) {
     queryKey: ['product', id],
     queryFn: async () => {
       const { data } = await api.get<Product>(`/api/products/${id}`);
-      const primary = data.images?.find(i => i.isPrimary) || data.images?.[0];
-      data.primaryImageUrl = primary?.url || 'https://placehold.co/600x400/png';
+      data.primaryImageUrl = data.sampleImageUrl || data.thumbnailUrl || (data.images && data.images[0]) || 'https://placehold.co/600x400/png';
       return data;
     },
     enabled: !!id,
+  });
+}
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<Product>) => {
+      const res = await api.post('/api/products', data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+}
+
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Product> }) => {
+      const res = await api.put(`/api/products/${id}`, data);
+      return res.data;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product', id] });
+    },
+  });
+}
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.delete(`/api/products/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
   });
 }

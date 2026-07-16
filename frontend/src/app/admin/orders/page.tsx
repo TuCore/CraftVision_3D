@@ -2,10 +2,26 @@
 
 import { useOrders } from '@/hooks/useOrders';
 import Link from 'next/link';
-import { Package, Search, ChevronRight, Calendar, User, DollarSign } from 'lucide-react';
+import { Package, Search, ChevronRight, Calendar, User, DollarSign, Clock, Truck, CheckCircle2, XCircle, Hammer, ChevronLeft } from 'lucide-react';
+import { useState } from 'react';
+
+export const getOrderStatusConfig = (status: string) => {
+  switch (status) {
+    case 'Pending': return { label: 'Chờ xử lý', color: 'bg-slate-100 text-slate-800 border-slate-200', icon: Clock };
+    case 'Processing': return { label: 'Đang xử lý', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Package };
+    case 'WaitingProduction': return { label: 'Chờ sản xuất', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Clock };
+    case 'Producing': return { label: 'Đang sản xuất', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: Hammer };
+    case 'ReadyToShip': return { label: 'Chờ lấy hàng', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Package };
+    case 'Shipped': return { label: 'Đang giao', color: 'bg-cyan-100 text-cyan-800 border-cyan-200', icon: Truck };
+    case 'Delivered': return { label: 'Đã giao', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: CheckCircle2 };
+    case 'Cancelled': return { label: 'Đã hủy', color: 'bg-rose-100 text-rose-800 border-rose-200', icon: XCircle };
+    default: return { label: status, color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Package };
+  }
+};
 
 export default function AdminOrdersPage() {
-  const { data, isLoading, error } = useOrders(1, 50);
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = useOrders(page, 5);
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -33,8 +49,51 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      <div className="glass-card rounded-[2rem] overflow-hidden shadow-soft border border-white/40 p-4">
-        <div className="overflow-x-auto custom-scrollbar">
+      <div className="glass-card rounded-[2rem] overflow-hidden shadow-soft border border-white/40 p-2 md:p-4 bg-white/60">
+        
+        {/* Mobile View: Cards */}
+        <div className="md:hidden space-y-4">
+          {data?.items.map((order) => {
+            const statusConfig = getOrderStatusConfig(order.orderStatus);
+            const StatusIcon = statusConfig.icon;
+            return (
+              <div key={order.id} className="bg-white rounded-2xl p-4 shadow-sm border border-border">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
+                    {order.orderCode}
+                  </span>
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${statusConfig.color}`}>
+                    <StatusIcon className="w-3 h-3" />
+                    {statusConfig.label}
+                  </span>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-semibold">{order.receiverName}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-extrabold text-[color:var(--coral)]">
+                    <DollarSign className="w-4 h-4" />
+                    {order.totalAmount.toLocaleString('vi-VN')} đ
+                  </div>
+                </div>
+                <Link 
+                  href={`/admin/orders/${order.id}`} 
+                  className="flex items-center justify-center w-full py-2.5 rounded-xl bg-gray-50 border border-border hover:bg-gray-100 transition-colors text-sm font-semibold text-gray-700"
+                >
+                  Xem chi tiết <ChevronRight className="w-4 h-4 ml-1" />
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden md:block overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="border-b border-border/50">
@@ -47,54 +106,52 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30">
-              {data?.items.map((order) => (
-                <tr key={order.id} className="hover:bg-white/40 transition-colors group">
-                  <td className="px-6 py-5">
-                    <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
-                      {order.orderCode}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <User className="w-4 h-4 text-primary" />
+              {data?.items.map((order) => {
+                const statusConfig = getOrderStatusConfig(order.orderStatus);
+                const StatusIcon = statusConfig.icon;
+                return (
+                  <tr key={order.id} className="hover:bg-white/60 transition-colors group">
+                    <td className="px-6 py-5">
+                      <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
+                        {order.orderCode}
+                      </span>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <User className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="font-semibold text-foreground">{order.receiverName}</span>
                       </div>
-                      <span className="font-semibold text-foreground">{order.receiverName}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-muted-foreground font-medium">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(order.createdAt).toLocaleDateString('vi-VN')}
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
-                      order.orderStatus === 'ReadyToShip' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                      order.orderStatus === 'Delivered' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                      order.orderStatus === 'Shipped' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                      order.orderStatus === 'Cancelled' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
-                      'bg-slate-100 text-slate-800 border border-slate-200'
-                    }`}>
-                      {order.orderStatus}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-1.5 font-extrabold text-foreground">
-                      <DollarSign className="w-4 h-4 text-muted-foreground" />
-                      {order.totalAmount.toLocaleString('vi-VN')} đ
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 text-right">
-                    <Link 
-                      href={`/admin/orders/${order.id}`} 
-                      className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-muted-foreground hover:text-primary group-hover:bg-primary/5"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm border ${statusConfig.color}`}>
+                        <StatusIcon className="w-3.5 h-3.5" />
+                        {statusConfig.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-1.5 font-extrabold text-[color:var(--coral)]">
+                        {order.totalAmount.toLocaleString('vi-VN')} đ
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <Link 
+                        href={`/admin/orders/${order.id}`} 
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-muted-foreground hover:text-primary group-hover:bg-primary/5"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
               
               {!data?.items?.length && (
                 <tr>
@@ -109,6 +166,31 @@ export default function AdminOrdersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {data && data.totalPages > 1 && (
+          <div className="flex items-center justify-end mt-4 px-4 py-3 border-t border-border">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={!data.hasPreviousPage}
+                className="p-2 rounded-xl border border-border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="text-sm font-medium px-2">
+                Trang {data.page} / {data.totalPages}
+              </div>
+              <button 
+                onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
+                disabled={!data.hasNextPage}
+                className="p-2 rounded-xl border border-border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

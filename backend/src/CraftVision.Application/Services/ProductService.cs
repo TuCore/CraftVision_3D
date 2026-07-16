@@ -129,7 +129,9 @@ public class ProductService : IProductService
             ProductType = p.ProductType.ToString(),
             SupportsNfc = p.SupportsNfc,
             EstimatedProductionDays = p.EstimatedProductionDays,
-            CategoryName = p.ProductCategory?.Name
+            CategoryName = p.ProductCategory?.Name,
+            ThumbnailUrl = p.ProductImages?.OrderBy(pi => pi.DisplayOrder).FirstOrDefault(pi => pi.IsThumbnail)?.File?.FileUrl,
+            Images = p.ProductImages?.OrderBy(pi => pi.DisplayOrder).Select(pi => pi.File?.FileUrl ?? "").Where(url => !string.IsNullOrEmpty(url)).ToList() ?? new List<string>()
         };
     }
 }
