@@ -96,7 +96,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       name: formData.name,
       description: formData.description,
       price: formData.price,
