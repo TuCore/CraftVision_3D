@@ -62,4 +62,14 @@ public class OrderController : ControllerBase
         await _service.UpdateOrderStatusAsync(id, dto.Status);
         return NoContent();
     }
+
+    [HttpPatch("{id:guid}/receive")]
+    public async Task<IActionResult> ReceiveOrder(Guid id)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
+        await _service.CompleteUserOrderAsync(userId, id);
+        return NoContent();
+    }
 }

@@ -5,6 +5,11 @@ import Link from "next/link";
 import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/apiClient";
+import api from "@/lib/api";
+import { mockProducts } from "@/lib/mock-products";
+import { toast } from "sonner";
+import { Store, Package, CheckCircle, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function ProfilePage() {
   const [fullName, setFullName] = useState("Nguyễn Minh");
@@ -65,6 +70,50 @@ export default function ProfilePage() {
     { title: "Album ảnh scrap", likes: 22, color: "oklch(0.82 0.16 340)" },
   ];
 
+  const [orders, setOrders] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"all" | "shipping" | "completed">("all");
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
+
+  const loadOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const res = await api.get("/api/orders/me");
+      if (res.data && res.data.items) {
+        setOrders(res.data.items);
+      }
+    } catch (error) {
+      console.error("Lỗi tải đơn hàng:", error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const handleReceiveOrder = async (orderId: string) => {
+    try {
+      await api.patch(`/api/orders/${orderId}/receive`);
+      toast.success("Đã nhận được hàng thành công!");
+      loadOrders();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi xác nhận nhận hàng");
+    }
+  };
+
+  const getFilteredOrders = () => {
+    if (activeTab === "all") return orders;
+    if (activeTab === "shipping") return orders.filter(o => ["Pending", "Processing", "Shipping", "Reserved"].includes(o.orderStatus));
+    if (activeTab === "completed") return orders.filter(o => ["Completed", "Delivered"].includes(o.orderStatus));
+    return orders;
+  };
+
+  const formatPrice = (val: number) => {
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+  };
+
   return (
     <AppShell active="profile">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -105,17 +154,18 @@ export default function ProfilePage() {
               <Edit3 className="h-4 w-4" /> Chỉnh sửa
             </Link>
 
-            {/* Stats row - Đã sửa theo yêu cầu */}
             <div className="w-full max-w-lg mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl bg-card/60 py-4 border border-border/50">
-              {[
-                { v: "12", l: "Dự án handmade" },
-                { v: "5", l: "Sản phẩm đã mua" },
-              ].map((s) => (
-                <div key={s.l} className="text-center">
-                  <div className="text-2xl font-bold font-display text-primary">{s.v}</div>
-                  <div className="text-xs text-muted-foreground mt-1 font-medium">{s.l}</div>
-                </div>
-              ))}
+              <div className="text-center cursor-pointer hover:bg-muted/50 rounded-l-2xl transition-colors py-2">
+                <div className="text-2xl font-bold font-display text-primary">12</div>
+                <div className="text-xs text-muted-foreground mt-1 font-medium">Dự án handmade</div>
+              </div>
+              <div 
+                className="text-center cursor-pointer hover:bg-muted/50 rounded-r-2xl transition-colors py-2"
+                onClick={() => setIsOrderHistoryOpen(true)}
+              >
+                <div className="text-2xl font-bold font-display text-primary">5</div>
+                <div className="text-xs text-muted-foreground mt-1 font-medium">Sản phẩm đã mua</div>
+              </div>
             </div>
           </div>
         </div>
@@ -160,6 +210,118 @@ export default function ProfilePage() {
             ))}
           </div>
         </section>
+
+        {/* Order History Modal */}
+        <Dialog open={isOrderHistoryOpen} onOpenChange={setIsOrderHistoryOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 bg-background/95 backdrop-blur-md border-border/50">
+            <DialogHeader className="p-6 pb-2 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur z-10">
+              <DialogTitle className="text-2xl font-bold font-display">Lịch sử đơn hàng</DialogTitle>
+            </DialogHeader>
+
+            <div className="p-6 pt-2">
+              <div className="bg-white rounded-xl shadow-sm border border-border/50 overflow-hidden mb-6">
+                <div className="flex border-b border-border/50">
+              <button 
+                onClick={() => setActiveTab("all")}
+                className={`flex-1 py-4 text-center font-medium text-sm transition-colors relative ${activeTab === "all" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Tất cả
+                {activeTab === "all" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+              </button>
+              <button 
+                onClick={() => setActiveTab("shipping")}
+                className={`flex-1 py-4 text-center font-medium text-sm transition-colors relative ${activeTab === "shipping" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Đang ship
+                {activeTab === "shipping" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+              </button>
+              <button 
+                onClick={() => setActiveTab("completed")}
+                className={`flex-1 py-4 text-center font-medium text-sm transition-colors relative ${activeTab === "completed" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Đã hoàn thành
+                {activeTab === "completed" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+              </button>
+            </div>
+
+            <div className="p-4 bg-background/30 min-h-[300px] flex flex-col gap-4">
+              {loadingOrders ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+                  Đang tải đơn hàng...
+                </div>
+              ) : getFilteredOrders().length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <Package className="w-16 h-16 mb-4 opacity-20" />
+                  <p>Chưa có đơn hàng nào</p>
+                </div>
+              ) : (
+                getFilteredOrders().map((order) => (
+                  <div key={order.id} className="bg-white border border-border/50 rounded-xl overflow-hidden shadow-sm">
+                    {/* Shop Header */}
+                    <div className="flex items-center justify-between p-4 border-b border-border/30 bg-muted/10">
+                      <div className="flex items-center gap-2 font-medium">
+                        <Store className="w-4 h-4 text-primary" />
+                        <span>CraftVision Mall</span>
+                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1">Mall</span>
+                      </div>
+                      <div className="text-sm font-semibold text-primary uppercase">
+                        {order.orderStatus === "Completed" ? "Đã nhận hàng" : order.orderStatus === "Cancelled" ? "Đã hủy" : "Đang giao hàng"}
+                      </div>
+                    </div>
+
+                    {/* Items */}
+                    <div className="p-4 flex flex-col gap-4">
+                      {order.items?.map((item: any) => {
+                        const product = mockProducts.find(p => p.id === item.productId);
+                        const imageUrl = product ? product.image : "https://via.placeholder.com/150";
+                        return (
+                          <div key={item.id} className="flex gap-4 items-start">
+                            <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden shrink-0 border border-border/50">
+                              <img src={imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-foreground line-clamp-2 leading-tight">{item.productName}</h3>
+                              <p className="text-sm text-muted-foreground mt-1">Phân loại: Tùy chỉnh</p>
+                              <p className="text-sm mt-1">x{item.quantity}</p>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-medium text-primary">{formatPrice(item.unitPrice)}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Footer / Total / Action */}
+                    <div className="p-4 border-t border-border/30 bg-muted/5 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-4">
+                      <div className="text-sm text-muted-foreground w-full sm:w-auto text-right sm:text-left">
+                        Tổng số tiền: <span className="text-lg font-bold text-primary ml-2">{formatPrice(order.totalAmount)}</span>
+                      </div>
+                      <div className="flex gap-3 w-full sm:w-auto">
+                        {["Pending", "Processing", "Shipping"].includes(order.orderStatus) && (
+                          <button 
+                            onClick={() => handleReceiveOrder(order.id)}
+                            className="flex-1 sm:flex-none btn-hero px-6 py-2 rounded-lg font-medium text-sm transition-transform hover:scale-105 shadow-coral-glow"
+                          >
+                            Đã nhận được hàng
+                          </button>
+                        )}
+                        {order.orderStatus === "Completed" && (
+                          <button className="flex-1 sm:flex-none border border-border bg-white text-foreground hover:bg-muted px-6 py-2 rounded-lg font-medium text-sm transition-colors">
+                            Đánh giá
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppShell>
   );

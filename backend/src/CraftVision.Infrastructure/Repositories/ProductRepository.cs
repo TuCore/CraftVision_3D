@@ -24,6 +24,7 @@ public class ProductRepository : IProductRepository
         return await _context.Set<Product>()
             .Include(p => p.ProductCategory)
             .Include(p => p.ProductImages)
+                .ThenInclude(pi => pi.File)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -36,7 +37,11 @@ public class ProductRepository : IProductRepository
 
     public async Task<(IEnumerable<Product> Items, int TotalCount)> SearchAndFilterAsync(ProductFilterDto filter)
     {
-        var query = _context.Set<Product>().Include(p => p.ProductCategory).AsQueryable();
+        var query = _context.Set<Product>()
+            .Include(p => p.ProductCategory)
+            .Include(p => p.ProductImages)
+                .ThenInclude(pi => pi.File)
+            .AsQueryable();
         
         query = query.Where(p => p.IsActive);
 

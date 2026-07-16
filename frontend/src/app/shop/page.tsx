@@ -8,8 +8,15 @@ import { toast } from "sonner";
 import { Product, Category } from "@/lib/mock-products";
 
 import { TiltCard } from "@/components/TiltCard";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-const categories: ("Tất cả" | Category | string)[] = [
+const categories: ("Tất cả" | "Móc khoá" | "Vòng tay" | "Dây chuyền" | "Charm" | "Đồ trang trí")[] = [
   "Tất cả",
   "Móc khoá",
   "Vòng tay",
@@ -33,16 +40,26 @@ export default function ShopPage() {
           const data = await res.json();
           const items = data.items || [];
           // Map backend ProductDto to frontend Product interface
-          const mapped = items.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            category: p.categoryName || "Khác",
-            image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
-            rating: 4.8 + Math.random() * 0.2, // Fake rating for now
-            description: p.description || "",
-            matchScore: Math.floor(85 + Math.random() * 15), // Fake score
-          }));
+          const mapped = items.map((p: any) => {
+            let cat = p.categoryName || "Khác";
+            const nameLower = p.name.toLowerCase();
+            if (nameLower.includes("charm")) cat = "Charm";
+            else if (nameLower.includes("móc khóa") || nameLower.includes("móc khoá")) cat = "Móc khoá";
+            else if (nameLower.includes("dây chuyền")) cat = "Dây chuyền";
+            else if (nameLower.includes("vòng tay")) cat = "Vòng tay";
+            else if (nameLower.includes("đồ trang trí") || nameLower.includes("decor")) cat = "Đồ trang trí";
+
+            return {
+              id: p.id,
+              name: p.name,
+              price: p.price,
+              category: cat,
+              image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
+              rating: parseFloat((4.8 + Math.random() * 0.2).toFixed(1)), // Fake rating for now
+              description: p.description || "",
+              matchScore: Math.floor(85 + Math.random() * 15), // Fake score
+            };
+          });
           setProducts(mapped);
         }
       } catch (error) {
@@ -112,22 +129,65 @@ export default function ShopPage() {
         </section>
 
         {/* Pre-order Banner */}
-        <section className="glass-card border-primary/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-up">
-          <div>
-            <h3 className="font-bold text-lg text-primary flex items-center gap-2">
-              <Sparkles className="h-5 w-5" /> Thiết kế theo yêu cầu (Pre-order)
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Bạn muốn tự tay thiết kế món quà độc lạ từ trí tưởng tượng? Hãy thử dùng Studio AI của chúng tôi!
-            </p>
-          </div>
-          <button 
-            onClick={() => router.push("/studio/custom-design")}
-            className="btn-hero px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
-          >
-            Tự thiết kế 3D ngay
-          </button>
-        </section>
+        <Dialog>
+          <section className="glass-card border-primary/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-up">
+            <div>
+              <h3 className="font-bold text-lg text-primary flex items-center gap-2">
+                <Sparkles className="h-5 w-5" /> Thiết kế theo yêu cầu (Pre-order)
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Bạn muốn mẫu độc lạ? Thời gian hoàn thiện từ 7-10 ngày. Để lại SĐT để được tư vấn thiết kế riêng!
+              </p>
+            </div>
+            <DialogTrigger asChild>
+              <button 
+                className="btn-hero px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
+              >
+                Nhận tư vấn ngay
+              </button>
+            </DialogTrigger>
+          </section>
+          <DialogContent className="sm:max-w-md bg-white rounded-3xl p-6 border-primary/20">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold font-display text-primary flex items-center gap-2">
+                <Sparkles className="h-5 w-5" /> Đăng ký nhận tư vấn
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Họ và tên</label>
+                <input 
+                  type="text" 
+                  placeholder="Nhập tên của bạn" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Số điện thoại</label>
+                <input 
+                  type="tel" 
+                  placeholder="Nhập số điện thoại" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Ý tưởng của bạn (Không bắt buộc)</label>
+                <textarea 
+                  placeholder="Mô tả ngắn gọn thiết kế bạn muốn..." 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 h-20 resize-none outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => toast.success("Đã gửi thông tin! Chúng tôi sẽ liên hệ sớm nhất.")}
+                className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2"
+              >
+                Gửi yêu cầu
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Product Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

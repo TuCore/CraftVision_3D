@@ -40,7 +40,13 @@ public class OrderRepository : IOrderRepository
     {
         var query = _context.Set<Order>().Where(o => o.UserId == userId);
         int total = await query.CountAsync();
-        var items = await query.OrderByDescending(o => o.CreatedAt).Skip((page - 1) * size).Take(size).ToListAsync();
+        var items = await query
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
         return (items, total);
     }
 

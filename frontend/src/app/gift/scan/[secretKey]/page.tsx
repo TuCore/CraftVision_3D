@@ -3,23 +3,11 @@
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Stage } from '@react-three/drei';
+
 import { Heart, Gift, Camera, Sparkles, Smile, Star, Zap, User } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 
-function ModelViewer({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
-  return (
-    <Canvas shadows camera={{ position: [0, 0, 150], fov: 40 }}>
-      <Stage environment="city" intensity={0.6}>
-        <primitive object={scene} />
-      </Stage>
-      <OrbitControls autoRotate autoRotateSpeed={2} makeDefault />
-    </Canvas>
-  );
-}
 
 const MOTIVATION_QUOTES = [
   "Bạn tuyệt vời hơn bạn nghĩ rất nhiều! Hãy luôn tin vào bản thân mình nhé. 🌟",
@@ -46,28 +34,27 @@ function MotivationSection() {
   };
 
   return (
-    <article className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-butter/60 to-background p-7 shadow-soft ring-1 ring-butter/60">
-      <div className="mb-4 grid size-10 place-items-center rounded-full bg-coral/15 text-coral">
-        <svg viewBox="0 0 24 24" className="size-5" fill="currentColor">
-          <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3c1.54 0 2.93.651 3.91 1.696.979-1.045 2.37-1.696 3.91-1.696 2.974 0 5.438 2.322 5.438 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-        </svg>
+    <article className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#FFF9E6]/90 to-white/60 p-8 shadow-soft ring-1 ring-white/60 backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:shadow-coral-glow group">
+      <div className="pointer-events-none absolute -left-20 -bottom-20 size-48 rounded-full bg-coral/10 blur-3xl transition-transform duration-700 group-hover:scale-150" />
+      <div className="mb-5 grid size-12 place-items-center rounded-full bg-coral/10 text-coral ring-1 ring-coral/20 shadow-sm">
+        <Heart className="size-5 fill-coral/80" />
       </div>
       
       {!quote ? (
         <>
-          <p className="mb-5 text-base italic leading-relaxed text-clay/90">
+          <p className="mb-6 text-[17px] italic leading-relaxed text-clay/90 relative z-10" style={{ fontFamily: "Plus Jakarta Sans" }}>
             Một thông điệp tích cực dành riêng cho bạn ngày hôm nay.
           </p>
-          <button onClick={generateMotivation} disabled={isGenerating} className="text-[11px] font-bold uppercase tracking-[0.24em] text-coral transition-opacity hover:opacity-70 flex items-center gap-2">
+          <button onClick={generateMotivation} disabled={isGenerating} className="text-[11px] font-bold uppercase tracking-[0.24em] text-coral transition-all hover:opacity-70 flex items-center gap-2 group-hover:tracking-[0.3em]">
             {isGenerating ? 'Đang chọn lọc...' : 'Bóc thông điệp →'}
           </button>
         </>
       ) : (
-        <div className="animate-fade-up">
-          <p className="mb-5 text-base italic leading-relaxed text-clay/90">
+        <div className="animate-fade-up relative z-10">
+          <p className="mb-6 text-[17px] font-medium italic leading-relaxed text-clay/90" style={{ fontFamily: "Plus Jakarta Sans" }}>
             "{quote}"
           </p>
-          <button onClick={generateMotivation} className="text-[11px] font-bold uppercase tracking-[0.24em] text-coral transition-opacity hover:opacity-70">
+          <button onClick={generateMotivation} className="text-[11px] font-bold uppercase tracking-[0.24em] text-coral transition-all hover:opacity-70 group-hover:tracking-[0.3em]">
             Thử một câu khác →
           </button>
         </div>
@@ -175,95 +162,84 @@ export default function GiftScanPage() {
           </button>
         </div>
       ) : (
-        <main className="relative z-10 mx-auto px-6 pt-4 transition-[max-width] duration-700 max-w-5xl">
+        <main className="relative z-10 mx-auto px-6 flex flex-col min-h-screen transition-[max-width] duration-700 max-w-5xl">
 
 
-          <header className="mb-14 text-center animate-reveal" style={{ animationDelay: "150ms" }}>
-            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.3em] text-clay/50">
-              Một món quà thủ công
-            </p>
-            <h1 className="mb-8 font-display text-4xl font-medium italic leading-relaxed text-[#6B5A49] md:text-5xl">
-              Dành riêng cho <br />
-              <span className="mt-2 block text-5xl font-extrabold not-italic text-clay md:text-6xl">
-                {gift.receiverName}
-              </span>
-            </h1>
-            <OrnamentDivider />
-          </header>
-
-          {/* Two-column showcase */}
-          <section className="mb-20 grid gap-8 md:grid-cols-5 md:gap-10 animate-reveal" style={{ animationDelay: "300ms" }}>
+          {/* Main Layout */}
+          <section className="flex-1 flex flex-col md:flex-row md:items-center justify-center gap-12 lg:gap-20 animate-reveal py-12" style={{ animationDelay: "150ms" }}>
             
-            {/* Left: 3D display */}
-            <div className="relative md:col-span-3">
-              <div className="absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-coral animate-halo" />
-              <CornerMarks />
-              <div className="group relative overflow-hidden rounded-[2.5rem] bg-white/50 p-6 shadow-coral-glow ring-1 ring-clay/10 backdrop-blur-md transition-transform duration-700 hover:scale-[1.01] md:p-8">
-                <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-butter/10 animate-ritual-float">
-                  <div className="size-full">
-                    <ModelViewer url={(gift.threeDModelUrl && !gift.threeDModelUrl.includes('readyplayer.me')) ? gift.threeDModelUrl : 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'} />
-                  </div>
-                  
-                  {/* Top-left rotate badge */}
-                  <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-clay backdrop-blur-md">
-                    <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth="2.4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    <span>Xoay 360°</span>
-                  </div>
-                  
-                  {/* Bottom-center pulse */}
-                  <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-clay glass-strong">
-                    <div className="size-1 animate-pulse rounded-full bg-coral" />
-                    <span>Chạm để tương tác</span>
-                  </div>
-                </div>
-                
-                {/* Museum tag under image */}
-                <div className="mt-5 flex items-center justify-between px-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-clay/50">
-                  <span>Gốm thủ công</span>
-                  <span className="text-clay/25">·</span>
-                  <span>Bản in độc bản</span>
-                  <span className="text-clay/25">·</span>
-                  <span>#{String(gift.scanCount || 1).padStart(3, '0')}</span>
-                </div>
+            {/* Left: Header text */}
+            <header className="flex-1 text-center md:text-left relative">
+              <div className="absolute -left-10 -top-10 size-40 rounded-full bg-butter/30 blur-3xl pointer-events-none" />
+              <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.3em] text-clay/50 relative z-10">
+                Một món quà thủ công
+              </p>
+              <h1 className="font-display text-4xl font-medium italic leading-relaxed text-[#6B5A49] md:text-5xl lg:text-6xl relative z-10">
+                Dành riêng cho <br />
+                <span className="mt-3 block text-5xl font-extrabold not-italic text-transparent bg-clip-text bg-gradient-to-br from-clay to-[#A88B7D] md:text-6xl lg:text-7xl drop-shadow-sm pb-2">
+                  {gift.receiverName}
+                </span>
+              </h1>
+              <div className="mt-8 md:hidden relative z-10">
+                <OrnamentDivider />
               </div>
-            </div>
+            </header>
 
-            {/* Right: message + wish */}
-            <div className="flex flex-col gap-6 md:col-span-2">
+            {/* Right: message + wish cards */}
+            <div className="flex-1 flex flex-col gap-6 w-full max-w-lg mx-auto md:mx-0 animate-reveal" style={{ animationDelay: "300ms" }}>
+              
+              {/* Daily wish card */}
+              <MotivationSection />
+
+
+
               {/* Message card */}
-              <article className="relative overflow-hidden rounded-[2rem] bg-white/60 p-7 shadow-soft ring-1 ring-clay/10 backdrop-blur-md">
-                <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-butter/50 blur-3xl" />
-                <div className="mb-5 flex items-center gap-3">
-                  <div className="h-px flex-1 bg-clay/15" />
+              <article className="relative overflow-hidden rounded-[2.5rem] bg-white/70 p-8 shadow-soft ring-1 ring-white/80 backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:shadow-coral-glow group">
+                <div className="pointer-events-none absolute -right-20 -top-20 size-48 rounded-full bg-butter/40 blur-3xl transition-transform duration-700 group-hover:scale-150" />
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="h-px w-6 bg-clay/15 md:hidden" />
                   <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-clay/70">
-                    Lời nhắn
+                    Lời chúc
                   </span>
-                  <div className="h-px w-6 bg-clay/15" />
+                  <div className="h-px flex-1 bg-clay/15" />
                 </div>
-                <p
-                  className="whitespace-pre-line text-[17px] italic leading-relaxed text-clay/90"
-                  style={{ fontFamily: "Plus Jakarta Sans" }}
-                >
-                  {gift.message || "Món quà này được làm riêng cho bạn bằng tất cả tình cảm."}
-                </p>
-                <div className="mt-6 flex items-center justify-start">
-                  <div className="flex gap-1.5">
+                <div className="relative z-10">
+                  <p
+                    className="whitespace-pre-line text-[17px] italic leading-relaxed text-clay/90"
+                    style={{ fontFamily: "Plus Jakarta Sans" }}
+                  >
+                    {gift.message || "Món quà này được làm riêng cho bạn bằng tất cả tình cảm."}
+                  </p>
+                </div>
+                <div className="mt-8 flex items-center justify-end">
+                  <div className="flex gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <div className="size-1.5 rounded-full bg-coral/30" />
+                    <div className="size-1.5 rounded-full bg-coral/60" />
                     <div className="size-1.5 rounded-full bg-coral" />
-                    <div className="size-1.5 rounded-full bg-coral/50" />
-                    <div className="size-1.5 rounded-full bg-coral/20" />
                   </div>
                 </div>
               </article>
               
-              {/* Daily wish card */}
-              <MotivationSection />
+              {/* Uploaded Image Card - Polaroid Style at the bottom */}
+              {gift.previewImageUrl && (
+                <article className="relative bg-white p-4 pb-12 shadow-xl ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-2 hover:rotate-0 hover:shadow-coral-glow group self-center mt-4 w-[90%] max-w-sm">
+                  <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-rose-200/40 blur-3xl transition-transform duration-700 group-hover:scale-150" />
+                  <div className="aspect-square w-full overflow-hidden bg-clay/5">
+                     <img src={gift.previewImageUrl} alt="Kỷ niệm đính kèm" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 origin-center filter contrast-[1.05] brightness-105" />
+                  </div>
+                  <div className="absolute bottom-4 left-0 right-0 text-center">
+                    <p className="font-display text-2xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
+                  </div>
+                  {/* Pin decor */}
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-black/10 rounded-full shadow-inner blur-[1px]"></div>
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-rose-300 rounded-full shadow-sm border border-rose-400"></div>
+                </article>
+              )}
             </div>
           </section>
 
           {/* Meta strip */}
-          <section className="border-t border-clay/10 pt-8 animate-reveal" style={{ animationDelay: "600ms" }}>
+          <section className="border-t border-clay/10 pt-8 pb-4 animate-reveal" style={{ animationDelay: "600ms" }}>
             <div className="flex flex-col items-center justify-between gap-4 text-[10px] font-bold uppercase tracking-[0.22em] text-clay/50 md:flex-row">
               <div className="flex items-center gap-3">
                 <span>#{String(gift.scanCount || 1).padStart(3, '0')}</span>
@@ -274,7 +250,7 @@ export default function GiftScanPage() {
           </section>
 
           {/* Signature */}
-          <footer className="mt-20 text-center animate-reveal pb-24" style={{ animationDelay: "750ms" }}>
+          <footer className="mt-12 text-center animate-reveal" style={{ animationDelay: "750ms" }}>
             <OrnamentDivider />
             <div className="mt-6 inline-flex flex-col items-center">
               <span className="mb-2 text-[9px] uppercase tracking-[0.3em] text-clay/40">
@@ -301,14 +277,4 @@ function OrnamentDivider() {
   );
 }
 
-function CornerMarks() {
-  const base = "absolute size-4 border-clay/30";
-  return (
-    <>
-      <div className={`${base} -top-1 -left-1 border-l border-t rounded-tl-md`} />
-      <div className={`${base} -top-1 -right-1 border-r border-t rounded-tr-md`} />
-      <div className={`${base} -bottom-1 -left-1 border-l border-b rounded-bl-md`} />
-      <div className={`${base} -bottom-1 -right-1 border-r border-b rounded-br-md`} />
-    </>
-  );
-}
+

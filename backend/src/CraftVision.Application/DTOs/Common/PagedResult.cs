@@ -9,4 +9,6 @@ public class PagedResult<T>
     public int PageSize { get; set; }
     public int TotalItems { get; set; }
     public int TotalPages => PageSize > 0 ? (TotalItems + PageSize - 1) / PageSize : 0;
+    public bool HasNextPage => Page < TotalPages;
+    public bool HasPreviousPage => Page > 1;
 }

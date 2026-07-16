@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Cho phép HMR (websocket) hoạt động qua ngrok và cloudflare
   allowedDevOrigins: [
-    '6dc6-58-187-184-243.ngrok-free.app', 
+    '*.ngrok-free.app', 
     'localhost:3000',
     '*.trycloudflare.com'
   ],

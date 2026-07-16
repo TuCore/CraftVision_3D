@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useOrderStore } from "@/store/useOrderStore";
+import { useWishlistStore } from "@/store/useWishlistStore";
 import { toast } from "sonner";
 import { Truck, ShoppingCart, CreditCard, ArrowLeft, Wand2, Box } from "lucide-react";
 import api from "@/lib/api";
@@ -12,7 +13,8 @@ import { useGreetingStore } from "@/store/useGreetingStore";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { item, clearItem } = useOrderStore();
+  const { items, clearItems } = useOrderStore();
+  const { removeFromCart } = useWishlistStore(); // to clear cart items on success
   
   const [shippingInfo, setShippingInfo] = useState({
     receiverName: "",
@@ -26,10 +28,13 @@ export default function CheckoutPage() {
   
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
   // NFC & AI Gift
   const [useNfcGift, setUseNfcGift] = useState(false);
   const [generatedMessage, setGeneratedMessage] = useState("");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   const [enable3D, setEnable3D] = useState(false);
   const [theme3D, setTheme3D] = useState("Galaxy");
@@ -46,12 +51,41 @@ export default function CheckoutPage() {
     }, 2000);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post('/api/uploads', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (res.data && res.data.cloudinaryUrl) {
+        setUploadedImage(res.data.cloudinaryUrl);
+        toast.success("Tải ảnh lên thành công!");
+      } else {
+        toast.error("Lỗi khi tải ảnh lên server.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Đã xảy ra lỗi mạng khi tải ảnh. Vui lòng đăng nhập nếu chưa đăng nhập.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   useEffect(() => {
-    if (!item) {
+    if ((!items || items.length === 0) && !isOrderPlaced) {
       toast.error("Bạn chưa chọn món quà nào!");
       router.push("/shop");
     }
-  }, [item, router]);
+  }, [items, router, isOrderPlaced]);
 
   const handlePlaceOrder = async () => {
     if (!shippingInfo.receiverName || !shippingInfo.phone || !shippingInfo.address) {
@@ -62,13 +96,14 @@ export default function CheckoutPage() {
       toast.error("Vui lòng đồng ý với điều khoản dịch vụ!");
       return;
     }
-    if (!item) {
+    if (!items || items.length === 0) {
       toast.error("Vui lòng chọn một món quà để thanh toán.");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      setIsOrderPlaced(true);
       const fullAddress = `${shippingInfo.address}, ${shippingInfo.ward}, ${shippingInfo.district}, ${shippingInfo.province}`;
       
       const payload = {
@@ -76,7 +111,7 @@ export default function CheckoutPage() {
         receiverPhone: shippingInfo.phone,
         receiverAddress: fullAddress,
         paymentMethod: "Cod",
-        items: [{
+        items: items.map(item => ({
           productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
           quantity: item.quantity,
           wantNfc: useNfcGift || !!item.gift,
@@ -88,29 +123,38 @@ export default function CheckoutPage() {
             messageSource: item.gift?.messageSource || "AI",
             theme: useNfcGift ? (useGreetingStore.getState().tone || "sincere") : (item.gift?.theme || "sincere"),
             threeDModelUrl: useNfcGift ? preview3D : (item.gift?.threeDModelUrl || null),
-            previewImageUrl: item.gift?.previewImageUrl || null,
+            previewImageUrl: useNfcGift ? uploadedImage : (item.gift?.previewImageUrl || uploadedImage),
             threeDModelType: item.gift?.threeDModelType || "GLB",
             mediaFileIds: item.gift?.mediaFileIds || []
           } : null
-        }]
+        }))
       };
 
       await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
-      clearItem();
+      
+      // Clear items from cart
+      items.forEach(item => {
+        if (item.cartItemId) removeFromCart(item.cartItemId);
+      });
+      clearItems();
+      
       router.push("/profile");
     } catch (error: any) {
+      setIsOrderPlaced(false);
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt hàng.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!item) return null;
+  if (!items || items.length === 0) return null;
 
-  const subtotal = item.product.price * item.quantity;
+  const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const shipping = subtotal > 500000 ? 0 : 30000;
   const total = subtotal + shipping;
+
+  const showGlobalNfc = items.length === 1 && !items[0].gift;
 
   return (
     <AppShell active="shop">
@@ -178,25 +222,69 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* AI Generator Block */}
-            <div className="glass-card p-6 rounded-3xl space-y-6">
-              <div className="flex items-center justify-between border-b border-border pb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">🎁 Thiết kế thiệp NFC & 3D</h2>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" checked={useNfcGift} onChange={(e) => setUseNfcGift(e.target.checked)} />
-                  <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                </label>
-              </div>
+            {/* AI Generator Block - only show for single item without pre-designed gift */}
+            {showGlobalNfc && (
+              <div className="glass-card p-6 rounded-3xl space-y-6">
+                <div className="flex items-center justify-between border-b border-border pb-4">
+                  <h2 className="text-xl font-bold flex items-center gap-2">🎁 Thiết kế thiệp NFC & 3D</h2>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" checked={useNfcGift} onChange={(e) => setUseNfcGift(e.target.checked)} />
+                    <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                  </label>
+                </div>
 
-              {useNfcGift && (
-                <AIGiftWidget 
-                  receiverName={shippingInfo.receiverName} 
-                  senderName="" 
-                  value={generatedMessage} 
-                  onChange={setGeneratedMessage} 
-                />
-              )}
-            </div>
+                {useNfcGift && (
+                  <div className="space-y-6">
+                    <AIGiftWidget 
+                      receiverName={shippingInfo.receiverName} 
+                      senderName="" 
+                      value={generatedMessage} 
+                      onChange={setGeneratedMessage} 
+                    />
+                    
+                    {/* Image Upload Section */}
+                    <div className="bg-white/60 p-5 rounded-2xl border border-white shadow-sm space-y-4">
+                      <h3 className="font-bold flex items-center gap-2">
+                        🖼️ Đính kèm ảnh kỷ niệm
+                      </h3>
+                      <p className="text-sm text-muted-foreground">Bức ảnh này sẽ hiển thị ở món quà điện tử khi người nhận mở món quà ra.</p>
+                      
+                      {uploadedImage ? (
+                        <div className="relative group rounded-xl overflow-hidden border border-border w-full max-w-[200px] aspect-[4/5]">
+                          <img src={uploadedImage} alt="Uploaded preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button 
+                              onClick={() => setUploadedImage(null)}
+                              className="bg-white text-red-500 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm"
+                            >
+                              Xóa ảnh
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="border-2 border-dashed border-primary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-primary/5 transition-colors group">
+                          {isUploadingImage ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                              <span className="text-sm font-semibold text-primary">Đang tải lên...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                <span className="text-xl">+</span>
+                              </div>
+                              <span className="text-sm font-semibold text-foreground">Nhấn để chọn ảnh (Cloudinary)</span>
+                              <span className="text-xs text-muted-foreground mt-1">Hỗ trợ JPG, PNG, WEBP</span>
+                            </>
+                          )}
+                          <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploadingImage} />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right: Order Summary */}
@@ -205,15 +293,20 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-bold flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary" /> Đơn hàng</h2>
               
               <div className="space-y-3">
-                  <div className="flex justify-between items-center text-sm border-b border-border/50 pb-2">
+                {items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-sm border-b border-border/50 pb-2">
                     <div className="flex-1 min-w-0 pr-4">
                       <p className="font-semibold truncate">{item.product.name}</p>
-                      <p className="text-xs text-muted-foreground">x{item.quantity}</p>
+                      <div className="flex gap-2 items-center text-xs mt-1">
+                        <span className="text-muted-foreground">x{item.quantity}</span>
+                        {item.gift && <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded font-semibold">🎁 Đã kèm thiệp</span>}
+                      </div>
                     </div>
                     <span className="font-semibold whitespace-nowrap">
                       {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.product.price * item.quantity)}
                     </span>
                   </div>
+                ))}
               </div>
 
               <div className="pt-2">

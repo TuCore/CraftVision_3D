@@ -73,7 +73,7 @@ namespace CraftVision.Infrastructure.Services
                     <p>Tài khoản của bạn đã được đăng ký thành công thông qua Google.</p>
                     <p>Hãy bắt đầu trò chuyện với AI để khám phá ngay hàng nghìn ý tưởng DIY độc đáo nhé!</p>
                     <br/>
-                    <a href='https://pulse-legend-suggestions-straight.trycloudflare.com' style='background: #FF37C0; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Bắt đầu sáng tạo</a>
+                    <a href='https://b58f-2001-ee0-1b39-6aa7-886b-50e7-6a14-bd07.ngrok-free.app' style='background: #FF37C0; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Bắt đầu sáng tạo</a>
                     <br/><br/>
                     <p style='color: #666; font-size: 12px;'>Nếu bạn có bất kỳ thắc mắc nào, hãy trả lời trực tiếp email này.</p>
                     <p>Trân trọng,<br/><b>Đội ngũ CraftVision 3D</b></p>

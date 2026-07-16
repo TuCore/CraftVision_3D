@@ -4,8 +4,22 @@ import { useParams, useRouter } from 'next/navigation';
 import { useOrderDetails, useUpdateOrderStatus, Order } from '@/hooks/useOrders';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift } from 'lucide-react';
+import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift, ChevronDown, CheckCircle2, Clock, Truck, XCircle, Hammer } from 'lucide-react';
 import { toast } from 'sonner';
+
+const getOrderStatusConfig = (status: string) => {
+  switch (status) {
+    case 'Pending': return { label: 'Chờ xử lý', color: 'bg-slate-100 text-slate-800 border-slate-200', icon: Clock };
+    case 'Processing': return { label: 'Đang xử lý', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Package };
+    case 'WaitingProduction': return { label: 'Chờ sản xuất', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Clock };
+    case 'Producing': return { label: 'Đang sản xuất', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: Hammer };
+    case 'ReadyToShip': return { label: 'Chờ lấy hàng', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Package };
+    case 'Shipped': return { label: 'Đang giao', color: 'bg-cyan-100 text-cyan-800 border-cyan-200', icon: Truck };
+    case 'Delivered': return { label: 'Đã giao', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: CheckCircle2 };
+    case 'Cancelled': return { label: 'Đã hủy', color: 'bg-rose-100 text-rose-800 border-rose-200', icon: XCircle };
+    default: return { label: status, color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Package };
+  }
+};
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams();
@@ -96,43 +110,53 @@ export default function AdminOrderDetailPage() {
         </div>
 
         {/* Status Update Card */}
-        <div className="glass-card p-6 md:p-8 rounded-3xl shadow-soft space-y-6">
-          <h2 className="text-xl font-bold font-display flex items-center gap-2 text-foreground">
+        <div className="glass-card p-6 md:p-8 rounded-3xl shadow-soft flex flex-col gap-6">
+          <h2 className="text-xl font-bold font-display flex items-center gap-2 text-foreground flex-none">
             <RefreshCw className="w-5 h-5 text-primary" /> Cập nhật trạng thái
           </h2>
           
-          <div className="bg-white/60 p-6 rounded-2xl border border-white shadow-sm flex flex-col h-full justify-between">
-            <div className="flex items-center justify-between mb-6 bg-background p-4 rounded-xl border border-border">
-              <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Trạng thái hiện tại</p>
-              <span className="px-4 py-1.5 bg-primary/10 text-primary rounded-lg text-sm font-extrabold border border-primary/20">
-                {order.orderStatus}
-              </span>
+            <div className="bg-white/80 p-5 rounded-2xl border border-white shadow-sm flex-1 flex flex-col gap-6">
+              <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-border shadow-sm flex-none">
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Trạng thái hiện tại</p>
+                {(() => {
+                  const currentStatus = getOrderStatusConfig(order.orderStatus);
+                  const StatusIcon = currentStatus.icon;
+                  return (
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-extrabold border ${currentStatus.color}`}>
+                      <StatusIcon className="w-4 h-4" />
+                      {currentStatus.label}
+                    </span>
+                  );
+                })()}
+              </div>
+              
+              <div className="flex flex-col gap-3 mt-auto">
+                <div className="relative">
+                  <select 
+                    className="w-full bg-white border border-border rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition-all shadow-sm cursor-pointer appearance-none"
+                    value={selectedStatus || order.orderStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                  >
+                    <option value="Pending">Chờ xử lý</option>
+                    <option value="Processing">Đang xử lý</option>
+                    <option value="WaitingProduction">Chờ sản xuất</option>
+                    <option value="Producing">Đang sản xuất</option>
+                    <option value="ReadyToShip">Chờ lấy hàng</option>
+                    <option value="Shipped">Đang giao</option>
+                    <option value="Delivered">Đã giao</option>
+                    <option value="Cancelled">Đã hủy</option>
+                  </select>
+                  <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                </div>
+                <button 
+                  onClick={handleUpdateStatus}
+                  disabled={isPending || ((selectedStatus || order.orderStatus) === order.orderStatus)}
+                  className="btn-hero text-white w-full py-3.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  {isPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thay Đổi'}
+                </button>
+              </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3">
-              <select 
-                className="flex-1 bg-white border border-border rounded-xl px-4 py-3.5 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition-all shadow-sm cursor-pointer appearance-none"
-                value={selectedStatus || order.orderStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="Pending">Pending</option>
-                <option value="Processing">Processing</option>
-                <option value="WaitingProduction">WaitingProduction</option>
-                <option value="Producing">Producing</option>
-                <option value="ReadyToShip">ReadyToShip</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-              <button 
-                onClick={handleUpdateStatus}
-                disabled={isPending || ((selectedStatus || order.orderStatus) === order.orderStatus)}
-                className="btn-hero text-white px-8 py-3.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
-              >
-                {isPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thay Đổi'}
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

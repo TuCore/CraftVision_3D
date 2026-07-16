@@ -12,4 +12,5 @@ public interface IOrderService
     Task<PagedResult<OrderDto>> GetUserOrdersAsync(Guid userId, int page, int size);
     Task<PagedResult<OrderDto>> GetAllOrdersAsync(int page, int size);
     Task UpdateOrderStatusAsync(Guid orderId, string status);
+    Task CompleteUserOrderAsync(Guid userId, Guid orderId);
 }

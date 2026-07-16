@@ -59,6 +59,7 @@ public class Tripo3DTaskProcessorService : BackgroundService
         var rowsAffected = await dbContext.Ai3dRequests
             .Where(x => (x.Status == "queued" || x.Status == "running")
                      && (x.LockedUntil == null || x.LockedUntil < now))
+            .OrderBy(x => x.CreatedAt)
             .Take(10)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(p => p.LockedBy, _workerId)
