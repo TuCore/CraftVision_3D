@@ -20,7 +20,7 @@ DECLARE
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM users WHERE id = v_user_id) THEN
         INSERT INTO users (id, email, full_name, password_hash, is_active, tier, created_at, updated_at)
-        VALUES (v_user_id, 'mock@craftvision.com', 'Mock User', 'MOCK', true, 0, now(), now());
+        VALUES (v_user_id, 'mock@craftvision.com', 'Mock User', 'MOCK', true, 'Free'::user_tier_enum, now(), now());
     END IF;
     DELETE FROM product_images;
     FOR rec IN SELECT id, name FROM products LOOP

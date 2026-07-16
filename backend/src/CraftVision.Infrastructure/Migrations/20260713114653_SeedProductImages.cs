@@ -21,7 +21,7 @@ BEGIN
     -- Ensure mock user exists for these uploads
     IF NOT EXISTS (SELECT 1 FROM users WHERE id = v_user_id) THEN
         INSERT INTO users (id, email, full_name, password_hash, is_active, tier, created_at, updated_at)
-        VALUES (v_user_id, 'mock@craftvision.com', 'Mock User', 'MOCK', true, 0, now(), now());
+        VALUES (v_user_id, 'mock@craftvision.com', 'Mock User', 'MOCK', true, 'Free'::user_tier_enum, now(), now());
     END IF;
 
     -- Delete existing product images to avoid duplicates if run multiple times
@@ -43,7 +43,7 @@ BEGIN
             
             -- Insert into uploaded_files
             INSERT INTO uploaded_files (id, user_id, file_url, file_type, created_at)
-            VALUES (v_file_id, v_user_id, img_url, 0, now());
+            VALUES (v_file_id, v_user_id, img_url, 'Image'::file_type_enum, now());
 
             -- Insert into product_images
             INSERT INTO product_images (id, product_id, file_id, display_order, is_thumbnail)
