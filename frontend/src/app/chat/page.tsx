@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { AppShell } from "@/components/AppShell";
-import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History } from "lucide-react";
+import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History, MessageSquare, Box } from "lucide-react";
 import { fetchApi } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 
@@ -15,8 +15,8 @@ type Message = {
 };
 
 const modes = [
-  {id:"vision", title:"Vision Plus", subtitle:"Chat & phân tích hình ảnh", badge:"Free"},
-  {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản", badge:"Pro"},
+  {id:"vision", title:"Vision Plus", subtitle:"Chat & phân tích hình ảnh", badge:"Free", icon: MessageSquare},
+  {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản", badge:"Pro", icon: Box},
 ];
 
 const mockHistory = [
@@ -191,8 +191,8 @@ export default function ChatPage() {
                     onClick={() => { setChatMode(m.id as any); setIsMenuOpen(false); }}
                     className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-muted transition-colors"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                      <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                      <m.icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium">{m.title}</div>
