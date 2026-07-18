@@ -103,11 +103,11 @@ export default function ChatPage() {
     formData.append("file", file);
     
     // fetchApi doesn't set Content-Type if body is FormData
-    const res = await fetchApi("/api/upload", {
+    const res = await fetchApi("/api/uploads", {
       method: "POST",
       body: formData,
     });
-    return res.url;
+    return res.cloudinaryUrl || res.url;
   };
 
   const handleSend = async () => {
