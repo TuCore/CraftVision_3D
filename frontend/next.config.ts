@@ -5,7 +5,9 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     '*.ngrok-free.app', 
     'localhost:3000',
-    '*.trycloudflare.com'
+    '*.trycloudflare.com',
+    'www.tucore.io.vn',
+    '*.tucore.io.vn'
   ],
   async rewrites() {
     return [
