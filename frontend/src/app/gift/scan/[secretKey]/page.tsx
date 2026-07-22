@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 
 import { Heart, Gift, Camera, Sparkles, Smile, Star, Zap, User } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 
 declare global {
@@ -241,15 +241,14 @@ export default function GiftScanPage() {
               <article className="relative bg-white p-4 pb-12 shadow-xl ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-2 hover:rotate-0 hover:shadow-coral-glow group self-center mt-4 w-[90%] max-w-sm">
                 <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-rose-200/40 blur-3xl transition-transform duration-700 group-hover:scale-150" />
                 <div className="aspect-square w-full overflow-hidden bg-clay/5 relative">
-                  {/* @ts-ignore */}
-                  <model-viewer
-                    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                    auto-rotate
-                    camera-controls
-                    style={{ width: '100%', height: '100%', outline: 'none' }}
-                    environment-image="neutral"
-                    exposure="1"
-                  ></model-viewer>
+                  {React.createElement('model-viewer', {
+                    src: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
+                    "auto-rotate": true,
+                    "camera-controls": true,
+                    style: { width: '100%', height: '100%', outline: 'none' },
+                    "environment-image": "neutral",
+                    exposure: "1"
+                  })}
                 </div>
                 <div className="absolute bottom-4 left-0 right-0 text-center">
                   <p className="font-display text-2xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
