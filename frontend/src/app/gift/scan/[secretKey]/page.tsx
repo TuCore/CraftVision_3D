@@ -67,6 +67,16 @@ export default function GiftScanPage() {
   const { secretKey } = useParams();
   const [showContent, setShowContent] = useState(false);
 
+  useEffect(() => {
+    // Load model-viewer script dynamically for the demo
+    if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
+      document.head.appendChild(script);
+    }
+  }, []);
+
   const { data: gift, isLoading, error } = useQuery({
     queryKey: ['gift-scan', secretKey],
     queryFn: async () => {
@@ -220,21 +230,27 @@ export default function GiftScanPage() {
                 </div>
               </article>
               
-              {/* Uploaded Image Card - Polaroid Style at the bottom */}
-              {gift.previewImageUrl && (
-                <article className="relative bg-white p-4 pb-12 shadow-xl ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-2 hover:rotate-0 hover:shadow-coral-glow group self-center mt-4 w-[90%] max-w-sm">
-                  <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-rose-200/40 blur-3xl transition-transform duration-700 group-hover:scale-150" />
-                  <div className="aspect-square w-full overflow-hidden bg-clay/5">
-                     <img src={gift.previewImageUrl} alt="Kỷ niệm đính kèm" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 origin-center filter contrast-[1.05] brightness-105" />
-                  </div>
-                  <div className="absolute bottom-4 left-0 right-0 text-center">
-                    <p className="font-display text-2xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
-                  </div>
-                  {/* Pin decor */}
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-black/10 rounded-full shadow-inner blur-[1px]"></div>
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-rose-300 rounded-full shadow-sm border border-rose-400"></div>
-                </article>
-              )}
+              {/* 3D Model Viewer - Polaroid Style at the bottom */}
+              <article className="relative bg-white p-4 pb-12 shadow-xl ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-2 hover:rotate-0 hover:shadow-coral-glow group self-center mt-4 w-[90%] max-w-sm">
+                <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-rose-200/40 blur-3xl transition-transform duration-700 group-hover:scale-150" />
+                <div className="aspect-square w-full overflow-hidden bg-clay/5 relative">
+                  {/* @ts-ignore */}
+                  <model-viewer
+                    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                    auto-rotate
+                    camera-controls
+                    style={{ width: '100%', height: '100%', outline: 'none' }}
+                    environment-image="neutral"
+                    exposure="1"
+                  ></model-viewer>
+                </div>
+                <div className="absolute bottom-4 left-0 right-0 text-center">
+                  <p className="font-display text-2xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
+                </div>
+                {/* Pin decor */}
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-black/10 rounded-full shadow-inner blur-[1px]"></div>
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-rose-300 rounded-full shadow-sm border border-rose-400"></div>
+              </article>
             </div>
           </section>
 
