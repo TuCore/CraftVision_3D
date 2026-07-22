@@ -8,6 +8,13 @@ import { Heart, Gift, Camera, Sparkles, Smile, Star, Zap, User } from 'lucide-re
 import { useEffect, useState, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': any;
+    }
+  }
+}
 
 const MOTIVATION_QUOTES = [
   "Bạn tuyệt vời hơn bạn nghĩ rất nhiều! Hãy luôn tin vào bản thân mình nhé. 🌟",
