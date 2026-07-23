@@ -10,8 +10,11 @@ import { mockProducts } from "@/lib/mock-products";
 import { toast } from "sonner";
 import { Store, Package, CheckCircle, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useCollectionStore } from "@/store/useCollectionStore";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("Nguyễn Minh");
   const [email, setEmail] = useState("minh@craft.vn");
   const [bio, setBio] = useState('"Sáng tạo là hạnh phúc." — Handmade creator 💛');
@@ -72,8 +75,10 @@ export default function ProfilePage() {
 
   const [orders, setOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "shipping" | "completed">("all");
+  const [activeCollectionTab, setActiveCollectionTab] = useState<"completed" | "saved">("completed");
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
+  const { items: savedItems } = useCollectionStore();
 
   const loadOrders = async () => {
     setLoadingOrders(true);
@@ -91,6 +96,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadOrders();
+
+    if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
+      document.head.appendChild(script);
+    }
   }, []);
 
   const handleReceiveOrder = async (orderId: string) => {
@@ -193,12 +205,22 @@ export default function ProfilePage() {
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-2xl font-bold font-display">Bộ sưu tập của tôi</h2>
             <div className="flex gap-1 p-1 bg-card/60 rounded-xl text-sm">
-              <button className="px-3 py-1.5 rounded-lg btn-hero">Đã hoàn thành</button>
-              <button className="px-3 py-1.5 rounded-lg text-muted-foreground">Đã lưu</button>
+              <button 
+                onClick={() => setActiveCollectionTab('completed')}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${activeCollectionTab === 'completed' ? 'btn-hero text-white' : 'text-muted-foreground hover:bg-muted'}`}
+              >
+                Đã hoàn thành
+              </button>
+              <button 
+                onClick={() => setActiveCollectionTab('saved')}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${activeCollectionTab === 'saved' ? 'btn-hero text-white' : 'text-muted-foreground hover:bg-muted'}`}
+              >
+                Đã lưu
+              </button>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {gallery.map((g) => (
+            {activeCollectionTab === 'completed' ? gallery.map((g) => (
               <div key={g.title} className="glass-card rounded-2xl overflow-hidden group cursor-pointer">
                 <div className="aspect-square relative" style={{ background: `linear-gradient(135deg, ${g.color}, oklch(0.92 0.06 85))` }}>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -207,7 +229,39 @@ export default function ProfilePage() {
                   <div className="font-medium text-sm truncate">{g.title}</div>
                 </div>
               </div>
-            ))}
+            )) : savedItems.map((item, index) => {
+              const pastelColors = ["oklch(0.85 0.14 145)", "oklch(0.82 0.16 25)", "oklch(0.86 0.15 85)", "oklch(0.83 0.16 265)", "oklch(0.84 0.15 45)"];
+              const randomColor = pastelColors[index % pastelColors.length];
+              return (
+                <div 
+                  key={item.id} 
+                  onClick={() => router.push(`/shop/22222222-2222-2222-2222-222222222222/greeting?from=3d&modelUrl=${encodeURIComponent(item.modelUrl)}&customName=${encodeURIComponent(item.title)}`)}
+                  className="glass-card rounded-2xl overflow-hidden group cursor-pointer"
+                >
+                  <div className="aspect-square relative flex items-center justify-center overflow-hidden" style={{ background: `linear-gradient(135deg, ${randomColor}, oklch(0.92 0.06 85))` }}>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
+                    {/* @ts-ignore */}
+                    <model-viewer
+                      src={item.modelUrl}
+                      auto-rotate
+                      camera-controls
+                      shadow-intensity="1"
+                      style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
+                      className="relative z-0 group-hover:scale-110 transition-transform duration-500"
+                    ></model-viewer>
+                  </div>
+                  <div className="p-3">
+                    <div className="font-medium text-sm truncate">{item.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">Bản nháp</div>
+                  </div>
+                </div>
+              );
+            })}
+            {activeCollectionTab === 'saved' && savedItems.length === 0 && (
+              <div className="col-span-2 md:col-span-3 text-center py-12 text-muted-foreground">
+                Bạn chưa lưu thiết kế nào.
+              </div>
+            )}
           </div>
         </section>
 

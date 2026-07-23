@@ -27,9 +27,10 @@ export const useWishlistStore = create<WishlistStore>()(
     (set, get) => ({
       items: [],
       toggleFavorite: (product, hasGreeting, greetingMessage, greetingImage, senderName, receiverName) => set((state) => {
-        const cartItemId = `${product.id}-${hasGreeting ? 'nfc' : 'standard'}`;
+        const is3D = (product as any).is3D;
+        const cartItemId = `${product.id}-${is3D ? '3d' : (hasGreeting ? 'nfc' : 'standard')}`;
         const existsIndex = state.items.findIndex((item) => 
-          item.cartItemId === cartItemId || (item.id === product.id && !!item.hasGreeting === !!hasGreeting)
+          item.cartItemId === cartItemId || (item.id === product.id && !!item.hasGreeting === !!hasGreeting && !!(item as any).is3D === !!is3D)
         );
         
         if (existsIndex >= 0) {

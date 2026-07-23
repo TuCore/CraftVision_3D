@@ -385,6 +385,8 @@ function Studio3DView() {
   const [currentModel, setCurrentModel] = useState("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
   const [uploadImage, setUploadImage] = useState<string | null>(null);
   const [style, setStyle] = useState("Cách điệu");
+  const [isNamePopupOpen, setIsNamePopupOpen] = useState(false);
+  const [customName, setCustomName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -573,12 +575,48 @@ function Studio3DView() {
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
             Tinh chỉnh
           </button>
-          <button onClick={() => router.push('/shop/22222222-2222-2222-2222-222222222222/greeting')} className="rounded-full px-5 py-2 text-sm text-white font-medium shadow-md btn-hero flex items-center gap-1.5">
+          <button onClick={() => setIsNamePopupOpen(true)} className="rounded-full px-5 py-2 text-sm text-white font-medium shadow-md btn-hero flex items-center gap-1.5">
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
             Tạo website
           </button>
         </div>
       </div>
+
+      {isNamePopupOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsNamePopupOpen(false)} />
+          <div className="relative glass-card bg-card/95 border border-white/20 p-6 rounded-3xl w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold font-display mb-2 text-foreground">Tên sản phẩm 3D</h3>
+            <p className="text-sm text-muted-foreground mb-4">Nhập tên cho thiết kế của bạn để hiển thị trên website.</p>
+            <input 
+              type="text" 
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="VD: Phi hành gia siêu đáng yêu..."
+              autoFocus
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 mb-5 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+            />
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setIsNamePopupOpen(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium hover:bg-muted transition-colors text-foreground"
+              >
+                Hủy
+              </button>
+              <button 
+                onClick={() => {
+                  setIsNamePopupOpen(false);
+                  router.push(`/shop/22222222-2222-2222-2222-222222222222/greeting?from=3d&modelUrl=${encodeURIComponent(currentModel || '')}&customName=${encodeURIComponent(customName || 'Sản phẩm 3D của tôi')}`);
+                }}
+                className="px-5 py-2 rounded-xl text-sm font-medium btn-hero text-white shadow-md hover:scale-105 transition-transform"
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

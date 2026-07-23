@@ -33,6 +33,13 @@ export default function CartPage() {
       // Otherwise, just remove deleted items from the selection
       return prev.filter((id) => items.some((item) => (item.cartItemId || item.id) === id));
     });
+
+    if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
+      document.head.appendChild(script);
+    }
   }, [items]);
 
   const subtotal = useMemo(() => {
@@ -93,11 +100,24 @@ export default function CartPage() {
 
                   {/* Product Image */}
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border/50">
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover"
-                    />
+                    {(item as any).is3D && (item as any).modelUrl ? (
+                      <div className="w-full h-full bg-primary/5 flex items-center justify-center relative">
+                        {/* @ts-ignore */}
+                        <model-viewer
+                          src={(item as any).modelUrl}
+                          auto-rotate
+                          camera-controls
+                          shadow-intensity="1"
+                          style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
+                        ></model-viewer>
+                      </div>
+                    ) : (
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
 
                   {/* Product Info */}
@@ -167,7 +187,7 @@ export default function CartPage() {
                             </div>
                             <div className="flex justify-end gap-3">
                               <button 
-                                onClick={() => router.push(`/shop/${item.id}/greeting`)}
+                                onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting${(item as any).is3D ? `?from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
                                 className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 shadow-coral-glow"
                               >
                                 Chỉnh sửa thiệp

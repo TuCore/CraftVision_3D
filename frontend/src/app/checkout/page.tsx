@@ -6,10 +6,11 @@ import { AppShell } from "@/components/AppShell";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { toast } from "sonner";
-import { Truck, ShoppingCart, CreditCard, ArrowLeft, Wand2, Box } from "lucide-react";
+import { Truck, ShoppingCart, CreditCard, ArrowLeft, Wand2, Box, Clock } from "lucide-react";
 import api from "@/lib/api";
 import { AIGiftWidget } from "@/components/AIGiftWidget";
 import { useGreetingStore } from "@/store/useGreetingStore";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -40,6 +41,19 @@ export default function CheckoutPage() {
   const [theme3D, setTheme3D] = useState("Galaxy");
   const [isGenerating3D, setIsGenerating3D] = useState(false);
   const [preview3D, setPreview3D] = useState<string | null>(null);
+  const [success3DUrl, setSuccess3DUrl] = useState<string | null>(null);
+
+  const hasPhysicalItems = items.some(item => !(item.product as any).is3D);
+
+  const expirationOptions = [
+    { label: '5 ngày', value: 5, price: 15000 },
+    { label: '15 ngày', value: 15, price: 30000 },
+    { label: '30 ngày', value: 30, price: 45000 },
+    { label: '3 tháng', value: 90, price: 70000 },
+    { label: '1 năm', value: 365, price: 100000 },
+    { label: 'Vĩnh viễn', value: -1, price: 145000 },
+  ];
+  const [expirationOption, setExpirationOption] = useState(expirationOptions[0]);
 
 
 
@@ -88,7 +102,7 @@ export default function CheckoutPage() {
   }, [items, router, isOrderPlaced]);
 
   const handlePlaceOrder = async () => {
-    if (!shippingInfo.receiverName || !shippingInfo.phone || !shippingInfo.address) {
+    if (hasPhysicalItems && (!shippingInfo.receiverName || !shippingInfo.phone || !shippingInfo.address)) {
       toast.error("Vui lòng điền đầy đủ thông tin giao hàng!");
       return;
     }
@@ -107,9 +121,9 @@ export default function CheckoutPage() {
       const fullAddress = `${shippingInfo.address}, ${shippingInfo.ward}, ${shippingInfo.district}, ${shippingInfo.province}`;
       
       const payload = {
-        receiverName: shippingInfo.receiverName,
-        receiverPhone: shippingInfo.phone,
-        receiverAddress: fullAddress,
+        receiverName: hasPhysicalItems ? shippingInfo.receiverName : "Khách hàng 3D",
+        receiverPhone: hasPhysicalItems ? shippingInfo.phone : "0999999999",
+        receiverAddress: hasPhysicalItems ? fullAddress : "Online",
         paymentMethod: "Cod",
         items: items.map(item => ({
           productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
@@ -130,15 +144,21 @@ export default function CheckoutPage() {
         }))
       };
 
-      await api.post("/api/orders", payload);
+      const res = await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
       
       // Clear items from cart
       items.forEach(item => {
         if (item.cartItemId) removeFromCart(item.cartItemId);
       });
-      clearItems();
       
+      if (!hasPhysicalItems) {
+        const secretKey = res.data?.items?.[0]?.gift?.secretKey || res.data?.items?.[0]?.id;
+        setSuccess3DUrl(`${window.location.origin}/gift/scan/${secretKey}`);
+        return;
+      }
+      
+      clearItems();
       router.push("/profile");
     } catch (error: any) {
       setIsOrderPlaced(false);
@@ -151,8 +171,8 @@ export default function CheckoutPage() {
   if (!items || items.length === 0) return null;
 
   const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const shipping = subtotal > 500000 ? 0 : 30000;
-  const total = subtotal + shipping;
+  const shipping = !hasPhysicalItems || subtotal > 500000 ? 0 : 30000;
+  const total = subtotal + shipping + expirationOption.price;
 
   const showGlobalNfc = items.length === 1 && !items[0].gift;
 
@@ -170,54 +190,83 @@ export default function CheckoutPage() {
           
           {/* Left: Shipping Info */}
           <div className="lg:col-span-2 space-y-6">
+            {hasPhysicalItems && (
+              <div className="glass-card p-6 rounded-3xl space-y-4">
+                <h2 className="text-xl font-bold flex items-center gap-2"><Truck className="w-5 h-5 text-primary" /> Thông tin giao hàng</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Họ tên người nhận *</label>
+                    <input 
+                      type="text" 
+                      value={shippingInfo.receiverName}
+                      onChange={e => setShippingInfo({...shippingInfo, receiverName: e.target.value})}
+                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Số điện thoại *</label>
+                    <input 
+                      type="text" 
+                      value={shippingInfo.phone}
+                      onChange={e => setShippingInfo({...shippingInfo, phone: e.target.value})}
+                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium">Địa chỉ cụ thể *</label>
+                    <input 
+                      type="text" 
+                      value={shippingInfo.address}
+                      onChange={e => setShippingInfo({...shippingInfo, address: e.target.value})}
+                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Tỉnh / Thành phố</label>
+                    <input 
+                      type="text" 
+                      value={shippingInfo.province}
+                      onChange={e => setShippingInfo({...shippingInfo, province: e.target.value})}
+                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Quận / Huyện</label>
+                    <input 
+                      type="text" 
+                      value={shippingInfo.district}
+                      onChange={e => setShippingInfo({...shippingInfo, district: e.target.value})}
+                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Expiration Time Info */}
             <div className="glass-card p-6 rounded-3xl space-y-4">
-              <h2 className="text-xl font-bold flex items-center gap-2"><Truck className="w-5 h-5 text-primary" /> Thông tin giao hàng</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Họ tên người nhận *</label>
-                  <input 
-                    type="text" 
-                    value={shippingInfo.receiverName}
-                    onChange={e => setShippingInfo({...shippingInfo, receiverName: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Số điện thoại *</label>
-                  <input 
-                    type="text" 
-                    value={shippingInfo.phone}
-                    onChange={e => setShippingInfo({...shippingInfo, phone: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium">Địa chỉ cụ thể *</label>
-                  <input 
-                    type="text" 
-                    value={shippingInfo.address}
-                    onChange={e => setShippingInfo({...shippingInfo, address: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tỉnh / Thành phố</label>
-                  <input 
-                    type="text" 
-                    value={shippingInfo.province}
-                    onChange={e => setShippingInfo({...shippingInfo, province: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Quận / Huyện</label>
-                  <input 
-                    type="text" 
-                    value={shippingInfo.district}
-                    onChange={e => setShippingInfo({...shippingInfo, district: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
-                  />
+              <h2 className="text-xl font-bold flex items-center gap-2"><Clock className="w-5 h-5 text-primary" /> Hạn sử dụng Link / QR Code</h2>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Chọn thời gian duy trì lưu trữ thiệp 3D/NFC của bạn trên hệ thống.</p>
+                <div className="relative">
+                  <select 
+                    value={expirationOption.value}
+                    onChange={(e) => {
+                      const selected = expirationOptions.find(opt => opt.value === Number(e.target.value));
+                      if (selected) setExpirationOption(selected);
+                    }}
+                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 appearance-none font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {expirationOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label} - {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(opt.price)}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                    <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -318,6 +367,10 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">Phí giao hàng</span>
                   <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
                 </div>
+                <div className="flex justify-between items-center text-sm mt-2">
+                  <span className="text-muted-foreground">Hạn sử dụng link/QR</span>
+                  <span className="font-semibold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(expirationOption.price)}</span>
+                </div>
               </div>
               <div className="border-t border-border pt-4 flex justify-between items-center">
                 <span className="font-bold">Tổng cộng</span>
@@ -358,6 +411,60 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={!!success3DUrl} onOpenChange={(open) => {
+        if (!open) {
+          setSuccess3DUrl(null);
+          clearItems();
+          router.push("/profile");
+        }
+      }}>
+        <DialogContent className="sm:max-w-md text-center p-8 bg-white rounded-3xl border-primary/20 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold font-display text-primary flex items-center justify-center gap-2 mb-2">
+              🎉 Thanh toán thành công!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <p className="text-muted-foreground text-sm">Website 3D kèm câu chúc của bạn đã được tạo. Hãy chia sẻ mã QR hoặc link dưới đây cho người nhận nhé!</p>
+            
+            <div className="bg-primary/5 p-4 rounded-2xl flex justify-center border border-primary/20 mx-auto w-fit">
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(success3DUrl || '')}`} alt="QR Code" className="w-48 h-48 rounded-lg shadow-sm" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground text-left block">Link website của bạn:</label>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={success3DUrl || ''} 
+                  className="flex-1 bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-medium text-primary"
+                />
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(success3DUrl || '');
+                    toast.success("Đã copy link!");
+                  }}
+                  className="px-4 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bold transition-colors whitespace-nowrap"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => {
+                clearItems();
+                router.push("/profile");
+              }}
+              className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
+            >
+              Về trang cá nhân
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
