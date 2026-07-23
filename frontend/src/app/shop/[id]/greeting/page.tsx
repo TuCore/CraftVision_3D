@@ -87,7 +87,7 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
           modelUrl: modelUrl,
         } as any;
       }
-      
+
       toggleFavorite(finalProduct, true, message, greetingImage || undefined, store.senderName, store.receiverName);
       toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!");
       router.push("/cart");
@@ -119,7 +119,7 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
     <AppShell active="shop">
       <div className="mx-auto max-w-6xl space-y-8 py-8">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => router.back()}
             className="p-2.5 bg-card hover:bg-muted border border-border shadow-sm rounded-full transition-all hover:scale-105"
           >
@@ -175,24 +175,24 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                 <div className="space-y-3 mt-4">
                   <p className="text-sm font-semibold text-foreground">Hình thức nhận thiết kế 3D:</p>
                   <div className="grid grid-cols-2 gap-3">
-                    <button 
+                    <button
                       onClick={() => setDeliveryMethod('link')}
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${deliveryMethod === 'link' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:bg-muted text-muted-foreground'}`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                       <span className="font-semibold text-sm">Gửi Link web</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => setDeliveryMethod('qr')}
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${deliveryMethod === 'qr' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:bg-muted text-muted-foreground'}`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3" /><path d="M21 21v.01" /><path d="M12 7v3a2 2 0 0 1-2 2H7" /><path d="M3 12h.01" /><path d="M12 3h.01" /><path d="M12 16v.01" /><path d="M16 12h1" /><path d="M21 12v.01" /><path d="M12 21v-1" /></svg>
                       <span className="font-semibold text-sm">Tạo mã QR</span>
                     </button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    {deliveryMethod === 'link' 
-                      ? 'Gửi đường link trực tiếp cho người nhận qua tin nhắn, mạng xã hội.' 
+                    {deliveryMethod === 'link'
+                      ? 'Gửi đường link trực tiếp cho người nhận qua tin nhắn, mạng xã hội.'
                       : 'Lưu mã QR thành hình ảnh để in lên thiệp, quà tặng vật lý.'}
                   </p>
                 </div>
@@ -207,14 +207,14 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
           {/* Right Column: AI Gift Widget & Image Upload */}
           <div className="lg:col-span-8">
             <div className="glass-card rounded-3xl p-6 md:p-8 space-y-8 shadow-soft border border-white/40">
-              
-              <AIGiftWidget 
-                receiverName="" 
-                senderName="" 
-                value={message} 
-                onChange={setMessage} 
+
+              <AIGiftWidget
+                receiverName=""
+                senderName=""
+                value={message}
+                onChange={setMessage}
               />
-              
+
               {/* Image Upload Section */}
               <div className="border-t border-border/50 pt-8">
                 <h2 className="text-xl font-bold font-display mb-4">Ảnh in trên thiệp (Tuỳ chọn)</h2>
@@ -223,11 +223,11 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                     {greetingImage ? (
                       <>
                         <img src={greetingImage} alt="Uploaded" className="w-full h-full object-cover" />
-                        <button 
+                        <button
                           onClick={() => setGreetingImage(null)}
                           className="absolute top-2 right-2 bg-black/50 hover:bg-black text-white rounded-full p-1 transition-colors"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                         </button>
                       </>
                     ) : (
@@ -267,7 +267,7 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                     }}
                     className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold border-2 border-primary text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
                     Lưu
                   </button>
                 )}
