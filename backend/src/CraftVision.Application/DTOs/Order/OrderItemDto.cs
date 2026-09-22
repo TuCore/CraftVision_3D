@@ -13,5 +13,7 @@ public class OrderItemDto
     public decimal UnitPrice { get; set; }
     public decimal SubTotal { get; set; }
     
+    public string? ProductImageUrl { get; set; }
+    
     public GiftSummaryDto? Gift { get; set; }
 }

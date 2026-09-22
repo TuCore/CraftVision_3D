@@ -33,11 +33,43 @@ public class NfcTagService : INfcTagService
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                // Wait, INfcTagRepository doesn't have Add yet? I forgot to add it to the interface. I'll mock it for now.
-                // Assuming it has an Add method or I'll just skip actual DB adding in this mock
+                _unitOfWork.NfcTags.Add(tag);
+                imported++;
             }
         }
-        return new NfcImportResultDto { TotalImported = imported, TotalFailed = 0 };
+        if (imported > 0)
+        {
+            await _unitOfWork.SaveChangesAsync();
+        }
+        return new NfcImportResultDto { TotalImported = imported, TotalFailed = dto.TagCodes.Count - imported };
+    }
+
+    public async Task<NfcImportResultDto> GenerateTagsAsync(int count)
+    {
+        int generated = 0;
+        for (int i = 0; i < count; i++)
+        {
+            var randomCode = "NFC-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
+            var existing = await _unitOfWork.NfcTags.GetByTagCodeAsync(randomCode);
+            if (existing == null)
+            {
+                var tag = new NfcTag
+                {
+                    TagCode = randomCode,
+                    SecretKey = Guid.NewGuid().ToString("N"), // Generate secure random key
+                    Status = NfcStatus.Available,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _unitOfWork.NfcTags.Add(tag);
+                generated++;
+            }
+        }
+        if (generated > 0)
+        {
+            await _unitOfWork.SaveChangesAsync();
+        }
+        return new NfcImportResultDto { TotalImported = generated, TotalFailed = count - generated };
     }
 
     public async Task<NfcTagDto> GetTagByCodeAsync(string tagCode)
@@ -87,6 +119,7 @@ public class NfcTagService : INfcTagService
                 {
                     Order = t.Gift.OrderItem.Order == null ? null : new AdminNfcOrderDto
                     {
+                        Id = t.Gift.OrderItem.Order.Id,
                         OrderCode = t.Gift.OrderItem.Order.OrderCode,
                         ReceiverName = t.Gift.OrderItem.Order.ReceiverName
                     }

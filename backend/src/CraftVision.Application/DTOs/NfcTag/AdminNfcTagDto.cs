@@ -26,6 +26,7 @@ public class AdminNfcOrderItemDto
 
 public class AdminNfcOrderDto
 {
+    public Guid Id { get; set; }
     public string OrderCode { get; set; } = string.Empty;
     public string ReceiverName { get; set; } = string.Empty;
 }

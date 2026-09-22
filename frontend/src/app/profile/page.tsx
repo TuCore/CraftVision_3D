@@ -6,10 +6,10 @@ import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3 } f
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/apiClient";
 import api from "@/lib/api";
-import { mockProducts } from "@/lib/mock-products";
 import { toast } from "sonner";
 import { Store, Package, CheckCircle, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCollectionStore } from "@/store/useCollectionStore";
 import { useRouter } from "next/navigation";
 
@@ -19,7 +19,6 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("minh@craft.vn");
   const [bio, setBio] = useState('"Sáng tạo là hạnh phúc." — Handmade creator 💛');
 
-  const [location, setLocation] = useState("Đang tải...");
   const [joinedDate, setJoinedDate] = useState("");
 
   useEffect(() => {
@@ -44,18 +43,6 @@ export default function ProfilePage() {
     };
     
     loadProfile();
-
-    // Lấy vị trí qua IP
-    fetch("https://ipapi.co/json/")
-      .then(r => r.json())
-      .then(data => {
-        if(data.city && data.country_name) {
-          setLocation(`${data.city}, ${data.country_name}`);
-        } else {
-          setLocation("Không xác định");
-        }
-      })
-      .catch(() => setLocation("Hà Nội, Việt Nam"));
   }, []);
 
   const badges = [
@@ -79,6 +66,10 @@ export default function ProfilePage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
   const { items: savedItems } = useCollectionStore();
+  
+  // Custom dialog state for Cancel Order
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
   const loadOrders = async () => {
     setLoadingOrders(true);
@@ -112,6 +103,25 @@ export default function ProfilePage() {
       loadOrders();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Lỗi khi xác nhận nhận hàng");
+    }
+  };
+
+  const promptCancelOrder = (orderId: string) => {
+    setOrderToCancel(orderId);
+    setCancelDialogOpen(true);
+  };
+
+  const executeCancelOrder = async () => {
+    if (!orderToCancel) return;
+    try {
+      await api.patch(`/api/orders/${orderToCancel}/cancel`);
+      toast.success("Đã hủy đơn hàng thành công!");
+      setCancelDialogOpen(false);
+      setOrderToCancel(null);
+      loadOrders();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi hủy đơn hàng");
+      setCancelDialogOpen(false);
     }
   };
 
@@ -156,7 +166,6 @@ export default function ProfilePage() {
               </div>
               <p className="text-muted-foreground mt-2 whitespace-pre-wrap">{bio}</p>
               <div className="flex flex-wrap gap-4 mt-3 justify-center text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {location}</span>
                 <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {email}</span>
                 <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {joinedDate}</span>
               </div>
@@ -320,22 +329,23 @@ export default function ProfilePage() {
                         <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1">Mall</span>
                       </div>
                       <div className="text-sm font-semibold text-primary uppercase">
-                        {order.orderStatus === "Completed" ? "Đã nhận hàng" : order.orderStatus === "Cancelled" ? "Đã hủy" : "Đang giao hàng"}
+                        {order.orderStatus === "Delivered" ? "Đã nhận hàng" : order.orderStatus === "Cancelled" ? "Đã hủy" : "Đang giao hàng"}
                       </div>
                     </div>
 
                     {/* Items */}
                     <div className="p-4 flex flex-col gap-4">
                       {order.items?.map((item: any) => {
-                        const product = mockProducts.find(p => p.id === item.productId);
-                        const imageUrl = product ? product.image : "https://via.placeholder.com/150";
+                        const imageUrl = item.productImageUrl || "https://via.placeholder.com/150";
                         return (
                           <div key={item.id} className="flex gap-4 items-start">
                             <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden shrink-0 border border-border/50">
                               <img src={imageUrl} alt={item.productName} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-1">
-                              <h3 className="font-medium text-foreground line-clamp-2 leading-tight">{item.productName}</h3>
+                              <Link href={`/shop/${item.productId}`} className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight">
+                                {item.productName}
+                              </Link>
                               <p className="text-sm text-muted-foreground mt-1">Phân loại: Tùy chỉnh</p>
                               <p className="text-sm mt-1">x{item.quantity}</p>
                             </div>
@@ -353,18 +363,29 @@ export default function ProfilePage() {
                         Tổng số tiền: <span className="text-lg font-bold text-primary ml-2">{formatPrice(order.totalAmount)}</span>
                       </div>
                       <div className="flex gap-3 w-full sm:w-auto">
-                        {["Pending", "Processing", "Shipping"].includes(order.orderStatus) && (
+                        {["Pending", "Processing"].includes(order.orderStatus) && (
+                          <button 
+                            onClick={() => promptCancelOrder(order.id)}
+                            className="flex-1 sm:flex-none border border-red-500 text-red-500 bg-white hover:bg-red-50 px-6 py-2 rounded-lg font-medium text-sm transition-colors"
+                          >
+                            Hủy đơn hàng
+                          </button>
+                        )}
+                        {["ReadyToShip", "Shipped"].includes(order.orderStatus) && (
                           <button 
                             onClick={() => handleReceiveOrder(order.id)}
-                            className="flex-1 sm:flex-none btn-hero px-6 py-2 rounded-lg font-medium text-sm transition-transform hover:scale-105 shadow-coral-glow"
+                            className="flex-1 sm:flex-none btn-hero px-6 py-2 rounded-lg font-medium text-sm transition-transform hover:scale-105 shadow-coral-glow text-white"
                           >
                             Đã nhận được hàng
                           </button>
                         )}
-                        {order.orderStatus === "Completed" && (
-                          <button className="flex-1 sm:flex-none border border-border bg-white text-foreground hover:bg-muted px-6 py-2 rounded-lg font-medium text-sm transition-colors">
-                            Đánh giá
-                          </button>
+                        {["Delivered", "Cancelled"].includes(order.orderStatus) && order.items?.[0] && (
+                          <Link 
+                            href={`/shop/${order.items[0].productId}`}
+                            className="flex-1 sm:flex-none btn-hero text-white px-6 py-2 rounded-lg font-medium text-sm transition-transform hover:scale-105 shadow-coral-glow text-center"
+                          >
+                            Mua lại
+                          </Link>
                         )}
                       </div>
                     </div>
@@ -376,6 +397,27 @@ export default function ProfilePage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Cancel Confirm Dialog */}
+        <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+          <AlertDialogContent className="rounded-2xl max-w-md bg-background/95 backdrop-blur-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-xl font-bold font-display text-foreground">Hủy đơn hàng</AlertDialogTitle>
+              <AlertDialogDescription className="text-base text-muted-foreground">
+                Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-6">
+              <AlertDialogCancel className="rounded-xl px-6 font-bold" onClick={() => setOrderToCancel(null)}>Không hủy</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={executeCancelOrder} 
+                className="rounded-xl px-6 font-bold bg-rose-500 hover:bg-rose-600 text-white"
+              >
+                Đồng ý hủy
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppShell>
   );

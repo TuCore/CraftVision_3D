@@ -6,6 +6,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift, ChevronDown, CheckCircle2, Clock, Truck, XCircle, Hammer } from 'lucide-react';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const getOrderStatusConfig = (status: string) => {
   switch (status) {
@@ -27,6 +29,10 @@ export default function AdminOrderDetailPage() {
   const { data: order, isLoading, error } = useOrderDetails(id as string);
   const { mutate: updateStatus, isPending } = useUpdateOrderStatus();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  
+  // Custom dialog state
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [actionLabel, setActionLabel] = useState('');
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -52,14 +58,28 @@ export default function AdminOrderDetailPage() {
     const statusToUpdate = selectedStatus || order.orderStatus;
     if (!statusToUpdate || statusToUpdate === order.orderStatus) return;
     
+    if (statusToUpdate === 'Cancelled' || statusToUpdate === 'Delivered') {
+      const actionName = statusToUpdate === 'Cancelled' ? 'HỦY' : 'ĐÁNH DẤU LÀ ĐÃ GIAO';
+      setActionLabel(actionName);
+      setIsConfirmOpen(true);
+      return;
+    }
+
+    executeStatusUpdate();
+  };
+
+  const executeStatusUpdate = () => {
+    const statusToUpdate = selectedStatus || order.orderStatus;
     updateStatus(
       { id: order.id, status: statusToUpdate },
       {
         onSuccess: () => {
           toast.success('Cập nhật trạng thái thành công!');
+          setIsConfirmOpen(false);
         },
         onError: () => {
           toast.error('Lỗi khi cập nhật trạng thái.');
+          setIsConfirmOpen(false);
         }
       }
     );
@@ -132,21 +152,18 @@ export default function AdminOrderDetailPage() {
               
               <div className="flex flex-col gap-3 mt-auto">
                 <div className="relative">
-                  <select 
-                    className="w-full bg-white border border-border rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition-all shadow-sm cursor-pointer appearance-none"
-                    value={selectedStatus || order.orderStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                  >
-                    <option value="Pending">Chờ xử lý</option>
-                    <option value="Processing">Đang xử lý</option>
-                    <option value="WaitingProduction">Chờ sản xuất</option>
-                    <option value="Producing">Đang sản xuất</option>
-                    <option value="ReadyToShip">Chờ lấy hàng</option>
-                    <option value="Shipped">Đang giao</option>
-                    <option value="Delivered">Đã giao</option>
-                    <option value="Cancelled">Đã hủy</option>
-                  </select>
-                  <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <Select value={selectedStatus || order.orderStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-full h-14 bg-white border-2 border-border/60 hover:border-primary/40 rounded-xl px-4 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/20 shadow-sm transition-all data-[state=open]:border-primary/50">
+                      <SelectValue placeholder="Chọn trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/60 shadow-xl bg-white/95 backdrop-blur-xl z-50">
+                      <SelectItem value="Pending" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-muted focus:bg-muted transition-colors">Chờ xử lý</SelectItem>
+                      <SelectItem value="ReadyToShip" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-amber-50 focus:bg-amber-50 transition-colors">Chờ lấy hàng</SelectItem>
+                      <SelectItem value="Shipped" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-cyan-50 focus:bg-cyan-50 transition-colors">Đang giao</SelectItem>
+                      <SelectItem value="Delivered" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-emerald-50 focus:bg-emerald-50 text-emerald-700 transition-colors">Đã giao</SelectItem>
+                      <SelectItem value="Cancelled" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-rose-50 focus:bg-rose-50 text-rose-600 transition-colors">Đã hủy</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <button 
                   onClick={handleUpdateStatus}
@@ -217,12 +234,12 @@ export default function AdminOrderDetailPage() {
                   </div>
                   
                   {/* HIỂN THỊ SECRET LINK ĐỂ GHI VÀO NFC */}
-                  {item.gift.secretKey && order.orderStatus === 'ReadyToShip' && (
+                  {item.gift.secretKey && ['ReadyToShip', 'Shipped', 'Delivered'].includes(order.orderStatus) && (
                     <div className="mt-4 p-6 bg-white border border-emerald-200/60 rounded-2xl shadow-sm relative overflow-hidden">
                       <div className="absolute left-0 top-0 w-1.5 h-full bg-emerald-500"></div>
                       <div className="flex items-center gap-2.5 mb-4">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                        <p className="text-emerald-800 font-extrabold tracking-tight">SECRET URL (Dùng để ghi vào thẻ NFC)</p>
+                        <p className="text-emerald-800 font-extrabold tracking-tight">Đường dẫn bí mật (Dùng để ghi vào thẻ NFC)</p>
                       </div>
                       
                       <div className="flex flex-col sm:flex-row gap-3">
@@ -235,7 +252,7 @@ export default function AdminOrderDetailPage() {
                         <button 
                           onClick={() => {
                             navigator.clipboard.writeText(`${window.location.origin}/gift/scan/${item.gift.secretKey}`);
-                            toast.success("Đã copy Secret URL!");
+                            toast.success("Đã copy đường dẫn bí mật!");
                           }}
                           className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 flex-shrink-0"
                         >
@@ -243,16 +260,16 @@ export default function AdminOrderDetailPage() {
                         </button>
                       </div>
                       <p className="text-sm text-emerald-700/80 mt-4 font-medium leading-relaxed bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                        Vui lòng copy đường link trên, mở app <strong>NFC Tools</strong> và ghi (Write URL) vào thẻ vật lý tương ứng. Sau khi ghi xong thành công, hãy đổi trạng thái đơn hàng thành <strong>Shipped</strong>.
+                        Vui lòng copy đường link trên, mở app <strong>NFC Tools</strong> và ghi (Write URL) vào thẻ vật lý tương ứng. Sau khi ghi xong thành công, hãy đổi trạng thái đơn hàng thành <strong>Đang giao</strong>.
                       </p>
                     </div>
                   )}
                   
-                  {item.gift.secretKey && order.orderStatus !== 'ReadyToShip' && (
+                  {item.gift.secretKey && !['ReadyToShip', 'Shipped', 'Delivered'].includes(order.orderStatus) && (
                     <div className="mt-4 flex items-start gap-3 p-4 bg-white/50 rounded-2xl border border-white/80 shadow-sm">
                       <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5 flex-shrink-0"></div>
                       <p className="text-sm text-indigo-900/70 font-medium leading-relaxed">
-                        Secret URL sẽ hiển thị khi đơn hàng được chuyển sang trạng thái <strong className="text-indigo-950 bg-indigo-100 px-2 py-0.5 rounded-md">ReadyToShip</strong>.
+                        Đường dẫn bí mật sẽ hiển thị khi đơn hàng được chuyển sang trạng thái <strong className="text-indigo-950 bg-indigo-100 px-2 py-0.5 rounded-md">Chờ lấy hàng</strong>.
                       </p>
                     </div>
                   )}
@@ -262,6 +279,26 @@ export default function AdminOrderDetailPage() {
           ))}
         </div>
       </div>
+
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent className="rounded-2xl max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold">Xác nhận thao tác</AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              Bạn có chắc chắn muốn <strong>{actionLabel}</strong> đơn hàng này không? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="rounded-xl px-6 font-bold">Hủy bỏ</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={executeStatusUpdate} 
+              className={`rounded-xl px-6 font-bold ${selectedStatus === 'Cancelled' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+            >
+              Đồng ý
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

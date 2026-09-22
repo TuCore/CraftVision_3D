@@ -234,6 +234,7 @@ public class OrderService : IOrderService
                 Quantity = oi.Quantity,
                 UnitPrice = oi.UnitPrice,
                 SubTotal = oi.SubTotal,
+                ProductImageUrl = oi.Product?.SampleImageUrl,
                 Gift = oi.Gift != null ? new GiftSummaryDto
                 {
                     Id = oi.Gift.Id,
@@ -271,7 +272,8 @@ public class OrderService : IOrderService
                     ProductType = oi.Product?.ProductType.ToString() ?? "",
                     Quantity = oi.Quantity,
                     UnitPrice = oi.UnitPrice,
-                    SubTotal = oi.SubTotal
+                    SubTotal = oi.SubTotal,
+                    ProductImageUrl = oi.Product?.SampleImageUrl
                 }).ToList()
             }).ToList(),
             TotalItems = total,
@@ -358,6 +360,50 @@ public class OrderService : IOrderService
 
         order.OrderStatus = OrderStatus.Delivered;
         order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task CancelUserOrderAsync(Guid userId, Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+        
+        if (order.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền hủy đơn hàng này.");
+        }
+
+        if (order.OrderStatus != OrderStatus.Pending && order.OrderStatus != OrderStatus.Processing)
+        {
+            throw new InvalidOperationException("Chỉ có thể hủy đơn hàng đang chờ xử lý.");
+        }
+
+        order.OrderStatus = OrderStatus.Cancelled;
+        order.UpdatedAt = DateTime.UtcNow;
+        
+        // Restore stock
+        foreach (var item in order.OrderItems)
+        {
+            if (item.Product != null && item.Product.ProductType == ProductType.InStock)
+            {
+                item.Product.Stock += item.Quantity;
+                _unitOfWork.Products.Update(item.Product);
+            }
+            
+            var gift = await _unitOfWork.Gifts.GetByOrderItemIdAsync(item.Id);
+            if (gift != null)
+            {
+                var tag = await _unitOfWork.NfcTags.GetByIdAsync(gift.NfcTagId);
+                if (tag != null && tag.Status == NfcStatus.Reserved)
+                {
+                    tag.Status = NfcStatus.Available;
+                    tag.UpdatedAt = DateTime.UtcNow;
+                    _unitOfWork.NfcTags.Update(tag);
+                }
+            }
+        }
+
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
     }

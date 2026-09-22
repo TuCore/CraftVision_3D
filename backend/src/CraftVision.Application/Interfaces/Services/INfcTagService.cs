@@ -14,5 +14,6 @@ public interface INfcTagService
     Task<System.Collections.Generic.IEnumerable<AdminNfcTagDto>> GetAllAdminTagsAsync();
     Task SimulateScanAsync(string tagCode);
     Task ResetScanCountAsync(string tagCode);
+    Task<NfcImportResultDto> GenerateTagsAsync(int count);
     Task UpdateTagStatusByCodeAsync(string tagCode, string status);
 }

@@ -13,4 +13,5 @@ public interface IOrderService
     Task<PagedResult<OrderDto>> GetAllOrdersAsync(int page, int size);
     Task UpdateOrderStatusAsync(Guid orderId, string status);
     Task CompleteUserOrderAsync(Guid userId, Guid orderId);
+    Task CancelUserOrderAsync(Guid userId, Guid orderId);
 }
