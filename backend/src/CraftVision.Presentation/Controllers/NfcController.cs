@@ -26,6 +26,13 @@ public class NfcController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("generate")]
+    public async Task<IActionResult> GenerateTags([FromBody] GenerateNfcTagDto dto)
+    {
+        var result = await _service.GenerateTagsAsync(dto.Count);
+        return Ok(result);
+    }
+
     [HttpGet("{tagCode}")]
     public async Task<IActionResult> GetTag(string tagCode)
     {

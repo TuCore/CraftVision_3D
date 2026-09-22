@@ -66,6 +66,7 @@ export const useWishlistStore = create<WishlistStore>()(
     }),
     {
       name: 'craftvision-wishlist',
+      version: 1,
     }
   )
 );

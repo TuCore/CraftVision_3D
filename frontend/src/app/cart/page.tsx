@@ -81,11 +81,11 @@ export default function CartPage() {
                   key={item.cartItemId || item.id} 
                   className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-white/40"
                 >
-                  {/* Checkbox */}
-                  <div className="flex items-center self-start sm:self-auto pt-2 sm:pt-0">
+                  {/* Custom Checkbox */}
+                  <label className="flex items-center self-start sm:self-auto pt-2 sm:pt-0 cursor-pointer relative group">
                     <input 
                       type="checkbox" 
-                      className="w-5 h-5 rounded-md border-gray-300 text-primary focus:ring-primary accent-primary cursor-pointer"
+                      className="peer sr-only"
                       checked={selectedItems.includes(item.cartItemId || item.id)}
                       onChange={(e) => {
                         const id = item.cartItemId || item.id;
@@ -96,7 +96,12 @@ export default function CartPage() {
                         }
                       }}
                     />
-                  </div>
+                    <div className="w-5 h-5 rounded-lg border-2 border-muted-foreground/30 peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center group-hover:border-primary/50">
+                      <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </label>
 
                   {/* Product Image */}
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border/50">
@@ -127,11 +132,14 @@ export default function CartPage() {
                     
                     {/* Greeting Indicator & Preview */}
                     {(item.hasGreeting || item.greetingMessage || item.greetingImage) && (
-                      <div className="inline-flex items-center gap-2 mb-2 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-semibold">
-                        <span>🎁 Đã kèm thiệp</span>
+                      <div className="inline-flex items-center gap-1.5 mb-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold shadow-sm transition-all hover:bg-primary/15">
+                        <span className="flex items-center gap-1.5">
+                          <span className="text-sm">🎁</span> Đã kèm thiệp
+                        </span>
+                        <div className="w-px h-3 bg-primary/30 mx-0.5"></div>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <button className="ml-1 text-emerald-600 hover:text-emerald-700 underline underline-offset-2">
+                            <button className="hover:text-primary/70 transition-colors underline-offset-4 hover:underline outline-none">
                               Xem trước
                             </button>
                           </DialogTrigger>
@@ -207,17 +215,17 @@ export default function CartPage() {
                   <div className="flex flex-row sm:flex-col items-center justify-between sm:items-end w-full sm:w-auto gap-4">
                     {/* Desktop layout vs Mobile layout */}
                     <div className="flex flex-col sm:flex-row items-center sm:gap-6">
-                      <div className="flex items-center bg-white dark:bg-background rounded-full border border-border shadow-sm overflow-hidden h-9">
+                      <div className="flex items-center bg-white dark:bg-background rounded-2xl border border-primary/20 shadow-sm overflow-hidden h-9">
                         <button 
                           onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) - 1)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-muted transition-colors"
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-8 text-center text-sm font-semibold">{item.quantity || 1}</span>
+                        <span className="w-8 text-center text-sm font-semibold text-primary">{item.quantity || 1}</span>
                         <button 
                           onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) + 1)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-muted transition-colors"
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>

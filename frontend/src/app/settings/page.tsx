@@ -4,14 +4,16 @@ import { AppShell } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles } from "lucide-react";
-import { useState, useEffect } from "react";
+import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles, Camera } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { fetchApi } from "@/lib/apiClient";
 import { useTheme } from "next-themes";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Language } from "@/lib/dictionaries";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
@@ -21,6 +23,9 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -31,6 +36,7 @@ export default function SettingsPage() {
         setDisplayName(data.displayName || "");
         setPhone(data.phone || "");
         setBio(data.bio || "");
+        setAvatarUrl(data.avatarUrl || "");
       } catch (error) {
         console.error("Lỗi khi tải hồ sơ:", error);
       } finally {
@@ -40,6 +46,27 @@ export default function SettingsPage() {
     loadProfile();
   }, []);
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetchApi("/api/uploads", {
+        method: "POST",
+        body: formData,
+      });
+      setAvatarUrl(res.cloudinaryUrl);
+      import("sonner").then(({ toast }) => toast.success("Tải ảnh lên thành công!"));
+    } catch (err: any) {
+      import("sonner").then(({ toast }) => toast.error(err.message || "Lỗi khi tải ảnh lên"));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     try {
       await fetchApi("/api/user/profile", {
@@ -48,12 +75,15 @@ export default function SettingsPage() {
           fullName,
           displayName,
           phone,
-          bio
+          bio,
+          avatarUrl
         })
       });
       // Vẫn lưu name lên local storage để Navbar có thể hiển thị nếu cần thiết
       localStorage.setItem("fullName", fullName);
+      if (avatarUrl) localStorage.setItem("avatarUrl", avatarUrl);
       import("sonner").then(({ toast }) => toast.success("Đã lưu thay đổi thành công!"));
+      router.push("/profile");
     } catch (error: any) {
       import("sonner").then(({ toast }) => toast.error(error.message || "Không thể lưu hồ sơ"));
     }
@@ -111,12 +141,35 @@ export default function SettingsPage() {
                 ) : (
                   <>
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="h-16 w-16 rounded-2xl btn-hero grid place-items-center text-2xl font-bold text-white">
-                        {fullName ? fullName.charAt(0) : "?"}
+                      <div className="relative h-16 w-16 rounded-2xl overflow-hidden btn-hero grid place-items-center text-2xl font-bold text-white shrink-0 group">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <>{fullName ? fullName.charAt(0) : "?"}</>
+                        )}
+                        {isUploading && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-2">
-                        <button className="text-sm px-3 py-2 rounded-lg bg-card/80 hover:bg-card font-medium">Tải ảnh mới</button>
-                        <button className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium">Xoá</button>
+                        <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
+                        <button 
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                          className="text-sm px-3 py-2 rounded-lg bg-card/80 hover:bg-card font-medium flex items-center gap-1.5"
+                        >
+                          <Camera className="w-4 h-4" /> Tải ảnh mới
+                        </button>
+                        {avatarUrl && (
+                          <button 
+                            onClick={() => setAvatarUrl("")}
+                            className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground font-medium"
+                          >
+                            Xoá
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">

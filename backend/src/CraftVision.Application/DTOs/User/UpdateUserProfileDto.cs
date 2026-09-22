@@ -6,4 +6,5 @@ public class UpdateUserProfileDto
     public string? DisplayName { get; set; }
     public string? Phone { get; set; }
     public string? Bio { get; set; }
+    public string? AvatarUrl { get; set; }
 }

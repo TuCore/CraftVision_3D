@@ -29,6 +29,7 @@ public class UserService : IUserService
             DisplayName = user.DisplayName,
             Phone = user.Phone,
             Bio = user.Bio,
+            AvatarUrl = user.AvatarUrl,
             Tier = user.Tier.ToString(),
             CreatedAt = user.CreatedAt
         };
@@ -43,7 +44,8 @@ public class UserService : IUserService
         user.FullName = request.FullName;
         user.DisplayName = request.DisplayName;
         user.Phone = request.Phone;
-        user.Bio = request.Bio;
+        user.Bio = request.Bio ?? user.Bio;
+        user.AvatarUrl = request.AvatarUrl ?? user.AvatarUrl;
         user.UpdatedAt = DateTime.UtcNow;
 
         _userRepository.Update(user);
@@ -57,6 +59,7 @@ public class UserService : IUserService
             DisplayName = user.DisplayName,
             Phone = user.Phone,
             Bio = user.Bio,
+            AvatarUrl = user.AvatarUrl,
             Tier = user.Tier.ToString(),
             CreatedAt = user.CreatedAt
         };

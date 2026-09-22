@@ -72,4 +72,14 @@ public class OrderController : ControllerBase
         await _service.CompleteUserOrderAsync(userId, id);
         return NoContent();
     }
+
+    [HttpPatch("{id:guid}/cancel")]
+    public async Task<IActionResult> CancelOrder(Guid id)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
+        await _service.CancelUserOrderAsync(userId, id);
+        return NoContent();
+    }
 }

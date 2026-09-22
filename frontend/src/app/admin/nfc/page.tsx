@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Eye, Filter, RefreshCcw, Link as LinkIcon, Power, PowerOff, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { Search, Eye, Filter, RefreshCcw, Link as LinkIcon, Power, PowerOff, CheckCircle2, XCircle, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import {
@@ -30,6 +31,7 @@ type NfcTag = {
     id: string;
     orderItem?: {
       order?: {
+        id: string;
         orderCode: string;
         receiverName: string;
       }
@@ -42,6 +44,7 @@ type DashboardStats = {
   activated: number;
   unused: number;
   disabled: number;
+  sold: number;
   todayScans: number;
 };
 
@@ -52,6 +55,7 @@ export default function NfcManagementPage() {
     activated: 0,
     unused: 0,
     disabled: 0,
+    sold: 0,
     todayScans: 0,
   });
 
@@ -65,6 +69,10 @@ export default function NfcManagementPage() {
 
   const [selectedTag, setSelectedTag] = useState<NfcTag | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [generateCount, setGenerateCount] = useState(10);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const fetchTags = async () => {
     try {
@@ -80,6 +88,7 @@ export default function NfcManagementPage() {
         activated: data.filter(t => t.status === "Active").length,
         unused: data.filter(t => t.status === "Available").length,
         disabled: data.filter(t => t.status === "Disabled").length,
+        sold: data.filter(t => t.status === "Sold").length,
         todayScans: data.reduce((acc, t) => {
           if (!t.lastScanAt) return acc;
           const isToday = new Date(t.lastScanAt).toDateString() === new Date().toDateString();
@@ -116,6 +125,20 @@ export default function NfcManagementPage() {
 
     } catch (error) {
       toast.error("Mô phỏng thất bại.");
+    }
+  };
+
+  const handleGenerateTags = async () => {
+    try {
+      setIsGenerating(true);
+      await api.post("/api/nfc-tags/generate", { count: generateCount });
+      toast.success(`Đã tạo thành công ${generateCount} thẻ NFC!`);
+      setIsGenerateModalOpen(false);
+      fetchTags();
+    } catch (error) {
+      toast.error("Tạo thẻ NFC thất bại.");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -184,6 +207,7 @@ export default function NfcManagementPage() {
       case "Active": return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200 flex items-center gap-1 w-max"><CheckCircle2 className="w-3 h-3" /> Active</span>;
       case "Available": return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200 flex items-center gap-1 w-max">Available</span>;
       case "Reserved": return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1 w-max">Reserved</span>;
+      case "Sold": return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200 flex items-center gap-1 w-max">Sold</span>;
       case "Disabled": return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200 flex items-center gap-1 w-max"><XCircle className="w-3 h-3" /> Disabled</span>;
       default: return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200 w-max">{status}</span>;
     }
@@ -197,9 +221,14 @@ export default function NfcManagementPage() {
           <h1 className="text-3xl font-extrabold font-display gradient-text">NFC Management</h1>
           <p className="text-muted-foreground mt-1 text-sm">Quản lý và kiểm thử thẻ NFC hệ thống.</p>
         </div>
-        <button onClick={fetchTags} className="btn-hero px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
-          <RefreshCcw className="w-4 h-4" /> Làm mới
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setIsGenerateModalOpen(true)} className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 bg-[color:var(--coral)] text-white hover:opacity-90 transition-opacity shadow-sm">
+            <CheckCircle2 className="w-4 h-4" /> Tạo NFC mới
+          </button>
+          <button onClick={fetchTags} className="btn-hero px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
+            <RefreshCcw className="w-4 h-4" /> Làm mới
+          </button>
+        </div>
       </div>
 
       {/* Dashboard Stats */}
@@ -208,12 +237,12 @@ export default function NfcManagementPage() {
           { label: "Total NFC", value: stats.total, color: "text-blue-600" },
           { label: "Activated", value: stats.activated, color: "text-green-600" },
           { label: "Unused", value: stats.unused, color: "text-gray-600" },
-          { label: "Disabled", value: stats.disabled, color: "text-red-600" },
-          { label: "Today's Scan", value: stats.todayScans, color: "text-[color:var(--coral)]" }
+          { label: "Reserved", value: stats.total - stats.unused - stats.activated - stats.disabled - stats.sold, color: "text-amber-600" },
+          { label: "Sold", value: stats.sold, color: "text-purple-600" }
         ].map((stat, idx) => (
-          <div key={idx} className="glass-card rounded-2xl p-5 flex flex-col justify-center shadow-soft">
-            <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1">{stat.label}</span>
-            <span className={`text-3xl font-extrabold font-display ${stat.color}`}>{stat.value}</span>
+          <div key={idx} className="glass-card rounded-2xl p-4 flex flex-col justify-center shadow-soft">
+            <span className="text-muted-foreground text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{stat.label}</span>
+            <span className={`text-2xl sm:text-3xl font-extrabold font-display ${stat.color}`}>{stat.value}</span>
           </div>
         ))}
       </div>
@@ -240,7 +269,8 @@ export default function NfcManagementPage() {
               <SelectItem value="All" className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-gray-50 focus:text-foreground font-medium transition-colors">Tất cả trạng thái</SelectItem>
               <SelectItem value="Active" className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-green-50 focus:text-green-700 font-medium transition-colors">Đang hoạt động</SelectItem>
               <SelectItem value="Available" className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-blue-50 focus:text-blue-700 font-medium transition-colors">Sẵn sàng</SelectItem>
-              <SelectItem value="Reserved" className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-amber-50 focus:text-amber-700 font-medium transition-colors">Đã đặt</SelectItem>
+              <SelectItem value="Reserved" className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-amber-50 focus:text-amber-700 font-medium transition-colors">Đã đặt (Chờ xử lý)</SelectItem>
+              <SelectItem value="Sold" className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-purple-50 focus:text-purple-700 font-medium transition-colors">Đã bán (Đã xuất hàng)</SelectItem>
               <SelectItem value="Disabled" className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-red-50 focus:text-red-700 font-medium transition-colors">Đã vô hiệu</SelectItem>
             </SelectContent>
           </Select>
@@ -381,8 +411,16 @@ export default function NfcManagementPage() {
 
                 {selectedTag?.gift?.orderItem?.order ? (
                   <>
-                    <div className="text-muted-foreground font-medium">Linked Order</div>
-                    <div className="font-bold text-foreground text-right">#{selectedTag?.gift?.orderItem?.order?.orderCode}</div>
+                    <div className="text-muted-foreground font-medium flex items-center">Linked Order</div>
+                    <div className="font-bold text-foreground text-right flex justify-end items-center">
+                      <Link 
+                        href={`/admin/orders/${selectedTag?.gift?.orderItem?.order?.id}`}
+                        className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg"
+                      >
+                        #{selectedTag?.gift?.orderItem?.order?.orderCode}
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
 
                     <div className="text-muted-foreground font-medium">Receiver</div>
                     <div className="font-medium text-foreground text-right">{selectedTag?.gift?.orderItem?.order?.receiverName}</div>
@@ -435,6 +473,38 @@ export default function NfcManagementPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Generate Modal */}
+      <Dialog open={isGenerateModalOpen} onOpenChange={setIsGenerateModalOpen}>
+        <DialogContent className="sm:max-w-[400px] bg-white rounded-3xl p-6 border border-border">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold font-display text-foreground border-b border-border pb-4 mb-2">
+              Tạo NFC Mới
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Số lượng thẻ muốn tạo</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={generateCount}
+                onChange={(e) => setGenerateCount(Number(e.target.value))}
+                className="w-full bg-white border border-border rounded-xl px-4 py-2.5 text-sm focus:border-[color:var(--coral)]/50 outline-none"
+              />
+              <p className="text-xs text-muted-foreground">Các thẻ sẽ được tạo với mã ngẫu nhiên và ở trạng thái "Available".</p>
+            </div>
+            <button
+              onClick={handleGenerateTags}
+              disabled={isGenerating}
+              className="w-full py-2.5 rounded-xl bg-[color:var(--coral)] text-white text-sm font-semibold flex justify-center items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              {isGenerating ? "Đang tạo..." : "Xác nhận tạo"}
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

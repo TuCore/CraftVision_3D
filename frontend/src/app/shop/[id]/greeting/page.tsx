@@ -99,7 +99,29 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setGreetingImage(reader.result as string);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_SIZE = 800;
+
+          if (width > height && width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          setGreetingImage(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
