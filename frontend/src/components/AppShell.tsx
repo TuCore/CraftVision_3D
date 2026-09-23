@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart } from "lucide-react";
+import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 
@@ -56,9 +57,9 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const nav = [
     { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
+    { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
-    { to: "/cart", label: "Giỏ hàng", icon: ShoppingCart, key: "cart" },
   ] as const;
 
   if (isCheckingAuth) {
@@ -94,28 +95,28 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {nav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
-              const isCart = item.key === "cart";
               return (
                 <Link
                   key={item.key}
                   href={item.to}
                   onClick={() => handleNavClick(item.key)}
-                  className={`relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
+                  className={`relative overflow-visible inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
                     isActive
                       ? "bg-card/80 text-primary shadow-soft"
                       : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                  } ${(isCart && isBumping) || bumpingKey === item.key ? 'animate-cart-bump' : ''}`}
+                  } ${bumpingKey === item.key ? 'animate-cart-bump' : ''}`}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.label}
-                  {isCart && wishlistCount > 0 && (
-                    <span className="ml-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                      {wishlistCount}
-                    </span>
-                  )}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full bg-[color:var(--coral)]" />
-                  )}
+                  <span className="relative">
+                    {item.label}
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-indicator"
+                        className="absolute -bottom-[9px] left-0 right-0 h-1 rounded-t-full bg-[color:var(--coral)]"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                  </span>
                 </Link>
               );
             })}
@@ -124,6 +125,28 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           <div className="flex items-center gap-2">
             {!isDemo ? (
               <>
+                <Link
+                  href="/cart"
+                  onClick={() => handleNavClick("cart")}
+                  className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                    active === "cart" ? "bg-card/80 text-primary shadow-soft" : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
+                  } ${(isBumping || bumpingKey === "cart") ? 'animate-cart-bump' : ''}`}
+                  title="Giỏ hàng"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                      {wishlistCount}
+                    </span>
+                  )}
+                  {active === "cart" && (
+                    <motion.div
+                      layoutId="nav-indicator"
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-[60%] rounded-t-full bg-[color:var(--coral)]"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </Link>
                 <Link
               href="/settings"
               onClick={() => handleNavClick("settings")}
@@ -134,7 +157,11 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             >
               <Settings className="h-5 w-5" />
               {active === "settings" && (
-                <span className="absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full bg-[color:var(--coral)]" />
+                <motion.div
+                  layoutId="nav-indicator"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-[60%] rounded-t-full bg-[color:var(--coral)]"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
               )}
             </Link>
             <button

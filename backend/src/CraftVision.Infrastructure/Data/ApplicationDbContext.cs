@@ -37,6 +37,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<GiftAiProfile> GiftAiProfiles { get; set; } = null!;
     public DbSet<ScanHistory> ScanHistories { get; set; } = null!;
     public DbSet<MessageTemplate> MessageTemplates { get; set; } = null!;
+    public DbSet<ManifestWish> ManifestWishes { get; set; } = null!;
+    public DbSet<Review> Reviews { get; set; } = null!;
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -73,6 +76,8 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<GiftAiProfile>().ToTable("gift_ai_profiles");
         modelBuilder.Entity<ScanHistory>().ToTable("scan_histories");
         modelBuilder.Entity<MessageTemplate>().ToTable("message_templates");
+        modelBuilder.Entity<ManifestWish>().ToTable("manifest_wishes");
+        modelBuilder.Entity<Review>().ToTable("reviews");
 
         // Soft delete global query filters
         modelBuilder.Entity<ProductCategory>().HasQueryFilter(e => e.IsActive);
@@ -198,6 +203,18 @@ public class ApplicationDbContext : DbContext
             .HasOne(sh => sh.Gift)
             .WithMany(g => g.ScanHistories)
             .HasForeignKey(sh => sh.GiftId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Product)
+            .WithMany()
+            .HasForeignKey(r => r.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Seed Admin User

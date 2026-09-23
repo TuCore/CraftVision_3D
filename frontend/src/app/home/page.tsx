@@ -14,11 +14,7 @@ export default function HomePage() {
     }
   }, []);
 
-  const projects = [
-    { title: "Bó hoa giấy pastel", progress: 70, cost: "125.000đ", time: "2h", color: "oklch(0.78 0.18 25)" },
-    { title: "Hộp quà 3D + QR", progress: 40, cost: "210.000đ", time: "3.5h", color: "oklch(0.82 0.16 85)" },
-    { title: "Vòng tay macramé", progress: 90, cost: "65.000đ", time: "1h", color: "oklch(0.78 0.16 145)" },
-  ];
+
 
   const ideas = [
     { icon: Palette, title: "Tranh acrylic mini", tag: "Cơ bản", price: "80.000đ" },
@@ -33,7 +29,7 @@ export default function HomePage() {
         {/* Hero */}
         <section className="relative glass-strong rounded-3xl p-8 md:p-12 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full opacity-40 blur-3xl" style={{ background: "var(--gradient-aurora)" }} />
-          
+
           <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
             {/* Cột trái */}
             <div className="text-left">
@@ -41,7 +37,7 @@ export default function HomePage() {
                 <Sparkles className="h-3.5 w-3.5" /> Chào {firstName}, sẵn sàng sáng tạo?
               </span>
               <h1 className="mt-6 text-4xl md:text-5xl font-extrabold font-display leading-[1.15] text-foreground">
-                Hôm nay bạn muốn tạo<br/>
+                Hôm nay bạn muốn tạo<br />
                 <span className="gradient-text inline-block mt-1 pb-2">món quà gì?</span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground max-w-lg">
@@ -59,7 +55,7 @@ export default function HomePage() {
 
             {/* Cột phải: Hình ảnh bó hoa */}
             <div className="relative lg:h-[400px] flex items-center justify-center mt-10 lg:mt-0 w-full max-w-sm mx-auto">
-              
+
               {/* Vòng tròn bg mờ đằng sau để làm nổi bật */}
               <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl"></div>
 
@@ -86,9 +82,9 @@ export default function HomePage() {
 
               {/* Ảnh bó hoa */}
               <div className="relative z-10 w-[750px] h-[750px] max-w-full flex items-center justify-center">
-                <img 
-                  src="/image/hoav3.png" 
-                  alt="CraftVision 3D" 
+                <img
+                  src="/image/hoav3.png"
+                  alt="CraftVision 3D"
                   className="w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -96,56 +92,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 3 Thẻ Tagline bên dưới */}
-        <div className="grid grid-cols-3 gap-4 lg:gap-8 max-w-4xl mx-auto -mt-4 relative z-20">
-          {[
-            { value: "3", label: "Dự án đang làm", icon: Box },
-            { value: "12", label: "Đã hoàn thành", icon: Heart },
-            { value: "48h", label: "Giờ sáng tạo", icon: Sparkles },
-          ].map((tag, idx) => (
-            <div key={idx} className="glass-card rounded-2xl p-6 text-left relative overflow-hidden group hover:shadow-soft transition-all border border-border/50">
-              <tag.icon className="h-5 w-5 text-muted-foreground mb-3" />
-              <div className="text-3xl font-bold font-display text-foreground group-hover:text-primary transition-colors">{tag.value}</div>
-              <div className="text-sm text-muted-foreground mt-1">{tag.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Ongoing projects */}
-        <section>
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold font-display">Dự án đang thực hiện</h2>
-              <p className="text-sm text-muted-foreground">Tiếp tục nơi bạn đã dừng lại.</p>
-            </div>
-            <button className="text-sm font-medium text-primary hover:underline">Xem tất cả</button>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {projects.map((p) => (
-              <div key={p.title} className="glass-card rounded-2xl overflow-hidden group hover:shadow-soft transition-shadow">
-                <div className="h-32 relative" style={{ background: `linear-gradient(135deg, ${p.color}, oklch(0.9 0.1 85))` }}>
-                  <div className="absolute inset-0 bg-white/10" />
-                </div>
-                <div className="p-5">
-                  <h3 className="font-semibold">{p.title}</h3>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                    <span>💰 {p.cost}</span>
-                    <span>⏱ {p.time}</span>
-                  </div>
-                  <div className="mt-4">
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-muted-foreground">Tiến độ</span>
-                      <span className="font-semibold">{p.progress}%</span>
-                    </div>
-                    <div className="h-2 bg-white/70 rounded-full overflow-hidden">
-                      <div className="h-full btn-hero rounded-full" style={{ width: `${p.progress}%` }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* Ideas */}
         <section>

@@ -26,6 +26,7 @@ public class UnitOfWork : IUnitOfWork
     public IGiftAiProfileRepository GiftAiProfiles { get; }
     public IScanHistoryRepository ScanHistories { get; }
     public IMessageTemplateRepository MessageTemplates { get; }
+    public IReviewRepository Reviews { get; }
 
     public UnitOfWork(
         ApplicationDbContext dbContext,
@@ -47,7 +48,8 @@ public class UnitOfWork : IUnitOfWork
         IGiftMediaRepository giftMediaRepository,
         IGiftAiProfileRepository giftAiProfileRepository,
         IScanHistoryRepository scanHistoryRepository,
-        IMessageTemplateRepository messageTemplateRepository)
+        IMessageTemplateRepository messageTemplateRepository,
+        IReviewRepository reviewRepository)
     {
         _dbContext = dbContext;
         Users = userRepository;
@@ -69,6 +71,7 @@ public class UnitOfWork : IUnitOfWork
         GiftAiProfiles = giftAiProfileRepository;
         ScanHistories = scanHistoryRepository;
         MessageTemplates = messageTemplateRepository;
+        Reviews = reviewRepository;
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
