@@ -93,6 +93,14 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     fetchData();
   }, [id]);
 
+  useEffect(() => {
+    if (!isLoading && typeof window !== "undefined" && window.location.hash === "#reviews") {
+      setTimeout(() => {
+        document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    }
+  }, [isLoading]);
+
   const ambientLight = useMemo(() => {
     if (!product) return { primary: "var(--coral)", secondary: "var(--butter)" };
     switch (product.category) {

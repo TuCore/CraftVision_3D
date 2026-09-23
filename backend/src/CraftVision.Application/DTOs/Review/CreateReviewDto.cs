@@ -14,4 +14,6 @@ public class CreateReviewDto
 
     [MaxLength(1000)]
     public string Comment { get; set; } = string.Empty;
+
+    public string? ImageUrl { get; set; }
 }

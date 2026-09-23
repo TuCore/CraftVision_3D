@@ -49,7 +49,6 @@ function Flower({ x, y, color, animate }: { x: number; y: number; color: string;
 }
 
 export default function ManifestPage() {
-  const [email, setEmail] = useState("");
   const [wish, setWish] = useState("");
   const [isManifesting, setIsManifesting] = useState(false);
   const [wishCount, setWishCount] = useState(0);
@@ -67,8 +66,8 @@ export default function ManifestPage() {
   }, [apiUrl]);
 
   const handleManifest = async () => {
-    if (!email || !wish) {
-      toast.error("Vui lòng điền đầy đủ email và mong muốn của bạn!");
+    if (!wish) {
+      toast.error("Vui lòng điền mong muốn của bạn!");
       return;
     }
     setIsManifesting(true);
@@ -113,12 +112,12 @@ export default function ManifestPage() {
     });
 
     try {
-      const res = await axios.post(`${apiUrl}/api/manifest`, { email, wishText: wish });
+      const res = await axios.post(`${apiUrl}/api/manifest`, { wishText: wish });
       const { totalWishes } = res.data;
       setWishCount(totalWishes);
       setNewFlowerIndex(totalWishes - 1);
       setTimeout(() => setNewFlowerIndex(null), 1000);
-      toast.success("Lời nguyện ước đã bay lên vũ trụ! ✨ Kiểm tra email của bạn nhé.");
+      toast.success("Lời nguyện ước đã bay lên vũ trụ! ✨");
       setWish("");
     } catch {
       // Offline demo mode
@@ -428,31 +427,24 @@ export default function ManifestPage() {
         </div>
 
         {/* Form */}
-        <div className="w-full max-w-[320px] space-y-2 z-10">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email của bạn..."
-            className="w-full px-3 py-2 text-sm rounded-xl border border-orange-200/40 bg-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400/50"
-          />
+        <div className="w-full max-w-[400px] space-y-4 z-10">
           <textarea
             value={wish}
             onChange={(e) => setWish(e.target.value)}
             placeholder="Mong muốn của bạn..."
-            rows={2}
-            className="w-full px-3 py-2 text-sm rounded-xl border border-orange-200/40 bg-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400/50 resize-none"
+            rows={3}
+            className="w-full px-4 py-3 text-base rounded-xl border border-orange-200/40 bg-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400/50 resize-none"
           />
           <button
             onClick={handleManifest}
             disabled={isManifesting}
-            className="w-full py-2.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 shadow-lg"
+            className="w-full py-3.5 rounded-xl font-bold text-white text-base flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 shadow-lg"
             style={{ background: "linear-gradient(135deg, #ff9a3c, #ff6eb4)" }}
           >
             {isManifesting ? (
-              <Sparkles className="w-4 h-4 animate-spin" />
+              <Sparkles className="w-5 h-5 animate-spin" />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5" />
             )}
             Manifest
           </button>

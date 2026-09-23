@@ -38,6 +38,7 @@ public class ReviewService : IReviewService
             UserId = userId,
             Rating = dto.Rating,
             Comment = dto.Comment,
+            ImageUrl = dto.ImageUrl,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -54,6 +55,7 @@ public class ReviewService : IReviewService
             UserAvatarUrl = user.AvatarUrl,
             Rating = review.Rating,
             Comment = review.Comment,
+            ImageUrl = review.ImageUrl,
             CreatedAt = review.CreatedAt
         };
     }
@@ -71,6 +73,7 @@ public class ReviewService : IReviewService
             UserAvatarUrl = r.User.AvatarUrl,
             Rating = r.Rating,
             Comment = r.Comment,
+            ImageUrl = r.ImageUrl,
             CreatedAt = r.CreatedAt
         });
     }
