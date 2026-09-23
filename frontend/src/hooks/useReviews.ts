@@ -9,6 +9,7 @@ export interface Review {
   userAvatarUrl?: string;
   rating: number;
   comment: string;
+  imageUrl?: string;
   createdAt: string;
 }
 
@@ -16,6 +17,7 @@ export interface CreateReviewDto {
   productId: string;
   rating: number;
   comment: string;
+  imageUrl?: string;
 }
 
 export function useProductReviews(productId: string) {
