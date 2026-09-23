@@ -54,6 +54,9 @@ export default function ManifestPage() {
   const [wishCount, setWishCount] = useState(0);
   const [newFlowerIndex, setNewFlowerIndex] = useState<number | null>(null);
   const [isBursting, setIsBursting] = useState(false);
+  const [animationState, setAnimationState] = useState<'idle' | 'running' | 'tripping' | 'recovering' | 'praying' | 'placed' | 'leaving'>('idle');
+  const [hasIncense, setHasIncense] = useState(false);
+  
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5192";
 
   useEffect(() => {
@@ -68,8 +71,28 @@ export default function ManifestPage() {
       return;
     }
     setIsManifesting(true);
+    
+    // Animation sequence for pixel boy: run, trip, get up, pray
+    setAnimationState('running');
+    await new Promise(r => setTimeout(r, 600)); // Run in fast from bottom
+    
+    setAnimationState('tripping');
+    await new Promise(r => setTimeout(r, 800)); // Ouch! Faceplant
+    
+    setAnimationState('recovering');
+    await new Promise(r => setTimeout(r, 500)); // Get up
+
+    setAnimationState('praying');
+    await new Promise(r => setTimeout(r, 1500)); // Bow multiple times (1.5s = 3 bows)
+    
+    setHasIncense(true);
+    setAnimationState('placed');
+    await new Promise(r => setTimeout(r, 600)); // Placed, step back
+    
     setIsBursting(true);
     setTimeout(() => setIsBursting(false), 800);
+    
+    setAnimationState('leaving');
 
     try {
       const res = await axios.post(`${apiUrl}/api/manifest`, { email, wishText: wish });
@@ -80,7 +103,7 @@ export default function ManifestPage() {
       toast.success("Lời nguyện ước đã bay lên vũ trụ! ✨ Kiểm tra email của bạn nhé.");
       setWish("");
     } catch {
-      // Offline demo mode: still show the animation
+      // Offline demo mode
       const next = wishCount + 1;
       setWishCount(next);
       setNewFlowerIndex(next - 1);
@@ -88,6 +111,7 @@ export default function ManifestPage() {
       toast.success("Nguyện ước của bạn đã được gửi! ✨");
       setWish("");
     } finally {
+      setTimeout(() => setAnimationState('idle'), 800); // Reset after leaving
       setIsManifesting(false);
     }
   };
@@ -114,8 +138,23 @@ export default function ManifestPage() {
           from { transform: rotate(0deg); }
           to   { transform: rotate(-360deg); }
         }
+        @keyframes boyWobble {
+          0% { transform: translate(86px, 170px) rotate(-4deg); }
+          100% { transform: translate(86px, 170px) rotate(4deg); }
+        }
+        @keyframes armsPray {
+          0%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-8px); }
+          70% { transform: translateY(12px); }
+        }
+        @keyframes smokeRise {
+          0% { opacity: 0; transform: translateY(0); }
+          50% { opacity: 0.6; }
+          100% { opacity: 0; transform: translateY(-10px); }
+        }
         .ring-spin { animation: portalSpin 12s linear infinite; transform-origin: 50% 50%; transform-box: fill-box; }
         .ring-spin-r { animation: portalSpinReverse 18s linear infinite; transform-origin: 50% 50%; transform-box: fill-box; }
+        .smoke-anim { animation: smokeRise 2s infinite ease-out; }
       `}</style>
 
       <div className="mx-auto max-w-xl flex flex-col items-center justify-center h-[calc(100vh-120px)] overflow-hidden gap-3">
@@ -225,6 +264,74 @@ export default function ManifestPage() {
             <circle cx="100" cy="125" r="14" fill="url(#orbGlow)" filter="url(#strongGlow)"
               style={{ animation: isBursting ? "sphereBurst 0.8s ease-out" : "none" }}/>
             <circle cx="100" cy="125" r="10" fill="#fff" opacity="0.95"/>
+
+            {/* Censer / Lư hương */}
+            <g transform="translate(90, 160)">
+              <path d="M 2 3 L 2 8 C 2 12, 18 12, 18 8 L 18 3 Z" fill="#d4af37" />
+              <rect x="0" y="0" width="20" height="3" fill="#b8860b" rx="1" />
+              <rect x="4" y="10" width="2" height="4" fill="#b8860b" />
+              <rect x="14" y="10" width="2" height="4" fill="#b8860b" />
+            </g>
+
+            {/* Placed Incense */}
+            <g className="transition-opacity duration-300" style={{ opacity: hasIncense ? 1 : 0 }}>
+              <line x1="100" y1="162" x2="100" y2="148" stroke="#8b4513" strokeWidth="1.2" />
+              <circle cx="100" cy="148" r="1.5" fill="#ef4444" filter="url(#glow)" />
+              <line x1="97" y1="162" x2="94" y2="150" stroke="#8b4513" strokeWidth="1.2" />
+              <circle cx="94" cy="150" r="1.5" fill="#ef4444" filter="url(#glow)" />
+              <line x1="103" y1="162" x2="106" y2="150" stroke="#8b4513" strokeWidth="1.2" />
+              <circle cx="106" cy="150" r="1.5" fill="#ef4444" filter="url(#glow)" />
+              
+              {/* Smoke for placed incense */}
+              <path d="M 100 146 Q 98 140 100 135 T 100 125" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" className="smoke-anim" />
+            </g>
+
+            {/* Pixel Boy (Praying Animation) */}
+            <g 
+              style={{
+                transition: animationState === 'tripping' ? 'all 0.2s cubic-bezier(0.17, 0.89, 0.32, 1.28)' : 'all 0.5s ease-in-out',
+                transformOrigin: '14px 18px',
+                opacity: animationState === 'idle' ? 0 : 1,
+                transform: 
+                  animationState === 'idle' ? 'translate(-50px, 250px)' :
+                  animationState === 'running' ? 'translate(86px, 180px) rotate(15deg)' :
+                  animationState === 'tripping' ? 'translate(86px, 176px) rotate(90deg)' :
+                  animationState === 'recovering' ? 'translate(86px, 170px) rotate(0deg)' :
+                  animationState === 'praying' ? 'translate(86px, 170px)' :
+                  animationState === 'placed' ? 'translate(86px, 170px)' :
+                  animationState === 'leaving' ? 'translate(250px, 250px) rotate(-15deg)' : 
+                  'translate(-50px, 250px)',
+                animation: 
+                  animationState === 'running' || animationState === 'leaving' ? 'boyWobble 0.2s infinite alternate' : 'none'
+              }}
+            >
+              {/* Head */}
+              <rect x="4" y="-28" width="20" height="16" fill="#1f2937" rx="4" />
+              {/* Body (Shirt) */}
+              <rect x="3" y="-12" width="22" height="14" fill="#ef4444" rx="3" />
+              
+              {/* Incense in hands & Hands */}
+              <g 
+                className="transition-opacity duration-200" 
+                style={{ 
+                  opacity: (animationState === 'running' || animationState === 'tripping' || animationState === 'recovering' || animationState === 'praying') ? 1 : 0,
+                  animation: animationState === 'praying' ? 'armsPray 0.7s infinite ease-in-out' : 'none'
+                }}
+              >
+                <line x1="14" y1="-8" x2="14" y2="-28" stroke="#8b4513" strokeWidth="1.5" />
+                <circle cx="14" cy="-28" r="1.5" fill="#ef4444" filter="url(#glow)" />
+                <path d="M 14 -30 Q 12 -35 14 -40 T 14 -50" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" className="smoke-anim" />
+                
+                {/* Hands holding the incense */}
+                <rect x="11" y="-10" width="6" height="6" fill="#fcd34d" rx="2" />
+              </g>
+
+              {/* Pants */}
+              <rect x="4" y="2" width="20" height="8" fill="#1e3a8a" rx="1" />
+              {/* Legs */}
+              <rect x="6" y="10" width="6" height="8" fill="#fcd34d" rx="1" />
+              <rect x="16" y="10" width="6" height="8" fill="#fcd34d" rx="1" />
+            </g>
 
             {/* Flowers */}
             {visibleFlowers.map((pos, i) => (
