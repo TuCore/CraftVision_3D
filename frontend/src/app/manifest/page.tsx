@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Send, Sparkles } from "lucide-react";
 import axios from "axios";
+import confetti from "canvas-confetti";
 
 // Flower positions scattered around the base of the tree
 const FLOWER_POSITIONS = [
@@ -54,7 +55,7 @@ export default function ManifestPage() {
   const [wishCount, setWishCount] = useState(0);
   const [newFlowerIndex, setNewFlowerIndex] = useState<number | null>(null);
   const [isBursting, setIsBursting] = useState(false);
-  const [animationState, setAnimationState] = useState<'idle' | 'running' | 'tripping' | 'recovering' | 'praying' | 'placed' | 'leaving'>('idle');
+  const [animationState, setAnimationState] = useState<'idle' | 'running' | 'tripping' | 'recovering' | 'praying' | 'placed' | 'leaving' | 'letterSpawns' | 'letterEnters' | 'spaceshipFlies'>('idle');
   const [hasIncense, setHasIncense] = useState(false);
   
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5192";
@@ -93,6 +94,23 @@ export default function ManifestPage() {
     setTimeout(() => setIsBursting(false), 800);
     
     setAnimationState('leaving');
+    await new Promise(r => setTimeout(r, 600)); 
+
+    setAnimationState('letterSpawns');
+    await new Promise(r => setTimeout(r, 800)); // Envelope pops in & rocket appears
+    
+    setAnimationState('letterEnters');
+    await new Promise(r => setTimeout(r, 600)); // Envelope shrinks into rocket
+
+    setAnimationState('spaceshipFlies');
+    await new Promise(r => setTimeout(r, 800)); // Rocket flies up
+
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.4 },
+      colors: ['#ff9a3c', '#ff6eb4', '#ffd700', '#38bdf8']
+    });
 
     try {
       const res = await axios.post(`${apiUrl}/api/manifest`, { email, wishText: wish });
@@ -151,6 +169,10 @@ export default function ManifestPage() {
           0% { opacity: 0; transform: translateY(0); }
           50% { opacity: 0.6; }
           100% { opacity: 0; transform: translateY(-10px); }
+        }
+        @keyframes rocketFlame {
+          0% { transform: scaleY(1); }
+          100% { transform: scaleY(1.3); }
         }
         .ring-spin { animation: portalSpin 12s linear infinite; transform-origin: 50% 50%; transform-box: fill-box; }
         .ring-spin-r { animation: portalSpinReverse 18s linear infinite; transform-origin: 50% 50%; transform-box: fill-box; }
@@ -331,6 +353,55 @@ export default function ManifestPage() {
               {/* Legs */}
               <rect x="6" y="10" width="6" height="8" fill="#fcd34d" rx="1" />
               <rect x="16" y="10" width="6" height="8" fill="#fcd34d" rx="1" />
+            </g>
+
+            {/* Rocket & Letter sequence */}
+            <g 
+              style={{
+                transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                opacity: (animationState === 'letterSpawns' || animationState === 'letterEnters' || animationState === 'spaceshipFlies') ? 1 : 0,
+                transform: animationState === 'spaceshipFlies' ? 'translate(0px, -250px)' : 
+                           (animationState === 'letterSpawns' || animationState === 'letterEnters') ? 'translate(0px, 0px)' : 'translate(0px, 40px)',
+              }}
+            >
+              <g transform="translate(90, 130)">
+                {/* Body */}
+                <path d="M 10 0 C 18 10, 18 20, 10 30 C 2 20, 2 10, 10 0 Z" fill="#e2e8f0" />
+                <path d="M 10 0 C 14 10, 14 20, 10 30 Z" fill="#94a3b8" />
+                {/* Window */}
+                <circle cx="10" cy="15" r="3" fill="#38bdf8" />
+                <circle cx="10" cy="15" r="1.5" fill="#bae6fd" transform="translate(-0.5, -0.5)" />
+                {/* Fins */}
+                <path d="M 5 22 L -2 32 L 6 29 Z" fill="#ef4444" />
+                <path d="M 15 22 L 22 32 L 14 29 Z" fill="#ef4444" />
+                {/* Thruster flame */}
+                <g style={{ 
+                  opacity: animationState === 'spaceshipFlies' ? 1 : 0, 
+                  animation: animationState === 'spaceshipFlies' ? 'rocketFlame 0.05s infinite alternate' : 'none',
+                  transformOrigin: '10px 30px'
+                }}>
+                  <path d="M 6 30 L 10 45 L 14 30 Z" fill="#fb923c" />
+                  <path d="M 8 30 L 10 38 L 12 30 Z" fill="#fef08a" />
+                </g>
+              </g>
+            </g>
+
+            {/* Envelope */}
+            <g 
+              style={{
+                transition: 'all 0.6s cubic-bezier(0.5, 0, 0.2, 1)',
+                transformOrigin: '100px 106px',
+                opacity: (animationState === 'letterSpawns' || animationState === 'letterEnters') ? 1 : 0,
+                transform: 
+                  animationState === 'letterSpawns' ? 'translate(92px, 100px) scale(1)' :
+                  animationState === 'letterEnters' ? 'translate(92px, 140px) scale(0)' : 
+                  'translate(92px, 80px) scale(0.5)'
+              }}
+            >
+              <rect x="0" y="0" width="16" height="12" fill="#f8fafc" rx="1" />
+              <path d="M 0 0 L 8 6 L 16 0" fill="none" stroke="#cbd5e1" strokeWidth="1" />
+              {/* Heart seal */}
+              <path d="M 8 7 C 9 6, 11 6, 11 8 C 11 10, 8 11, 8 11 C 8 11, 5 10, 5 8 C 5 6, 7 6, 8 7 Z" fill="#ef4444" />
             </g>
 
             {/* Flowers */}
