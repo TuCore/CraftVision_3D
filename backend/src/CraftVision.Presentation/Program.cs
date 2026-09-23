@@ -81,17 +81,6 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-// Configure CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
-});
-
 // --- 1. CONFIG DATABASE CONNECTION ---
 var activeConnName = builder.Configuration["ActiveConnection"] ?? "DockerConnection";
 var connectionString = builder.Configuration.GetConnectionString(activeConnName);

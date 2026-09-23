@@ -15,13 +15,22 @@ export default function HomePage() {
     }
   }, []);
 
+
+
+  const ideas = [
+    { icon: Palette, title: "Tranh acrylic mini", tag: "Cơ bản", price: "80.000đ" },
+    { icon: Scissors, title: "Thiệp pop-up 3D", tag: "Trung bình", price: "45.000đ" },
+    { icon: Package, title: "Hộp nhạc handmade", tag: "Nâng cao", price: "320.000đ" },
+    { icon: Gift, title: "Set quà sinh nhật", tag: "Trung bình", price: "180.000đ" },
+  ];
+
   return (
     <AppShell active="home">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Hero */}
         <section className="relative glass-strong rounded-3xl p-8 md:p-12 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full opacity-40 blur-3xl" style={{ background: "var(--gradient-aurora)" }} />
-          
+
           <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
             {/* Cột trái */}
             <div className="text-left">
@@ -29,7 +38,7 @@ export default function HomePage() {
                 <Sparkles className="h-3.5 w-3.5" /> Chào {firstName}, sẵn sàng sáng tạo?
               </span>
               <h1 className="mt-6 text-4xl md:text-5xl font-extrabold font-display leading-[1.15] text-foreground">
-                Hôm nay bạn muốn tạo<br/>
+                Hôm nay bạn muốn tạo<br />
                 <span className="gradient-text inline-block mt-1 pb-2">món quà gì?</span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground max-w-lg">
@@ -54,7 +63,7 @@ export default function HomePage() {
 
             {/* Cột phải: Hình ảnh bó hoa */}
             <div className="relative lg:h-[400px] flex items-center justify-center mt-10 lg:mt-0 w-full max-w-sm mx-auto">
-              
+
               {/* Vòng tròn bg mờ đằng sau để làm nổi bật */}
               <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl"></div>
 
@@ -81,9 +90,9 @@ export default function HomePage() {
 
               {/* Ảnh bó hoa */}
               <div className="relative z-10 w-[750px] h-[750px] max-w-full flex items-center justify-center">
-                <img 
-                  src="/image/hoav3.png" 
-                  alt="CraftVision 3D" 
+                <img
+                  src="/image/hoav3.png"
+                  alt="CraftVision 3D"
                   className="w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />
               </div>

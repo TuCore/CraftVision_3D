@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { Search, Star, Sparkles, Loader2 } from "lucide-react";
+import { Search, Star, Sparkles, Loader2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Product, Category } from "@/lib/mock-products";
+import { useFavoriteStore } from "@/store/useFavoriteStore";
 
 import { TiltCard } from "@/components/TiltCard";
 import {
@@ -31,6 +32,7 @@ export default function ShopPage() {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isFavorite, toggleFavorite } = useFavoriteStore();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -208,6 +210,19 @@ export default function ShopPage() {
                 <div className="absolute top-2 left-2 z-20 glass-strong px-2 py-1 rounded-lg text-[10px] font-semibold text-foreground">
                   {product.category}
                 </div>
+                
+                {/* Heart Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(product.id);
+                  }}
+                  className="absolute top-2 right-2 z-20 p-2 rounded-full glass-strong hover:bg-white/80 transition-colors"
+                >
+                  <Heart
+                    className={`h-4 w-4 ${isFavorite(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+                  />
+                </button>
                 
                 {/* AI Recommendation Confidence Label */}
                 <div className="absolute bottom-2 right-2 z-20 glass-strong border border-white/40 px-2 py-0.5 rounded-full text-[10px] font-bold text-foreground flex items-center gap-1 shadow-sm">
