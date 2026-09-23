@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { Sparkles, MessageCircle, Heart, Gift, Clock, TrendingUp, ArrowRight, Palette, Scissors, Package, Box } from "lucide-react";
+import { Sparkles, MessageCircle, Heart, ArrowRight, Box } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Studio3DSection } from "@/components/studio/Studio3DSection";
 
 export default function HomePage() {
   const [firstName, setFirstName] = useState("bạn");
@@ -13,19 +14,6 @@ export default function HomePage() {
       setFirstName(storedName.split(' ').pop() || "bạn");
     }
   }, []);
-
-  const projects = [
-    { title: "Bó hoa giấy pastel", progress: 70, cost: "125.000đ", time: "2h", color: "oklch(0.78 0.18 25)" },
-    { title: "Hộp quà 3D + QR", progress: 40, cost: "210.000đ", time: "3.5h", color: "oklch(0.82 0.16 85)" },
-    { title: "Vòng tay macramé", progress: 90, cost: "65.000đ", time: "1h", color: "oklch(0.78 0.16 145)" },
-  ];
-
-  const ideas = [
-    { icon: Palette, title: "Tranh acrylic mini", tag: "Cơ bản", price: "80.000đ" },
-    { icon: Scissors, title: "Thiệp pop-up 3D", tag: "Trung bình", price: "45.000đ" },
-    { icon: Package, title: "Hộp nhạc handmade", tag: "Nâng cao", price: "320.000đ" },
-    { icon: Gift, title: "Set quà sinh nhật", tag: "Trung bình", price: "180.000đ" },
-  ];
 
   return (
     <AppShell active="home">
@@ -51,9 +39,16 @@ export default function HomePage() {
                 <Link href="/chat" className="btn-hero inline-flex items-center gap-2 rounded-2xl px-7 py-4 font-semibold shadow-coral-glow">
                   <MessageCircle className="h-5 w-5" /> Trò chuyện với AI
                 </Link>
-                <Link href="/chat?mode=three-d" className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors px-2 py-4">
+                <a 
+                  href="#studio-3d" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('studio-3d')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors px-2 py-4 cursor-pointer"
+                >
                   Mở Studio 3D <ArrowRight className="h-4 w-4" />
-                </Link>
+                </a>
               </div>
             </div>
 
@@ -111,68 +106,8 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Ongoing projects */}
-        <section>
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold font-display">Dự án đang thực hiện</h2>
-              <p className="text-sm text-muted-foreground">Tiếp tục nơi bạn đã dừng lại.</p>
-            </div>
-            <button className="text-sm font-medium text-primary hover:underline">Xem tất cả</button>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {projects.map((p) => (
-              <div key={p.title} className="glass-card rounded-2xl overflow-hidden group hover:shadow-soft transition-shadow">
-                <div className="h-32 relative" style={{ background: `linear-gradient(135deg, ${p.color}, oklch(0.9 0.1 85))` }}>
-                  <div className="absolute inset-0 bg-white/10" />
-                </div>
-                <div className="p-5">
-                  <h3 className="font-semibold">{p.title}</h3>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                    <span>💰 {p.cost}</span>
-                    <span>⏱ {p.time}</span>
-                  </div>
-                  <div className="mt-4">
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-muted-foreground">Tiến độ</span>
-                      <span className="font-semibold">{p.progress}%</span>
-                    </div>
-                    <div className="h-2 bg-white/70 rounded-full overflow-hidden">
-                      <div className="h-full btn-hero rounded-full" style={{ width: `${p.progress}%` }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Ideas */}
-        <section>
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold font-display">Ý tưởng cho bạn</h2>
-              <p className="text-sm text-muted-foreground">Gợi ý dựa trên sở thích của bạn.</p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {ideas.map((i) => {
-              const Icon = i.icon;
-              return (
-                <div key={i.title} className="glass-card rounded-2xl p-5 hover:shadow-soft transition-all hover:-translate-y-1">
-                  <div className="h-11 w-11 rounded-xl btn-hero grid place-items-center">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="mt-4 font-semibold">{i.title}</h3>
-                  <div className="mt-2 flex items-center justify-between text-xs">
-                    <span className="px-2 py-0.5 rounded-full bg-white/80 text-muted-foreground">{i.tag}</span>
-                    <span className="font-semibold text-primary">{i.price}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        {/* Màn hình Gen AI 3D (Studio 3D) thay thế cho phần Dự án & Ý tưởng */}
+        <Studio3DSection id="studio-3d" className="pt-2 pb-6" />
       </div>
     </AppShell>
   );
