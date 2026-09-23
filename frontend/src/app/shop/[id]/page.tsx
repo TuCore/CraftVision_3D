@@ -4,42 +4,30 @@ import { use, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Product } from "@/lib/mock-products";
-// import { mockProducts } from "@/lib/mock-products";
-import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles, Heart } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { useWishlistStore } from "@/store/useWishlistStore";
-import { useOrderStore } from "@/store/useOrderStore";
 import { toast } from "sonner";
 import { useProductReviews } from "@/hooks/useReviews";
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { ReviewList } from "@/components/ReviewList";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
-  const { toggleFavorite, isFavorite } = useWishlistStore();
-  const { setItem: setOrder } = useOrderStore();
-  
+  const { toggleFavorite } = useWishlistStore();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
-
   // Fetch reviews for rating
   const { data: reviews } = useProductReviews(id);
   const averageRating = useMemo(() => {
     if (!reviews || reviews.length === 0) return 0;
     const total = reviews.reduce((acc, r) => acc + r.rating, 0);
-    return (total / reviews.length).toFixed(1);
+    return total / reviews.length;
   }, [reviews]);
 
   useEffect(() => {
@@ -91,7 +79,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               matchScore: 90
             }))
             .slice(0, 4);
-          
+
           setRelatedProducts(mappedRelated);
         } else if (prodRes.status === 404) {
           notFound();
@@ -137,7 +125,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   return (
     <AppShell active="shop">
       <div className="mx-auto max-w-6xl space-y-16">
-        
+
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4">
           <Link href="/shop" className="hover:text-foreground transition-colors">Shop</Link>
@@ -147,7 +135,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
 
         {/* Product Details */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          
+
           {/* Left: Image */}
           <div className="relative">
             <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "5%", left: "5%", width: "90%", height: "90%", background: ambientLight.primary }} />
@@ -167,16 +155,16 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             <div className="inline-block glass-strong px-3 py-1.5 rounded-xl text-xs font-semibold text-foreground w-fit mb-4 border border-white/40">
               {product.category}
             </div>
-            
+
             <h1 className="text-3xl md:text-4xl font-extrabold font-display leading-tight mb-4 text-foreground">
               {product.name}
             </h1>
-            
+
             <div className="flex items-center gap-2 mb-6">
               <div className="flex items-center text-amber-400">
                 <Star className="h-4 w-4 fill-current" />
               </div>
-              <span className="font-semibold text-foreground">{averageRating > 0 ? averageRating : 'Chưa có đánh giá'}</span>
+              <span className="font-semibold text-foreground">{averageRating > 0 ? averageRating.toFixed(1) : 'Chưa có đánh giá'}</span>
               {reviews && reviews.length > 0 && (
                 <span className="text-muted-foreground text-sm">({reviews.length} đánh giá)</span>
               )}
@@ -212,7 +200,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             </div>
 
             <div className="flex flex-col gap-4 mt-auto">
-              <button 
+              <button
                 onClick={() => {
                   toggleFavorite(product);
                   toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
@@ -222,8 +210,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <ShoppingBag className="h-5 w-5" />
                 Thêm vào giỏ hàng
               </button>
-              
-              <div 
+
+              <div
                 onClick={() => router.push(`/shop/${product.id}/greeting`)}
                 className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
               >
@@ -282,7 +270,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       {p.category}
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 flex flex-col">
                     <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
                       {p.name}
