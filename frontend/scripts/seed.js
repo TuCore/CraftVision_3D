@@ -78,8 +78,12 @@ const mockProducts = [
   }
 ];
 
+const API_URL = process.argv.includes('--prod') 
+  ? "https://craftvision-api.onrender.com/api/products" 
+  : "http://localhost:5192/api/products";
+
 async function seed() {
-  console.log("Starting to seed products...");
+  console.log(`Starting to seed products to ${API_URL} ...`);
   
   for (const product of mockProducts) {
     const payload = {
@@ -94,7 +98,7 @@ async function seed() {
     };
 
     try {
-      const res = await fetch("http://localhost:5192/api/products", {
+      const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
