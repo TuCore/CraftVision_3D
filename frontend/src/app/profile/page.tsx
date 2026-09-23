@@ -203,13 +203,13 @@ export default function ProfilePage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 mt-3">
-            <Link href="/settings" className="flex-1 py-1.5 bg-white border border-gray-200 shadow-sm text-foreground font-semibold text-xs rounded-lg text-center transition-all hover:bg-gray-50 active:scale-95">
+          <div className="flex gap-2 mt-4">
+            <Link href="/settings" className="flex-1 py-[7px] bg-[#FDF6ED] hover:bg-[#EFE5DA] border border-[#E6D5C3] text-black font-semibold text-[13px] rounded-lg text-center transition-colors">
               Chỉnh sửa trang cá nhân
             </Link>
             <button 
               onClick={() => setIsOrderHistoryOpen(true)}
-              className="flex-1 py-1.5 bg-white border border-gray-200 shadow-sm text-foreground font-semibold text-xs rounded-lg text-center transition-all hover:bg-gray-50 active:scale-95"
+              className="flex-1 py-[7px] bg-[#FDF6ED] hover:bg-[#EFE5DA] border border-[#E6D5C3] text-black font-semibold text-[13px] rounded-lg text-center transition-colors"
             >
               Lịch sử mua hàng
             </button>

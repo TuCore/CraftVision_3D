@@ -34,12 +34,21 @@ export function ReviewList({ productId, productName = "Sản phẩm" }: ReviewLi
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold">Đánh giá từ khách hàng</h3>
         <button 
-          onClick={() => setIsReviewModalOpen(true)}
+          onClick={() => setIsReviewModalOpen(!isReviewModalOpen)}
           className="border border-black text-black bg-white hover:bg-gray-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
         >
-          Viết đánh giá
+          {isReviewModalOpen ? 'Đóng' : 'Viết đánh giá'}
         </button>
       </div>
+      
+      {isReviewModalOpen && (
+        <ReviewModal 
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          productId={productId}
+          productName={productName}
+        />
+      )}
       
       {(!reviews || reviews.length === 0) ? (
         <div className="py-4 text-gray-500">Chưa có đánh giá nào cho sản phẩm này. Hãy là người đầu tiên đánh giá!</div>
@@ -72,33 +81,36 @@ export function ReviewList({ productId, productName = "Sản phẩm" }: ReviewLi
                 ))}
               </div>
             </div>
-            <div className="flex justify-between items-start mt-2">
-              <p className="text-gray-700 text-sm">{review.comment}</p>
-              {currentUserId === review.userId && (
-                <button
-                  onClick={() => {
-                    if (confirm('Bạn có chắc muốn xóa đánh giá này?')) {
-                      deleteReview(review.id);
-                    }
-                  }}
-                  className="text-red-500 hover:text-red-700 p-1"
-                  title="Xóa đánh giá"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+            <div className="mt-2">
+              <div className="flex justify-between items-start">
+                <p className="text-gray-700 text-sm whitespace-pre-wrap">{review.comment}</p>
+                {currentUserId === review.userId && (
+                  <button
+                    onClick={() => {
+                      if (confirm('Bạn có chắc muốn xóa đánh giá này?')) {
+                        deleteReview(review.id);
+                      }
+                    }}
+                    className="text-red-500 hover:text-red-700 p-1 shrink-0 ml-4"
+                    title="Xóa đánh giá"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              
+              {review.imageUrl && (
+                <div className="mt-3">
+                  <a href={review.imageUrl} target="_blank" rel="noopener noreferrer" className="block w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity">
+                    <img src={review.imageUrl} alt="Review attachment" className="w-full h-full object-cover" />
+                  </a>
+                </div>
               )}
             </div>
           </div>
         ))}
       </div>
       )}
-
-      <ReviewModal 
-        isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        productId={productId}
-        productName={productName}
-      />
     </div>
   );
 }
