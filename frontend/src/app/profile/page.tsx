@@ -2,7 +2,7 @@
 
 import { AppShell } from "@/components/AppShell";
 import Link from "next/link";
-import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3 } from "lucide-react";
+import { Camera, MapPin, Mail, Calendar, Award, Gift, Heart, Sparkles, Edit3, Grid, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/apiClient";
 import api from "@/lib/api";
@@ -10,9 +10,11 @@ import { toast } from "sonner";
 import { Store, Package, CheckCircle, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useCollectionStore } from "@/store/useCollectionStore";
+import { useFavoriteStore } from "@/store/useFavoriteStore";
 import { useRouter } from "next/navigation";
-
+import { TiltCard } from "@/components/TiltCard";
+import { motion, AnimatePresence } from "framer-motion";
+import { ReviewModal } from "@/components/ReviewModal";
 export default function ProfilePage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("Nguyễn Minh");
@@ -51,22 +53,21 @@ export default function ProfilePage() {
     { icon: Sparkles, label: "AI Explorer", color: "from-violet-400 to-fuchsia-500" },
   ];
 
-  const gallery = [
-    { title: "Hộp quà 3D pastel", likes: 42, color: "oklch(0.82 0.16 25)" },
-    { title: "Vòng tay macramé", likes: 28, color: "oklch(0.85 0.14 145)" },
-    { title: "Thiệp pop-up hoa", likes: 67, color: "oklch(0.86 0.15 85)" },
-    { title: "Đèn giấy origami", likes: 51, color: "oklch(0.83 0.16 265)" },
-    { title: "Set trà chiều", likes: 39, color: "oklch(0.84 0.15 45)" },
-    { title: "Album ảnh scrap", likes: 22, color: "oklch(0.82 0.16 340)" },
+  const collectionData = [
+    { title: "Bó hoa giấy pastel", price: 125000, time: "2h", progress: 70, color: "from-orange-300 to-amber-200" },
+    { title: "Hộp quà 3D + QR", price: 210000, time: "3.5h", progress: 40, color: "from-yellow-400 to-amber-300" },
+    { title: "Vòng tay macramé", price: 65000, time: "1h", progress: 90, color: "from-green-400 to-emerald-300" },
   ];
 
   const [orders, setOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "shipping" | "completed">("all");
-  const [activeCollectionTab, setActiveCollectionTab] = useState<"completed" | "saved">("completed");
+  const [activeCollectionTab, setActiveCollectionTab] = useState<"collection" | "favorites">("collection");
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
-  const { items: savedItems } = useCollectionStore();
   
+  const { favoriteIds, toggleFavorite, isFavorite } = useFavoriteStore();
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+
   // Custom dialog state for Cancel Order
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
@@ -88,13 +89,38 @@ export default function ProfilePage() {
   useEffect(() => {
     loadOrders();
 
-    if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
-      const script = document.createElement("script");
-      script.type = "module";
-      script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
-      document.head.appendChild(script);
-    }
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          setAllProducts(data.items || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      }
+    };
+    fetchProducts();
   }, []);
+
+  const favoriteProducts = allProducts.filter(p => favoriteIds.includes(p.id)).map(p => {
+    let cat = p.categoryName || "Khác";
+    const nameLower = p.name.toLowerCase();
+    if (nameLower.includes("charm")) cat = "Charm";
+    else if (nameLower.includes("móc khóa") || nameLower.includes("móc khoá")) cat = "Móc khoá";
+    else if (nameLower.includes("dây chuyền")) cat = "Dây chuyền";
+    else if (nameLower.includes("vòng tay")) cat = "Vòng tay";
+    else if (nameLower.includes("đồ trang trí") || nameLower.includes("decor")) cat = "Đồ trang trí";
+
+    return {
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      category: cat,
+      image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
+      rating: 4.9,
+    };
+  });
 
   const handleReceiveOrder = async (orderId: string) => {
     try {
@@ -138,140 +164,167 @@ export default function ProfilePage() {
 
   return (
     <AppShell active="profile">
-      <div className="mx-auto max-w-5xl space-y-6">
-        {/* Cover + profile */}
-        <div className="glass-strong rounded-3xl overflow-hidden">
-          {/* Đổi background thành màu pastel trơn */}
-          <div className="h-40 md:h-56 relative" style={{ background: "oklch(0.95 0.03 340)" }}>
-            <button className="absolute top-4 right-4 rounded-xl bg-card/80 backdrop-blur px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 hover:bg-card transition-colors">
-              <Camera className="h-3.5 w-3.5" /> Đổi ảnh bìa
-            </button>
-          </div>
-          
-          <div className="px-6 md:px-10 pb-8 -mt-16 relative flex flex-col items-center text-center">
-            <div className="relative mb-4">
-              <div className="h-28 w-28 md:h-32 md:w-32 rounded-full bg-card grid place-items-center text-4xl font-bold text-primary border-4 border-card shadow-soft overflow-hidden">
+      <div className="mx-auto max-w-5xl">
+        {/* Profile Header (Instagram Style) */}
+        <div className="pt-2 pb-2 max-w-3xl mx-auto">
+          {/* Avatar and Info Container */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+            
+            {/* Avatar */}
+            <div className="shrink-0 relative">
+              <div className="h-16 w-16 md:h-20 md:w-20 rounded-full border-2 border-white shadow-sm overflow-hidden bg-muted">
                 <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`} alt="Avatar" className="w-full h-full object-cover" />
               </div>
-              <button className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-card shadow-soft grid place-items-center hover:bg-primary hover:text-primary-foreground transition-colors border border-border">
-                <Camera className="h-4 w-4" />
-              </button>
             </div>
-            
-            {/* Tên và thông tin kéo xuống dưới khung màu và avatar */}
-            <div className="flex flex-col items-center mb-4">
-              <div className="flex items-center gap-2 justify-center">
-                <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">{fullName}</h1>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">PRO</span>
-              </div>
-              <p className="text-muted-foreground mt-2 whitespace-pre-wrap">{bio}</p>
-              <div className="flex flex-wrap gap-4 mt-3 justify-center text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {email}</span>
-                <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {joinedDate}</span>
-              </div>
-            </div>
-            
-            <Link href="/settings" className="btn-hero inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold mb-8 hover:scale-105 transition-transform">
-              <Edit3 className="h-4 w-4" /> Chỉnh sửa
-            </Link>
 
-            <div className="w-full max-w-lg mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl bg-card/60 py-4 border border-border/50">
-              <div className="text-center cursor-pointer hover:bg-muted/50 rounded-l-2xl transition-colors py-2">
-                <div className="text-2xl font-bold font-display text-primary">12</div>
-                <div className="text-xs text-muted-foreground mt-1 font-medium">Dự án handmade</div>
+            {/* Info */}
+            <div className="flex-1 flex flex-col items-center sm:items-start gap-1 mt-2 sm:mt-0">
+              {/* Name & Badge */}
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl md:text-2xl font-bold font-display text-foreground tracking-tight">{fullName}</h1>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[9px] font-bold text-emerald-700 tracking-wider uppercase">Creator</span>
               </div>
-              <div 
-                className="text-center cursor-pointer hover:bg-muted/50 rounded-r-2xl transition-colors py-2"
-                onClick={() => setIsOrderHistoryOpen(true)}
-              >
-                <div className="text-2xl font-bold font-display text-primary">5</div>
-                <div className="text-xs text-muted-foreground mt-1 font-medium">Sản phẩm đã mua</div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-6 text-xs md:text-sm mt-0.5">
+                <div className="flex flex-col items-center"><span className="font-bold text-foreground text-sm">12</span> <span className="text-muted-foreground text-[10px]">Dự án</span></div>
+                <div className="flex flex-col items-center cursor-pointer" onClick={() => setIsOrderHistoryOpen(true)}>
+                  <span className="font-bold text-foreground text-sm">{orders.length}</span> <span className="text-muted-foreground text-[10px]">Đã mua</span>
+                </div>
+                <div className="flex flex-col items-center"><span className="font-bold text-foreground text-sm">{favoriteIds.length}</span> <span className="text-muted-foreground text-[10px]">Yêu thích</span></div>
+              </div>
+
+              {/* Bio & Email */}
+              <div className="text-xs text-foreground mt-1 text-center sm:text-left">
+                <div className="text-muted-foreground">{email}</div>
+                <div className="mt-1 italic text-muted-foreground whitespace-pre-wrap">{bio}</div>
               </div>
             </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 mt-3">
+            <Link href="/settings" className="flex-1 py-1.5 bg-white border border-gray-200 shadow-sm text-foreground font-semibold text-xs rounded-lg text-center transition-all hover:bg-gray-50 active:scale-95">
+              Chỉnh sửa trang cá nhân
+            </Link>
+            <button 
+              onClick={() => setIsOrderHistoryOpen(true)}
+              className="flex-1 py-1.5 bg-white border border-gray-200 shadow-sm text-foreground font-semibold text-xs rounded-lg text-center transition-all hover:bg-gray-50 active:scale-95"
+            >
+              Lịch sử mua hàng
+            </button>
           </div>
         </div>
 
-        {/* Achievements */}
-        <section className="glass-card rounded-3xl p-6">
-          <h2 className="font-bold font-display mb-4">Thành tựu</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {badges.map((b) => {
-              const Icon = b.icon;
-              return (
-                <div key={b.label} className="flex items-center gap-3 bg-card/70 rounded-xl p-3">
-                  <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${b.color} grid place-items-center text-white shrink-0`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className="text-sm font-medium">{b.label}</span>
-                </div>
-              );
-            })}
+        <section className="max-w-4xl mx-auto mt-4">
+          <div className="relative flex border-b border-border mb-4">
+            <button 
+              onClick={() => setActiveCollectionTab("collection")}
+              className={`flex-1 py-3 text-xs md:text-sm font-bold tracking-wider transition-colors z-10 ${activeCollectionTab === "collection" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              DỰ ÁN CỦA TÔI
+            </button>
+            <button 
+              onClick={() => setActiveCollectionTab("favorites")}
+              className={`flex-1 py-3 text-xs md:text-sm font-bold tracking-wider transition-colors z-10 ${activeCollectionTab === "favorites" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              YÊU THÍCH
+            </button>
+            {/* Sliding Underline */}
+            <div 
+              className="absolute bottom-[0px] left-0 h-[1.5px] w-1/2 bg-foreground transition-transform duration-300 ease-out"
+              style={{ transform: activeCollectionTab === "collection" ? "translateX(0%)" : "translateX(100%)" }}
+            />
           </div>
-        </section>
-
-        {/* Gallery */}
-        <section>
-          <div className="flex items-end justify-between mb-4">
-            <h2 className="text-2xl font-bold font-display">Bộ sưu tập của tôi</h2>
-            <div className="flex gap-1 p-1 bg-card/60 rounded-xl text-sm">
-              <button 
-                onClick={() => setActiveCollectionTab('completed')}
-                className={`px-3 py-1.5 rounded-lg transition-colors ${activeCollectionTab === 'completed' ? 'btn-hero text-white' : 'text-muted-foreground hover:bg-muted'}`}
+          
+          <AnimatePresence mode="wait">
+            {activeCollectionTab === "collection" && (
+              <motion.div 
+                key="collection"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-3"
               >
-                Đã hoàn thành
-              </button>
-              <button 
-                onClick={() => setActiveCollectionTab('saved')}
-                className={`px-3 py-1.5 rounded-lg transition-colors ${activeCollectionTab === 'saved' ? 'btn-hero text-white' : 'text-muted-foreground hover:bg-muted'}`}
-              >
-                Đã lưu
-              </button>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {activeCollectionTab === 'completed' ? gallery.map((g) => (
-              <div key={g.title} className="glass-card rounded-2xl overflow-hidden group cursor-pointer">
-                <div className="aspect-square relative" style={{ background: `linear-gradient(135deg, ${g.color}, oklch(0.92 0.06 85))` }}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="p-3">
-                  <div className="font-medium text-sm truncate">{g.title}</div>
-                </div>
-              </div>
-            )) : savedItems.map((item, index) => {
-              const pastelColors = ["oklch(0.85 0.14 145)", "oklch(0.82 0.16 25)", "oklch(0.86 0.15 85)", "oklch(0.83 0.16 265)", "oklch(0.84 0.15 45)"];
-              const randomColor = pastelColors[index % pastelColors.length];
-              return (
-                <div 
-                  key={item.id} 
-                  onClick={() => router.push(`/shop/22222222-2222-2222-2222-222222222222/greeting?from=3d&modelUrl=${encodeURIComponent(item.modelUrl)}&customName=${encodeURIComponent(item.title)}`)}
-                  className="glass-card rounded-2xl overflow-hidden group cursor-pointer"
-                >
-                  <div className="aspect-square relative flex items-center justify-center overflow-hidden" style={{ background: `linear-gradient(135deg, ${randomColor}, oklch(0.92 0.06 85))` }}>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
-                    {/* @ts-ignore */}
-                    <model-viewer
-                      src={item.modelUrl}
-                      auto-rotate
-                      camera-controls
-                      shadow-intensity="1"
-                      style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
-                      className="relative z-0 group-hover:scale-110 transition-transform duration-500"
-                    ></model-viewer>
+                {collectionData.map((item) => (
+                  <div key={item.title} className="flex flex-col group cursor-pointer">
+                    <div className={`aspect-square rounded-lg bg-gradient-to-br ${item.color} shadow-sm overflow-hidden relative mb-1.5 transition-transform group-hover:scale-95`}>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-foreground text-xs md:text-sm line-clamp-1 group-hover:text-primary transition-colors">{item.title}</h3>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <span className="font-bold text-primary text-[10px] md:text-xs">{formatPrice(item.price)}</span>
+                        <span className="text-[10px] flex items-center gap-1 text-muted-foreground">
+                          <Clock className="w-2.5 h-2.5"/> {item.time}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-3">
-                    <div className="font-medium text-sm truncate">{item.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">Bản nháp</div>
-                  </div>
-                </div>
-              );
-            })}
-            {activeCollectionTab === 'saved' && savedItems.length === 0 && (
-              <div className="col-span-2 md:col-span-3 text-center py-12 text-muted-foreground">
-                Bạn chưa lưu thiết kế nào.
-              </div>
+                ))}
+              </motion.div>
             )}
-          </div>
+
+            {activeCollectionTab === "favorites" && (
+              <motion.div 
+                key="favorites"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4"
+              >
+                {favoriteProducts.length > 0 ? favoriteProducts.map((product, index) => (
+                  <TiltCard
+                    key={product.id}
+                    onClick={() => router.push(`/shop/${product.id}`)}
+                    className="flex flex-col group cursor-pointer"
+                  >
+                    <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-2 shadow-sm transition-transform group-hover:scale-95">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute top-2 left-2 z-20 glass-strong px-2 py-1 rounded-lg text-[10px] font-semibold text-foreground">
+                        {product.category}
+                      </div>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(product.id);
+                        }}
+                        className="absolute top-2 right-2 z-20 p-2 rounded-full glass-strong hover:bg-white/80 transition-colors"
+                      >
+                        <Heart
+                          className={`h-4 w-4 ${isFavorite(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+                        />
+                      </button>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col">
+                      <h3 className="font-bold text-foreground text-sm md:text-base line-clamp-1 group-hover:text-primary transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="font-bold text-primary text-sm">{formatPrice(product.price)}</span>
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          {product.rating}
+                        </span>
+                      </div>
+                    </div>
+                  </TiltCard>
+                )) : (
+                  <div className="col-span-2 md:col-span-3 text-center py-12 text-muted-foreground">
+                    Bạn chưa có sản phẩm yêu thích nào.
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </section>
 
         {/* Order History Modal */}
@@ -380,12 +433,24 @@ export default function ProfilePage() {
                           </button>
                         )}
                         {["Delivered", "Cancelled"].includes(order.orderStatus) && order.items?.[0] && (
-                          <Link 
-                            href={`/shop/${order.items[0].productId}`}
-                            className="flex-1 sm:flex-none btn-hero text-white px-6 py-2 rounded-lg font-medium text-sm transition-transform hover:scale-105 shadow-coral-glow text-center"
-                          >
-                            Mua lại
-                          </Link>
+                          <>
+                            {order.orderStatus === "Delivered" && (
+                              <button 
+                                onClick={() => {
+                                  router.push(`/shop/${order.items[0].productId}?review=true#reviews`);
+                                }}
+                                className="flex-1 sm:flex-none border border-black text-black bg-white hover:bg-gray-50 px-6 py-2 rounded-lg font-medium text-sm transition-colors text-center"
+                              >
+                                Đánh giá
+                              </button>
+                            )}
+                            <Link 
+                              href={`/shop/${order.items[0].productId}`}
+                              className="flex-1 sm:flex-none btn-hero text-white px-6 py-2 rounded-lg font-medium text-sm transition-transform hover:scale-105 shadow-coral-glow text-center"
+                            >
+                              Mua lại
+                            </Link>
+                          </>
                         )}
                       </div>
                     </div>

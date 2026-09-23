@@ -5,6 +5,7 @@ using CraftVision.Domain.Enums;
 using CraftVision.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -14,9 +15,11 @@ using Pgvector;
 namespace CraftVision.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923062356_AddManifestWishes")]
+    partial class AddManifestWishes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1291,46 +1294,6 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("product_images", (string)null);
                 });
 
-            modelBuilder.Entity("CraftVision.Domain.Entities.Review", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("comment");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("product_id");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer")
-                        .HasColumnName("rating");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_reviews");
-
-                    b.HasIndex("ProductId")
-                        .HasDatabaseName("ix_reviews_product_id");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_reviews_user_id");
-
-                    b.ToTable("reviews", (string)null);
-                });
-
             modelBuilder.Entity("CraftVision.Domain.Entities.ScanHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1864,27 +1827,6 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("File");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("CraftVision.Domain.Entities.Review", b =>
-                {
-                    b.HasOne("CraftVision.Domain.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_reviews_products_product_id");
-
-                    b.HasOne("CraftVision.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_reviews_users_user_id");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.ScanHistory", b =>

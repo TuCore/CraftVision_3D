@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { toast } from "sonner";
+import { useProductReviews } from "@/hooks/useReviews";
 import React from "react";
 import {
   Dialog,
@@ -19,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ReviewList } from "@/components/ReviewList";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -31,6 +33,14 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
+
+  // Fetch reviews for rating
+  const { data: reviews } = useProductReviews(id);
+  const averageRating = useMemo(() => {
+    if (!reviews || reviews.length === 0) return 0;
+    const total = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return (total / reviews.length).toFixed(1);
+  }, [reviews]);
 
   useEffect(() => {
     // Load model-viewer script dynamically for the demo
@@ -166,8 +176,10 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               <div className="flex items-center text-amber-400">
                 <Star className="h-4 w-4 fill-current" />
               </div>
-              <span className="font-semibold text-foreground">{product.rating}</span>
-              <span className="text-muted-foreground text-sm">(128 đánh giá)</span>
+              <span className="font-semibold text-foreground">{averageRating > 0 ? averageRating : 'Chưa có đánh giá'}</span>
+              {reviews && reviews.length > 0 && (
+                <span className="text-muted-foreground text-sm">({reviews.length} đánh giá)</span>
+              )}
             </div>
 
             <div className="text-4xl font-bold font-display gradient-text mb-6">
@@ -240,39 +252,10 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
-        {/* Crafting Journey Timeline (Scroll Storytelling) */}
-        <section className="py-12 md:py-20 relative">
-          <div className="absolute top-0 bottom-0 left-[27px] md:left-1/2 w-1 bg-border -translate-x-1/2 rounded-full opacity-50" />
-          
-          <div className="text-center mb-16 relative z-10 animate-fade-up">
-            <h2 className="text-3xl md:text-4xl font-extrabold font-display gradient-text">Hành trình chế tác</h2>
-            <p className="text-muted-foreground mt-3 text-sm md:text-base">Tận tâm trong từng quá trình thực hiện.</p>
-          </div>
-
-          <div className="space-y-12 relative z-10">
-            {[
-              { step: 1, title: "Chuẩn bị nguyên liệu", desc: <>Nhận hộp <span className="text-[#FF37C0]/60">CraftVision</span>, kiểm tra hạt cườm, charm và dây xem đã đủ chưa. Sắp xếp ra khay gỗ để dễ lấy.</> },
-              { step: 2, title: "Bắt đầu xâu vòng", desc: "Xâu từng hạt theo pattern màu sắc bạn yêu thích. Nhớ đan xen charm ở giữa để tạo điểm nhấn cá nhân nhé!" },
-              { step: 3, title: "Thắt nút cố định", desc: "Sử dụng nút thắt đôi hoặc ba vòng để đảm bảo dây không bị tuột. Nhỏ thêm một giọt keo tàng hình nếu cần." },
-              { step: 4, title: "Hoàn thiện & Tận hưởng", desc: "Đeo thử kiệt tác lên tay, chụp một bức ảnh check-in hoặc đóng hộp cẩn thận để làm quà tặng người thương." }
-            ].map((journey, idx) => (
-              <div key={idx} className="flex flex-col md:flex-row items-center gap-6 md:gap-12 animate-fade-up" style={{ animationDelay: `${idx * 0.15}s` }}>
-                <div className={`md:w-1/2 flex w-full pl-16 md:pl-0 ${idx % 2 === 0 ? "md:justify-end" : "md:order-last md:justify-start"}`}>
-                  <div className="glass-card p-6 md:p-8 rounded-3xl w-full md:w-4/5 shadow-soft hover:shadow-coral-glow transition-all duration-300 hover:-translate-y-1 group">
-                    <h3 className="font-bold text-lg mb-3 text-foreground group-hover:text-primary transition-colors">{journey.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{journey.desc}</p>
-                  </div>
-                </div>
-                
-                <div className="w-14 h-14 rounded-full btn-hero flex items-center justify-center font-bold text-xl shadow-coral-glow z-10 flex-shrink-0 md:order-none absolute left-0 md:relative md:left-auto">
-                  {journey.step}
-                </div>
-                
-                <div className={`hidden md:block md:w-1/2 ${idx % 2 === 0 ? "md:order-last" : ""}`} />
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Product Reviews */}
+        <div id="reviews">
+          <ReviewList productId={id} productName={product.name} />
+        </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
