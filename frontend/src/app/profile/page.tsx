@@ -245,19 +245,19 @@ export default function ProfilePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.2 }}
-                className="grid grid-cols-4 md:grid-cols-5 gap-2 md:gap-3"
+                className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6"
               >
                 {collectionData.map((item) => (
                   <div key={item.title} className="flex flex-col group cursor-pointer">
-                    <div className={`aspect-square rounded-lg bg-gradient-to-br ${item.color} shadow-sm overflow-hidden relative mb-1.5 transition-transform group-hover:scale-95`}>
+                    <div className={`aspect-square rounded-2xl bg-gradient-to-br ${item.color} shadow-sm overflow-hidden relative mb-3 transition-transform group-hover:scale-95`}>
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-foreground text-xs md:text-sm line-clamp-1 group-hover:text-primary transition-colors">{item.title}</h3>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <span className="font-bold text-primary text-[10px] md:text-xs">{formatPrice(item.price)}</span>
-                        <span className="text-[10px] flex items-center gap-1 text-muted-foreground">
-                          <Clock className="w-2.5 h-2.5"/> {item.time}
+                      <h3 className="font-bold text-foreground text-sm md:text-base line-clamp-1 group-hover:text-primary transition-colors">{item.title}</h3>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="font-bold text-primary text-xs md:text-sm">{formatPrice(item.price)}</span>
+                        <span className="text-xs flex items-center gap-1 text-muted-foreground">
+                          <Clock className="w-3 h-3"/> {item.time}
                         </span>
                       </div>
                     </div>
