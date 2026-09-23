@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { Sparkles, MessageCircle, Heart, Gift, Clock, TrendingUp, ArrowRight, Palette, Scissors, Package, Box } from "lucide-react";
+import { Sparkles, MessageCircle, Heart, ArrowRight, Box } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Studio3DSection } from "@/components/studio/Studio3DSection";
 
 export default function HomePage() {
   const [firstName, setFirstName] = useState("bạn");
@@ -47,9 +48,16 @@ export default function HomePage() {
                 <Link href="/chat" className="btn-hero inline-flex items-center gap-2 rounded-2xl px-7 py-4 font-semibold shadow-coral-glow">
                   <MessageCircle className="h-5 w-5" /> Trò chuyện với AI
                 </Link>
-                <Link href="/chat?mode=three-d" className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors px-2 py-4">
+                <a 
+                  href="#studio-3d" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('studio-3d')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors px-2 py-4 cursor-pointer"
+                >
                   Mở Studio 3D <ArrowRight className="h-4 w-4" />
-                </Link>
+                </a>
               </div>
             </div>
 
@@ -92,33 +100,23 @@ export default function HomePage() {
           </div>
         </section>
 
-
-        {/* Ideas */}
-        <section>
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold font-display">Ý tưởng cho bạn</h2>
-              <p className="text-sm text-muted-foreground">Gợi ý dựa trên sở thích của bạn.</p>
+        {/* 3 Thẻ Tagline bên dưới */}
+        <div className="grid grid-cols-3 gap-4 lg:gap-8 max-w-4xl mx-auto -mt-4 relative z-20">
+          {[
+            { value: "3", label: "Dự án đang làm", icon: Box },
+            { value: "12", label: "Đã hoàn thành", icon: Heart },
+            { value: "48h", label: "Giờ sáng tạo", icon: Sparkles },
+          ].map((tag, idx) => (
+            <div key={idx} className="glass-card rounded-2xl p-6 text-left relative overflow-hidden group hover:shadow-soft transition-all border border-border/50">
+              <tag.icon className="h-5 w-5 text-muted-foreground mb-3" />
+              <div className="text-3xl font-bold font-display text-foreground group-hover:text-primary transition-colors">{tag.value}</div>
+              <div className="text-sm text-muted-foreground mt-1">{tag.label}</div>
             </div>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {ideas.map((i) => {
-              const Icon = i.icon;
-              return (
-                <div key={i.title} className="glass-card rounded-2xl p-5 hover:shadow-soft transition-all hover:-translate-y-1">
-                  <div className="h-11 w-11 rounded-xl btn-hero grid place-items-center">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="mt-4 font-semibold">{i.title}</h3>
-                  <div className="mt-2 flex items-center justify-between text-xs">
-                    <span className="px-2 py-0.5 rounded-full bg-white/80 text-muted-foreground">{i.tag}</span>
-                    <span className="font-semibold text-primary">{i.price}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+          ))}
+        </div>
+
+        {/* Màn hình Gen AI 3D (Studio 3D) thay thế cho phần Dự án & Ý tưởng */}
+        <Studio3DSection id="studio-3d" className="pt-2 pb-6" />
       </div>
     </AppShell>
   );
