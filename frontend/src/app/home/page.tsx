@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { Sparkles, MessageCircle, Heart, ArrowRight, Box } from "lucide-react";
+import { Sparkles, MessageCircle, Heart, ArrowRight, Box, Palette, Scissors, Package, Gift } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Studio3DSection } from "@/components/studio/Studio3DSection";
 
