@@ -174,36 +174,9 @@ export default function ChatPage() {
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/40 glass-strong rounded-t-3xl relative z-10">
           <div className="relative">
-            <button 
-              ref={buttonRef}
-              onClick={() => setIsMenuOpen(!isMenuOpen)} 
-              className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold hover:bg-muted transition-colors"
-            >
+            <div className="flex items-center gap-1.5 px-2 py-1.5 text-[15px] font-semibold">
               <span>{modes.find(m => m.id === chatMode)?.title}</span>
-              <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
-            
-            {isMenuOpen && (
-              <div ref={menuRef} className="absolute z-50 left-0 top-full mt-2 w-72 bg-card/95 backdrop-blur-md rounded-2xl shadow-xl border border-border p-2">
-                {modes.map(m => (
-                  <button 
-                    key={m.id}
-                    onClick={() => { setChatMode(m.id as any); setIsMenuOpen(false); }}
-                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-muted transition-colors"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                      <m.icon className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium">{m.title}</div>
-                      <div className="truncate text-xs text-muted-foreground">{m.subtitle}</div>
-                    </div>
-                    {m.badge && m.id !== chatMode && <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">{m.badge}</span>}
-                    {m.id === chatMode && <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>}
-                  </button>
-                ))}
-              </div>
-            )}
+            </div>
           </div>
 
           <div className="relative">
