@@ -181,6 +181,32 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {!isDemo ? (
               <>
                 <Link
+                  href="/cart"
+                  onClick={() => handleNavClick("cart")}
+                  className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
+                    isTransparentNav
+                      ? active === "cart" 
+                        ? "bg-white/20 text-white shadow-sm" 
+                        : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                      : active === "cart" 
+                        ? "bg-card/80 text-primary shadow-soft" 
+                        : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
+                  } ${bumpingKey === "cart" || isBumping ? 'animate-cart-bump' : ''}`}
+                  title="Giỏ hàng"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white shadow-sm">
+                      {wishlistCount}
+                    </span>
+                  )}
+                  {active === "cart" && (
+                    <span className={`absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full ${
+                      isTransparentNav ? 'bg-amber-300' : 'bg-[color:var(--coral)]'
+                    }`} />
+                  )}
+                </Link>
+                <Link
                   href="/settings"
                   onClick={() => handleNavClick("settings")}
                   className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
