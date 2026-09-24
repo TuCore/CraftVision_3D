@@ -67,6 +67,12 @@ export const useWishlistStore = create<WishlistStore>()(
     {
       name: 'craftvision-wishlist',
       version: 1,
+      migrate: (persistedState: any) => {
+        if (!persistedState || !Array.isArray(persistedState.items)) {
+          return { items: [] };
+        }
+        return persistedState as WishlistStore;
+      },
     }
   )
 );
