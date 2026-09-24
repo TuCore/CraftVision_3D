@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart, Menu, X } from "lucide-react";
 import { useState, useEffect, useRef, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 
@@ -56,9 +57,9 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const nav = [
     { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
+    { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
-    { to: "/cart", label: "Giỏ hàng", icon: ShoppingCart, key: "cart" },
   ] as const;
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -143,7 +144,6 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {nav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
-              const isCart = item.key === "cart";
               return (
                 <Link
                   key={item.key}
