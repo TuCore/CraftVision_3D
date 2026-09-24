@@ -21,6 +21,7 @@ public interface IUnitOfWork : IDisposable
     IGiftAiProfileRepository GiftAiProfiles { get; }
     IScanHistoryRepository ScanHistories { get; }
     IMessageTemplateRepository MessageTemplates { get; }
+    IReviewRepository Reviews { get; }
 
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);

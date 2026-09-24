@@ -29,6 +29,7 @@ namespace CraftVision.Infrastructure
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IGiftAiProfileRepository, CraftVision.Infrastructure.Repositories.GiftAiProfileRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IScanHistoryRepository, CraftVision.Infrastructure.Repositories.ScanHistoryRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IMessageTemplateRepository, CraftVision.Infrastructure.Repositories.MessageTemplateRepository>();
+            services.AddScoped<CraftVision.Application.Interfaces.Repositories.IReviewRepository, CraftVision.Infrastructure.Repositories.ReviewRepository>();
 
             services.AddHttpContextAccessor();
             services.AddScoped<CraftVision.Application.Interfaces.Providers.IObjectStorageService, CraftVision.Infrastructure.Providers.CloudinaryObjectStorageService>();

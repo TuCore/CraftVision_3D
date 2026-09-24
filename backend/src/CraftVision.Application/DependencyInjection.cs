@@ -27,6 +27,7 @@ namespace CraftVision.Application
             services.AddScoped<INfcTagService, NfcTagService>();
             services.AddScoped<IMessageTemplateService, MessageTemplateService>();
             services.AddScoped<IAiService, AiService>();
+            services.AddScoped<CraftVision.Application.Interfaces.Services.IReviewService, CraftVision.Application.Services.ReviewService>();
 
             // Ai Greeting Services
             services.AddScoped<CraftVision.Application.Interfaces.AiGreeting.IGreetingRequestValidator, CraftVision.Application.Services.AiGreeting.GreetingRequestValidator>();
