@@ -16,7 +16,14 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const router = useRouter();
   const [isBumping, setIsBumping] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
+    if (typeof window !== "undefined") {
+      const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
+      if (isDemoMode) return false;
+      return !localStorage.getItem("token");
+    }
+    return true;
+  });
   const [bumpingKey, setBumpingKey] = useState<string | null>(null);
   const prevCount = useRef(wishlistCount);
 
@@ -81,6 +88,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const isHomePage = pathname === "/home" || active === "home";
   const isTransparentNav = isHomePage && !isScrolled;
 
+  // Avoid showing full screen loader if we are just hydrating with a token
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
