@@ -144,7 +144,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {nav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
-              const isCart = item.key === "cart";
+              const isCart = (item.key as string) === "cart";
               return (
                 <Link
                   key={item.key}
@@ -259,7 +259,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
               {nav.map((item) => {
                 const Icon = item.icon;
                 const isActive = active === item.key;
-                const isCart = item.key === "cart";
+                const isCart = (item.key as string) === "cart";
                 return (
                   <Link
                     key={item.key}
