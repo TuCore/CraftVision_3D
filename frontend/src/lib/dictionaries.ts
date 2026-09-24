@@ -1,9 +1,8 @@
 export const dictionaries = {
   vi: {
-    // Navigation (AppShell)
     "nav.home": "Trang chủ",
     "nav.shop": "Cửa hàng",
-    "nav.ai": "Trợ lý AI",
+    "nav.ai": "Vision plus",
     "nav.profile": "Hồ sơ",
     "nav.cart": "Giỏ hàng",
     "nav.logout": "Đăng xuất",
@@ -32,7 +31,7 @@ export const dictionaries = {
     // Navigation (AppShell)
     "nav.home": "Home",
     "nav.shop": "Shop",
-    "nav.ai": "AI Assistant",
+    "nav.ai": "Vision plus",
     "nav.profile": "Profile",
     "nav.cart": "Cart",
     "nav.logout": "Logout",
