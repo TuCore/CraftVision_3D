@@ -23,7 +23,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     if (typeof window !== "undefined") {
       const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
       setIsDemo(isDemoMode);
-      
+
       if (!isDemoMode) {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -52,7 +52,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     setBumpingKey(key);
     setTimeout(() => setBumpingKey(null), 400);
   };
-  
+
   const nav = [
     { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
@@ -85,9 +85,9 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex gap-2">
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"0ms"}}></div>
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"150ms"}}></div>
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"300ms"}}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }}></div>
         </div>
       </div>
     );
@@ -105,208 +105,197 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
       )}
 
       {!(pathname?.startsWith('/admin')) && (
-      <header 
-        className={`fixed top-0 left-0 right-0 z-[1000] w-full transition-all duration-300 ease-in-out ${
-          isHomePage
-            ? isScrolled 
-              ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70' 
-              : 'bg-transparent py-5 px-4 sm:px-8 border-b border-transparent'
-            : isScrolled
-              ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70'
-              : 'bg-card/85 backdrop-blur-md border-b border-border shadow-soft py-3.5 px-4 sm:px-8'
-        }`}
-      >
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg group">
-            <img 
-              src="/image/logoweb.jpg" 
-              alt="CraftVision3D Logo" 
-              className={`w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border transition-all duration-300 ${
-                isTransparentNav ? 'border-white/40' : 'border-border'
-              }`} 
-            />
-            <span className="font-display transition-colors duration-300">
-              {isTransparentNav ? (
-                <span className="text-white drop-shadow-sm font-extrabold">
-                  <span className="text-amber-200">Craft</span>Vision
-                  <span className="text-rose-300">3D</span>
-                </span>
-              ) : (
-                <>
-                  <span className="gradient-text">Craft</span>Vision
-                  <span className="text-[color:var(--coral)]">3D</span>
-                </>
-              )}
-            </span>
-          </Link>
-          {!isDemo && (
-          <nav className="hidden md:flex items-center gap-1.5">
-            {nav.map((item) => {
-              const Icon = item.icon;
-              const isActive = active === item.key;
-              const isCart = item.key === "cart";
-              return (
-                <Link
-                  key={item.key}
-                  href={item.to}
-                  onClick={() => handleNavClick(item.key)}
-                  className={`relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-300 ${
-                    isTransparentNav
-                      ? isActive
-                        ? "bg-white/20 text-white backdrop-blur-sm shadow-sm font-semibold"
-                        : "text-white/80 hover:text-white hover:bg-white/10"
-                      : isActive
-                        ? "bg-card/80 text-primary shadow-soft font-semibold"
-                        : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                  } ${(isCart && isBumping) || bumpingKey === item.key ? 'animate-cart-bump' : ''}`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                  {isCart && wishlistCount > 0 && (
-                    <span className="ml-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                      {wishlistCount}
-                    </span>
-                  )}
-                  {isActive && (
-                    <span className={`absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full transition-colors ${
-                      isTransparentNav ? 'bg-amber-300' : 'bg-[color:var(--coral)]'
-                    }`} />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-          )}
-          <div className="flex items-center gap-2">
-            {!isDemo ? (
-              <>
-                <Link
-                  href="/settings"
-                  onClick={() => handleNavClick("settings")}
-                  className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
-                    isTransparentNav
-                      ? active === "settings" 
-                        ? "bg-white/20 text-white shadow-sm" 
-                        : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
-                      : active === "settings" 
-                        ? "bg-card/80 text-primary shadow-soft" 
-                        : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
-                  } ${bumpingKey === "settings" ? 'animate-cart-bump' : ''}`}
-                  title="Cài đặt"
-                >
-                  <Settings className="h-5 w-5" />
-                  {active === "settings" && (
-                    <span className={`absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full ${
-                      isTransparentNav ? 'bg-amber-300' : 'bg-[color:var(--coral)]'
-                    }`} />
-                  )}
-                </Link>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("userId");
-                    localStorage.removeItem("email");
-                    localStorage.removeItem("fullName");
-                    localStorage.removeItem("createdAt");
-                    router.replace("/auth");
-                  }}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
-                    isTransparentNav
-                      ? "bg-white/10 hover:bg-white/20 text-white border border-white/20"
-                      : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
+        <header
+          className={`fixed top-0 left-0 right-0 z-[1000] w-full transition-all duration-300 ease-in-out ${isHomePage
+              ? isScrolled
+                ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70'
+                : 'bg-transparent py-5 px-4 sm:px-8 border-b border-transparent'
+              : isScrolled
+                ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70'
+                : 'bg-card/85 backdrop-blur-md border-b border-border shadow-soft py-3.5 px-4 sm:px-8'
+            }`}
+        >
+          <div className="mx-auto max-w-7xl flex items-center justify-between">
+            <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg group">
+              <img
+                src="/image/logoweb.jpg"
+                alt="CraftVision3D Logo"
+                className={`w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border transition-all duration-300 ${isTransparentNav ? 'border-white/40' : 'border-border'
                   }`}
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t("nav.logout")}</span>
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/auth"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:opacity-90"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Thoát Demo</span>
-              </Link>
-            )}
-
-            {/* Mobile Menu Toggle Button */}
+              />
+              <span className="font-display transition-colors duration-300">
+                {isTransparentNav ? (
+                  <span className="text-white drop-shadow-sm font-extrabold">
+                    <span className="text-amber-200">Craft</span>Vision
+                    <span className="text-rose-300">3D</span>
+                  </span>
+                ) : (
+                  <>
+                    <span className="gradient-text">Craft</span>Vision
+                    <span className="text-[color:var(--coral)]">3D</span>
+                  </>
+                )}
+              </span>
+            </Link>
             {!isDemo && (
-              <button
-                type="button"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`md:hidden inline-flex items-center justify-center p-2 rounded-xl transition-all duration-300 ${
-                  isTransparentNav
-                    ? "text-white bg-white/10 hover:bg-white/20 border border-white/20"
-                    : "text-foreground bg-card/70 hover:bg-card border border-border"
-                }`}
-                aria-label="Menu"
-              >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
+              <nav className="hidden md:flex items-center gap-1.5">
+                {nav.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = active === item.key;
+                  const isCart = item.key === "cart";
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.to}
+                      onClick={() => handleNavClick(item.key)}
+                      className={`relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-300 ${isTransparentNav
+                          ? isActive
+                            ? "bg-white/20 text-white backdrop-blur-sm shadow-sm font-semibold"
+                            : "text-white/80 hover:text-white hover:bg-white/10"
+                          : isActive
+                            ? "bg-card/80 text-primary shadow-soft font-semibold"
+                            : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                        } ${(isCart && isBumping) || bumpingKey === item.key ? 'animate-cart-bump' : ''}`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                      {isCart && wishlistCount > 0 && (
+                        <span className="ml-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                          {wishlistCount}
+                        </span>
+                      )}
+                      {isActive && (
+                        <span className={`absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full transition-colors ${isTransparentNav ? 'bg-amber-300' : 'bg-[color:var(--coral)]'
+                          }`} />
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
             )}
-          </div>
-        </div>
-
-        {/* Mobile Dropdown Menu */}
-        {isMobileMenuOpen && !isDemo && (
-          <div className="mx-auto max-w-7xl md:hidden mt-3 pt-3 border-t border-white/15 animate-fade-down">
-            <div className={`rounded-2xl p-2.5 flex flex-col gap-1 shadow-2xl backdrop-blur-xl border ${
-              isTransparentNav
-                ? "bg-[#250d1e]/90 border-white/20 text-white"
-                : "bg-white/95 dark:bg-card/95 border-border text-foreground"
-            }`}>
-              {nav.map((item) => {
-                const Icon = item.icon;
-                const isActive = active === item.key;
-                const isCart = item.key === "cart";
-                return (
+            <div className="flex items-center gap-2">
+              {!isDemo ? (
+                <>
                   <Link
-                    key={item.key}
-                    href={item.to}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      handleNavClick(item.key);
-                    }}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      isActive
-                        ? isTransparentNav
-                          ? "bg-white/20 text-white font-bold"
-                          : "bg-primary/10 text-primary font-bold"
-                        : isTransparentNav
-                          ? "text-white/80 hover:bg-white/10 hover:text-white"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
+                    href="/settings"
+                    onClick={() => handleNavClick("settings")}
+                    className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${isTransparentNav
+                        ? active === "settings"
+                          ? "bg-white/20 text-white shadow-sm"
+                          : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                        : active === "settings"
+                          ? "bg-card/80 text-primary shadow-soft"
+                          : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
+                      } ${bumpingKey === "settings" ? 'animate-cart-bump' : ''}`}
+                    title="Cài đặt"
                   >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                    {isCart && wishlistCount > 0 && (
-                      <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs text-white font-bold">
-                        {wishlistCount}
-                      </span>
+                    <Settings className="h-5 w-5" />
+                    {active === "settings" && (
+                      <span className={`absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full ${isTransparentNav ? 'bg-amber-300' : 'bg-[color:var(--coral)]'
+                        }`} />
                     )}
                   </Link>
-                );
-              })}
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      localStorage.removeItem("userId");
+                      localStorage.removeItem("email");
+                      localStorage.removeItem("fullName");
+                      localStorage.removeItem("createdAt");
+                      router.replace("/auth");
+                    }}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${isTransparentNav
+                        ? "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                        : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
+                      }`}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t("nav.logout")}</span>
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:opacity-90"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Thoát Demo</span>
+                </Link>
+              )}
+
+              {/* Mobile Menu Toggle Button */}
+              {!isDemo && (
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className={`md:hidden inline-flex items-center justify-center p-2 rounded-xl transition-all duration-300 ${isTransparentNav
+                      ? "text-white bg-white/10 hover:bg-white/20 border border-white/20"
+                      : "text-foreground bg-card/70 hover:bg-card border border-border"
+                    }`}
+                  aria-label="Menu"
+                >
+                  {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+              )}
             </div>
           </div>
-        )}
-      </header>
+
+          {/* Mobile Dropdown Menu */}
+          {isMobileMenuOpen && !isDemo && (
+            <div className="mx-auto max-w-7xl md:hidden mt-3 pt-3 border-t border-white/15 animate-fade-down">
+              <div className={`rounded-2xl p-2.5 flex flex-col gap-1 shadow-2xl backdrop-blur-xl border ${isTransparentNav
+                  ? "bg-[#250d1e]/90 border-white/20 text-white"
+                  : "bg-white/95 dark:bg-card/95 border-border text-foreground"
+                }`}>
+                {nav.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = active === item.key;
+                  const isCart = item.key === "cart";
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.to}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleNavClick(item.key);
+                      }}
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                          ? isTransparentNav
+                            ? "bg-white/20 text-white font-bold"
+                            : "bg-primary/10 text-primary font-bold"
+                          : isTransparentNav
+                            ? "text-white/80 hover:bg-white/10 hover:text-white"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                      {isCart && wishlistCount > 0 && (
+                        <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs text-white font-bold">
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </header>
       )}
 
-      <main 
-        key={pathname} 
-        className={`relative z-10 animate-fade-in-page ${
-          isHomePage 
-            ? 'p-0 m-0' 
-            : pathname.startsWith('/chat') 
-              ? 'px-4 pb-4 md:pb-6 pt-24 md:pt-28 max-w-7xl mx-auto' 
+      <main
+        key={pathname}
+        className={`relative z-10 animate-fade-in-page ${isHomePage
+            ? 'p-0 m-0'
+            : pathname.startsWith('/chat')
+              ? 'px-4 pb-4 md:pb-6 pt-24 md:pt-28 max-w-7xl mx-auto'
               : 'px-4 pb-8 md:pb-12 pt-24 md:pt-28 max-w-7xl mx-auto'
-        }`}
+          }`}
       >
         {children}
       </main>
-      
+
     </div>
   );
 }
