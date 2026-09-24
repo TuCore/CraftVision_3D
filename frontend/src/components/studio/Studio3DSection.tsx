@@ -3,17 +3,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
-  ChevronDown, 
   History, 
   Upload, 
   X, 
   RotateCw, 
   Sliders, 
   Download, 
-  Sparkles, 
-  Box,
-  MessageSquare,
-  Check
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,12 +39,10 @@ export function Studio3DSection({ id = "studio-3d", className = "" }: Studio3DSe
   const [currentModel, setCurrentModel] = useState("https://modelviewer.dev/shared-assets/models/Astronaut.glb");
   const [isNamePopupOpen, setIsNamePopupOpen] = useState(false);
   const [customName, setCustomName] = useState("");
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAutoRotate, setIsAutoRotate] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,9 +57,6 @@ export function Studio3DSection({ id = "studio-3d", className = "" }: Studio3DSe
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
       if (historyRef.current && !historyRef.current.contains(event.target as Node)) {
         setIsHistoryOpen(false);
       }
@@ -130,49 +121,9 @@ export function Studio3DSection({ id = "studio-3d", className = "" }: Studio3DSe
       <div className="glass-card bg-card/80 backdrop-blur-md rounded-3xl overflow-hidden border border-border shadow-xl">
         {/* Top Header Bar */}
         <div className="flex items-center justify-between border-b border-border/80 bg-card/60 px-6 py-4">
-          {/* Left: Mode Title & Dropdown */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="group flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-base font-bold text-foreground hover:bg-muted/70 transition-colors"
-            >
-              <span>Studio 3D</span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-y-0.5" />
-            </button>
-
-            {isMenuOpen && (
-              <div className="absolute z-50 left-0 top-full mt-2 w-72 bg-card/95 backdrop-blur-md rounded-2xl shadow-xl border border-border p-2 animate-in fade-in zoom-in-95">
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left bg-muted/60 transition-colors"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Box className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-foreground">Studio 3D</div>
-                    <div className="truncate text-xs text-muted-foreground">Tạo mô hình 3D từ ảnh & văn bản</div>
-                  </div>
-                  <Check className="h-4 w-4 text-primary" />
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    router.push("/chat");
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-muted/50 transition-colors mt-1"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    <MessageSquare className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-foreground">Vision Plus</div>
-                    <div className="truncate text-xs text-muted-foreground">Chat & phân tích hình ảnh</div>
-                  </div>
-                </button>
-              </div>
-            )}
+          {/* Left: Mode Title */}
+          <div className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-base font-bold text-foreground">
+            <span>Studio 3D</span>
           </div>
 
           {/* Right: History Action */}
