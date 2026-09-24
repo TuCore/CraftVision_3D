@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart, Sparkles } from "lucide-react";
+import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart, Menu, X, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { useWishlistStore } from "@/store/useWishlistStore";
@@ -62,6 +62,25 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
   ] as const;
 
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  const isHomePage = pathname === "/home" || active === "home";
+  const isTransparentNav = isHomePage && !isScrolled;
+
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -76,47 +95,83 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
   return (
     <div className="relative min-h-screen overflow-clip">
-      <div className="blob animate-pulse-glow" style={{ top: -120, left: -100, width: 420, height: 420, background: "var(--color-primary)" }} />
-      <div className="blob animate-pulse-glow" style={{ top: "40%", right: -140, width: 500, height: 500, background: "var(--color-secondary)", animationDelay: "1s" }} />
-      <div className="blob animate-pulse-glow" style={{ bottom: -120, left: "30%", width: 460, height: 460, background: "var(--color-coral)", animationDelay: "2s" }} />
+      {/* Background ambient blobs (only on non-home pages or subdued on home) */}
+      {!isHomePage && (
+        <>
+          <div className="blob animate-pulse-glow" style={{ top: -120, left: -100, width: 420, height: 420, background: "var(--color-primary)" }} />
+          <div className="blob animate-pulse-glow" style={{ top: "40%", right: -140, width: 500, height: 500, background: "var(--color-secondary)", animationDelay: "1s" }} />
+          <div className="blob animate-pulse-glow" style={{ bottom: -120, left: "30%", width: 460, height: 460, background: "var(--color-coral)", animationDelay: "2s" }} />
+        </>
+      )}
 
       {!(pathname?.startsWith('/admin')) && (
-      <header className="sticky top-0 z-50 px-4 pt-4">
-        <div className="mx-auto max-w-7xl bg-card/85 backdrop-blur-md border border-border shadow-soft rounded-2xl px-5 py-3 flex items-center justify-between">
-          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg">
-            <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-border" />
-            <span className="font-display">
-              <span className="gradient-text">Craft</span>Vision
-              <span className="text-[color:var(--coral)]">3D</span>
+      <header 
+        className={`fixed top-0 left-0 right-0 z-[1000] w-full transition-all duration-300 ease-in-out ${
+          isHomePage
+            ? isScrolled 
+              ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70' 
+              : 'bg-transparent py-5 px-4 sm:px-8 border-b border-transparent'
+            : isScrolled
+              ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70'
+              : 'bg-card/85 backdrop-blur-md border-b border-border shadow-soft py-3.5 px-4 sm:px-8'
+        }`}
+      >
+        <div className="mx-auto max-w-7xl flex items-center justify-between">
+          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg group">
+            <img 
+              src="/image/logoweb.jpg" 
+              alt="CraftVision3D Logo" 
+              className={`w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border transition-all duration-300 ${
+                isTransparentNav ? 'border-white/40' : 'border-border'
+              }`} 
+            />
+            <span className="font-display transition-colors duration-300">
+              {isTransparentNav ? (
+                <span className="text-white drop-shadow-sm font-extrabold">
+                  <span className="text-amber-200">Craft</span>Vision
+                  <span className="text-rose-300">3D</span>
+                </span>
+              ) : (
+                <>
+                  <span className="gradient-text">Craft</span>Vision
+                  <span className="text-[color:var(--coral)]">3D</span>
+                </>
+              )}
             </span>
           </Link>
           {!isDemo && (
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1.5">
             {nav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
+              const isCart = item.key === "cart";
               return (
                 <Link
                   key={item.key}
                   href={item.to}
                   onClick={() => handleNavClick(item.key)}
-                  className={`relative overflow-visible inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-card/80 text-primary shadow-soft"
-                      : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                  } ${bumpingKey === item.key ? 'animate-cart-bump' : ''}`}
+                  className={`relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-300 ${
+                    isTransparentNav
+                      ? isActive
+                        ? "bg-white/20 text-white backdrop-blur-sm shadow-sm font-semibold"
+                        : "text-white/80 hover:text-white hover:bg-white/10"
+                      : isActive
+                        ? "bg-card/80 text-primary shadow-soft font-semibold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                  } ${(isCart && isBumping) || bumpingKey === item.key ? 'animate-cart-bump' : ''}`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span className="relative">
-                    {item.label}
-                    {isActive && (
-                      <motion.div
-                        layoutId="nav-indicator"
-                        className="absolute -bottom-[9px] left-0 right-0 h-1 rounded-t-full bg-[color:var(--coral)]"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                  </span>
+                  {item.label}
+                  {isCart && wishlistCount > 0 && (
+                    <span className="ml-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                      {wishlistCount}
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className={`absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full transition-colors ${
+                      isTransparentNav ? 'bg-amber-300' : 'bg-[color:var(--coral)]'
+                    }`} />
+                  )}
                 </Link>
               );
             })}
@@ -126,58 +181,44 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             {!isDemo ? (
               <>
                 <Link
-                  href="/cart"
-                  onClick={() => handleNavClick("cart")}
-                  className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                    active === "cart" ? "bg-card/80 text-primary shadow-soft" : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
-                  } ${(isBumping || bumpingKey === "cart") ? 'animate-cart-bump' : ''}`}
-                  title="Giỏ hàng"
+                  href="/settings"
+                  onClick={() => handleNavClick("settings")}
+                  className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
+                    isTransparentNav
+                      ? active === "settings" 
+                        ? "bg-white/20 text-white shadow-sm" 
+                        : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                      : active === "settings" 
+                        ? "bg-card/80 text-primary shadow-soft" 
+                        : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
+                  } ${bumpingKey === "settings" ? 'animate-cart-bump' : ''}`}
+                  title="Cài đặt"
                 >
-                  <ShoppingCart className="h-5 w-5" />
-                  {wishlistCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                      {wishlistCount}
-                    </span>
-                  )}
-                  {active === "cart" && (
-                    <motion.div
-                      layoutId="nav-indicator"
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-[60%] rounded-t-full bg-[color:var(--coral)]"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
+                  <Settings className="h-5 w-5" />
+                  {active === "settings" && (
+                    <span className={`absolute bottom-0 left-1/2 h-1 w-1/2 -translate-x-1/2 rounded-t-full ${
+                      isTransparentNav ? 'bg-amber-300' : 'bg-[color:var(--coral)]'
+                    }`} />
                   )}
                 </Link>
-                <Link
-              href="/settings"
-              onClick={() => handleNavClick("settings")}
-              className={`relative inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                active === "settings" ? "bg-card/80 text-primary shadow-soft" : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
-              } ${bumpingKey === "settings" ? 'animate-cart-bump' : ''}`}
-              title="Cài đặt"
-            >
-              <Settings className="h-5 w-5" />
-              {active === "settings" && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-[60%] rounded-t-full bg-[color:var(--coral)]"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-            </Link>
-            <button
-              onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("email");
-                localStorage.removeItem("fullName");
-                localStorage.removeItem("createdAt");
-                router.replace("/auth");
-              }}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-card/70 px-3 py-2 text-sm font-medium hover:bg-card"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("nav.logout")}</span>
-            </button>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("email");
+                    localStorage.removeItem("fullName");
+                    localStorage.removeItem("createdAt");
+                    router.replace("/auth");
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
+                    isTransparentNav
+                      ? "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                      : "bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t("nav.logout")}</span>
+                </button>
               </>
             ) : (
               <Link
@@ -188,12 +229,81 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 <span className="hidden sm:inline">Thoát Demo</span>
               </Link>
             )}
+
+            {/* Mobile Menu Toggle Button */}
+            {!isDemo && (
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className={`md:hidden inline-flex items-center justify-center p-2 rounded-xl transition-all duration-300 ${
+                  isTransparentNav
+                    ? "text-white bg-white/10 hover:bg-white/20 border border-white/20"
+                    : "text-foreground bg-card/70 hover:bg-card border border-border"
+                }`}
+                aria-label="Menu"
+              >
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && !isDemo && (
+          <div className="mx-auto max-w-7xl md:hidden mt-3 pt-3 border-t border-white/15 animate-fade-down">
+            <div className={`rounded-2xl p-2.5 flex flex-col gap-1 shadow-2xl backdrop-blur-xl border ${
+              isTransparentNav
+                ? "bg-[#250d1e]/90 border-white/20 text-white"
+                : "bg-white/95 dark:bg-card/95 border-border text-foreground"
+            }`}>
+              {nav.map((item) => {
+                const Icon = item.icon;
+                const isActive = active === item.key;
+                const isCart = item.key === "cart";
+                return (
+                  <Link
+                    key={item.key}
+                    href={item.to}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleNavClick(item.key);
+                    }}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      isActive
+                        ? isTransparentNav
+                          ? "bg-white/20 text-white font-bold"
+                          : "bg-primary/10 text-primary font-bold"
+                        : isTransparentNav
+                          ? "text-white/80 hover:bg-white/10 hover:text-white"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                    {isCart && wishlistCount > 0 && (
+                      <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs text-white font-bold">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </header>
       )}
 
-      <main key={pathname} className={`relative z-10 px-4 animate-fade-in-page ${pathname.startsWith('/chat') ? 'py-4 md:py-6' : 'py-8 md:py-12'}`}>
+      <main 
+        key={pathname} 
+        className={`relative z-10 animate-fade-in-page ${
+          isHomePage 
+            ? 'p-0 m-0' 
+            : pathname.startsWith('/chat') 
+              ? 'px-4 pb-4 md:pb-6 pt-24 md:pt-28 max-w-7xl mx-auto' 
+              : 'px-4 pb-8 md:pb-12 pt-24 md:pt-28 max-w-7xl mx-auto'
+        }`}
+      >
         {children}
       </main>
       
