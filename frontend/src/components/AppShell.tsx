@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart, Menu, X, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef, type ReactNode } from "react";
-import { motion } from "framer-motion";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 
@@ -16,7 +15,14 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const router = useRouter();
   const [isBumping, setIsBumping] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
+    if (typeof window !== "undefined") {
+      const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
+      if (isDemoMode) return false;
+      return !localStorage.getItem("token");
+    }
+    return true;
+  });
   const [bumpingKey, setBumpingKey] = useState<string | null>(null);
   const prevCount = useRef(wishlistCount);
 
@@ -24,7 +30,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     if (typeof window !== "undefined") {
       const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
       setIsDemo(isDemoMode);
-      
+
       if (!isDemoMode) {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -53,13 +59,14 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     setBumpingKey(key);
     setTimeout(() => setBumpingKey(null), 400);
   };
-  
+
   const nav = [
     { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
     { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
+    { to: "/cart", label: "Giỏ hàng", icon: ShoppingCart, key: "cart" },
   ] as const;
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -81,13 +88,14 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const isHomePage = pathname === "/home" || active === "home";
   const isTransparentNav = isHomePage && !isScrolled;
 
+  // Avoid showing full screen loader if we are just hydrating with a token
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex gap-2">
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"0ms"}}></div>
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"150ms"}}></div>
-          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{animationDelay:"300ms"}}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }}></div>
+          <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }}></div>
         </div>
       </div>
     );
@@ -332,7 +340,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
       >
         {children}
       </main>
-      
+
     </div>
   );
 }

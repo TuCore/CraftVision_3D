@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { fetchApi } from "@/lib/apiClient";
 import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
+import { StarryBackground } from "@/components/StarryBackground";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -56,15 +57,14 @@ export default function AuthPage() {
 
   return (
     <div className="relative min-h-screen overflow-x-clip grid lg:grid-cols-2">
-      <div className="blob animate-pulse-glow" style={{ top: -100, left: -80, width: 420, height: 420, background: "oklch(0.78 0.22 35)" }} />
-      <div className="blob animate-pulse-glow" style={{ bottom: -140, right: -120, width: 500, height: 500, background: "oklch(0.88 0.18 95)", animationDelay: "1s" }} />
+      <StarryBackground />
 
       {/* Left brand panel */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 z-10">
+      <div className="relative hidden lg:flex flex-col justify-between p-12 z-10 text-white">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
           <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
-          <span className="font-display text-[#FF37C0]/60">
-            <span className="text-[#FF37C0]/60">CraftVision3D</span>
+          <span className="font-display text-rose-200">
+            <span>CraftVision3D</span>
           </span>
         </Link>
 
@@ -72,12 +72,12 @@ export default function AuthPage() {
           <span className="inline-flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-semibold text-primary">
             <Sparkles className="h-3.5 w-3.5" /> AI · Handmade · 3D
           </span>
-          <h1 className="mt-5 text-4xl md:text-5xl font-extrabold leading-tight font-display">
+          <h1 className="mt-5 text-4xl md:text-5xl font-extrabold leading-tight font-display drop-shadow-lg">
             Tạo <span className="gradient-text pb-1">món quà thủ công</span><br />
             đầy ý nghĩa<br />
             cùng AI
           </h1>
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-white/90 drop-shadow-sm">
             Gợi ý ý tưởng, danh sách nguyên liệu, ước tính chi phí, thời gian và video hướng dẫn — tất cả trong một trợ lý sáng tạo.
           </p>
 
@@ -87,28 +87,28 @@ export default function AuthPage() {
               { label: "Nguyên liệu", value: "5k+" },
               { label: "Creators", value: "12k+" },
             ].map((s) => (
-              <div key={s.label} className="glass-card rounded-2xl p-4 text-center">
-                <div className="text-2xl font-bold gradient-text">{s.value}</div>
-                <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
+              <div key={s.label} className="glass-card rounded-2xl p-4 text-center bg-white/10 backdrop-blur-md border-white/20">
+                <div className="text-2xl font-bold gradient-text drop-shadow-sm">{s.value}</div>
+                <div className="text-xs text-white/80 mt-1">{s.label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground">© 2026 <span className="text-[#FF37C0]/60">CraftVision3D</span>. Made with ♥ in Vietnam.</p>
+        <p className="text-sm text-white/70">© 2026 <span className="text-rose-200">CraftVision3D</span>. Made with ♥ in Vietnam.</p>
       </div>
 
       {/* Right form panel */}
       <div className="relative flex items-center justify-center p-6 md:p-12 z-10">
         <div className="w-full max-w-md">
-          <div className="lg:hidden flex items-center gap-2 mb-8 justify-center font-bold text-lg">
+          <div className="lg:hidden flex items-center gap-2 mb-8 justify-center font-bold text-lg text-white">
             <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-12 h-12 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
-            <span className="font-display text-[#FF37C0]/60">
-              <span className="text-[#FF37C0]/60">CraftVision3D</span>
+            <span className="font-display text-rose-200">
+              <span>CraftVision3D</span>
             </span>
           </div>
 
-          <div className="glass-strong rounded-3xl p-8 shadow-soft">
+          <div className="glass-strong bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
             <div className="flex gap-1 p-1 bg-white/60 rounded-2xl mb-6">
               <button
                 onClick={() => setMode("login")}
