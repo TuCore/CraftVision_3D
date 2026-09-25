@@ -49,7 +49,7 @@ export function TemplateProductsSection() {
         <div className="flex items-center justify-center gap-3 mb-12 sm:mb-16">
           <Flame className="h-8 w-8 sm:h-10 sm:w-10 text-orange-500 fill-orange-500 animate-pulse" />
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-rose-500 tracking-tight text-center">
-            Hơn 50+ mẫu thiết kế đang chờ bạn khám phá
+            Các mẫu thiết kế đang chờ bạn khám phá
           </h2>
         </div>
 
