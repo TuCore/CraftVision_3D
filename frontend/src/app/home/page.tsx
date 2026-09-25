@@ -4,11 +4,13 @@ import { AppShell } from "@/components/AppShell";
 import { Sparkles, MessageCircle, ArrowRight, Headphones, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Studio3DSection } from "@/components/studio/Studio3DSection";
+import { TemplateProductsSection } from "@/components/home/TemplateProductsSection";
 import { toast } from "sonner";
 
 export default function HomePage() {
   const [firstName, setFirstName] = useState("bạn");
   const [activeSlide, setActiveSlide] = useState(0);
+  const [scrollOpacity, setScrollOpacity] = useState(0);
 
   useEffect(() => {
     const storedName = localStorage.getItem("fullName");
@@ -31,6 +33,21 @@ export default function HomePage() {
     }, 8000);
     return () => clearInterval(timer);
   }, [slides.length]);
+
+  // Scroll effect for the bottom gradient overlay
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      // Tăng opacity từ 0 -> 1 trong khoảng 300px cuộn đầu tiên
+      const opacity = Math.min(scrollY / 300, 1);
+      setScrollOpacity(opacity);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Check initial scroll position
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <AppShell active="home">
@@ -105,10 +122,10 @@ export default function HomePage() {
               <MessageCircle className="h-5 w-5 text-rose-900" /> Trò chuyện với AI
             </Link>
             <a
-              href="#studio-3d"
+              href="#explore-section"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('studio-3d')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-white font-medium text-sm sm:text-base bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 hover:border-white/40 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
@@ -134,39 +151,60 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Nút tai nghe nhạc nổi góc dưới bên phải */}
-        <button
-          type="button"
-          onClick={() => toast.success("🎶 Đang phát giai điệu quà tặng lãng mạn...")}
-          className="absolute bottom-5 right-5 sm:bottom-7 sm:right-7 z-20 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-tr from-rose-200 via-rose-300 to-pink-300 text-rose-950 shadow-xl shadow-rose-300/40 grid place-items-center hover:scale-110 active:scale-95 transition-all group cursor-pointer border border-white/40"
-          title="Bật giai điệu lãng mạn"
-        >
-          <Headphones className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />
-        </button>
+
 
         {/* Nút cuộn xuống khám phá */}
         <button
           type="button"
           onClick={() => {
-            window.scrollTo({
-              top: window.innerHeight - 80,
-              behavior: 'smooth'
-            });
+            document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
           className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 hover:text-white transition-colors animate-bounce cursor-pointer flex flex-col items-center gap-0.5 z-20"
           aria-label="Cuộn xuống khám phá"
         >
           <ChevronDown className="h-5 w-5" />
         </button>
+
+        {/* Lớp phủ gradient mượt mà khi cuộn trang (ẩn ở top, hiện dần khi scroll) */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-40 sm:h-56 bg-gradient-to-b from-transparent to-background pointer-events-none transition-opacity duration-300 ease-out z-10"
+          style={{ opacity: scrollOpacity }}
+          aria-hidden="true"
+        />
       </section>
 
       {/* 2. Main Content below Hero (Studio 3D Section) */}
-      <section className="relative z-20 bg-background pt-10 sm:pt-14 pb-16">
+      <section id="explore-section" className="relative z-20 bg-background pt-16 sm:pt-24 pb-16 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Màn hình Gen AI 3D (Studio 3D) ở chân trang */}
-          <Studio3DSection id="studio-3d" className="pb-6" />
+          <Studio3DSection
+            className="pb-6"
+            rightColumnHeader={
+              <div className="text-left animate-fade-up max-w-2xl">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#c92a4e] tracking-wide mb-4">
+                  Khám phá Studio 3D
+                </h2>
+                <p className="text-base sm:text-lg text-muted-foreground font-medium">
+                  Trải nghiệm sức mạnh của AI tạo model 3D: Biến mọi ý tưởng thành mô hình 3D sống động để in lên thiệp chúc mừng, cá nhân hoá từng khoảnh khắc dành riêng cho người thương của bạn.
+                </p>
+              </div>
+            }
+          />
         </div>
       </section>
+
+      {/* 3. Template Products Section */}
+      <TemplateProductsSection />
+
+      {/* Nút tai nghe nhạc nổi góc dưới bên phải - Global FAB */}
+      <button
+        type="button"
+        onClick={() => toast.success("🎶 Đang phát giai điệu quà tặng lãng mạn...")}
+        className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-[999] h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-tr from-rose-200 via-rose-300 to-pink-300 text-rose-950 shadow-xl shadow-rose-300/40 grid place-items-center hover:scale-110 active:scale-95 transition-all group cursor-pointer border border-white/40"
+        title="Bật giai điệu lãng mạn"
+      >
+        <Headphones className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />
+      </button>
     </AppShell>
   );
 }

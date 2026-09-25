@@ -16,6 +16,7 @@ import { toast } from "sonner";
 interface Studio3DSectionProps {
   id?: string;
   className?: string;
+  rightColumnHeader?: React.ReactNode;
 }
 
 const mockHistory = [
@@ -25,7 +26,7 @@ const mockHistory = [
   { id: 4, title: "Mặt dây chuyền hoa sen", date: "Tuần trước", time: "16:45" },
 ];
 
-export function Studio3DSection({ id = "studio-3d", className = "" }: Studio3DSectionProps) {
+export function Studio3DSection({ id = "studio-3d", className = "", rightColumnHeader }: Studio3DSectionProps) {
   const router = useRouter();
   const [sourceType, setSourceType] = useState<"image" | "text">("image");
   const [quality, setQuality] = useState<"fast" | "balance" | "high">("balance");
@@ -117,53 +118,10 @@ export function Studio3DSection({ id = "studio-3d", className = "" }: Studio3DSe
 
   return (
     <section id={id} className={`w-full ${className}`}>
-      {/* Studio Card Wrapper */}
-      <div className="glass-card bg-card/80 backdrop-blur-md rounded-3xl overflow-hidden border border-border shadow-xl">
-        {/* Top Header Bar */}
-        <div className="flex items-center justify-between border-b border-border/80 bg-card/60 px-6 py-4">
-          {/* Left: Mode Title */}
-          <div className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-base font-bold text-foreground">
-            <span>Studio 3D</span>
-          </div>
-
-          {/* Right: History Action */}
-          <div className="relative" ref={historyRef}>
-            <button
-              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-              className="flex items-center justify-center rounded-xl p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
-              title="Lịch sử tạo 3D"
-            >
-              <History className="h-5 w-5" />
-            </button>
-
-            {isHistoryOpen && (
-              <div className="absolute z-50 right-0 top-full mt-2 w-80 bg-card/95 backdrop-blur-md rounded-2xl shadow-xl border border-border p-3 animate-in fade-in zoom-in-95">
-                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-2 py-1">Lịch sử thiết kế</div>
-                <div className="mt-2 space-y-1">
-                  {mockHistory.map(item => (
-                    <div 
-                      key={item.id} 
-                      onClick={() => {
-                        setShowResult(true);
-                        setIsHistoryOpen(false);
-                        toast.info(`Đã tải: ${item.title}`);
-                      }}
-                      className="p-2.5 rounded-xl hover:bg-muted/70 transition-colors cursor-pointer flex flex-col"
-                    >
-                      <span className="text-sm font-medium text-foreground">{item.title}</span>
-                      <span className="text-xs text-muted-foreground mt-0.5">{item.date} · {item.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Studio Body: Split View (Controls & 3D Canvas) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] min-h-[520px]">
-          {/* Controls Column */}
-          <div className="flex flex-col gap-3.5 border-b lg:border-b-0 lg:border-r border-border/80 p-5 sm:p-6 bg-card/40">
+      {/* Studio Body: Split View (Controls & 3D Canvas) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 xl:gap-12 min-h-[520px]">
+        {/* Controls Column (Left) */}
+        <div className="flex flex-col gap-5">
             {/* Tab: Ảnh -> 3D vs Văn bản -> 3D */}
             <div className="flex rounded-xl bg-muted/80 p-1 text-sm font-medium">
               <button
@@ -350,8 +308,11 @@ export function Studio3DSection({ id = "studio-3d", className = "" }: Studio3DSe
             </div>
           </div>
 
-          {/* 3D Preview Canvas Column */}
-          <div className="relative flex items-center justify-center overflow-hidden min-h-[440px] p-6 bg-gradient-to-br from-amber-500/5 via-orange-500/5 to-rose-500/5">
+        {/* Right Column: Title + 3D Preview Canvas */}
+        <div className="flex flex-col gap-6">
+          {rightColumnHeader}
+          
+          <div className="relative flex-1 flex items-center justify-center overflow-hidden min-h-[440px] rounded-3xl p-6 bg-gradient-to-br from-amber-500/5 via-orange-500/5 to-rose-500/5 border border-border/50">
             {/* Soft Warm Radial Backdrop (matching Photo 1) */}
             <div className="absolute inset-4 rounded-3xl bg-amber-500/10 dark:bg-amber-500/5 blur-2xl pointer-events-none" />
 
