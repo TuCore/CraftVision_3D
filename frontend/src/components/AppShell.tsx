@@ -66,7 +66,6 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
-    { to: "/cart", label: "Giỏ hàng", icon: ShoppingCart, key: "cart" },
   ] as const;
 
   const [isScrolled, setIsScrolled] = useState(false);
