@@ -103,7 +103,8 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
       stock: formData.stock,
       productType: formData.productType,
       supportsNfc: formData.supportsNfc,
-      productCategoryId: "00000000-0000-0000-0000-000000000000", // Generic category ID required by API
+      productCategoryId: "11111111-1111-1111-1111-111111111004", // Generic category ID required by API
+      sampleImageUrl: formData.primaryImageUrl,
       images: formData.primaryImageUrl ? [{ url: formData.primaryImageUrl, isPrimary: true }] : []
     };
 
@@ -189,7 +190,6 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
               >
                 <option value="InStock">Có sẵn (InStock)</option>
                 <option value="PreOrder">Đặt trước (PreOrder)</option>
-                <option value="CustomMade">Làm theo yêu cầu (CustomMade)</option>
               </select>
             </div>
 
