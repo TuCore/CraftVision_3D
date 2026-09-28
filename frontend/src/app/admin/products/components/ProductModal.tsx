@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Product } from '@/hooks/useProducts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
-import { useProductCategories, useCreateCategory } from '@/hooks/useProductCategories';
+import { useProductCategories } from '@/hooks/useProductCategories';
 import { toast } from 'sonner';
-import { Image as ImageIcon, Loader2, Plus, X } from 'lucide-react';
+import { Image as ImageIcon, Loader2, Plus, X, Trash2 } from 'lucide-react';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -29,27 +29,8 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
   });
 
   const { data: categories, isLoading: isLoadingCategories } = useProductCategories();
-  const { mutate: createCategory, isPending: isCreatingCategory } = useCreateCategory();
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-
-  const handleAddCategory = () => {
-    if (!newCategoryName.trim()) {
-      toast.error('Vui lòng nhập tên danh mục');
-      return;
-    }
-    createCategory({ name: newCategoryName }, {
-      onSuccess: (data) => {
-        toast.success('Thêm danh mục thành công!');
-        setFormData(prev => ({ ...prev, productCategoryId: data.id }));
-        setIsAddingCategory(false);
-        setNewCategoryName('');
-      },
-      onError: () => toast.error('Lỗi khi thêm danh mục')
-    });
-  };
 
   useEffect(() => {
     if (product && isOpen) {
@@ -220,64 +201,24 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground flex justify-between items-center">
-                <span>Danh mục *</span>
-                {!isAddingCategory && (
-                  <button 
-                    type="button" 
-                    onClick={() => setIsAddingCategory(true)}
-                    className="text-xs text-[color:var(--coral)] hover:underline flex items-center gap-1"
-                  >
-                    <Plus className="w-3 h-3" /> Thêm mới
-                  </button>
+              <label className="text-sm font-bold text-muted-foreground">Danh mục *</label>
+              <select
+                value={formData.productCategoryId}
+                onChange={e => setFormData({ ...formData, productCategoryId: e.target.value })}
+                className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all"
+                required
+              >
+                <option value="" disabled>-- Chọn danh mục --</option>
+                {isLoadingCategories ? (
+                  <option value="" disabled>Đang tải danh mục...</option>
+                ) : (
+                  categories?.map((cat: any) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))
                 )}
-              </label>
-
-              {isAddingCategory ? (
-                <div className="flex gap-2 items-center w-full border border-border rounded-xl px-2 py-1.5 bg-gray-50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[color:var(--coral)]/30 transition-all">
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="Tên danh mục..."
-                    className="flex-1 bg-transparent px-2 py-1 outline-none text-sm"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCategory}
-                    disabled={isCreatingCategory}
-                    className="bg-[color:var(--coral)] text-white p-1.5 rounded-lg disabled:opacity-50"
-                  >
-                    {isCreatingCategory ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setIsAddingCategory(false); setNewCategoryName(''); }}
-                    className="bg-gray-200 text-gray-600 p-1.5 rounded-lg hover:bg-gray-300"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <select
-                  value={formData.productCategoryId}
-                  onChange={e => setFormData({ ...formData, productCategoryId: e.target.value })}
-                  className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all"
-                  required
-                >
-                  <option value="" disabled>-- Chọn danh mục --</option>
-                  {isLoadingCategories ? (
-                    <option value="" disabled>Đang tải danh mục...</option>
-                  ) : (
-                    categories?.map((cat: any) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              )}
+              </select>
             </div>
 
             <div className="space-y-2">

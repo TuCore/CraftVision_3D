@@ -4,7 +4,7 @@ import { use, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { AIGiftWidget } from "@/components/AIGiftWidget";
-import { Product } from "@/lib/mock-products";
+import { Product } from "@/lib/product.types";
 import { ArrowLeft, CheckCircle, Store, Package, Clock } from "lucide-react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useGreetingStore } from "@/store/useGreetingStore";

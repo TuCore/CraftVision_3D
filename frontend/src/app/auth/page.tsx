@@ -199,27 +199,29 @@ export default function AuthPage() {
               <div className="flex justify-center">
                 <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
                   <GoogleLogin
-                    onSuccess={async (credentialResponse) => {
-                      if (loading) return;
-                      setLoading(true);
-                      setError("");
-                      try {
-                        const res = await fetchApi("/api/auth/google", {
-                          method: "POST",
-                          body: JSON.stringify({ idToken: credentialResponse.credential }),
-                        });
-                        localStorage.setItem("token", res.token);
-                        localStorage.setItem("userId", res.userId);
-                        localStorage.setItem("email", res.email);
-                        localStorage.setItem("fullName", res.fullName);
-                        if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
-                        toast.success("Đăng nhập Google thành công!");
-                        window.location.href = res.email === "admin@craftvision.vn" ? "/admin/nfc" : "/home";
-                      } catch (err: any) {
-                        setError("Đăng nhập Google thất bại: " + err.message);
-                      } finally {
-                        setLoading(false);
-                      }
+                    onSuccess={(credentialResponse) => {
+                      (async () => {
+                        if (loading) return;
+                        setLoading(true);
+                        setError("");
+                        try {
+                          const res = await fetchApi("/api/auth/google", {
+                            method: "POST",
+                            body: JSON.stringify({ idToken: credentialResponse.credential }),
+                          });
+                          localStorage.setItem("token", res.token);
+                          localStorage.setItem("userId", res.userId);
+                          localStorage.setItem("email", res.email);
+                          localStorage.setItem("fullName", res.fullName);
+                          if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
+                          toast.success("Đăng nhập Google thành công!");
+                          window.location.href = res.email === "admin@craftvision.vn" ? "/admin/nfc" : "/home";
+                        } catch (err: any) {
+                          setError("Đăng nhập Google thất bại: " + err.message);
+                        } finally {
+                          setLoading(false);
+                        }
+                      })();
                     }}
                     onError={() => {
                       setError("Đăng nhập Google thất bại.");

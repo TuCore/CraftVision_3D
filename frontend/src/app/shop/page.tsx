@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Search, Star, Sparkles, Loader2, Heart } from "lucide-react";
 import { toast } from "sonner";
-import { Product, Category } from "@/lib/mock-products";
+import { Product, Category } from "@/lib/product.types";
 import { useFavoriteStore } from "@/store/useFavoriteStore";
 import { useProductCategories } from "@/hooks/useProductCategories";
+import api from "@/lib/api";
 
 import { TiltCard } from "@/components/TiltCard";
 import {
@@ -33,25 +34,25 @@ export default function ShopPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          const items = data.items || [];
-          // Map backend ProductDto to frontend Product interface
-          const mapped = items.map((p: any) => {
-            return {
-              id: p.id,
-              name: p.name,
-              price: p.price,
-              category: p.categoryName || "Khác",
-              image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
-              rating: p.averageRating || 0,
-              description: p.description || "",
-              matchScore: 0,
-            };
-          });
-          setProducts(mapped);
-        }
+        setIsLoading(true);
+        const { data } = await api.get('/api/products?page=1&pageSize=100');
+        const items = data.items || [];
+        // Map backend ProductDto to frontend Product interface
+        const mapped = items.map((p: any) => {
+          const parsedImages = p.sampleImageUrl ? p.sampleImageUrl.split(',') : (p.images || []);
+          const primary = parsedImages.length > 0 ? parsedImages[0] : (p.thumbnailUrl || "/image/placeholder.jpg");
+          return {
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.categoryName || "Khác",
+            image: primary,
+            rating: p.averageRating || 0,
+            description: p.description || "",
+            matchScore: 0,
+          };
+        });
+        setProducts(mapped);
       } catch (error) {
         console.error("Failed to fetch products", error);
       } finally {

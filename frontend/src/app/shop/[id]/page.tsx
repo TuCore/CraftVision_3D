@@ -3,7 +3,7 @@
 import { use, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { Product } from "@/lib/mock-products";
+import { Product } from "@/lib/product.types";
 import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
