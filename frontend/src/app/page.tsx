@@ -20,7 +20,7 @@ export default function Landing() {
     }, 400); // Đợi animation chạy xong
   };
 
-  const pageVariants = {
+  const pageVariants: any = {
     initial: { opacity: 1, x: 0 },
     exit: { 
       opacity: 0, 

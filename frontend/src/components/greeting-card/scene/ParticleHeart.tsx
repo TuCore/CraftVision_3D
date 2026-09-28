@@ -271,7 +271,9 @@ export function ParticleHeart() {
         onPointerOut={() => document.body.style.cursor = 'auto'}
       >
         <bufferGeometry>
+          {/* @ts-ignore */}
           <bufferAttribute attach="attributes-position" count={particleCount} array={currentPositions} itemSize={3} />
+          {/* @ts-ignore */}
           <bufferAttribute attach="attributes-color" count={heartColors.length / 3} array={heartColors} itemSize={3} />
         </bufferGeometry>
         {/* map={particleTexture} giúp hạt có hình tròn mờ (glow) */}
@@ -290,7 +292,9 @@ export function ParticleHeart() {
       {/* Vòng Xoáy Thiên Hà */}
       <points ref={spiralRef}>
         <bufferGeometry>
+          {/* @ts-ignore */}
           <bufferAttribute attach="attributes-position" count={spiralPositions.length / 3} array={spiralPositions} itemSize={3} />
+          {/* @ts-ignore */}
           <bufferAttribute attach="attributes-color" count={spiralColors.length / 3} array={spiralColors} itemSize={3} />
         </bufferGeometry>
         <pointsMaterial 
