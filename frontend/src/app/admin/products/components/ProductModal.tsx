@@ -212,7 +212,14 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
                 {isLoadingCategories ? (
                   <option value="" disabled>Đang tải danh mục...</option>
                 ) : (
-                  categories?.map((cat: any) => (
+                  categories
+                    ?.filter((cat: any) => {
+                      const n = cat.name.toLowerCase();
+                      return n.includes('móc khóa') || n.includes('móc khoá') || 
+                             n.includes('vòng tay') || n.includes('dây chuyền') || 
+                             n.includes('hoa') || n.includes('lego') || n.includes('gấu bông');
+                    })
+                    .map((cat: any) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
