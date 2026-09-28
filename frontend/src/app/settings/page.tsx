@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles, Camera } from "lucide-react";
+import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles, Camera, MapPin, Plus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { fetchApi } from "@/lib/apiClient";
 import { useTheme } from "next-themes";
@@ -18,6 +18,17 @@ export default function SettingsPage() {
   const { t, language, setLanguage } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState("account");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam) {
+        setTab(tabParam);
+      }
+    }
+  }, []);
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -26,6 +37,19 @@ export default function SettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  interface Address {
+    id: string;
+    receiverName: string;
+    phone: string;
+    address: string;
+    province: string;
+    district: string;
+    isDefault: boolean;
+  }
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [newAddress, setNewAddress] = useState<Partial<Address>>({});
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -37,8 +61,13 @@ export default function SettingsPage() {
         setPhone(data.phone || "");
         setBio(data.bio || "");
         setAvatarUrl(data.avatarUrl || "");
+        
+        const addrData = await fetchApi("/api/user/addresses");
+        if (Array.isArray(addrData)) {
+          setAddresses(addrData);
+        }
       } catch (error) {
-        console.error("Lỗi khi tải hồ sơ:", error);
+        console.error("Lỗi khi tải dữ liệu:", error);
       } finally {
         setIsLoading(false);
       }
@@ -91,6 +120,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { key: "account", label: t("settings.account"), icon: User },
+    { key: "address", label: "Sổ địa chỉ", icon: MapPin },
     { key: "notifications", label: t("settings.notifications"), icon: Bell },
     { key: "privacy", label: t("settings.security"), icon: Lock },
     { key: "appearance", label: t("settings.appearance"), icon: Palette },
@@ -193,6 +223,112 @@ export default function SettingsPage() {
                     </div>
                   </>
                 )}
+              </Section>
+            )}
+
+            {tab === "address" && (
+              <Section title="Sổ địa chỉ" desc="Quản lý địa chỉ giao hàng của bạn.">
+                <div className="space-y-4">
+                  {addresses.map((addr) => (
+                    <div key={addr.id} className={`p-5 rounded-2xl border transition-colors ${addr.isDefault ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card/50'}`}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-base">{addr.receiverName}</h3>
+                            {addr.isDefault && <span className="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Mặc định</span>}
+                          </div>
+                          <p className="text-sm font-medium mt-1 text-foreground">{addr.phone}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{addr.address}, {addr.district}, {addr.province}</p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
+                          {!addr.isDefault && (
+                            <button onClick={async () => {
+                              try {
+                                await fetchApi(`/api/user/addresses/${addr.id}/default`, { method: "PUT" });
+                                const addrData = await fetchApi("/api/user/addresses");
+                                if (Array.isArray(addrData)) setAddresses(addrData);
+                                import("sonner").then(({ toast }) => toast.success("Đã đặt làm mặc định"));
+                              } catch (e) {
+                                import("sonner").then(({ toast }) => toast.error("Lỗi khi đặt mặc định"));
+                              }
+                            }} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Đặt mặc định</button>
+                          )}
+                          <div className="flex gap-3">
+                            <button onClick={() => { setEditingAddressId(addr.id); setNewAddress(addr); }} className="text-sm font-bold text-primary hover:underline">Sửa</button>
+                            <button onClick={async () => {
+                              try {
+                                await fetchApi(`/api/user/addresses/${addr.id}`, { method: "DELETE" });
+                                const addrData = await fetchApi("/api/user/addresses");
+                                if (Array.isArray(addrData)) setAddresses(addrData);
+                                import("sonner").then(({ toast }) => toast.success("Đã xóa địa chỉ"));
+                              } catch (e) {
+                                import("sonner").then(({ toast }) => toast.error("Lỗi khi xóa"));
+                              }
+                            }} className="text-sm font-bold text-destructive hover:underline">Xoá</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {editingAddressId ? (
+                    <div className="mt-6 p-6 rounded-3xl border border-primary/20 bg-white/50 dark:bg-card shadow-sm space-y-4 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                      <h3 className="font-bold text-lg flex items-center gap-2">{editingAddressId === 'new' ? 'Thêm địa chỉ mới' : 'Sửa địa chỉ'}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Field label="Họ tên người nhận *" value={newAddress.receiverName || ''} onChange={v => setNewAddress({...newAddress, receiverName: v})} />
+                        <Field label="Số điện thoại *" value={newAddress.phone || ''} onChange={v => setNewAddress({...newAddress, phone: v})} />
+                        <div className="md:col-span-2">
+                          <Field label="Địa chỉ cụ thể *" value={newAddress.address || ''} onChange={v => setNewAddress({...newAddress, address: v})} />
+                        </div>
+                        <Field label="Tỉnh / Thành phố" value={newAddress.province || ''} onChange={v => setNewAddress({...newAddress, province: v})} />
+                        <Field label="Quận / Huyện" value={newAddress.district || ''} onChange={v => setNewAddress({...newAddress, district: v})} />
+                      </div>
+                      <label className="flex items-center gap-2 mt-4 cursor-pointer w-fit">
+                        <input type="checkbox" checked={newAddress.isDefault} onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})} className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                        <span className="text-sm font-medium">Đặt làm địa chỉ mặc định</span>
+                      </label>
+                      <div className="flex gap-3 pt-4 border-t border-border mt-4">
+                        <button onClick={async () => {
+                          if (!newAddress.receiverName || !newAddress.phone || !newAddress.address) {
+                            import("sonner").then(({ toast }) => toast.error("Vui lòng điền đủ thông tin bắt buộc (*)"));
+                            return;
+                          }
+                          try {
+                            if (editingAddressId === 'new') {
+                              await fetchApi("/api/user/addresses", {
+                                method: "POST",
+                                body: JSON.stringify(newAddress)
+                              });
+                            } else {
+                              await fetchApi(`/api/user/addresses/${editingAddressId}`, {
+                                method: "PUT",
+                                body: JSON.stringify(newAddress)
+                              });
+                            }
+                            
+                            const addrData = await fetchApi("/api/user/addresses");
+                            if (Array.isArray(addrData)) setAddresses(addrData);
+                            
+                            setEditingAddressId(null);
+                            setNewAddress({});
+                            import("sonner").then(({ toast }) => toast.success("Đã lưu địa chỉ!"));
+                          } catch (error: any) {
+                            import("sonner").then(({ toast }) => toast.error(error.message || "Lỗi khi lưu địa chỉ"));
+                          }
+                        }} className="btn-hero rounded-xl px-6 py-2.5 text-sm font-semibold shadow-coral-glow">Lưu địa chỉ</button>
+                        <button onClick={() => { setEditingAddressId(null); setNewAddress({}); }} className="rounded-xl bg-card/70 hover:bg-card border border-border px-6 py-2.5 text-sm font-medium transition-colors">Huỷ</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => { setEditingAddressId('new'); setNewAddress({ isDefault: addresses.length === 0 }); }}
+                      className="w-full mt-4 border-2 border-dashed border-primary/30 rounded-2xl p-4 flex items-center justify-center gap-2 text-primary hover:bg-primary/5 transition-colors font-semibold"
+                    >
+                      <Plus className="w-5 h-5" /> Thêm địa chỉ mới
+                    </button>
+                  )}
+                </div>
               </Section>
             )}
 

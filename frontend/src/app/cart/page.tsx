@@ -3,7 +3,7 @@
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { AppShell } from "@/components/AppShell";
-import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
+import { ShoppingCart, Trash2, Minus, Plus, Package, Calendar, CheckCircle2, Truck, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useMemo, useState, useEffect } from "react";
+import api from "@/lib/api";
 
 export default function CartPage() {
   const router = useRouter();
@@ -22,6 +23,43 @@ export default function CartPage() {
   const { setItems } = useOrderStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  const [orderHistory, setOrderHistory] = useState<any[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(3);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setIsLoadingOrders(true);
+      try {
+        const res = await api.get(`/api/orders/me?page=${page}&size=${pageSize}`);
+        if (res.data) {
+          if (Array.isArray(res.data.items)) {
+            setOrderHistory(res.data.items.map((o: any) => ({
+              id: o.orderCode || o.id,
+              date: new Date(o.createdAt).toLocaleDateString('vi-VN'),
+              status: o.orderStatus,
+              total: o.totalAmount,
+              items: o.items.map((i: any) => ({
+                name: i.productName,
+                qty: i.quantity
+              }))
+            })));
+          }
+          if (res.data.totalPages) {
+            setTotalPages(res.data.totalPages);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      } finally {
+        setIsLoadingOrders(false);
+      }
+    };
+    fetchOrders();
+  }, [page, pageSize]);
 
   // Initialize selected items once when mounted, and filter out removed items
   useEffect(() => {
@@ -310,6 +348,90 @@ export default function CartPage() {
             </div>
           </div>
         )}
+
+        {/* Order History Section */}
+        <div className="mt-16 space-y-6">
+          <h2 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
+            <Package className="w-6 h-6 text-primary" /> Lịch sử đơn hàng
+          </h2>
+          
+          <div className="grid gap-4">
+            {isLoadingOrders ? (
+              <div className="text-center text-muted-foreground p-4">Đang tải lịch sử đơn hàng...</div>
+            ) : orderHistory.length === 0 ? (
+              <div className="text-center text-muted-foreground p-4 bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl border border-white/40">
+                Bạn chưa có đơn hàng nào.
+              </div>
+            ) : orderHistory.map((order) => (
+              <div key={order.id} className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white/40 flex flex-col md:flex-row gap-4 justify-between md:items-center transition-transform hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-lg text-foreground">{order.id}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${order.status === 'Đã giao thành công' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}>
+                      {order.status === 'Đã giao thành công' ? <CheckCircle2 className="w-3 h-3" /> : <Truck className="w-3 h-3" />}
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="w-4 h-4" /> {order.date}
+                  </div>
+                  <div className="text-sm font-medium">
+                    {order.items.map((i: any) => `${i.name} (x${i.qty})`).join(", ")}
+                  </div>
+                </div>
+                <div className="flex flex-col md:items-end gap-1 border-t md:border-t-0 pt-3 md:pt-0 border-border/50">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tổng đơn</span>
+                  <span className="font-bold text-xl text-primary">{formatPrice(order.total)}</span>
+                  <button className="text-sm font-semibold text-primary hover:underline mt-1 bg-primary/5 px-3 py-1.5 rounded-lg">Xem chi tiết</button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {orderHistory.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 bg-white/40 dark:bg-card/40 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                <span>Hiển thị</span>
+                <select 
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="bg-background border border-border rounded-lg px-2 py-1 text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer"
+                >
+                  <option value={3}>3</option>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+                <span>đơn hàng</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1 || isLoadingOrders}
+                  className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="text-sm font-bold w-24 text-center">
+                  Trang {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages || isLoadingOrders}
+                  className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
     </AppShell>
   );
