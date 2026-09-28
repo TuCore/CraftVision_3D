@@ -22,6 +22,15 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [isGuest, setIsGuest] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsGuest(!localStorage.getItem("token"));
+    }
+  }, []);
   // Fetch reviews for rating
   const { data: reviews } = useProductReviews(id);
   const averageRating = useMemo(() => {
@@ -53,31 +62,35 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
           const allData = await allRes.json();
           const all = allData.items || [];
 
+          const parsedImages = p.sampleImageUrl ? p.sampleImageUrl.split(',') : (p.images?.map((img: any) => img.url) || []);
           const mappedProduct: Product = {
             id: p.id,
             name: p.name,
             price: p.price,
             category: p.categoryName || "Khác",
-            image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
-            rating: 4.8,
+            image: parsedImages.length > 0 ? parsedImages[0] : (p.thumbnailUrl || "/image/placeholder.jpg"),
+            rating: p.averageRating || 0,
             description: p.description || "",
-            matchScore: 95,
-            productType: p.productType
+            matchScore: 0,
+            productType: p.productType,
+            images: parsedImages
           };
-          setProduct(mappedProduct);
+          setProduct(mappedProduct as any);
 
           const mappedRelated = all
             .filter((item: any) => item.id !== id && (item.categoryName === p.categoryName))
-            .map((item: any) => ({
+            .map((item: any) => {
+              const itemImages = item.sampleImageUrl ? item.sampleImageUrl.split(',') : (item.images?.map((img: any) => img.url) || []);
+              return {
               id: item.id,
               name: item.name,
               price: item.price,
               category: item.categoryName || "Khác",
-              image: item.sampleImageUrl || item.thumbnailUrl || "/image/placeholder.jpg",
-              rating: 4.7,
+              image: itemImages.length > 0 ? itemImages[0] : (item.thumbnailUrl || "/image/placeholder.jpg"),
+              rating: item.averageRating || 0,
               description: item.description || "",
-              matchScore: 90
-            }))
+              matchScore: 0
+            }})
             .slice(0, 4);
 
           setRelatedProducts(mappedRelated);
@@ -144,18 +157,35 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
         {/* Product Details */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-          {/* Left: Image */}
-          <div className="relative">
-            <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "5%", left: "5%", width: "90%", height: "90%", background: ambientLight.primary }} />
-            <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "15%", left: "15%", width: "70%", height: "70%", background: ambientLight.secondary, animationDelay: "1s" }} />
-            <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "25%", left: "25%", width: "50%", height: "50%", background: "var(--clay)", animationDelay: "2s" }} />
-            <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-coral-glow border border-white/30">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+          {/* Left: Image Gallery */}
+          <div className="relative flex flex-col gap-4">
+            <div className="relative">
+              <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "5%", left: "5%", width: "90%", height: "90%", background: ambientLight.primary }} />
+              <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "15%", left: "15%", width: "70%", height: "70%", background: ambientLight.secondary, animationDelay: "1s" }} />
+              <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "25%", left: "25%", width: "50%", height: "50%", background: "var(--clay)", animationDelay: "2s" }} />
+              <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-coral-glow border border-white/30">
+                <img
+                  src={((product as any).images?.length > 0 ? (product as any).images[activeImageIndex] : product.image) || product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-opacity duration-300"
+                />
+              </div>
             </div>
+            
+            {/* Thumbnails */}
+            {(product as any).images && (product as any).images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                {(product as any).images.map((img: string, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${activeImageIndex === idx ? 'border-[color:var(--coral)]' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                  >
+                    <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right: Info */}
@@ -210,6 +240,11 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             <div className="flex flex-col gap-4 mt-auto">
               <button
                 onClick={() => {
+                  if (isGuest) {
+                    toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng!");
+                    router.push("/auth");
+                    return;
+                  }
                   toggleFavorite(product);
                   toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
                 }}
@@ -220,7 +255,14 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               </button>
 
               <div
-                onClick={() => router.push(`/shop/${product.id}/greeting`)}
+                onClick={() => {
+                  if (isGuest) {
+                    toast.info("Vui lòng đăng nhập để thiết kế thiệp!");
+                    router.push("/auth");
+                    return;
+                  }
+                  router.push(`/shop/${product.id}/greeting`);
+                }}
                 className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
               >
                 <div className="flex items-center gap-3">
@@ -285,7 +327,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                     </h3>
                     <div className="flex items-center gap-1 mt-auto mb-2 text-xs text-muted-foreground">
                       <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      <span className="font-medium text-foreground">{p.rating}</span>
+                      <span className="font-medium text-foreground">{p.rating > 0 ? p.rating : "Chưa có đánh giá"}</span>
                     </div>
                     <div className="text-xl font-display font-bold gradient-text mb-4">
                       {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price)}
