@@ -56,7 +56,7 @@ export default function AuthPage() {
     }
   };
   // Animation variants
-  const containerVariants: Variants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -67,7 +67,7 @@ export default function AuthPage() {
     }
   };
 
-  const itemVariants: Variants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, x: 100 },
     visible: { 
       opacity: 1, 
