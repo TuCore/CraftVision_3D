@@ -21,9 +21,45 @@ export default function HomePage() {
 
   // Background carousel slides
   const slides = [
-    { id: 0, image: "/dreamy-hero-bg.jpg", title: "Bầu trời hoàng hôn tinh vân mộng mơ 1" },
-    { id: 1, image: "/dreamy-hero-bg.jpg", title: "Bầu trời hoàng hôn tinh vân mộng mơ 2" },
-    { id: 2, image: "/dreamy-hero-bg.jpg", title: "Bầu trời hoàng hôn tinh vân mộng mơ 3" },
+    { 
+      id: 0, 
+      image: "/dreamy-hero-bg.jpg", 
+      title: "Hôm nay bạn muốn tạo",
+      highlight: "món quà",
+      suffix: " gì?",
+      desc: "Hỏi trợ lý AI để nhận ý tưởng, danh sách nguyên liệu, chi phí và video hướng dẫn — chỉ trong vài giây.",
+      btn1Text: "Trò chuyện với AI",
+      btn1Link: "/chat",
+      btn1Icon: MessageCircle,
+      btn2Text: "Mở Studio 3D",
+      btn2Link: "#explore-section"
+    },
+    { 
+      id: 1, 
+      image: "/anh2.png", 
+      title: "Hàng trăm",
+      highlight: "mẫu thiết kế",
+      suffix: " độc quyền",
+      desc: "Lựa chọn từ bộ sưu tập các mẫu thiệp và quà tặng có sẵn. Dễ dàng cá nhân hóa để tạo ra món quà mang đậm dấu ấn riêng.",
+      btn1Text: "Xem các mẫu",
+      btn1Link: "#template-products",
+      btn1Icon: Sparkles,
+      btn2Text: "Bắt đầu thiết kế",
+      btn2Link: "/studio"
+    },
+    { 
+      id: 2, 
+      image: "/anh3.jpg", 
+      title: "Quà tặng",
+      highlight: "handmade",
+      suffix: " tinh tế",
+      desc: "Khám phá bộ sưu tập quà tặng thủ công độc bản được chế tác tỉ mỉ, mang đến những cảm xúc chân thành và ấm áp nhất.",
+      btn1Text: "Ghé thăm cửa hàng",
+      btn1Link: "/shop",
+      btn1Icon: Sparkles,
+      btn2Text: "Tìm hiểu thêm",
+      btn2Link: "#explore-section"
+    },
   ];
 
   // Auto-advance carousel slide every 8s
@@ -102,35 +138,52 @@ export default function HomePage() {
             </span>
           </div>
 
-          {/* Tiêu đề chính giữ trọn vẹn câu chữ */}
-          <h1 className="mt-6 text-4xl sm:text-6xl md:text-7xl font-extrabold font-display text-white tracking-tight leading-[1.18] drop-shadow-lg">
-            Hôm nay bạn muốn tạo<br />
-            <span className="font-serif italic font-normal text-rose-200 tracking-normal drop-shadow">món quà</span> gì?
-          </h1>
+          {/* Nội dung thay đổi theo Slide */}
+          <div key={`content-${activeSlide}`} className="flex flex-col items-center animate-fade-up">
+            {/* Tiêu đề chính */}
+            <h1 className="mt-6 text-4xl sm:text-6xl md:text-7xl font-extrabold font-display text-white tracking-tight leading-[1.18] drop-shadow-lg text-center">
+              {slides[activeSlide].title}<br />
+              <span className="italic font-normal text-rose-200 tracking-normal drop-shadow">{slides[activeSlide].highlight}</span>{slides[activeSlide].suffix}
+            </h1>
 
-          {/* Mô tả giữ nguyên nội dung */}
-          <p className="mt-5 text-base sm:text-lg text-white/90 max-w-xl font-normal leading-relaxed drop-shadow-sm">
-            Hỏi trợ lý AI để nhận ý tưởng, danh sách nguyên liệu, chi phí và video hướng dẫn — chỉ trong vài giây.
-          </p>
+            {/* Mô tả */}
+            <p className="mt-5 text-base sm:text-lg text-white/90 max-w-xl font-normal leading-relaxed drop-shadow-sm text-center">
+              {slides[activeSlide].desc}
+            </p>
 
-          {/* Các nút hành động CTA */}
-          <div className="mt-8 flex flex-wrap gap-4 items-center justify-center">
-            <Link
-              href="/chat"
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-200 via-[#ffd0d7] to-rose-300 hover:from-rose-100 hover:to-rose-200 text-rose-950 font-bold text-sm sm:text-base shadow-xl shadow-rose-300/35 hover:scale-105 active:scale-95 transition-all border border-white/50"
-            >
-              <MessageCircle className="h-5 w-5 text-rose-900" /> Trò chuyện với AI
-            </Link>
-            <a
-              href="#explore-section"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-white font-medium text-sm sm:text-base bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 hover:border-white/40 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            >
-              Mở Studio 3D <ArrowRight className="h-4 w-4" />
-            </a>
+            {/* Các nút hành động CTA */}
+            <div className="mt-8 flex flex-wrap gap-4 items-center justify-center">
+              <Link
+                href={slides[activeSlide].btn1Link}
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-200 via-[#ffd0d7] to-rose-300 hover:from-rose-100 hover:to-rose-200 text-rose-950 font-bold text-sm sm:text-base shadow-xl shadow-rose-300/35 hover:scale-105 active:scale-95 transition-all border border-white/50"
+              >
+                {(() => {
+                  const Icon = slides[activeSlide].btn1Icon;
+                  return <Icon className="h-5 w-5 text-rose-900" />;
+                })()}
+                {slides[activeSlide].btn1Text}
+              </Link>
+              
+              {slides[activeSlide].btn2Link.startsWith('#') ? (
+                <a
+                  href={slides[activeSlide].btn2Link}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.querySelector(slides[activeSlide].btn2Link)?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-white font-medium text-sm sm:text-base bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 hover:border-white/40 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                >
+                  {slides[activeSlide].btn2Text} <ArrowRight className="h-4 w-4" />
+                </a>
+              ) : (
+                <Link
+                  href={slides[activeSlide].btn2Link}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-white font-medium text-sm sm:text-base bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 hover:border-white/40 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                >
+                  {slides[activeSlide].btn2Text} <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Thanh điều hướng chấm tròn (Slider Dots Indicator) */}
@@ -173,25 +226,6 @@ export default function HomePage() {
         />
       </section>
 
-      {/* 2. Main Content below Hero (Studio 3D Section) */}
-      <section id="explore-section" className="relative z-20 bg-background pt-16 sm:pt-24 pb-16 scroll-mt-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Màn hình Gen AI 3D (Studio 3D) ở chân trang */}
-          <Studio3DSection
-            className="pb-6"
-            rightColumnHeader={
-              <div className="text-left animate-fade-up max-w-2xl">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#c92a4e] tracking-wide mb-4">
-                  Khám phá Studio 3D
-                </h2>
-                <p className="text-base sm:text-lg text-muted-foreground font-medium">
-                  Trải nghiệm sức mạnh của AI tạo model 3D: Biến mọi ý tưởng thành mô hình 3D sống động để in lên thiệp chúc mừng, cá nhân hoá từng khoảnh khắc dành riêng cho người thương của bạn.
-                </p>
-              </div>
-            }
-          />
-        </div>
-      </section>
 
       {/* 3. Template Products Section */}
       <TemplateProductsSection />

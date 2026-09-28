@@ -43,13 +43,13 @@ export function TemplateProductsSection() {
   };
 
   return (
-    <section className="w-full py-16 sm:py-24 bg-background border-t border-border/40">
+    <section id="template-products" className="w-full py-16 sm:py-24 bg-background border-t border-border/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex items-center justify-center gap-3 mb-12 sm:mb-16">
           <Flame className="h-8 w-8 sm:h-10 sm:w-10 text-orange-500 fill-orange-500 animate-pulse" />
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-rose-500 tracking-tight text-center">
-            Hơn 50+ sản phẩm đang chờ bạn khám phá
+            Các mẫu thiết kế đang chờ bạn khám phá
           </h2>
         </div>
 

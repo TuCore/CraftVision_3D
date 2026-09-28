@@ -6,6 +6,7 @@ import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, Shoppin
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
+import { Footer } from "@/components/Footer";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
   const { t } = useTranslation();
@@ -66,7 +67,6 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
-    { to: "/cart", label: "Giỏ hàng", icon: ShoppingCart, key: "cart" },
   ] as const;
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -330,17 +330,18 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
       <main 
         key={pathname} 
-        className={`relative z-10 animate-fade-in-page ${
+        className={`relative z-10 animate-fade-in-page flex-1 ${
           isHomePage 
             ? 'p-0 m-0' 
             : pathname.startsWith('/chat') 
-              ? 'px-4 pb-4 md:pb-6 pt-24 md:pt-28 max-w-7xl mx-auto' 
-              : 'px-4 pb-8 md:pb-12 pt-24 md:pt-28 max-w-7xl mx-auto'
+              ? 'px-4 pb-4 md:pb-6 pt-24 md:pt-28 max-w-7xl mx-auto w-full' 
+              : 'px-4 pb-8 md:pb-12 pt-24 md:pt-28 max-w-7xl mx-auto w-full'
         }`}
       >
         {children}
       </main>
 
+      {!isDemo && <Footer />}
     </div>
   );
 }

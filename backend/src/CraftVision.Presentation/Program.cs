@@ -158,10 +158,13 @@ builder.Services.AddAuthorization();
 // --- 3. DEPENDENCY INJECTION ---
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserAddressRepository, UserAddressRepository>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPayOSService, PayOSService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserAddressService, UserAddressService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddApplication();
@@ -175,6 +178,8 @@ builder.Services.AddScoped<IAiChatSessionRepository, AiChatSessionRepository>();
 builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
 builder.Services.AddScoped<IKnowledgeRetrievalService, KnowledgeRetrievalService>();
 builder.Services.AddScoped<IAiChatService, AiChatService>();
+
+builder.Services.AddSignalR();
 
 // Register Hosted Services
 builder.Services.AddHostedService<MemoryMonitorService>();
@@ -206,6 +211,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<CraftVision.Presentation.Hubs.PaymentHub>("/hubs/payment");
 
 // --- API ĐỂ TEST KẾT NỐI DATABASE ---
 app.MapGet("/api/test-db", async (ApplicationDbContext db) =>

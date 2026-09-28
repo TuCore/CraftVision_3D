@@ -9,6 +9,7 @@ import { fetchApi } from "@/lib/apiClient";
 import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
 import { StarryBackground } from "@/components/StarryBackground";
+import { motion } from "framer-motion";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -54,34 +55,61 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: 100 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { type: "spring", stiffness: 100, damping: 20 }
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-x-clip grid lg:grid-cols-2">
       <StarryBackground />
 
       {/* Left brand panel */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 z-10 text-white">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
-          <span className="font-display text-rose-200">
-            <span>CraftVision3D</span>
-          </span>
-        </Link>
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative hidden lg:flex flex-col justify-between p-12 z-10 text-white"
+      >
+        <motion.div variants={itemVariants}>
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+            <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
+            <span className="font-display text-rose-200">
+              <span>CraftVision3D</span>
+            </span>
+          </Link>
+        </motion.div>
 
         <div className="max-w-lg">
-          <span className="inline-flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-semibold text-primary">
+          <motion.span variants={itemVariants} className="inline-flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-semibold text-primary">
             <Sparkles className="h-3.5 w-3.5" /> AI · Handmade · 3D
-          </span>
-          <h1 className="mt-5 text-4xl md:text-5xl font-extrabold leading-tight font-display drop-shadow-lg">
+          </motion.span>
+          <motion.h1 variants={itemVariants} className="mt-5 text-4xl md:text-5xl font-extrabold leading-tight font-display drop-shadow-lg">
             Tạo <span className="gradient-text pb-1">món quà thủ công</span><br />
             đầy ý nghĩa<br />
             cùng AI
-          </h1>
-          <p className="mt-4 text-white/90 drop-shadow-sm">
+          </motion.h1>
+          <motion.p variants={itemVariants} className="mt-4 text-white/90 drop-shadow-sm">
             Gợi ý ý tưởng, danh sách nguyên liệu, ước tính chi phí, thời gian và video hướng dẫn — tất cả trong một trợ lý sáng tạo.
-          </p>
+          </motion.p>
 
-          <div className="mt-8 grid grid-cols-3 gap-3">
+          <motion.div variants={itemVariants} className="mt-8 grid grid-cols-3 gap-3">
             {[
               { label: "Ý tưởng quà", value: "10k+" },
               { label: "Nguyên liệu", value: "5k+" },
@@ -89,17 +117,22 @@ export default function AuthPage() {
             ].map((s) => (
               <div key={s.label} className="glass-card rounded-2xl p-4 text-center bg-white/10 backdrop-blur-md border-white/20">
                 <div className="text-2xl font-bold gradient-text drop-shadow-sm">{s.value}</div>
-                <div className="text-xs text-white/80 mt-1">{s.label}</div>
+                <div className="text-xs text-black/70 mt-1 font-medium">{s.label}</div>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
 
-        <p className="text-sm text-white/70">© 2026 <span className="text-rose-200">CraftVision3D</span>. Made with ♥ in Vietnam.</p>
-      </div>
+        <motion.p variants={itemVariants} className="text-sm text-white/70">© 2026 <span className="text-rose-200">CraftVision3D</span>. Made with ♥ in Vietnam.</motion.p>
+      </motion.div>
 
       {/* Right form panel */}
-      <div className="relative flex items-center justify-center p-6 md:p-12 z-10">
+      <motion.div 
+        initial={{ opacity: 0, x: 150 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.3 }}
+        className="relative flex items-center justify-center p-6 md:p-12 z-10"
+      >
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center font-bold text-lg text-white">
             <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-12 h-12 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
@@ -235,7 +268,7 @@ export default function AuthPage() {
             </form>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
