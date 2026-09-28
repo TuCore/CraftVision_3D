@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stage, useGLTF } from "@react-three/drei";
 import api from "@/lib/api";
-import { Product } from "@/lib/mock-products";
+import { Product } from "@/lib/product.types";
 import { AIGiftWidget } from "@/components/AIGiftWidget";
 import { useGreetingStore } from "@/store/useGreetingStore";
 

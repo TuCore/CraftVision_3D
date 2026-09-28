@@ -71,6 +71,9 @@ public class ProductRepository : IProductRepository
         }
 
         var totalCount = await query.CountAsync();
+        
+        query = query.OrderByDescending(p => p.CreatedAt);
+
         var items = await query.Skip((filter.Page - 1) * filter.PageSize).Take(filter.PageSize).ToListAsync();
 
         return (items, totalCount);

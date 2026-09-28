@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { ArrowLeft, Sparkles, Upload } from "lucide-react";
 import { useOrderStore } from "@/store/useOrderStore";
 import { toast } from "sonner";
-import { Product } from "@/lib/mock-products";
+import { Product } from "@/lib/product.types";
 
 export default function StudioPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();

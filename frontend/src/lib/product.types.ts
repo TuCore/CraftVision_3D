@@ -1,4 +1,4 @@
-export type Category = "Móc khoá" | "Vòng tay" | "Dây chuyền" | "Charm" | "Đồ trang trí";
+export type Category = string;
 
 export interface Product {
   id: string;
@@ -10,6 +10,7 @@ export interface Product {
   description: string;
   matchScore: number;
   productType?: string;
+  images?: string[];
 }
 
 
