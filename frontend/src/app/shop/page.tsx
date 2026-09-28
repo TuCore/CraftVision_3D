@@ -7,6 +7,7 @@ import { Search, Star, Sparkles, Loader2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Product, Category } from "@/lib/mock-products";
 import { useFavoriteStore } from "@/store/useFavoriteStore";
+import { useProductCategories } from "@/hooks/useProductCategories";
 
 import { TiltCard } from "@/components/TiltCard";
 import {
@@ -17,22 +18,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const categories: ("Tất cả" | "Móc khoá" | "Vòng tay" | "Dây chuyền" | "Charm" | "Đồ trang trí")[] = [
-  "Tất cả",
-  "Móc khoá",
-  "Vòng tay",
-  "Dây chuyền",
-  "Charm",
-  "Đồ trang trí",
-];
+// removed hardcoded categories
 
 export default function ShopPage() {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<"Tất cả" | Category | string>("Tất cả");
+  const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isFavorite, toggleFavorite } = useFavoriteStore();
+  const { data: categoriesData } = useProductCategories();
+  const dynamicCategories = ["Tất cả", ...(categoriesData?.map(c => c.name) || [])];
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,23 +39,15 @@ export default function ShopPage() {
           const items = data.items || [];
           // Map backend ProductDto to frontend Product interface
           const mapped = items.map((p: any) => {
-            let cat = p.categoryName || "Khác";
-            const nameLower = p.name.toLowerCase();
-            if (nameLower.includes("charm")) cat = "Charm";
-            else if (nameLower.includes("móc khóa") || nameLower.includes("móc khoá")) cat = "Móc khoá";
-            else if (nameLower.includes("dây chuyền")) cat = "Dây chuyền";
-            else if (nameLower.includes("vòng tay")) cat = "Vòng tay";
-            else if (nameLower.includes("đồ trang trí") || nameLower.includes("decor")) cat = "Đồ trang trí";
-
             return {
               id: p.id,
               name: p.name,
               price: p.price,
-              category: cat,
+              category: p.categoryName || "Khác",
               image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
-              rating: parseFloat((4.8 + Math.random() * 0.2).toFixed(1)), // Fake rating for now
+              rating: p.averageRating || 0,
               description: p.description || "",
-              matchScore: Math.floor(85 + Math.random() * 15), // Fake score
+              matchScore: 0,
             };
           });
           setProducts(mapped);
@@ -114,13 +102,13 @@ export default function ShopPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
+            {dynamicCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === cat
-                    ? "btn-hero"
+                    ? "btn-hero text-white"
                     : "glass-card border border-border hover:bg-white/50 text-foreground"
                 }`}
               >
@@ -223,12 +211,6 @@ export default function ShopPage() {
                     className={`h-4 w-4 ${isFavorite(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
                   />
                 </button>
-                
-                {/* AI Recommendation Confidence Label */}
-                <div className="absolute bottom-2 right-2 z-20 glass-strong border border-white/40 px-2 py-0.5 rounded-full text-[10px] font-bold text-foreground flex items-center gap-1 shadow-sm">
-                  <Sparkles className="h-2.5 w-2.5 text-primary" />
-                  <span className="text-primary">{product.matchScore}%</span>
-                </div>
               </div>
               
               <div className="flex-1 flex flex-col">
@@ -237,7 +219,7 @@ export default function ShopPage() {
                 </h3>
                 <div className="flex items-center gap-1 mt-auto mb-2 text-xs text-muted-foreground">
                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-foreground">{product.rating}</span>
+                  <span className="font-medium text-foreground">{product.rating > 0 ? product.rating : "Chưa có đánh giá"}</span>
                 </div>
                 <div className="text-xl font-display font-bold gradient-text mb-4">
                   {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}

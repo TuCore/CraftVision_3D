@@ -15,14 +15,8 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const router = useRouter();
   const [isBumping, setIsBumping] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
-    if (typeof window !== "undefined") {
-      const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
-      if (isDemoMode) return false;
-      return !localStorage.getItem("token");
-    }
-    return true;
-  });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const [bumpingKey, setBumpingKey] = useState<string | null>(null);
   const prevCount = useRef(wishlistCount);
 
@@ -30,19 +24,16 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     if (typeof window !== "undefined") {
       const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
       setIsDemo(isDemoMode);
-
-      if (!isDemoMode) {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          router.replace("/auth");
-        } else {
-          setIsCheckingAuth(false);
-        }
+      
+      const token = localStorage.getItem("token");
+      if (!token && !isDemoMode) {
+        setIsGuest(true);
       } else {
-        setIsCheckingAuth(false);
+        setIsGuest(false);
       }
+      setIsCheckingAuth(false);
     }
-  }, [pathname, router]);
+  }, [pathname]);
 
 
   useEffect(() => {
@@ -253,6 +244,16 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   <span className="hidden sm:inline">{t("nav.logout")}</span>
                 </button>
               </>
+            ) : isGuest ? (
+              <Link
+                href="/auth"
+                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold shadow-sm transition-all hover:scale-105 ${
+                  isTransparentNav ? "bg-white text-black" : "bg-[color:var(--coral)] text-white"
+                }`}
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Đăng nhập</span>
+              </Link>
             ) : (
               <Link
                 href="/auth"
