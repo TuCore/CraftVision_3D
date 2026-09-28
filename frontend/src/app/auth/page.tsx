@@ -9,7 +9,7 @@ import { fetchApi } from "@/lib/apiClient";
 import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
 import { StarryBackground } from "@/components/StarryBackground";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -56,7 +56,7 @@ export default function AuthPage() {
     }
   };
   // Animation variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -67,7 +67,7 @@ export default function AuthPage() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, x: 100 },
     visible: { 
       opacity: 1, 
