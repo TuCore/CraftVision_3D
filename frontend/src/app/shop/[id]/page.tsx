@@ -4,7 +4,7 @@ import { use, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Product } from "@/lib/product.types";
-import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { useWishlistStore } from "@/store/useWishlistStore";
@@ -163,29 +163,59 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "5%", left: "5%", width: "90%", height: "90%", background: ambientLight.primary }} />
               <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "15%", left: "15%", width: "70%", height: "70%", background: ambientLight.secondary, animationDelay: "1s" }} />
               <div className="blob animate-pulse-glow transition-colors duration-1000" style={{ top: "25%", left: "25%", width: "50%", height: "50%", background: "var(--clay)", animationDelay: "2s" }} />
-              <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-coral-glow border border-white/30">
+              <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-coral-glow border border-white/30 group">
                 <img
                   src={((product as any).images?.length > 0 ? (product as any).images[activeImageIndex] : product.image) || product.image}
                   alt={product.name}
                   className="w-full h-full object-cover transition-opacity duration-300"
                 />
+                
+                {/* Image Navigation Arrows */}
+                {(product as any).images && (product as any).images.length > 1 && (
+                  <>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex(prev => prev === 0 ? (product as any).images.length - 1 : prev - 1);
+                      }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex(prev => prev === (product as any).images.length - 1 ? 0 : prev + 1);
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                    
+                  </>
+                )}
               </div>
+              
+              {/* Thumbnails */}
+              {(product as any).images && (product as any).images.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  <style>{`
+                    .flex.gap-2.overflow-x-auto::-webkit-scrollbar {
+                      display: none;
+                    }
+                  `}</style>
+                  {(product as any).images.map((img: string, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${activeImageIndex === idx ? 'border-[color:var(--coral)]' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                    >
+                      <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            
-            {/* Thumbnails */}
-            {(product as any).images && (product as any).images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                {(product as any).images.map((img: string, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${activeImageIndex === idx ? 'border-[color:var(--coral)]' : 'border-transparent opacity-70 hover:opacity-100'}`}
-                  >
-                    <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Right: Info */}
