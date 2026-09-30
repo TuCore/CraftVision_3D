@@ -4,6 +4,7 @@ import { useProductCategories, useCreateCategory, useDeleteCategory } from '@/ho
 import { LayoutGrid, Plus, Trash2, Loader2, LayoutList } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function AdminCategoriesPage() {
   const { data: categories, isLoading, error } = useProductCategories();
@@ -11,6 +12,7 @@ export default function AdminCategoriesPage() {
   const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
   
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,10 +30,20 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa danh mục này? Các sản phẩm thuộc danh mục này có thể bị ảnh hưởng.')) {
-      deleteCategory(id, {
-        onSuccess: () => toast.success('Đã xóa danh mục thành công.'),
-        onError: () => toast.error('Lỗi khi xóa danh mục. Có thể danh mục đang chứa sản phẩm.')
+    setCategoryToDelete(id);
+  };
+  
+  const confirmDelete = () => {
+    if (categoryToDelete) {
+      deleteCategory(categoryToDelete, {
+        onSuccess: () => {
+          toast.success('Đã xóa danh mục thành công.');
+          setCategoryToDelete(null);
+        },
+        onError: () => {
+          toast.error('Lỗi khi xóa danh mục. Có thể danh mục đang chứa sản phẩm.');
+          setCategoryToDelete(null);
+        }
       });
     }
   };
@@ -123,6 +135,26 @@ export default function AdminCategoriesPage() {
           </table>
         </div>
       </div>
+
+      <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-md bg-background/95 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold font-display text-foreground">Xóa danh mục</AlertDialogTitle>
+            <AlertDialogDescription className="text-base text-muted-foreground">
+              Bạn có chắc chắn muốn xóa danh mục này? Các sản phẩm thuộc danh mục này có thể bị ảnh hưởng. Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="rounded-xl px-6 font-bold" onClick={() => setCategoryToDelete(null)}>Hủy</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete} 
+              className="rounded-xl px-6 font-bold bg-rose-500 hover:bg-rose-600 text-white"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -59,6 +59,11 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
   ] as const;
 
+  const visibleNav = nav.filter(item => {
+    if (isGuest && (item.key === 'chat' || item.key === 'profile')) return false;
+    return true;
+  });
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -139,7 +144,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </Link>
           {!isDemo && (
           <nav className="hidden md:flex items-center gap-1.5">
-            {nav.map((item) => {
+            {visibleNav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
               const isCart = (item.key as string) === "cart";
@@ -176,7 +181,25 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </nav>
           )}
           <div className="flex items-center gap-2">
-            {!isDemo ? (
+            {isGuest ? (
+              <Link
+                href="/auth"
+                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold shadow-sm transition-all hover:scale-105 ${
+                  isTransparentNav ? "bg-white text-black" : "bg-[color:var(--coral)] text-white"
+                }`}
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Đăng nhập</span>
+              </Link>
+            ) : isDemo ? (
+              <Link
+                href="/auth"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:opacity-90"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Thoát Demo</span>
+              </Link>
+            ) : (
               <>
                 <Link
                   href="/cart"
@@ -244,24 +267,6 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   <span className="hidden sm:inline">{t("nav.logout")}</span>
                 </button>
               </>
-            ) : isGuest ? (
-              <Link
-                href="/auth"
-                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold shadow-sm transition-all hover:scale-105 ${
-                  isTransparentNav ? "bg-white text-black" : "bg-[color:var(--coral)] text-white"
-                }`}
-              >
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Đăng nhập</span>
-              </Link>
-            ) : (
-              <Link
-                href="/auth"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:opacity-90"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Thoát Demo</span>
-              </Link>
             )}
 
             {/* Mobile Menu Toggle Button */}
@@ -290,7 +295,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 ? "bg-[#250d1e]/90 border-white/20 text-white"
                 : "bg-white/95 dark:bg-card/95 border-border text-foreground"
             }`}>
-              {nav.map((item) => {
+              {visibleNav.map((item) => {
                 const Icon = item.icon;
                 const isActive = active === item.key;
                 const isCart = (item.key as string) === "cart";

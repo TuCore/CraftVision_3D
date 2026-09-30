@@ -6,6 +6,7 @@ import { Package, Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Loader2
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ProductModal } from './components/ProductModal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function AdminProductsPage() {
   const [page, setPage] = useState(1);
@@ -13,12 +14,23 @@ export default function AdminProductsPage() {
   const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   const handleDelete = (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-      deleteProduct(id, {
-        onSuccess: () => toast.success('Đã xóa sản phẩm thành công.'),
-        onError: () => toast.error('Lỗi khi xóa sản phẩm.')
+    setProductToDelete(id);
+  };
+  
+  const confirmDelete = () => {
+    if (productToDelete) {
+      deleteProduct(productToDelete, {
+        onSuccess: () => {
+          toast.success('Đã xóa sản phẩm thành công.');
+          setProductToDelete(null);
+        },
+        onError: () => {
+          toast.error('Lỗi khi xóa sản phẩm.');
+          setProductToDelete(null);
+        }
       });
     }
   };
@@ -181,6 +193,26 @@ export default function AdminProductsPage() {
         onClose={() => setModalOpen(false)} 
         product={selectedProduct} 
       />
+
+      <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-md bg-background/95 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold font-display text-foreground">Xóa sản phẩm</AlertDialogTitle>
+            <AlertDialogDescription className="text-base text-muted-foreground">
+              Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="rounded-xl px-6 font-bold" onClick={() => setProductToDelete(null)}>Hủy</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete} 
+              className="rounded-xl px-6 font-bold bg-rose-500 hover:bg-rose-600 text-white"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

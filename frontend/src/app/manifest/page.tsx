@@ -7,13 +7,20 @@ import { Send, Sparkles } from "lucide-react";
 import axios from "axios";
 import confetti from "canvas-confetti";
 
-// Flower positions scattered around the base of the tree
+// Flower positions scattered on the tree canopy (SVG coordinates 0-200)
 const FLOWER_POSITIONS = [
-  { x: 14, y: 82 }, { x: 22, y: 87 }, { x: 8, y: 90 }, { x: 30, y: 84 },
-  { x: 72, y: 85 }, { x: 78, y: 90 }, { x: 86, y: 83 }, { x: 65, y: 88 },
-  { x: 42, y: 91 }, { x: 50, y: 94 }, { x: 58, y: 91 }, { x: 36, y: 89 },
-  { x: 18, y: 95 }, { x: 82, y: 93 }, { x: 26, y: 93 }, { x: 68, y: 92 },
-  { x: 5, y: 86 }, { x: 90, y: 87 }, { x: 44, y: 96 }, { x: 56, y: 97 },
+  // Top
+  { x: 95, y: 30 }, { x: 85, y: 35 }, { x: 105, y: 38 }, { x: 95, y: 45 }, { x: 80, y: 48 }, { x: 110, y: 48 },
+  // Left
+  { x: 65, y: 55 }, { x: 75, y: 65 }, { x: 60, y: 68 }, { x: 70, y: 78 }, { x: 85, y: 75 },
+  // Right
+  { x: 125, y: 55 }, { x: 115, y: 65 }, { x: 132, y: 70 }, { x: 110, y: 80 }, { x: 125, y: 82 },
+  // Middle
+  { x: 100, y: 55 }, { x: 90, y: 60 }, { x: 105, y: 70 }, { x: 95, y: 80 },
+  // Extra layer (just in case)
+  { x: 88, y: 28 }, { x: 102, y: 30 }, { x: 72, y: 45 }, { x: 118, y: 48 },
+  { x: 55, y: 60 }, { x: 138, y: 65 }, { x: 65, y: 80 }, { x: 130, y: 75 },
+  { x: 85, y: 55 }, { x: 115, y: 58 }
 ];
 
 const FLOWER_COLORS = ["#ff9a3c", "#ff6eb4", "#ffd700", "#ff7eb3", "#ff8c55"];
@@ -21,7 +28,7 @@ const FLOWER_COLORS = ["#ff9a3c", "#ff6eb4", "#ffd700", "#ff7eb3", "#ff8c55"];
 function Flower({ x, y, color, animate }: { x: number; y: number; color: string; animate: boolean }) {
   return (
     <g
-      transform={`translate(${x}%, ${y}%)`}
+      transform={`translate(${x}, ${y})`}
       style={{
         transformBox: "fill-box",
         transformOrigin: "center",
@@ -67,13 +74,6 @@ export default function ManifestPage() {
   }, [apiUrl]);
 
   const handleManifest = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.info("Vui lòng đăng nhập để gửi nguyện ước!");
-      window.location.href = "/auth";
-      return;
-    }
-
     if (!wish) {
       toast.error("Vui lòng điền mong muốn của bạn!");
       return;
@@ -139,7 +139,20 @@ export default function ManifestPage() {
     }
   };
 
-  const visibleFlowers = FLOWER_POSITIONS.slice(0, Math.min(wishCount, FLOWER_POSITIONS.length));
+  const getDeterministicOffset = (index: number) => {
+    const cycle = Math.floor(index / FLOWER_POSITIONS.length);
+    if (cycle === 0) return { x: 0, y: 0 };
+    // Generate deterministic spread for subsequent cycles to stack flowers
+    const pseudoX = Math.sin(index * 13.5) * 12; 
+    const pseudoY = Math.cos(index * 21.3) * 12;
+    return { x: pseudoX, y: pseudoY };
+  };
+
+  const visibleFlowers = Array.from({ length: wishCount }).map((_, i) => {
+    const basePos = FLOWER_POSITIONS[i % FLOWER_POSITIONS.length];
+    const offset = getDeterministicOffset(i);
+    return { x: basePos.x + offset.x, y: basePos.y + offset.y };
+  });
 
   return (
     <AppShell active="manifest">
@@ -451,22 +464,13 @@ export default function ManifestPage() {
             {visibleFlowers.map((pos, i) => (
               <Flower
                 key={i}
-                x={pos.x * 2}   // scale to SVG viewBox 0-200
-                y={pos.y * 2}
+                x={pos.x}
+                y={pos.y}
                 color={FLOWER_COLORS[i % FLOWER_COLORS.length]}
                 animate={i === newFlowerIndex}
               />
             ))}
 
-            {/* Wish count badge */}
-            {wishCount > 0 && (
-              <g transform="translate(140, 10)">
-                <rect x="0" y="0" width="48" height="18" rx="9" fill="url(#badgeGrad)" opacity="0.9" filter="url(#glow)"/>
-                <text x="24" y="12.5" textAnchor="middle" fontSize="7" fill="#fff" fontWeight="bold">
-                  ✨ {wishCount} wish
-                </text>
-              </g>
-            )}
           </svg>
         </div>
 

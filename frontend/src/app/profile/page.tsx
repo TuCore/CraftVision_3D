@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState("Nguyễn Minh");
   const [email, setEmail] = useState("minh@craft.vn");
   const [bio, setBio] = useState('"Sáng tạo là hạnh phúc." — Handmade creator 💛');
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const [joinedDate, setJoinedDate] = useState("");
 
@@ -30,6 +31,7 @@ export default function ProfilePage() {
         if (data.fullName) setFullName(data.fullName);
         if (data.email) setEmail(data.email);
         if (data.bio) setBio(data.bio);
+        if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
         
         if (data.createdAt) {
           const d = new Date(data.createdAt);
@@ -173,7 +175,7 @@ export default function ProfilePage() {
             {/* Avatar */}
             <div className="shrink-0 relative">
               <div className="h-16 w-16 md:h-20 md:w-20 rounded-full border-2 border-white shadow-sm overflow-hidden bg-muted">
-                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`} alt="Avatar" className="w-full h-full object-cover" />
+                <img src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'User')}&background=random`} alt="Avatar" className="w-full h-full object-cover" />
               </div>
             </div>
 
@@ -432,9 +434,9 @@ export default function ProfilePage() {
                             Đã nhận được hàng
                           </button>
                         )}
-                        {["Delivered", "Cancelled"].includes(order.orderStatus) && order.items?.[0] && (
+                        {["Delivered", "Completed", "Cancelled"].includes(order.orderStatus) && order.items?.[0] && (
                           <>
-                            {order.orderStatus === "Delivered" && (
+                            {(order.orderStatus === "Delivered" || order.orderStatus === "Completed") && (
                               <button 
                                 onClick={() => {
                                   router.push(`/shop/${order.items[0].productId}?review=true#reviews`);
