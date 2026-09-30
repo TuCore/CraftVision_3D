@@ -134,7 +134,6 @@ export default function AdminCategoriesPage() {
             </tbody>
           </table>
         </div>
-        </div>
       </div>
 
       <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
