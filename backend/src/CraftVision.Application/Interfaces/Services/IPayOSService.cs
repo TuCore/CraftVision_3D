@@ -8,12 +8,12 @@ public interface IPayOSService
     /// <summary>
     /// Creates a payment link/QR code for a specific order
     /// </summary>
-    Task<string> CreatePaymentLinkAsync(Guid orderId, decimal amount, string description, string returnUrl, string cancelUrl);
+    Task<string> CreatePaymentLinkAsync(Guid orderId, long orderCode, decimal amount, string description, string returnUrl, string cancelUrl);
     
     /// <summary>
-    /// Validates and processes the webhook data received from PayOS
+    /// Validates and processes the webhook data received from PayOS, returning the OrderCode if successful.
     /// </summary>
-    Task<bool> ProcessWebhookAsync(object webhookBody, string signature);
+    Task<long?> ProcessWebhookAsync(object webhookBody, string signature);
     
     /// <summary>
     /// Cancels a pending payment link

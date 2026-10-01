@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Flame, Info, PlayCircle, ShoppingCart, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Flame, Info, PlayCircle, ShoppingCart, Eye, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { ProductDemoModal } from "./ProductDemoModal";
 
 // Mock data for template products
 const TEMPLATE_PRODUCTS = [
@@ -26,6 +27,8 @@ const TEMPLATE_PRODUCTS = [
 
 export function TemplateProductsSection() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProduct, setSelectedProduct] = useState<typeof TEMPLATE_PRODUCTS[0] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 8;
   const totalPages = Math.ceil(TEMPLATE_PRODUCTS.length / itemsPerPage);
   
@@ -46,11 +49,16 @@ export function TemplateProductsSection() {
     <section id="template-products" className="w-full py-16 sm:py-24 bg-background border-t border-border/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-center justify-center gap-3 mb-12 sm:mb-16">
-          <Flame className="h-8 w-8 sm:h-10 sm:w-10 text-orange-500 fill-orange-500 animate-pulse" />
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-rose-500 tracking-tight text-center">
-            Các mẫu thiết kế đang chờ bạn khám phá
-          </h2>
+        <div className="relative flex items-center justify-center mb-12 sm:mb-16 py-4">
+          {/* Aura Effect */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-3xl h-[150%] bg-[#ffd1da] opacity-80 blur-[50px] rounded-[100%] pointer-events-none" />
+          
+          <div className="relative inline-flex items-center gap-3 sm:gap-4 z-10">
+            <Sparkles className="h-7 w-7 sm:h-10 sm:w-10 text-[#4a0b19]" strokeWidth={2.5} />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#4a0b19] tracking-tight text-center">
+              Các mẫu thiết kế đang chờ bạn khám phá
+            </h2>
+          </div>
         </div>
 
         {/* Products Grid */}
@@ -106,7 +114,10 @@ export function TemplateProductsSection() {
                     <ShoppingCart className="h-4 w-4" /> Mua ngay
                   </button>
                   <button
-                    onClick={() => toast.info("Đang mở bản demo...")}
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setIsModalOpen(true);
+                    }}
                     className="flex items-center justify-center gap-1.5 bg-transparent hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"
                   >
                     <Eye className="h-4 w-4" /> Xem demo
@@ -158,6 +169,12 @@ export function TemplateProductsSection() {
           </div>
         )}
       </div>
+
+      <ProductDemoModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        product={selectedProduct}
+      />
     </section>
   );
 }

@@ -13,6 +13,7 @@ public class OrderDto
     public string? ReceiverName { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? CheckoutUrl { get; set; }
     
     public List<OrderItemDto> Items { get; set; } = new();
 }
