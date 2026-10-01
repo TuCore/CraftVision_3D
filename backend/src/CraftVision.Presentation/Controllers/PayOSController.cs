@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using CraftVision.Application.Interfaces;
+using CraftVision.Application.Interfaces.Repositories;
 using CraftVision.Application.Interfaces.Services;
 using CraftVision.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;

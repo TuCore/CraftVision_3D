@@ -21,11 +21,42 @@ public class PayOSService : IPayOSService
         _configuration = configuration;
         _logger = logger;
         
-        var clientId = _configuration["PayOS:ClientId"] ?? "";
-        var apiKey = _configuration["PayOS:ApiKey"] ?? "";
-        var checksumKey = _configuration["PayOS:ChecksumKey"] ?? "";
+        var clientId = GetConfigValue("ClientId");
+        var apiKey = GetConfigValue("ApiKey");
+        var checksumKey = GetConfigValue("ChecksumKey");
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(checksumKey))
+        {
+            _logger.LogWarning("PayOS credentials are missing or not properly configured! Please ensure PayOS__ClientId / PayOS_ClientId is set in environment variables or appsettings.json.");
+        }
         
         _payOs = new PayOSClient(clientId, apiKey, checksumKey);
+    }
+
+    private string GetConfigValue(string key)
+    {
+        // 1. Standard .NET hierarchical path: PayOS:Key (matches PayOS__Key in Linux/Docker env)
+        var val = _configuration[$"PayOS:{key}"];
+        if (IsValidConfig(val)) return val!.Trim();
+
+        // 2. Direct double underscore PayOS__Key
+        val = _configuration[$"PayOS__{key}"];
+        if (IsValidConfig(val)) return val!.Trim();
+
+        // 3. Single underscore PayOS_Key (common custom env setting)
+        val = _configuration[$"PayOS_{key}"];
+        if (IsValidConfig(val)) return val!.Trim();
+
+        // 4. Direct OS environment variables
+        val = Environment.GetEnvironmentVariable($"PayOS__{key}") ?? Environment.GetEnvironmentVariable($"PayOS_{key}");
+        if (IsValidConfig(val)) return val!.Trim();
+
+        return "";
+    }
+
+    private static bool IsValidConfig(string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value) && !value.StartsWith("REPLACE_");
     }
 
     public async Task<string> CreatePaymentLinkAsync(Guid orderId, long orderCode, decimal amount, string description, string returnUrl, string cancelUrl)
