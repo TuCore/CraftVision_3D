@@ -42,7 +42,7 @@ public class OrderService : IOrderService
             {
                 UserId = userId,
                 OrderCode = GenerateOrderCode(),
-                PaymentMethod = PaymentMethod.Cod,
+                PaymentMethod = Enum.TryParse<PaymentMethod>(dto.PaymentMethod, true, out var pm) ? pm : PaymentMethod.Cod,
                 PaymentStatus = PaymentStatus.Unpaid,
                 ReceiverName = dto.ReceiverName,
                 ReceiverPhone = dto.ReceiverPhone,
