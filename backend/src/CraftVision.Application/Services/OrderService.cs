@@ -11,17 +11,21 @@ using CraftVision.Domain.Entities;
 using CraftVision.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 
+using CraftVision.Application.Interfaces.Services;
+
 namespace CraftVision.Application.Services;
 
 public class OrderService : IOrderService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _configuration;
+    private readonly IPayOSService _payOsService;
 
-    public OrderService(IUnitOfWork unitOfWork, IConfiguration configuration)
+    public OrderService(IUnitOfWork unitOfWork, IConfiguration configuration, IPayOSService payOsService)
     {
         _unitOfWork = unitOfWork;
         _configuration = configuration;
+        _payOsService = payOsService;
     }
 
     public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto)
@@ -196,7 +200,27 @@ public class OrderService : IOrderService
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 
-            return await GetOrderByIdAsync(order.Id);
+            var resultDto = await GetOrderByIdAsync(order.Id);
+
+            if (order.PaymentMethod == PaymentMethod.BankTransfer)
+            {
+                var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
+                string returnUrl = $"{frontendUrl}/payment/success";
+                string cancelUrl = $"{frontendUrl}/payment/cancel";
+                
+                string checkoutUrl = await _payOsService.CreatePaymentLinkAsync(
+                    order.Id,
+                    long.Parse(order.OrderCode),
+                    order.TotalAmount,
+                    $"Thanh toan CV3D {order.OrderCode}",
+                    returnUrl,
+                    cancelUrl
+                );
+                
+                resultDto.CheckoutUrl = checkoutUrl;
+            }
+
+            return resultDto;
         }
         catch (Exception ex) when (ex.GetType().Name == "DbUpdateConcurrencyException")
         {
@@ -410,9 +434,8 @@ public class OrderService : IOrderService
 
     private string GenerateOrderCode()
     {
-        string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         var random = new Random();
-        string suffix = new string(Enumerable.Repeat(chars, 6).Select(s => s[random.Next(s.Length)]).ToArray());
-        return $"ORD-{DateTime.UtcNow:yyyyMMdd}-{suffix}";
+        string suffix = random.Next(100, 999).ToString();
+        return $"{DateTime.UtcNow:yyMMddHHmmss}{suffix}";
     }
 }
