@@ -11,6 +11,7 @@ public class OrderDto
     public string PaymentStatus { get; set; } = string.Empty;
     public string OrderStatus { get; set; } = string.Empty;
     public string? ReceiverName { get; set; }
+    public decimal ShippingFee { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? CheckoutUrl { get; set; }

@@ -144,6 +144,7 @@ export default function CheckoutPage() {
         receiverPhone: hasPhysicalItems ? shippingInfo.phone : "0999999999",
         receiverAddress: hasPhysicalItems ? fullAddress : "Online",
         paymentMethod: paymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
+        shippingFee: shipping,
         items: items.map(item => ({
           productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
           quantity: item.quantity,
@@ -198,7 +199,28 @@ export default function CheckoutPage() {
   if (!items || items.length === 0) return null;
 
   const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const shipping = !hasPhysicalItems || subtotal > 500000 ? 0 : 30000;
+
+  const calculateShippingFee = () => {
+    if (!hasPhysicalItems || subtotal >= 500000) return 0;
+
+    const province = (shippingInfo.province || "").toLowerCase().trim();
+    const district = (shippingInfo.district || "").toLowerCase().trim();
+    const address = (shippingInfo.address || "").toLowerCase().trim();
+    const fullText = `${province} ${district} ${address}`;
+
+    const isHcm = fullText.includes("hồ chí minh") || fullText.includes("ho chi minh") || fullText.includes("hcm") || fullText.includes("tphcm");
+
+    if (isHcm) {
+      // Huyện ngoại thành TP.HCM: Bình Chánh, Hóc Môn, Củ Chi, Nhà Bè, Cần Giờ
+      const suburbanKeywords = ["bình chánh", "binh chanh", "hóc môn", "hoc mon", "củ chi", "cu chi", "nhà bè", "nha be", "cần giờ", "can gio"];
+      const isSuburban = suburbanKeywords.some(kw => fullText.includes(kw));
+      return isSuburban ? 30000 : 20000;
+    }
+
+    return 35000; // Ngoại tỉnh
+  };
+
+  const shipping = calculateShippingFee();
   const total = subtotal + shipping;
 
   const showGlobalNfc = items.length === 1 && !items[0].gift;
@@ -368,7 +390,14 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Phí giao hàng</span>
-                  <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
+                  <div className="text-right">
+                    <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
+                    {hasPhysicalItems && shipping > 0 && (
+                      <span className="block text-[11px] text-muted-foreground">
+                        {shipping === 20000 ? "(Nội thành TP.HCM)" : shipping === 30000 ? "(Ngoại thành TP.HCM)" : "(Ngoại tỉnh)"}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
               </div>

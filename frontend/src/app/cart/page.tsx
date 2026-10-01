@@ -303,7 +303,9 @@ export default function CartPage() {
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Phí vận chuyển:</span>
-                    <span className="font-bold text-emerald-500">Miễn phí</span>
+                    <span className="font-bold text-emerald-500">
+                      {subtotal === 0 || subtotal >= 500000 ? "Miễn phí" : "Từ 20.000 đ (nội thành HCM)"}
+                    </span>
                   </div>
                 </div>
 
@@ -311,9 +313,14 @@ export default function CartPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-foreground font-semibold">Tổng cộng:</span>
                     <span className="text-2xl font-bold text-primary">
-                      {formatPrice(subtotal)}
+                      {formatPrice(subtotal + (subtotal >= 500000 || subtotal === 0 ? 0 : 20000))}
                     </span>
                   </div>
+                  {subtotal > 0 && subtotal < 500000 && (
+                    <p className="text-[11px] text-muted-foreground mt-1 text-right italic">
+                      (Đã gồm phí ship nội thành HCM 20.000đ)
+                    </p>
+                  )}
                 </div>
 
                 <button 
