@@ -374,7 +374,7 @@ public class OrderService : IOrderService
             throw new UnauthorizedAccessException("Bạn không có quyền hủy đơn hàng này.");
         }
 
-        if (order.OrderStatus != OrderStatus.Pending && order.OrderStatus != OrderStatus.Processing)
+        if (order.OrderStatus != OrderStatus.Pending && order.OrderStatus != OrderStatus.Processing && order.OrderStatus != OrderStatus.WaitingProduction)
         {
             throw new InvalidOperationException("Chỉ có thể hủy đơn hàng đang chờ xử lý.");
         }

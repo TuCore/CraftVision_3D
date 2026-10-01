@@ -43,7 +43,7 @@ export function TemplateProductsSection() {
   };
 
   return (
-    <section className="w-full py-16 sm:py-24 bg-background border-t border-border/40">
+    <section id="template-products" className="w-full py-16 sm:py-24 bg-background border-t border-border/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex items-center justify-center gap-3 mb-12 sm:mb-16">

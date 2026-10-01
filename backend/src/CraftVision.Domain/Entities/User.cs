@@ -33,5 +33,6 @@ namespace CraftVision.Domain.Entities
         public ICollection<AiRequest> AiRequests { get; set; } = new List<AiRequest>();
         public ICollection<DiyPlan> DiyPlans { get; set; } = new List<DiyPlan>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
+        public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
     }
 }

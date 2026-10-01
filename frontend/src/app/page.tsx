@@ -1,10 +1,41 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Box, Sparkles, ArrowRight, MessageCircle, Gift, Palette } from "lucide-react";
 import { StarryBackground } from "@/components/StarryBackground";
+import { motion } from "framer-motion";
+import { Footer } from "@/components/Footer";
 
 export default function Landing() {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleNavigateAuth = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    setTimeout(() => {
+      router.push("/auth");
+    }, 400); // Đợi animation chạy xong
+  };
+
+  const pageVariants: any = {
+    initial: { opacity: 1, x: 0 },
+    exit: { 
+      opacity: 0, 
+      x: -150, 
+      transition: { duration: 0.4, ease: "easeInOut", staggerChildren: 0.1 }
+    }
+  };
+
   return (
-    <div className="relative min-h-screen overflow-x-clip text-white">
+    <motion.div 
+      variants={pageVariants}
+      initial="initial"
+      animate={isNavigating ? "exit" : "initial"}
+      className="relative min-h-screen overflow-x-clip text-white"
+    >
       <StarryBackground />
 
       <header className="fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ease-in-out bg-transparent py-5 px-4 sm:px-8 border-b border-transparent">
@@ -19,8 +50,8 @@ export default function Landing() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/auth" className="rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 text-sm font-medium">Đăng nhập</Link>
-            <Link href="/auth" className="btn-hero rounded-xl px-4 py-2 text-sm font-semibold">Bắt đầu</Link>
+            <Link href="/auth" onClick={handleNavigateAuth} className="rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 text-sm font-medium">Đăng nhập</Link>
+            <Link href="/auth" onClick={handleNavigateAuth} className="btn-hero rounded-xl px-4 py-2 text-sm font-semibold">Bắt đầu</Link>
           </div>
         </div>
       </header>
@@ -39,7 +70,7 @@ export default function Landing() {
             Gợi ý ý tưởng, danh sách nguyên liệu, ước tính chi phí và video hướng dẫn — chỉ trong vài giây.
           </p>
           <div className="mt-8 flex flex-wrap gap-3 justify-center">
-            <Link href="/auth" className="btn-hero inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 font-semibold">
+            <Link href="/auth" onClick={handleNavigateAuth} className="btn-hero inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 font-semibold">
               Bắt đầu miễn phí <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/chat?demo=true" className="inline-flex items-center gap-2 rounded-2xl bg-white/20 backdrop-blur-md px-6 py-3.5 font-semibold hover:bg-white/30 text-white">
@@ -57,14 +88,17 @@ export default function Landing() {
               return (
                 <div key={f.title} className="glass-card rounded-2xl p-5 bg-white/10 backdrop-blur-md border-white/20">
                   <div className="h-10 w-10 rounded-xl btn-hero grid place-items-center"><Icon className="h-5 w-5" /></div>
-                  <h3 className="mt-3 font-semibold text-white">{f.title}</h3>
-                  <p className="text-sm text-white/80 mt-1">{f.desc}</p>
+                  <h3 className="mt-3 font-semibold text-black">{f.title}</h3>
+                  <p className="text-sm text-black/70 mt-1">{f.desc}</p>
                 </div>
               );
             })}
           </div>
         </div>
       </section>
-    </div>
+
+      {/* FOOTER */}
+      <Footer />
+    </motion.div>
   );
 }

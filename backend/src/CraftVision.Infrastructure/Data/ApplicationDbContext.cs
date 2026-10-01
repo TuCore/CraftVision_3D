@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<UserAddress> UserAddresses { get; set; } = null!;
     public DbSet<UserQuota> UserQuotas { get; set; } = null!;
     public DbSet<UploadedFile> UploadedFiles { get; set; } = null!;
     public DbSet<ImageAnalysisResult> ImageAnalysisResults { get; set; } = null!;

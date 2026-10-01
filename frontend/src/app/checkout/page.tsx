@@ -30,6 +30,8 @@ export default function CheckoutPage() {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [showBankInfo, setShowBankInfo] = useState(false);
 
   // NFC & AI Gift
   const [useNfcGift, setUseNfcGift] = useState(false);
@@ -44,16 +46,6 @@ export default function CheckoutPage() {
   const [success3DUrl, setSuccess3DUrl] = useState<string | null>(null);
 
   const hasPhysicalItems = items.some(item => !(item.product as any).is3D);
-
-  const expirationOptions = [
-    { label: '5 ngày', value: 5, price: 15000 },
-    { label: '15 ngày', value: 15, price: 30000 },
-    { label: '30 ngày', value: 30, price: 45000 },
-    { label: '3 tháng', value: 90, price: 70000 },
-    { label: '1 năm', value: 365, price: 100000 },
-    { label: 'Vĩnh viễn', value: -1, price: 145000 },
-  ];
-  const [expirationOption, setExpirationOption] = useState(expirationOptions[0]);
 
 
 
@@ -101,6 +93,33 @@ export default function CheckoutPage() {
     }
   }, [items, router, isOrderPlaced]);
 
+  useEffect(() => {
+    if (hasPhysicalItems) {
+      const fetchDefaultAddress = async () => {
+        try {
+          const res = await api.get('/api/user/addresses');
+          const addresses = res.data;
+          if (Array.isArray(addresses)) {
+            const defaultAddress = addresses.find((a: any) => a.isDefault) || addresses[0];
+            if (defaultAddress) {
+              setShippingInfo(prev => ({
+                ...prev,
+                receiverName: defaultAddress.receiverName || "",
+                phone: defaultAddress.phone || "",
+                address: defaultAddress.address || "",
+                province: defaultAddress.province || "",
+                district: defaultAddress.district || "",
+              }));
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch addresses:", error);
+        }
+      };
+      fetchDefaultAddress();
+    }
+  }, [hasPhysicalItems]);
+
   const handlePlaceOrder = async () => {
     if (hasPhysicalItems && (!shippingInfo.receiverName || !shippingInfo.phone || !shippingInfo.address)) {
       toast.error("Vui lòng điền đầy đủ thông tin giao hàng!");
@@ -124,7 +143,7 @@ export default function CheckoutPage() {
         receiverName: hasPhysicalItems ? shippingInfo.receiverName : "Khách hàng 3D",
         receiverPhone: hasPhysicalItems ? shippingInfo.phone : "0999999999",
         receiverAddress: hasPhysicalItems ? fullAddress : "Online",
-        paymentMethod: "Cod",
+        paymentMethod: paymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
         items: items.map(item => ({
           productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
           quantity: item.quantity,
@@ -146,8 +165,12 @@ export default function CheckoutPage() {
 
       const res = await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
-      
-      // Clear items from cart
+      if (paymentMethod === "BANK_TRANSFER") {
+        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}`);
+        return;
+      }
+
+      // Clear items from cart (only if not bank transfer, bank transfer will clear on success)
       items.forEach(item => {
         if (item.cartItemId) removeFromCart(item.cartItemId);
       });
@@ -172,7 +195,7 @@ export default function CheckoutPage() {
 
   const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const shipping = !hasPhysicalItems || subtotal > 500000 ? 0 : 30000;
-  const total = subtotal + shipping + expirationOption.price;
+  const total = subtotal + shipping;
 
   const showGlobalNfc = items.length === 1 && !items[0].gift;
 
@@ -192,7 +215,10 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
             {hasPhysicalItems && (
               <div className="glass-card p-6 rounded-3xl space-y-4">
-                <h2 className="text-xl font-bold flex items-center gap-2"><Truck className="w-5 h-5 text-primary" /> Thông tin giao hàng</h2>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h2 className="text-xl font-bold flex items-center gap-2"><Truck className="w-5 h-5 text-primary" /> Thông tin giao hàng</h2>
+                  <button onClick={() => router.push('/settings?tab=address')} className="text-sm font-semibold text-primary hover:underline text-left sm:text-right">Thay đổi địa chỉ</button>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -243,33 +269,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
             )}
-
-            {/* Expiration Time Info */}
-            <div className="glass-card p-6 rounded-3xl space-y-4">
-              <h2 className="text-xl font-bold flex items-center gap-2"><Clock className="w-5 h-5 text-primary" /> Hạn sử dụng Link / QR Code</h2>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Chọn thời gian duy trì lưu trữ thiệp 3D/NFC của bạn trên hệ thống.</p>
-                <div className="relative">
-                  <select 
-                    value={expirationOption.value}
-                    onChange={(e) => {
-                      const selected = expirationOptions.find(opt => opt.value === Number(e.target.value));
-                      if (selected) setExpirationOption(selected);
-                    }}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 appearance-none font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    {expirationOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label} - {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(opt.price)}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                    <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* AI Generator Block - only show for single item without pre-designed gift */}
             {showGlobalNfc && (
@@ -367,10 +366,7 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">Phí giao hàng</span>
                   <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm mt-2">
-                  <span className="text-muted-foreground">Hạn sử dụng link/QR</span>
-                  <span className="font-semibold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(expirationOption.price)}</span>
-                </div>
+
               </div>
               <div className="border-t border-border pt-4 flex justify-between items-center">
                 <span className="font-bold">Tổng cộng</span>
@@ -383,10 +379,14 @@ export default function CheckoutPage() {
             <div className="glass-card p-6 rounded-3xl space-y-6">
               <h2 className="text-xl font-bold flex items-center gap-2"><CreditCard className="w-5 h-5 text-primary" /> Thanh toán</h2>
               
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 p-4 rounded-xl border border-primary bg-primary/5 cursor-pointer">
-                  <input type="radio" name="payment" checked readOnly className="w-4 h-4 text-primary" />
+              <div className="space-y-3">
+                <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'COD' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
+                  <input type="radio" name="payment" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} className="w-4 h-4 text-primary" />
                   <span className="font-medium">Thanh toán khi nhận hàng (COD)</span>
+                </label>
+                <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'BANK_TRANSFER' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
+                  <input type="radio" name="payment" checked={paymentMethod === 'BANK_TRANSFER'} onChange={() => setPaymentMethod('BANK_TRANSFER')} className="w-4 h-4 text-primary" />
+                  <span className="font-medium">Chuyển khoản ngân hàng (QR PayOS)</span>
                 </label>
               </div>
 
@@ -402,8 +402,8 @@ export default function CheckoutPage() {
 
               <button 
                 onClick={handlePlaceOrder}
-                disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl btn-hero font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all"
+                disabled={isSubmitting || !agreedTerms}
+                className="w-full py-4 rounded-2xl btn-hero font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
               >
                 {isSubmitting ? "Đang xử lý..." : "Đặt hàng ngay"}
               </button>
@@ -461,6 +461,59 @@ export default function CheckoutPage() {
               className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
             >
               Về trang cá nhân
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showBankInfo} onOpenChange={(open) => {
+        if (!open) {
+          setShowBankInfo(false);
+          clearItems();
+          router.push("/profile");
+        }
+      }}>
+        <DialogContent className="sm:max-w-md text-center p-8 bg-white rounded-3xl border-primary/20 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold font-display text-primary flex items-center justify-center gap-2 mb-2">
+              Chuyển khoản ngân hàng
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <p className="text-muted-foreground text-sm">Vui lòng quét mã QR dưới đây để thanh toán cho đơn hàng của bạn.</p>
+            
+            <div className="bg-primary/5 p-4 rounded-2xl flex justify-center border border-primary/20 mx-auto w-fit">
+              <img src={`https://img.vietqr.io/image/970422-0382343939-compact2.png?amount=${total}&addInfo=Thanh toan don hang CraftVision`} alt="VietQR Code" className="w-64 h-64 rounded-lg shadow-sm" />
+            </div>
+
+            <div className="space-y-2 text-left bg-muted/30 p-4 rounded-xl">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Ngân hàng:</span>
+                <span className="text-sm font-semibold">MB Bank</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Chủ tài khoản:</span>
+                <span className="text-sm font-semibold">CRAFTVISION 3D</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Số tài khoản:</span>
+                <span className="text-sm font-semibold">0382343939</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2 mt-2">
+                <span className="text-sm font-bold">Tổng tiền:</span>
+                <span className="text-sm font-bold text-primary">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => {
+                setShowBankInfo(false);
+                clearItems();
+                router.push("/profile");
+              }}
+              className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
+            >
+              Tôi đã thanh toán
             </button>
           </div>
         </DialogContent>
