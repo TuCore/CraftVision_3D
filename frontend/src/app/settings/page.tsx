@@ -5,8 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles, Camera, MapPin, Plus } from "lucide-react";
-import { useState, useEffect, useRef, useMemo } from "react";
-import vietnamProvinces from "@/data/vietnam-provinces.json";
+import { useState, useEffect, useRef } from "react";
+import { ProvinceDistrictSelect } from "@/components/common/ProvinceDistrictSelect";
 import { fetchApi } from "@/lib/apiClient";
 import { useTheme } from "next-themes";
 import { useTranslation } from "@/components/LanguageProvider";
@@ -51,26 +51,6 @@ export default function SettingsPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [newAddress, setNewAddress] = useState<Partial<Address>>({});
-
-  const selectedProvince = useMemo(() => {
-    if (!newAddress.province) return undefined;
-    const pName = newAddress.province.toLowerCase().trim();
-    return vietnamProvinces.find(p => 
-      p.name.toLowerCase() === pName || 
-      p.name.toLowerCase().includes(pName) || 
-      pName.includes(p.name.toLowerCase().replace(/thành phố |tỉnh /g, ''))
-    );
-  }, [newAddress.province]);
-
-  const provinceOptions = useMemo(() => [
-    { value: "", label: "-- Chọn Tỉnh / Thành phố --" },
-    ...vietnamProvinces.map(p => ({ value: p.name, label: p.name }))
-  ], []);
-
-  const districtOptions = useMemo(() => {
-    if (!selectedProvince) return [];
-    return selectedProvince.districts.map(d => ({ value: d.name, label: d.name }));
-  }, [selectedProvince]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -302,21 +282,14 @@ export default function SettingsPage() {
                         <div className="md:col-span-2">
                           <Field label="Địa chỉ cụ thể *" value={newAddress.address || ''} onChange={v => setNewAddress({...newAddress, address: v})} />
                         </div>
-                        <SelectField 
-                          label="Tỉnh / Thành phố *" 
-                          value={selectedProvince?.name || newAddress.province || ''} 
-                          options={provinceOptions}
-                          onChange={v => setNewAddress({ ...newAddress, province: v, district: '' })} 
-                        />
-                        <SelectField 
-                          label="Quận / Huyện *" 
-                          value={newAddress.district || ''} 
-                          options={[
-                            { value: "", label: selectedProvince ? "-- Chọn Quận / Huyện --" : "-- Vui lòng chọn Tỉnh trước --" },
-                            ...districtOptions
-                          ]}
-                          onChange={v => setNewAddress({ ...newAddress, district: v })} 
-                        />
+                        <div className="md:col-span-2">
+                          <ProvinceDistrictSelect
+                            province={newAddress.province || ''}
+                            district={newAddress.district || ''}
+                            onProvinceChange={v => setNewAddress(prev => ({ ...prev, province: v, district: '' }))}
+                            onDistrictChange={v => setNewAddress(prev => ({ ...prev, district: v }))}
+                          />
+                        </div>
                       </div>
                       <label className="flex items-center gap-2 mt-4 cursor-pointer w-fit">
                         <input type="checkbox" checked={newAddress.isDefault} onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})} className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />

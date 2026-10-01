@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import vietnamProvinces from "@/data/vietnam-provinces.json";
+import { ProvinceDistrictSelect } from "@/components/common/ProvinceDistrictSelect";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -224,16 +224,6 @@ export default function CheckoutPage() {
   const shipping = calculateShippingFee();
   const total = subtotal + shipping;
 
-  const selectedProvince = useMemo(() => {
-    if (!shippingInfo.province) return undefined;
-    const pName = shippingInfo.province.toLowerCase().trim();
-    return vietnamProvinces.find(p => 
-      p.name.toLowerCase() === pName || 
-      p.name.toLowerCase().includes(pName) || 
-      pName.includes(p.name.toLowerCase().replace(/thành phố |tỉnh /g, ''))
-    );
-  }, [shippingInfo.province]);
-
   const showGlobalNfc = items.length === 1 && !items[0].gift;
 
   return (
@@ -285,31 +275,13 @@ export default function CheckoutPage() {
                       className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Tỉnh / Thành phố *</label>
-                    <select 
-                      value={selectedProvince?.name || shippingInfo.province}
-                      onChange={e => setShippingInfo({...shippingInfo, province: e.target.value, district: ""})}
-                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-                    >
-                      <option value="">-- Chọn Tỉnh / Thành phố --</option>
-                      {vietnamProvinces.map(p => (
-                        <option key={p.code} value={p.name}>{p.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Quận / Huyện *</label>
-                    <select 
-                      value={shippingInfo.district}
-                      onChange={e => setShippingInfo({...shippingInfo, district: e.target.value})}
-                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-                    >
-                      <option value="">{selectedProvince ? "-- Chọn Quận / Huyện --" : "-- Vui lòng chọn Tỉnh trước --"}</option>
-                      {selectedProvince?.districts.map(d => (
-                        <option key={d.code} value={d.name}>{d.name}</option>
-                      ))}
-                    </select>
+                  <div className="md:col-span-2">
+                    <ProvinceDistrictSelect
+                      province={shippingInfo.province}
+                      district={shippingInfo.district}
+                      onProvinceChange={(p) => setShippingInfo(prev => ({ ...prev, province: p, district: "" }))}
+                      onDistrictChange={(d) => setShippingInfo(prev => ({ ...prev, district: d }))}
+                    />
                   </div>
                 </div>
               </div>
