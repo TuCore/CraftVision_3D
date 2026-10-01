@@ -331,13 +331,15 @@ export default function ProfilePage() {
 
         {/* Order History Modal */}
         <Dialog open={isOrderHistoryOpen} onOpenChange={setIsOrderHistoryOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 bg-background/95 backdrop-blur-md border-border/50">
-            <DialogHeader className="p-6 pb-2 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur z-10">
-              <DialogTitle className="text-2xl font-bold font-display">Lịch sử đơn hàng</DialogTitle>
+          <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0 rounded-3xl overflow-hidden bg-background/95 dark:bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl">
+            <DialogHeader className="px-6 py-4 border-b border-border/50 bg-muted/10 shrink-0">
+              <DialogTitle className="text-2xl font-bold font-display flex items-center gap-2.5 text-foreground">
+                <Package className="w-6 h-6 text-primary" /> Lịch sử đơn hàng
+              </DialogTitle>
             </DialogHeader>
 
-            <div className="p-6 pt-2">
-              <div className="bg-white rounded-xl shadow-sm border border-border/50 overflow-hidden mb-6">
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="bg-card rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-2">
                 <div className="flex border-b border-border/50">
               <button 
                 onClick={() => setActiveTab("all")}

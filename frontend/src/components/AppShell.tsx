@@ -110,7 +110,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
       {!(pathname?.startsWith('/admin')) && (
       <header 
-        className={`fixed top-0 left-0 right-0 z-[1000] w-full transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out ${
           isHomePage
             ? isScrolled 
               ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70' 

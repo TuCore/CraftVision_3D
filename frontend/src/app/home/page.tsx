@@ -234,7 +234,7 @@ export default function HomePage() {
       <button
         type="button"
         onClick={() => toast.success("🎶 Đang phát giai điệu quà tặng lãng mạn...")}
-        className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-[999] h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-tr from-rose-200 via-rose-300 to-pink-300 text-rose-950 shadow-xl shadow-rose-300/40 grid place-items-center hover:scale-110 active:scale-95 transition-all group cursor-pointer border border-white/40"
+        className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-30 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-tr from-rose-200 via-rose-300 to-pink-300 text-rose-950 shadow-xl shadow-rose-300/40 grid place-items-center hover:scale-110 active:scale-95 transition-all group cursor-pointer border border-white/40"
         title="Bật giai điệu lãng mạn"
       >
         <Headphones className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />
