@@ -142,9 +142,6 @@ export default function PaymentTransferPage() {
         </div>
 
         <div className="flex justify-center gap-4 pt-8">
-          <button onClick={handleSimulateSuccess} className="btn-hero px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 shadow-coral-glow">
-            <CheckCircle2 className="w-5 h-5" /> Đã chuyển khoản (Simulate)
-          </button>
           <button onClick={handleCancelPayment} className="bg-card hover:bg-muted border border-border px-8 py-3.5 rounded-xl font-bold transition-colors text-destructive">
             Huỷ thanh toán
           </button>
