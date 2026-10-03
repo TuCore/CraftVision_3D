@@ -15,8 +15,11 @@ import { useRouter } from "next/navigation";
 import { TiltCard } from "@/components/TiltCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { ReviewModal } from "@/components/ReviewModal";
+import { useTranslation } from "@/components/LanguageProvider";
+
 export default function ProfilePage() {
   const router = useRouter();
+  const { t, language } = useTranslation();
   const [fullName, setFullName] = useState("Nguyễn Minh");
   const [email, setEmail] = useState("minh@craft.vn");
   const [bio, setBio] = useState('"Sáng tạo là hạnh phúc." — Handmade creator 💛');
@@ -207,13 +210,13 @@ export default function ProfilePage() {
           {/* Action Buttons */}
           <div className="flex gap-2 mt-4">
             <Link href="/settings" className="flex-1 py-[7px] bg-[#FDF6ED] hover:bg-[#EFE5DA] border border-[#E6D5C3] text-black font-semibold text-[13px] rounded-lg text-center transition-colors">
-              Chỉnh sửa trang cá nhân
+              {language === "vi" ? "Chỉnh sửa trang cá nhân" : "Edit Profile"}
             </Link>
             <button 
               onClick={() => setIsOrderHistoryOpen(true)}
               className="flex-1 py-[7px] bg-[#FDF6ED] hover:bg-[#EFE5DA] border border-[#E6D5C3] text-black font-semibold text-[13px] rounded-lg text-center transition-colors"
             >
-              Lịch sử mua hàng
+              {t("cart.order_history")}
             </button>
           </div>
         </div>
@@ -224,13 +227,13 @@ export default function ProfilePage() {
               onClick={() => setActiveCollectionTab("collection")}
               className={`flex-1 py-3 text-xs md:text-sm font-bold tracking-wider transition-colors z-10 ${activeCollectionTab === "collection" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
-              DỰ ÁN CỦA TÔI
+              {language === "vi" ? "DỰ ÁN CỦA TÔI" : "MY PROJECTS"}
             </button>
             <button 
               onClick={() => setActiveCollectionTab("favorites")}
               className={`flex-1 py-3 text-xs md:text-sm font-bold tracking-wider transition-colors z-10 ${activeCollectionTab === "favorites" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
-              YÊU THÍCH
+              {language === "vi" ? "YÊU THÍCH" : "FAVORITES"}
             </button>
             {/* Sliding Underline */}
             <div 

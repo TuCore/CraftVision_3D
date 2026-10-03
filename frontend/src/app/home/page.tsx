@@ -1,13 +1,15 @@
 "use client";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { Sparkles, MessageCircle, ArrowRight, Headphones, ChevronDown } from "lucide-react";
+import { Sparkles, MessageCircle, ArrowRight, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Studio3DSection } from "@/components/studio/Studio3DSection";
 import { TemplateProductsSection } from "@/components/home/TemplateProductsSection";
+import { useTranslation } from "@/components/LanguageProvider";
 import { toast } from "sonner";
 
 export default function HomePage() {
+  const { t, language } = useTranslation();
   const [firstName, setFirstName] = useState("bạn");
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollOpacity, setScrollOpacity] = useState(0);
@@ -24,40 +26,40 @@ export default function HomePage() {
     { 
       id: 0, 
       image: "/dreamy-hero-bg.jpg", 
-      title: "Hôm nay bạn muốn tạo",
-      highlight: "món quà",
-      suffix: " gì?",
-      desc: "Hỏi trợ lý AI để nhận ý tưởng, danh sách nguyên liệu, chi phí và video hướng dẫn — chỉ trong vài giây.",
-      btn1Text: "Trò chuyện với AI",
+      title: t("home.slide1.title"),
+      highlight: t("home.slide1.highlight"),
+      suffix: t("home.slide1.suffix"),
+      desc: t("home.slide1.desc"),
+      btn1Text: t("home.slide1.btn1"),
       btn1Link: "/chat",
       btn1Icon: MessageCircle,
-      btn2Text: "Mở Studio 3D",
+      btn2Text: t("home.slide1.btn2"),
       btn2Link: "#explore-section"
     },
     { 
       id: 1, 
       image: "/anh2.png", 
-      title: "Hàng trăm",
-      highlight: "mẫu thiết kế",
-      suffix: " độc quyền",
-      desc: "Lựa chọn từ bộ sưu tập các mẫu thiệp và quà tặng có sẵn. Dễ dàng cá nhân hóa để tạo ra món quà mang đậm dấu ấn riêng.",
-      btn1Text: "Xem các mẫu",
+      title: t("home.slide2.title"),
+      highlight: t("home.slide2.highlight"),
+      suffix: t("home.slide2.suffix"),
+      desc: t("home.slide2.desc"),
+      btn1Text: t("home.slide2.btn1"),
       btn1Link: "#template-products",
       btn1Icon: Sparkles,
-      btn2Text: "Bắt đầu thiết kế",
+      btn2Text: t("home.slide2.btn2"),
       btn2Link: "/studio"
     },
     { 
       id: 2, 
       image: "/anh3.jpg", 
-      title: "Quà tặng",
-      highlight: "handmade",
-      suffix: " tinh tế",
-      desc: "Khám phá bộ sưu tập quà tặng thủ công độc bản được chế tác tỉ mỉ, mang đến những cảm xúc chân thành và ấm áp nhất.",
-      btn1Text: "Ghé thăm cửa hàng",
+      title: t("home.slide3.title"),
+      highlight: t("home.slide3.highlight"),
+      suffix: t("home.slide3.suffix"),
+      desc: t("home.slide3.desc"),
+      btn1Text: t("home.slide3.btn1"),
       btn1Link: "/shop",
       btn1Icon: Sparkles,
-      btn2Text: "Tìm hiểu thêm",
+      btn2Text: t("home.slide3.btn2"),
       btn2Link: "#explore-section"
     },
   ];
@@ -129,25 +131,28 @@ export default function HomePage() {
         </svg>
 
         {/* Centered Content */}
-        <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+        <div className="relative z-10 max-w-4xl lg:max-w-5xl mx-auto flex flex-col items-center w-full">
           {/* Tagline / Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-sm animate-fade-down">
             <Sparkles className="h-3.5 w-3.5 text-amber-200" />
             <span className="text-amber-100 text-xs sm:text-sm font-semibold tracking-[0.25em] uppercase">
-              Chào {firstName}, sẵn sàng sáng tạo?
+              {t("home.hello")} {firstName === "bạn" ? t("home.friend") : firstName}, {t("home.ready_to_create")}
             </span>
           </div>
 
           {/* Nội dung thay đổi theo Slide */}
-          <div key={`content-${activeSlide}`} className="flex flex-col items-center animate-fade-up">
+          <div key={`content-${activeSlide}`} className="flex flex-col items-center animate-fade-up w-full px-2">
             {/* Tiêu đề chính */}
-            <h1 className="mt-6 text-4xl sm:text-6xl md:text-7xl font-extrabold font-display text-white tracking-tight leading-[1.18] drop-shadow-lg text-center">
-              {slides[activeSlide].title}<br />
-              <span className="italic font-normal text-rose-200 tracking-normal drop-shadow">{slides[activeSlide].highlight}</span>{slides[activeSlide].suffix}
+            <h1 className="mt-6 text-3xl sm:text-5xl md:text-6xl lg:text-[4.25rem] xl:text-7xl font-extrabold font-display text-white tracking-tight leading-[1.18] drop-shadow-lg text-center">
+              <span className="block">{slides[activeSlide].title}</span>
+              <span className="inline-block sm:whitespace-nowrap">
+                <span className="italic font-normal text-rose-200 tracking-normal drop-shadow">{slides[activeSlide].highlight}</span>
+                {slides[activeSlide].suffix}
+              </span>
             </h1>
 
             {/* Mô tả */}
-            <p className="mt-5 text-base sm:text-lg text-white/90 max-w-xl font-normal leading-relaxed drop-shadow-sm text-center">
+            <p className="mt-5 text-base sm:text-lg text-white/90 max-w-2xl font-normal leading-relaxed drop-shadow-sm text-center">
               {slides[activeSlide].desc}
             </p>
 
@@ -213,7 +218,7 @@ export default function HomePage() {
             document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
           className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 hover:text-white transition-colors animate-bounce cursor-pointer flex flex-col items-center gap-0.5 z-20"
-          aria-label="Cuộn xuống khám phá"
+          aria-label={t("home.scroll_explore")}
         >
           <ChevronDown className="h-5 w-5" />
         </button>
@@ -229,16 +234,6 @@ export default function HomePage() {
 
       {/* 3. Template Products Section */}
       <TemplateProductsSection />
-
-      {/* Nút tai nghe nhạc nổi góc dưới bên phải - Global FAB */}
-      <button
-        type="button"
-        onClick={() => toast.success("🎶 Đang phát giai điệu quà tặng lãng mạn...")}
-        className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-30 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-tr from-rose-200 via-rose-300 to-pink-300 text-rose-950 shadow-xl shadow-rose-300/40 grid place-items-center hover:scale-110 active:scale-95 transition-all group cursor-pointer border border-white/40"
-        title="Bật giai điệu lãng mạn"
-      >
-        <Headphones className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />
-      </button>
     </AppShell>
   );
 }

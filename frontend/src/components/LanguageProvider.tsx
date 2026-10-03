@@ -6,13 +6,13 @@ import { dictionaries, Language, TranslationKey } from "@/lib/dictionaries";
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   language: "vi",
   setLanguage: () => {},
-  t: (key: TranslationKey) => key,
+  t: (key: string) => key,
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -32,9 +32,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("app-language", lang);
   };
 
-  const t = (key: TranslationKey) => {
+  const t = (key: string) => {
     // If translations are loaded and key exists, return it, otherwise fallback to vi or key itself
-    return dictionaries[language]?.[key] || dictionaries["vi"][key] || key;
+    return (dictionaries[language] as any)?.[key] || (dictionaries["vi"] as any)?.[key] || key;
   };
 
   // Prevent hydration mismatch by rendering kids only after reading localStorage

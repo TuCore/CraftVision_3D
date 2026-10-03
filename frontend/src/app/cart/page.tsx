@@ -16,9 +16,11 @@ import {
 import { toast } from "sonner";
 import { useMemo, useState, useEffect } from "react";
 import api from "@/lib/api";
+import { useTranslation } from "@/components/LanguageProvider";
 
 export default function CartPage() {
   const router = useRouter();
+  const { t, language } = useTranslation();
   const { items, removeFromCart, updateQuantity, clearWishlist } = useWishlistStore();
   const { setItems } = useOrderStore();
 
@@ -94,7 +96,7 @@ export default function CartPage() {
     <AppShell active="cart">
       <div className="mx-auto max-w-6xl py-12 px-4 space-y-8">
         <h1 className="text-3xl font-extrabold font-display text-foreground">
-          Giỏ hàng của bạn
+          {t("cart.title")}
         </h1>
 
         {items.length === 0 ? (
@@ -102,12 +104,12 @@ export default function CartPage() {
             <div className="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center mb-4">
               <ShoppingCart className="w-10 h-10 text-rose-400" />
             </div>
-            <h2 className="text-2xl font-bold font-display">Giỏ hàng trống</h2>
+            <h2 className="text-2xl font-bold font-display">{t("cart.empty_title")}</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy tiếp tục mua sắm nhé!
+              {t("cart.empty_desc")}
             </p>
             <Link href="/shop" className="btn-hero px-8 py-3 rounded-xl font-bold inline-block mt-4 text-white">
-              Tiếp tục mua sắm
+              {t("cart.continue_shopping")}
             </Link>
           </div>
         ) : (
@@ -293,32 +295,34 @@ export default function CartPage() {
             <div className="lg:col-span-4">
               <div className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/40 sticky top-24">
                 <h2 className="text-xl font-bold font-display text-foreground mb-6">
-                  Tóm tắt đơn hàng
+                  {language === "vi" ? "Tóm tắt đơn hàng" : "Order Summary"}
                 </h2>
                 
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Tạm tính:</span>
+                    <span className="text-muted-foreground">{t("cart.subtotal")}:</span>
                     <span className="font-bold text-foreground">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Phí vận chuyển:</span>
+                    <span className="text-muted-foreground">{language === "vi" ? "Phí vận chuyển:" : "Shipping:"}</span>
                     <span className="font-bold text-emerald-500">
-                      {subtotal === 0 || subtotal >= 500000 ? "Miễn phí" : "Từ 20.000 đ (nội thành HCM)"}
+                      {subtotal === 0 || subtotal >= 500000 
+                        ? (language === "vi" ? "Miễn phí" : "Free") 
+                        : (language === "vi" ? "Từ 20.000 đ (nội thành HCM)" : "From 20,000 VND (HCM local)")}
                     </span>
                   </div>
                 </div>
 
                 <div className="border-t border-border/50 pt-4 mb-6">
                   <div className="flex justify-between items-center">
-                    <span className="text-foreground font-semibold">Tổng cộng:</span>
+                    <span className="text-foreground font-semibold">{t("cart.total")}:</span>
                     <span className="text-2xl font-bold text-primary">
                       {formatPrice(subtotal + (subtotal >= 500000 || subtotal === 0 ? 0 : 20000))}
                     </span>
                   </div>
                   {subtotal > 0 && subtotal < 500000 && (
                     <p className="text-[11px] text-muted-foreground mt-1 text-right italic">
-                      (Đã gồm phí ship nội thành HCM 20.000đ)
+                      {language === "vi" ? "(Đã gồm phí ship nội thành HCM 20.000đ)" : "(Includes HCM local shipping 20,000 VND)"}
                     </p>
                   )}
                 </div>
@@ -346,10 +350,10 @@ export default function CartPage() {
                   disabled={selectedItems.length === 0}
                   className="w-full btn-hero py-3.5 rounded-xl text-white font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  Thanh toán {selectedItems.length > 0 ? `(${selectedItems.length})` : ""}
+                  {language === "vi" ? "Thanh toán" : "Checkout"} {selectedItems.length > 0 ? `(${selectedItems.length})` : ""}
                 </button>
                 <p className="text-center text-xs text-muted-foreground mt-4 font-medium">
-                  Thanh toán sẽ sớm ra mắt ✨
+                  {language === "vi" ? "Thanh toán sẽ sớm ra mắt ✨" : "Checkout coming soon ✨"}
                 </p>
               </div>
             </div>
@@ -359,15 +363,17 @@ export default function CartPage() {
         {/* Order History Section */}
         <div className="mt-16 space-y-6">
           <h2 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
-            <Package className="w-6 h-6 text-primary" /> Lịch sử đơn hàng
+            <Package className="w-6 h-6 text-primary" /> {t("cart.order_history")}
           </h2>
           
           <div className="grid gap-4">
             {isLoadingOrders ? (
-              <div className="text-center text-muted-foreground p-4">Đang tải lịch sử đơn hàng...</div>
+              <div className="text-center text-muted-foreground p-4">
+                {language === "vi" ? "Đang tải lịch sử đơn hàng..." : "Loading order history..."}
+              </div>
             ) : orderHistory.length === 0 ? (
               <div className="text-center text-muted-foreground p-4 bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl border border-white/40">
-                Bạn chưa có đơn hàng nào.
+                {language === "vi" ? "Bạn chưa có đơn hàng nào." : "You have no orders yet."}
               </div>
             ) : orderHistory.map((order) => (
               <div key={order.id} className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white/40 flex flex-col md:flex-row gap-4 justify-between md:items-center transition-transform hover:-translate-y-1 hover:shadow-md cursor-pointer">

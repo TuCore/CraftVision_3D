@@ -18,18 +18,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useTranslation } from "@/components/LanguageProvider";
 
 // removed hardcoded categories
 
 export default function ShopPage() {
   const router = useRouter();
+  const { t, language } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isFavorite, toggleFavorite } = useFavoriteStore();
   const { data: categoriesData } = useProductCategories();
-  const dynamicCategories = ["Tất cả", ...(categoriesData?.map(c => c.name) || [])];
+  const allCategoryLabel = language === "vi" ? "Tất cả" : "All";
+  const dynamicCategories = [allCategoryLabel, ...(categoriesData?.map(c => c.name) || [])];
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -65,10 +68,10 @@ export default function ShopPage() {
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchSearch = product.name.toLowerCase().includes(search.toLowerCase());
-      const matchCategory = selectedCategory === "Tất cả" || product.category === selectedCategory;
+      const matchCategory = selectedCategory === allCategoryLabel || selectedCategory === "Tất cả" || selectedCategory === "All" || product.category === selectedCategory;
       return matchSearch && matchCategory;
     });
-  }, [search, selectedCategory, products]);
+  }, [search, selectedCategory, products, allCategoryLabel]);
 
   return (
     <AppShell active="shop">
@@ -80,11 +83,13 @@ export default function ShopPage() {
           
           <div className="relative z-10 max-w-2xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-extrabold font-display leading-tight">
-              Khám phá sản phẩm <br />
-              <span className="gradient-text">handmade độc đáo</span>
+              {language === "vi" ? "Khám phá sản phẩm" : "Discover Unique"} <br />
+              <span className="gradient-text">{language === "vi" ? "handmade độc đáo" : "Handcrafted Products"}</span>
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Tìm kiếm các loại hạt, charm, dây và bộ kit tự làm có tích hợp NFC để tạo ra những tác phẩm nghệ thuật của riêng bạn.
+              {language === "vi"
+                ? "Tìm kiếm các loại hạt, charm, dây và bộ kit tự làm có tích hợp NFC để tạo ra những tác phẩm nghệ thuật của riêng bạn."
+                : "Explore beads, charms, cords, and bespoke DIY kits with integrated NFC to bring your creative gifts to life."}
             </p>
           </div>
         </section>
@@ -95,7 +100,7 @@ export default function ShopPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Tìm kiếm nguyên liệu..."
+              placeholder={t("shop.search_placeholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full h-12 pl-12 pr-4 rounded-full glass-card border border-border outline-none focus:ring-2 focus:ring-primary/50 text-sm"
@@ -220,10 +225,12 @@ export default function ShopPage() {
                 </h3>
                 <div className="flex items-center gap-1 mt-auto mb-2 text-xs text-muted-foreground">
                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-foreground">{product.rating > 0 ? product.rating : "Chưa có đánh giá"}</span>
+                  <span className="font-medium text-foreground">
+                    {product.rating > 0 ? product.rating : (language === "vi" ? "Chưa có đánh giá" : "No ratings yet")}
+                  </span>
                 </div>
                 <div className="text-xl font-display font-bold gradient-text mb-4">
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+                  {new Intl.NumberFormat(language === "vi" ? 'vi-VN' : 'en-US', { style: 'currency', currency: 'VND' }).format(product.price)}
                 </div>
                 <button
                   onClick={(e) => {
@@ -232,7 +239,7 @@ export default function ShopPage() {
                   }}
                   className="w-full py-2.5 rounded-xl btn-hero text-sm font-semibold mt-auto"
                 >
-                  Xem chi tiết
+                  {t("shop.view_details")}
                 </button>
               </div>
             </TiltCard>
@@ -241,7 +248,7 @@ export default function ShopPage() {
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
-            Không tìm thấy sản phẩm nào phù hợp.
+            {t("shop.no_products")}
           </div>
         )}
       </div>
