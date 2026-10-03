@@ -56,4 +56,23 @@ public class UserController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
+
+    [HttpDelete("account")]
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAccount()
+    {
+        try
+        {
+            if (Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+            {
+                await _userService.DeleteAccountAsync(userId);
+                return Ok(new { Message = "Tài khoản của bạn đã được xoá thành công." });
+            }
+            return Unauthorized(new { Message = "Không thể xác thực người dùng." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
 }

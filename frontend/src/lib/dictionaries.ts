@@ -24,8 +24,13 @@ export const dictionaries = {
 
     // Danger Zone
     "settings.danger_zone": "Vùng nguy hiểm",
-    "settings.danger_desc": "Xoá tài khoản sẽ xoá toàn bộ dự án và không thể khôi phục.",
+    "settings.danger_desc": "Xoá tài khoản sẽ vô hiệu hoá tài khoản của bạn và không thể khôi phục.",
     "settings.delete_account": "Xoá tài khoản",
+    "settings.confirm_delete_title": "Bạn có chắc chắn muốn xoá tài khoản?",
+    "settings.confirm_delete_desc": "Hành động này sẽ vô hiệu hoá tài khoản của bạn. Bạn sẽ bị đăng xuất khỏi hệ thống và không thể tiếp tục truy cập dữ liệu cá nhân.",
+    "settings.cancel": "Huỷ",
+    "settings.confirm_delete_btn": "Xác nhận xoá tài khoản",
+    "settings.deleting": "Đang xoá...",
   },
   en: {
     // Navigation (AppShell)
@@ -53,8 +58,13 @@ export const dictionaries = {
 
     // Danger Zone
     "settings.danger_zone": "Danger Zone",
-    "settings.danger_desc": "Deleting your account will remove all projects and cannot be undone.",
+    "settings.danger_desc": "Deleting your account will deactivate your account and cannot be undone.",
     "settings.delete_account": "Delete Account",
+    "settings.confirm_delete_title": "Are you sure you want to delete your account?",
+    "settings.confirm_delete_desc": "This action will deactivate your account. You will be logged out and lose access to your personal data.",
+    "settings.cancel": "Cancel",
+    "settings.confirm_delete_btn": "Yes, Delete Account",
+    "settings.deleting": "Deleting...",
   }
 };
 
