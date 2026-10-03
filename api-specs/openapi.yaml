@@ -59,6 +59,30 @@ paths:
         '401':
           description: Chưa đăng nhập (Thiếu Token)
 
+  /api/user/account:
+    delete:
+      summary: Xoá / vô hiệu hoá tài khoản người dùng
+      description: Vô hiệu hoá tài khoản hiện tại đang đăng nhập (soft-delete).
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Xoá tài khoản thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tài khoản của bạn đã được xoá thành công."
+        '401':
+          description: Chưa đăng nhập hoặc token không hợp lệ
+        '404':
+          description: Không tìm thấy tài khoản
+
 components:
   securitySchemes:
     bearerAuth:

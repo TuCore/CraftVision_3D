@@ -91,6 +91,11 @@ public class AuthService : IAuthService
             throw new Exception("Email hoặc mật khẩu không chính xác.");
         }
 
+        if (!user.IsActive)
+        {
+            throw new Exception("Tài khoản của bạn đã bị vô hiệu hoá hoặc đã bị xoá.");
+        }
+
         var token = _tokenProvider.GenerateJwtToken(user);
         return new AuthResponse
         {
@@ -157,12 +162,20 @@ public class AuthService : IAuthService
             // Send welcome email asynchronously without blocking login
             _ = _emailService.SendWelcomeEmailAsync(user.Email, user.FullName ?? "bạn");
         }
-        else if (string.IsNullOrEmpty(user.AuthProvider))
+        else
         {
-            // Update existing user with Google Auth Info if they previously registered via email
-            user.AuthProvider = "Google";
-            user.ProviderId = payload.Subject;
-            try { await _unitOfWork.SaveChangesAsync(); } catch { }
+            if (!user.IsActive)
+            {
+                throw new Exception("Tài khoản của bạn đã bị vô hiệu hoá hoặc đã bị xoá.");
+            }
+
+            if (string.IsNullOrEmpty(user.AuthProvider))
+            {
+                // Update existing user with Google Auth Info if they previously registered via email
+                user.AuthProvider = "Google";
+                user.ProviderId = payload.Subject;
+                try { await _unitOfWork.SaveChangesAsync(); } catch { }
+            }
         }
 
         var token = _tokenProvider.GenerateJwtToken(user);

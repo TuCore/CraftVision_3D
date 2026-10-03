@@ -18,7 +18,7 @@ public class UserService : IUserService
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null)
+        if (user == null || !user.IsActive)
             return null;
 
         return new UserProfileDto
@@ -38,8 +38,8 @@ public class UserService : IUserService
     public async Task<UserProfileDto> UpdateProfileAsync(Guid userId, UpdateUserProfileDto request)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null)
-            throw new Exception("Người dùng không tồn tại.");
+        if (user == null || !user.IsActive)
+            throw new Exception("Người dùng không tồn tại hoặc đã bị vô hiệu hoá.");
 
         user.FullName = request.FullName;
         user.DisplayName = request.DisplayName;
@@ -63,5 +63,18 @@ public class UserService : IUserService
             Tier = user.Tier.ToString(),
             CreatedAt = user.CreatedAt
         };
+    }
+
+    public async Task DeleteAccountAsync(Guid userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || !user.IsActive)
+            throw new Exception("Người dùng không tồn tại hoặc đã bị vô hiệu hoá.");
+
+        user.IsActive = false;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync();
     }
 }

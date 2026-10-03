@@ -4,7 +4,15 @@ import { AppShell } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles, Camera, MapPin, Plus } from "lucide-react";
+import { User, Bell, Lock, Palette, Globe, CreditCard, LogOut, ChevronRight, Trash2, Sparkles, Camera, MapPin, Plus, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState, useEffect, useRef } from "react";
 import { ProvinceDistrictSelect } from "@/components/common/ProvinceDistrictSelect";
 import { fetchApi } from "@/lib/apiClient";
@@ -119,6 +127,34 @@ export default function SettingsPage() {
     }
   };
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      await fetchApi("/api/user/account", { method: "DELETE" });
+      const { toast } = await import("sonner");
+      toast.success(language === "vi" ? "Tài khoản của bạn đã được xoá thành công." : "Your account has been deleted.");
+      
+      // Clear all stored credentials
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("email");
+      localStorage.removeItem("fullName");
+      localStorage.removeItem("createdAt");
+      localStorage.removeItem("avatarUrl");
+
+      setIsDeleteDialogOpen(false);
+      router.replace("/auth");
+    } catch (error: any) {
+      const { toast } = await import("sonner");
+      toast.error(error.message || (language === "vi" ? "Lỗi khi xoá tài khoản" : "Failed to delete account"));
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
   const tabs = [
     { key: "account", label: t("settings.account"), icon: User },
     { key: "address", label: "Sổ địa chỉ", icon: MapPin },
@@ -158,7 +194,18 @@ export default function SettingsPage() {
               );
             })}
             <div className="border-t border-border my-2" />
-            <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10">
+            <button 
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("email");
+                localStorage.removeItem("fullName");
+                localStorage.removeItem("createdAt");
+                localStorage.removeItem("avatarUrl");
+                router.replace("/auth");
+              }}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10"
+            >
               <LogOut className="h-4 w-4" /> Đăng xuất
             </button>
           </aside>
@@ -438,18 +485,70 @@ export default function SettingsPage() {
             )}
 
             {/* Danger zone */}
-            <div className="glass-card rounded-3xl p-6 border border-destructive/20">
-              <h3 className="font-bold font-display text-destructive flex items-center gap-2">
-                <Trash2 className="h-4 w-4" /> {t("settings.danger_zone")}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">{t("settings.danger_desc")}</p>
-              <button className="mt-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground px-4 py-2 text-sm font-semibold transition-colors">
-                {t("settings.delete_account")}
-              </button>
-            </div>
+            {tab === "account" && (
+              <div className="glass-card rounded-3xl p-6 border border-destructive/20">
+                <h3 className="font-bold font-display text-destructive flex items-center gap-2">
+                  <Trash2 className="h-4 w-4" /> {t("settings.danger_zone")}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">{t("settings.danger_desc")}</p>
+                <button 
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  className="mt-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground px-4 py-2 text-sm font-semibold transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t("settings.delete_account")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[440px] rounded-3xl border border-destructive/20 p-6 bg-card/95 backdrop-blur-md">
+          <DialogHeader className="flex flex-col items-center text-center space-y-3">
+            <div className="h-12 w-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-xl font-bold font-display text-foreground">
+              {t("settings.confirm_delete_title")}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground leading-relaxed text-center">
+              {t("settings.confirm_delete_desc")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-6 sm:space-x-0">
+            <button
+              type="button"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeletingAccount}
+              className="w-full sm:w-1/2 rounded-xl bg-card/80 hover:bg-card border border-border px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer"
+            >
+              {t("settings.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              disabled={isDeletingAccount}
+              className="w-full sm:w-1/2 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 px-4 py-2.5 text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
+            >
+              {isDeletingAccount ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t("settings.deleting")}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  {t("settings.confirm_delete_btn")}
+                </>
+              )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
