@@ -8,9 +8,19 @@ gsap.registerPlugin(useGSAP);
 
 interface EnvelopeUnfoldProps {
   onOpen: () => void;
+  receiverName?: string;
+  senderName?: string;
+  message?: string;
+  photoUrl?: string;
 }
 
-export function EnvelopeUnfold({ onOpen }: EnvelopeUnfoldProps) {
+export function EnvelopeUnfold({ 
+  onOpen,
+  receiverName = "Bạn",
+  senderName = "Người thương",
+  message = "Một món quà bất ngờ đang chờ đón...",
+  photoUrl
+}: EnvelopeUnfoldProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const envelopeRef = useRef<HTMLDivElement>(null);
   const flapRef = useRef<HTMLDivElement>(null);
@@ -68,11 +78,33 @@ export function EnvelopeUnfold({ onOpen }: EnvelopeUnfoldProps) {
         {/* Lá thư (Bên trong) */}
         <div 
           ref={letterRef}
-          className="absolute inset-x-4 top-4 bottom-4 bg-white rounded shadow-inner flex flex-col items-center justify-center text-center p-6 border border-rose-100"
+          className="absolute inset-x-3 top-3 bottom-3 bg-gradient-to-b from-[#FFFDF9] to-[#FFF5EB] rounded shadow-inner flex flex-col items-center justify-between text-center p-3 border border-rose-200/80 overflow-hidden"
           style={{ zIndex: 10 }}
         >
-          <h2 className="font-serif text-2xl text-rose-800 mb-2">Gửi bạn,</h2>
-          <p className="text-gray-600 text-sm italic font-serif">Một món quà bất ngờ đang chờ đón...</p>
+          <div className="w-full">
+            <span className="text-[9px] uppercase tracking-widest text-rose-400 font-bold">Thư gửi riêng bạn</span>
+            <h2 className="font-serif text-base sm:text-lg font-bold text-rose-800 line-clamp-1">
+              Gửi {receiverName},
+            </h2>
+          </div>
+
+          {photoUrl ? (
+            <div className="w-12 h-12 rounded-md overflow-hidden border border-rose-200 shadow-xs my-0.5 shrink-0">
+              <img src={photoUrl} alt="Memory" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="text-sm text-rose-500 my-0.5">
+              ❤️
+            </div>
+          )}
+
+          <p className="text-gray-700 text-[11px] italic font-serif line-clamp-2 px-1 leading-snug">
+            "{message}"
+          </p>
+
+          <p className="text-[10px] font-serif text-rose-700 font-medium">
+            Từ: {senderName}
+          </p>
         </div>
 
         {/* Thân bao thư (Mặt sau, nằm đè lên lá thư một phần để tạo cảm giác nhét bên trong) */}

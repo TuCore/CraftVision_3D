@@ -46,7 +46,12 @@ export default function CheckoutPage() {
   const [preview3D, setPreview3D] = useState<string | null>(null);
   const [success3DUrl, setSuccess3DUrl] = useState<string | null>(null);
 
-  const hasPhysicalItems = items.some(item => !(item.product as any).is3D);
+  const hasPhysicalItems = items.some(
+    (item) =>
+      !(item.product as any).is3D &&
+      !(item.product as any).isDigital &&
+      (item.product as any).category !== "Thiệp điện tử"
+  );
 
 
 
@@ -147,7 +152,9 @@ export default function CheckoutPage() {
         paymentMethod: paymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
         shippingFee: shipping,
         items: items.map(item => ({
-          productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
+          productId: (item.product.id.startsWith("custom-") || item.product.id.startsWith("template-") || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.product.id))
+            ? "11111111-1111-1111-1111-111111111111" 
+            : item.product.id,
           quantity: item.quantity,
           wantNfc: useNfcGift || !!item.gift,
           gift: (useNfcGift || item.gift) ? {
@@ -188,7 +195,7 @@ export default function CheckoutPage() {
       }
       
       clearItems();
-      router.push("/profile");
+      router.push("/settings?tab=orders");
     } catch (error: any) {
       setIsOrderPlaced(false);
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt hàng.");
@@ -440,7 +447,7 @@ export default function CheckoutPage() {
         if (!open) {
           setSuccess3DUrl(null);
           clearItems();
-          router.push("/profile");
+          router.push("/settings?tab=orders");
         }
       }}>
         <DialogContent className="sm:max-w-md text-center p-8 bg-white rounded-3xl border-primary/20 shadow-2xl">
@@ -480,11 +487,11 @@ export default function CheckoutPage() {
             <button 
               onClick={() => {
                 clearItems();
-                router.push("/profile");
+                router.push("/settings?tab=orders");
               }}
               className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
             >
-              Về trang cá nhân
+              Xem lịch sử đơn hàng
             </button>
           </div>
         </DialogContent>
@@ -494,7 +501,7 @@ export default function CheckoutPage() {
         if (!open) {
           setShowBankInfo(false);
           clearItems();
-          router.push("/profile");
+          router.push("/settings?tab=orders");
         }
       }}>
         <DialogContent className="sm:max-w-md text-center p-8 bg-white rounded-3xl border-primary/20 shadow-2xl">
@@ -533,7 +540,7 @@ export default function CheckoutPage() {
               onClick={() => {
                 setShowBankInfo(false);
                 clearItems();
-                router.push("/profile");
+                router.push("/settings?tab=orders");
               }}
               className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
             >

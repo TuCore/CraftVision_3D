@@ -4,7 +4,7 @@ import { use, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Product } from "@/lib/product.types";
-import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Star, Minus, Plus, Sparkles, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { useWishlistStore } from "@/store/useWishlistStore";
@@ -285,6 +285,42 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 Thêm vào giỏ hàng
               </button>
 
+              {/* Component 1: Thiết kế câu chúc riêng với MẪU MẶC ĐỊNH (Không chọn mẫu web) */}
+              <div
+                onClick={() => {
+                  if (isGuest) {
+                    toast.info("Vui lòng đăng nhập để thiết kế thiệp!");
+                    router.push("/auth");
+                    return;
+                  }
+                  router.push(`/shop/${product.id}/greeting?mode=default`);
+                }}
+                className="w-full mt-3 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center shrink-0">
+                    <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors text-sm sm:text-base">
+                        Thiết kế câu chúc riêng
+                      </h3>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[color:var(--coral)]/15 text-[color:var(--coral)] font-bold shrink-0">
+                        Mẫu mặc định
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Dùng mẫu thiệp mặc định cố định ban đầu, không qua bước chọn mẫu web.
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shrink-0 shadow-coral-glow group-hover:scale-105 transition-transform">
+                  Thiết kế ngay
+                </div>
+              </div>
+
+              {/* Component 2: Thiết kế theo mẫu có sẵn (Kho mẫu thiệp Web) */}
               <div
                 onClick={() => {
                   if (isGuest) {
@@ -294,19 +330,28 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                   }
                   router.push(`/shop/${product.id}/greeting`);
                 }}
-                className="w-full mt-4 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-colors p-5 flex flex-col sm:flex-row items-center justify-between gap-4 group"
+                className="w-full cursor-pointer relative overflow-hidden rounded-2xl border border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                    <LayoutGrid className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors">Thiết kế câu chúc riêng</h3>
-                    <p className="text-xs text-muted-foreground mt-1">Gửi gắm thông điệp cá nhân qua thiệp NFC thông minh.</p>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors text-sm sm:text-base">
+                        Chọn mẫu thiệp từ thư viện Web
+                      </h3>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold shrink-0">
+                        16 mẫu 3D
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Lựa chọn trong kho mẫu thiệp phong phú (Trung thu, Sinh nhật, Tình yêu...).
+                    </p>
                   </div>
                 </div>
-                <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-sm font-semibold shrink-0">
-                  Thiết kế ngay
+                <div className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-transform group-hover:scale-105">
+                  Chọn mẫu web
                 </div>
               </div>
 

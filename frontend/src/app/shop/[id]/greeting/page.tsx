@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { use, useState, useEffect, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { AIGiftWidget } from "@/components/AIGiftWidget";
 import { Product } from "@/lib/product.types";
@@ -17,10 +17,24 @@ import {
   ChevronRight,
   RotateCcw,
   Pencil,
+  LayoutGrid,
+  CreditCard,
+  ExternalLink,
+  X,
+  Heart,
+  ShoppingCart,
 } from "lucide-react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useGreetingStore } from "@/store/useGreetingStore";
 import { useCollectionStore } from "@/store/useCollectionStore";
+import { useOrderStore } from "@/store/useOrderStore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ProductDemoModal } from "@/components/home/ProductDemoModal";
 import { TutorialVideoModal } from "@/components/home/TutorialVideoModal";
@@ -31,14 +45,16 @@ import {
   DEFAULT_TUTORIAL_VIDEO,
 } from "@/data/templateProducts";
 
-export default function GreetingDesignPage({ params }: { params: Promise<{ id: string }> }) {
+function GreetingDesignContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const routeParams = useParams();
+  const id = (routeParams?.id as string) || "";
   const from3d = searchParams.get("from") === "3d";
   const modelUrl = searchParams.get("modelUrl");
   const customName = searchParams.get("customName");
   const editCartItemId = searchParams.get("editCartItemId");
-  const { id } = use(params);
+  const isDefaultMode = searchParams.get("mode") === "default";
 
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateProduct | null>(null);
@@ -46,6 +62,27 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
   const [greetingImage, setGreetingImage] = useState<string | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
   const [quantity, setQuantity] = useState(1);
+
+  // Template mặc định cố định ban đầu của sản phẩm
+  const defaultProductTemplate = useMemo<TemplateProduct | null>(() => {
+    if (!product) return null;
+    return {
+      id: 0,
+      image: product.image,
+      title: `Thiệp NFC mặc định (${product.name})`,
+      sold: 1,
+      originalPrice: 0,
+      price: 0,
+      discount: 0,
+    };
+  }, [product]);
+
+  // Nếu người dùng chọn mode=default và chưa chọn template khác, tự động áp dụng template mặc định
+  useEffect(() => {
+    if (isDefaultMode && defaultProductTemplate && !selectedTemplate) {
+      setSelectedTemplate(defaultProductTemplate);
+    }
+  }, [isDefaultMode, defaultProductTemplate, selectedTemplate]);
 
   // Template browser state
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
@@ -57,12 +94,37 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState<TemplateVideo | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const { toggleFavorite, updateCartItem, items } = useWishlistStore();
   const { saveItem } = useCollectionStore();
   const store = useGreetingStore();
 
   useEffect(() => {
+    // Check if route id is a template product id (e.g., "template-1" or numeric template ID)
+    const isTemplateRoute = id.startsWith("template-") || (!isNaN(Number(id)) && Number(id) > 0 && Number(id) <= 200);
+    const parsedTemplateId = id.startsWith("template-")
+      ? parseInt(id.replace("template-", ""), 10)
+      : (!isNaN(Number(id)) ? parseInt(id, 10) : null);
+
+    if (isTemplateRoute && parsedTemplateId) {
+      const tmpl = INITIAL_TEMPLATE_PRODUCTS.find((t) => t.id === parsedTemplateId) || INITIAL_TEMPLATE_PRODUCTS[0];
+      setProduct({
+        id: `template-${tmpl.id}`,
+        name: tmpl.title,
+        price: tmpl.price,
+        category: "Thiệp điện tử",
+        image: tmpl.image,
+        rating: 5.0,
+        description: "Thiết kế thiệp điện tử thông điệp 3D tích hợp công nghệ NFC.",
+        matchScore: 100,
+        is3D: true, // Crucial for 0 VND shipping fee
+        isDigital: true,
+      } as any);
+      setSelectedTemplate(tmpl);
+      return;
+    }
+
     const fetchProduct = async () => {
       try {
         const res = await fetch(`/api/products/${id}`);
@@ -79,6 +141,22 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
             matchScore: 95,
             productType: p.productType,
           });
+        } else {
+          // Fallback to template if product not found
+          const fallbackTmpl = INITIAL_TEMPLATE_PRODUCTS[0];
+          setProduct({
+            id: `template-${fallbackTmpl.id}`,
+            name: fallbackTmpl.title,
+            price: fallbackTmpl.price,
+            category: "Thiệp điện tử",
+            image: fallbackTmpl.image,
+            rating: 5.0,
+            description: "Thiết kế thiệp điện tử thông điệp 3D.",
+            matchScore: 100,
+            is3D: true,
+            isDigital: true,
+          } as any);
+          setSelectedTemplate(fallbackTmpl);
         }
       } catch (e) {
         console.error(e);
@@ -226,6 +304,68 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
 
     toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!");
     router.push("/cart");
+  };
+
+  // Xử lý Thanh toán ngay (chuyển thẳng sang trang thanh toán không kèm chi phí ship nếu là thiệp điện tử)
+  const handleDirectCheckout = () => {
+    if (!product) return;
+
+    const isDigitalCard = !!(selectedTemplate && (product.id.startsWith("template-") || (product as any).is3D));
+
+    const orderItem = {
+      product: {
+        ...product,
+        id: product.id,
+        name: selectedTemplate?.title || product.name,
+        price: selectedTemplate?.price || product.price,
+        image: selectedTemplate?.image || product.image,
+        category: isDigitalCard ? "Thiệp điện tử" : product.category,
+        is3D: isDigitalCard ? true : (product as any).is3D,
+        isDigital: isDigitalCard ? true : false,
+      },
+      quantity: quantity,
+      gift: {
+        giftTitle: selectedTemplate?.title || `Thiệp thông điệp - ${product.name}`,
+        senderName: store.senderName || "Người gửi",
+        receiverName: store.receiverName || "Người nhận",
+        message: message,
+        greetingMessage: message,
+        greetingImage: greetingImage || undefined,
+        previewImageUrl: greetingImage || selectedTemplate?.image,
+        templateTitle: selectedTemplate?.title,
+        secretKey: `CARD-${Date.now()}`,
+      },
+    };
+
+    useOrderStore.getState().setItems([orderItem as any]);
+    setIsPreviewModalOpen(false);
+    toast.success("Đang chuyển tới trang thanh toán...");
+    router.push("/checkout");
+  };
+
+  // Mở trang web xem trực tiếp thông điệp thiệp
+  const handleLiveWebPreview = () => {
+    if (typeof window !== "undefined") {
+      const previewData = {
+        title: selectedTemplate?.title || product?.name || "Thiệp thông điệp yêu thương",
+        receiverName: store.receiverName || "Người nhận",
+        senderName: store.senderName || "Người gửi",
+        message: message || "Một món quà bất ngờ và ngập tràn yêu thương đang chờ đón bạn...",
+        image: greetingImage || selectedTemplate?.image || "/dreamy-hero-bg.jpg",
+        price: selectedTemplate?.price || product?.price || 49999,
+        templateId: selectedTemplate?.id || 1,
+      };
+      sessionStorage.setItem("preview_greeting", JSON.stringify(previewData));
+
+      const query = new URLSearchParams({
+        preview: "1",
+        title: previewData.title,
+        receiver: previewData.receiverName,
+        sender: previewData.senderName,
+      });
+
+      window.open(`/greeting-card?${query.toString()}`, "_blank");
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -405,14 +545,26 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary text-white text-[11px] font-bold shadow-xs">
                       <Sparkles className="w-3 h-3" />
-                      Mẫu thiệp đã chọn
+                      {selectedTemplate.id === 0 ? "Mẫu thiệp mặc định" : "Mẫu thiệp đã chọn"}
                     </span>
                     <button
-                      onClick={() => setSelectedTemplate(null)}
+                      onClick={() => {
+                        setSelectedTemplate(null);
+                        router.push(`/shop/${id}/greeting`);
+                      }}
                       className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer transition-colors"
                     >
-                      <RotateCcw className="w-3 h-3" />
-                      Đổi mẫu
+                      {selectedTemplate.id === 0 ? (
+                        <>
+                          <LayoutGrid className="w-3 h-3" />
+                          Chọn mẫu web
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw className="w-3 h-3" />
+                          Đổi mẫu
+                        </>
+                      )}
                     </button>
                   </div>
 
@@ -428,14 +580,20 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                       <h4 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2">
                         {selectedTemplate.title}
                       </h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs font-extrabold text-rose-600">
-                          {formatPrice(selectedTemplate.price)}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground line-through">
-                          {formatPrice(selectedTemplate.originalPrice)}
-                        </span>
-                      </div>
+                      {selectedTemplate.id === 0 ? (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Mẫu thiết kế cố định ban đầu (Tặng kèm sản phẩm)
+                        </p>
+                      ) : (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-extrabold text-rose-600">
+                            {formatPrice(selectedTemplate.price)}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground line-through">
+                            {formatPrice(selectedTemplate.originalPrice)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -447,7 +605,7 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                       Bước 1: Chọn thiệp mẫu
                     </p>
                     <p className="text-xs opacity-90 leading-relaxed">
-                      Hãy chọn 1 mẫu thiệp từ danh sách bên phải để bắt đầu thiết kế lời chúc.
+                      Hãy chọn 1 mẫu thiệp từ danh sách bên phải hoặc dùng mẫu mặc định để bắt đầu thiết kế lời chúc.
                     </p>
                   </div>
                 </div>
@@ -510,6 +668,30 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                       Bấm &quot;Chọn mẫu&quot; để giữ mẫu và chuyển sang bước viết câu chúc cá nhân hóa.
                     </p>
                   </div>
+                </div>
+
+                {/* Banner chuyển sang Dùng mẫu mặc định ban đầu */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[color:var(--coral)]/20 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-5 h-5 text-[color:var(--coral)]" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Không muốn chọn mẫu thiệp web?</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">Sử dụng mẫu thiệp NFC tiêu chuẩn mặc định ban đầu của sản phẩm.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (defaultProductTemplate) {
+                        setSelectedTemplate(defaultProductTemplate);
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl btn-hero text-white text-xs font-bold shadow-coral-glow hover:scale-105 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Dùng mẫu mặc định
+                  </button>
                 </div>
 
                 {/* Filter tags */}
@@ -653,22 +835,38 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                   <div>
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold mb-2">
                       <CheckCircle className="w-3.5 h-3.5" />
-                      Bước 2: Thiết kế thông điệp thiệp
+                      {selectedTemplate.id === 0 ? "Mẫu thiệp mặc định" : "Bước 2: Thiết kế thông điệp thiệp"}
                     </div>
                     <h2 className="text-xl sm:text-2xl font-bold font-display text-foreground">
-                      Tạo câu chúc cho mẫu: {selectedTemplate.title}
+                      {selectedTemplate.id === 0
+                        ? `Thiết kế câu chúc cho ${product?.name || "sản phẩm"}`
+                        : `Tạo câu chúc cho mẫu: ${selectedTemplate.title}`}
                     </h2>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                      Nhập thông tin người nhận để AI viết lời chúc ấm áp và cảm xúc nhất.
+                      {selectedTemplate.id === 0
+                        ? "Dùng mẫu thiệp NFC mặc định ban đầu, nhập thông tin để AI viết lời chúc ấm áp."
+                        : "Nhập thông tin người nhận để AI viết lời chúc ấm áp và cảm xúc nhất."}
                     </p>
                   </div>
 
                   <button
-                    onClick={() => setSelectedTemplate(null)}
+                    onClick={() => {
+                      setSelectedTemplate(null);
+                      router.push(`/shop/${id}/greeting`);
+                    }}
                     className="self-start sm:self-auto px-4 py-2 rounded-xl border border-border hover:bg-muted text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer text-foreground"
                   >
-                    <RotateCcw className="w-4 h-4 text-primary" />
-                    Đổi mẫu thiệp
+                    {selectedTemplate.id === 0 ? (
+                      <>
+                        <LayoutGrid className="w-4 h-4 text-amber-600" />
+                        Chọn mẫu từ thư viện web
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-4 h-4 text-primary" />
+                        Đổi mẫu thiệp
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -715,42 +913,62 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 {/* Bottom Action Buttons */}
-                <div className="pt-6 border-t border-border/50 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 mt-8">
-                  <button
-                    onClick={() => setSelectedTemplate(null)}
-                    className="w-full sm:w-auto px-5 py-3 rounded-xl font-semibold border border-border hover:bg-muted transition-colors text-foreground flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    Chọn mẫu khác
-                  </button>
-                  <button
-                    onClick={() => router.back()}
-                    className="w-full sm:w-auto px-5 py-3 rounded-xl font-semibold border border-border hover:bg-muted transition-colors text-foreground cursor-pointer"
-                  >
-                    Hủy thiết kế
-                  </button>
-                  {from3d && modelUrl && (
+                <div className="pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mt-8">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => {
-                        saveItem({
-                          title: customName || product?.name || "Thiết kế 3D",
-                          modelUrl: modelUrl,
-                        });
-                        toast.success("Đã lưu vào bộ sưu tập!");
+                        setSelectedTemplate(null);
+                        router.push(`/shop/${id}/greeting`);
                       }}
-                      className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold border-2 border-primary text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold border border-border hover:bg-muted transition-colors text-foreground flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
-                      Lưu
+                      {selectedTemplate.id === 0 ? (
+                        <>
+                          <LayoutGrid className="w-4 h-4 text-amber-600" />
+                          Xem kho mẫu web
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw className="w-4 h-4" />
+                          Chọn mẫu khác
+                        </>
+                      )}
                     </button>
-                  )}
-                  <button
-                    onClick={handleConfirm}
-                    className="w-full sm:w-auto btn-hero px-8 py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-coral-glow cursor-pointer"
-                  >
-                    <CheckCircle className="w-5 h-5" />
-                    {editCartItemId ? "Lưu thay đổi & Cập nhật giỏ hàng" : "Xác nhận và thêm vào giỏ"}
-                  </button>
+                    <button
+                      onClick={() => router.back()}
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold border border-border hover:bg-muted transition-colors text-foreground cursor-pointer text-xs sm:text-sm"
+                    >
+                      Hủy
+                    </button>
+                  </div>
+
+                  {/* 2 Main Options: Xem trước & Thanh toán ngay */}
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+                    <button
+                      onClick={() => setIsPreviewModalOpen(true)}
+                      className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer text-sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Xem trước
+                    </button>
+
+                    <button
+                      onClick={handleDirectCheckout}
+                      className="w-full sm:w-auto btn-hero px-7 py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-coral-glow cursor-pointer text-sm"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Thanh toán ngay
+                    </button>
+
+                    <button
+                      onClick={handleConfirm}
+                      className="w-full sm:w-auto px-5 py-3 rounded-xl font-semibold border border-border bg-card hover:bg-muted transition-colors text-foreground flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+                      title="Thêm vào giỏ hàng để mua sau"
+                    >
+                      <ShoppingCart className="w-4 h-4 text-muted-foreground" />
+                      {editCartItemId ? "Cập nhật giỏ" : "Thêm giỏ hàng"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -772,6 +990,129 @@ export default function GreetingDesignPage({ params }: { params: Promise<{ id: s
         video={activeVideo}
         productTitle={demoProduct?.title}
       />
+
+      {/* Popup Xem trước thông điệp thiệp */}
+      <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
+        <DialogContent className="sm:max-w-2xl bg-white dark:bg-card border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+          <DialogHeader className="text-center pb-2">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-2 shadow-xs">
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-bold font-display text-foreground">
+              Xem trước thông điệp thiệp
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+              Kiểm tra hình ảnh và câu chúc trước khi mở trực tiếp hoặc thanh toán.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Visual Card Mockup */}
+          <div className="my-4 p-5 rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-amber-50/60 dark:from-muted/40 dark:to-muted/20 border border-primary/20 shadow-sm space-y-4">
+            {/* Header of mockup */}
+            <div className="flex items-center justify-between border-b border-border/40 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl overflow-hidden border border-border/60 shrink-0">
+                  <img
+                    src={selectedTemplate?.image || product?.image}
+                    alt="Template"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-foreground line-clamp-1">
+                    {selectedTemplate?.title || product?.name}
+                  </h4>
+                  <span className="text-[11px] font-semibold text-primary">
+                    Thiệp điện tử NFC & 3D
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-base font-extrabold text-rose-600 block">
+                  {formatPrice(selectedTemplate?.price || product?.price)}
+                </span>
+                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-100 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
+                  Miễn phí vận chuyển (0đ)
+                </span>
+              </div>
+            </div>
+
+            {/* Recipient & Sender */}
+            <div className="grid grid-cols-2 gap-3 text-xs bg-white/70 dark:bg-card/70 p-3 rounded-xl border border-border/50">
+              <div>
+                <span className="text-muted-foreground text-[10px] block uppercase font-bold">Người nhận:</span>
+                <span className="font-bold text-foreground text-sm">
+                  {store.receiverName || "Người thương"}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-[10px] block uppercase font-bold">Người gửi:</span>
+                <span className="font-bold text-foreground text-sm">
+                  {store.senderName || "Bạn"}
+                </span>
+              </div>
+            </div>
+
+            {/* Custom message */}
+            <div className="p-4 rounded-xl bg-white dark:bg-card border border-rose-200/60 dark:border-rose-900/30 text-center relative overflow-hidden">
+              <div className="absolute top-2 left-2 text-rose-200 dark:text-rose-900/30 text-4xl font-serif">“</div>
+              <p className="text-sm font-serif italic text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed px-4 py-1">
+                {message || "Chúc bạn luôn ngập tràn niềm vui, bình an và hạnh phúc trong cuộc sống!"}
+              </p>
+              <div className="absolute bottom-1 right-2 text-rose-200 dark:text-rose-900/30 text-4xl font-serif">”</div>
+            </div>
+
+            {/* Attached Photo if uploaded */}
+            {greetingImage && (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-card/60 border border-border/50">
+                <img
+                  src={greetingImage}
+                  alt="Ảnh kỷ niệm"
+                  className="w-14 h-14 rounded-lg object-cover border border-border shrink-0"
+                />
+                <div>
+                  <span className="text-xs font-bold text-foreground block">Ảnh kỷ niệm kèm thiệp</span>
+                  <p className="text-[11px] text-muted-foreground">Ảnh sẽ hiển thị sống động khi người nhận mở bao thư và khám phá không gian 3D.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 2 Explicit Action Buttons in Modal: Xem trực tiếp & Thanh toán */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <button
+              onClick={handleLiveWebPreview}
+              className="py-3 px-4 rounded-xl font-bold border-2 border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Xem trực tiếp
+            </button>
+            <button
+              onClick={handleDirectCheckout}
+              className="py-3 px-4 rounded-xl font-bold btn-hero text-white shadow-coral-glow hover:scale-[1.02] flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <CreditCard className="w-4 h-4" />
+              Thanh toán ({formatPrice(selectedTemplate?.price || product?.price)})
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
+  );
+}
+
+export default function GreetingDesignPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppShell active="shop">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+          </div>
+        </AppShell>
+      }
+    >
+      <GreetingDesignContent />
+    </Suspense>
   );
 }
