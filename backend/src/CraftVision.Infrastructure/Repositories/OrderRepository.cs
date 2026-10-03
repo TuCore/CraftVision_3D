@@ -43,6 +43,9 @@ public class OrderRepository : IOrderRepository
         var items = await query
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Gift)
+                    .ThenInclude(g => g.NfcTag)
             .OrderByDescending(o => o.CreatedAt)
             .Skip((page - 1) * size)
             .Take(size)

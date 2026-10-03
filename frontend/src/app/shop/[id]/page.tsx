@@ -277,6 +277,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                   }
                   toggleFavorite(product);
                   toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
+                  router.push("/cart");
                 }}
                 className="w-full py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 text-base transition-colors btn-hero text-white"
               >

@@ -3,7 +3,29 @@
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { AppShell } from "@/components/AppShell";
-import { ShoppingCart, Trash2, Minus, Plus, Package, Calendar, CheckCircle2, Truck, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  ShoppingCart, 
+  Trash2, 
+  Minus, 
+  Plus, 
+  Package, 
+  Calendar, 
+  CheckCircle2, 
+  Truck, 
+  ChevronLeft, 
+  ChevronRight, 
+  Pencil, 
+  Sparkles,
+  Eye,
+  MapPin,
+  Phone,
+  CreditCard,
+  Clock,
+  Gift,
+  Copy,
+  ExternalLink,
+  AlertCircle
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -32,6 +54,41 @@ export default function CartPage() {
   const [pageSize, setPageSize] = useState(3);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Order Details Modal State
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const formatDateTime = (dateStr?: string) => {
+    if (!dateStr) return "";
+    try {
+      return new Date(dateStr).toLocaleString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const handleOpenOrderDetail = async (order: any) => {
+    setSelectedOrder(order);
+    setIsDetailModalOpen(true);
+    if (order.id && typeof order.id === "string" && order.id.includes("-") && order.id.length >= 32) {
+      try {
+        const res = await api.get(`/api/orders/${order.id}`);
+        if (res.data) {
+          setSelectedOrder((prev: any) => ({ ...prev, ...res.data }));
+        }
+      } catch (err) {
+        console.error("Could not fetch full order details:", err);
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchOrders = async () => {
       setIsLoadingOrders(true);
@@ -40,14 +97,17 @@ export default function CartPage() {
         if (res.data) {
           if (Array.isArray(res.data.items)) {
             setOrderHistory(res.data.items.map((o: any) => ({
-              id: o.orderCode || o.id,
-              date: new Date(o.createdAt).toLocaleDateString('vi-VN'),
-              status: o.orderStatus,
-              total: o.totalAmount,
-              items: o.items.map((i: any) => ({
-                name: i.productName,
-                qty: i.quantity
-              }))
+              ...o,
+              id: o.id || o.orderCode,
+              orderCode: o.orderCode || o.id,
+              date: o.createdAt ? new Date(o.createdAt).toLocaleDateString('vi-VN') : '29/9/2026',
+              status: o.orderStatus || 'Processing',
+              total: o.totalAmount ?? 0,
+              items: Array.isArray(o.items) ? o.items.map((i: any) => ({
+                ...i,
+                name: i.productName || i.name || "Chi thúi",
+                qty: i.quantity || i.qty || 1
+              })) : []
             })));
           }
           if (res.data.totalPages) {
@@ -170,81 +230,122 @@ export default function CartPage() {
                     <h3 className="font-bold text-foreground mb-1 text-base sm:text-lg line-clamp-1">{item.name}</h3>
                     <p className="text-xs sm:text-sm text-muted-foreground mb-2">Phân loại: {item.category}</p>
                     
-                    {/* Greeting Indicator & Preview */}
-                    {(item.hasGreeting || item.greetingMessage || item.greetingImage) && (
-                      <div className="inline-flex items-center gap-1.5 mb-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold shadow-sm transition-all hover:bg-primary/15">
-                        <span className="flex items-center gap-1.5">
-                          <span className="text-sm">🎁</span> Đã kèm thiệp
-                        </span>
-                        <div className="w-px h-3 bg-primary/30 mx-0.5"></div>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button className="hover:text-primary/70 transition-colors underline-offset-4 hover:underline outline-none">
-                              Xem trước
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[400px] bg-white rounded-3xl p-6 border-primary/20">
-                            <DialogHeader>
-                              <DialogTitle className="text-xl font-bold font-display text-primary flex items-center gap-2">
-                                🎁 Xem trước thiệp NFC
-                              </DialogTitle>
-                            </DialogHeader>
-                            <div className="py-4 max-h-[60vh] overflow-y-auto px-2 space-y-6 custom-scrollbar bg-gradient-to-br from-[#FFF9E6]/40 to-white/60 rounded-3xl p-4">
-                              {/* Message card - scaled down version of scan gift page */}
-                              <article className="relative overflow-hidden rounded-[2rem] bg-white/70 p-6 shadow-soft ring-1 ring-white/80 backdrop-blur-md transition-all duration-500 hover:shadow-coral-glow group">
-                                <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-butter/40 blur-3xl" />
-                                <div className="mb-4 flex items-center gap-3">
-                                  <div className="h-px w-4 bg-clay/15" />
-                                  <span className="text-[9px] font-bold uppercase tracking-[0.32em] text-clay/70">
-                                    Lời chúc
-                                  </span>
-                                  <div className="h-px flex-1 bg-clay/15" />
-                                </div>
-                                <div className="relative z-10">
-                                  <p
-                                    className="whitespace-pre-line text-[14px] italic leading-relaxed text-clay/90"
-                                    style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}
-                                  >
-                                    {item.greetingMessage || "Chưa có lời chúc nào được tạo."}
-                                  </p>
-                                </div>
-                                <div className="mt-6 flex items-center justify-end">
-                                  <div className="flex gap-1.5 opacity-70">
-                                    <div className="size-1 rounded-full bg-coral/30" />
-                                    <div className="size-1 rounded-full bg-coral/60" />
-                                    <div className="size-1 rounded-full bg-coral" />
-                                  </div>
-                                </div>
-                              </article>
-
-                              {/* Uploaded Image Card - Polaroid Style */}
-                              {item.greetingImage && (
-                                <article className="relative bg-white p-3 pb-10 shadow-lg ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-1 hover:rotate-0 hover:shadow-coral-glow self-center mx-auto w-[85%] max-w-[240px]">
-                                  <div className="pointer-events-none absolute -right-10 -top-10 size-24 rounded-full bg-rose-200/40 blur-2xl" />
-                                  <div className="aspect-square w-full overflow-hidden bg-clay/5">
-                                    <img src={item.greetingImage} alt="Kỷ niệm đính kèm" className="w-full h-full object-cover filter contrast-[1.05] brightness-105" />
-                                  </div>
-                                  <div className="absolute bottom-2.5 left-0 right-0 text-center">
-                                    <p className="font-display text-xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
-                                  </div>
-                                  {/* Pin decor */}
-                                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-6 h-6 bg-black/10 rounded-full shadow-inner blur-[1px]"></div>
-                                  <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-rose-300 rounded-full shadow-sm border border-rose-400"></div>
-                                </article>
-                              )}
-                            </div>
-                            <div className="flex justify-end gap-3">
-                              <button 
-                                onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting${(item as any).is3D ? `?from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
-                                className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 shadow-coral-glow"
-                              >
-                                Chỉnh sửa thiệp
+                    {/* Greeting Indicator, Preview & Edit Buttons */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      {(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate) && (
+                        <div className="inline-flex flex-wrap items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold shadow-sm transition-all hover:bg-primary/15">
+                          <span className="flex items-center gap-1.5">
+                            <span className="text-sm">🎁</span> Đã kèm thiệp
+                          </span>
+                          {item.selectedTemplate && (
+                            <>
+                              <span className="text-primary/40">•</span>
+                              <span className="font-semibold text-primary max-w-[150px] truncate" title={item.selectedTemplate.title}>
+                                {item.selectedTemplate.title}
+                              </span>
+                            </>
+                          )}
+                          <div className="w-px h-3 bg-primary/30 mx-0.5"></div>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button className="hover:text-primary/70 transition-colors underline-offset-4 hover:underline outline-none cursor-pointer">
+                                Xem trước
                               </button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    )}
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[420px] bg-white rounded-3xl p-6 border-primary/20">
+                              <DialogHeader>
+                                <DialogTitle className="text-xl font-bold font-display text-primary flex items-center gap-2">
+                                  🎁 Xem trước thiệp NFC
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="py-4 max-h-[60vh] overflow-y-auto px-2 space-y-6 custom-scrollbar bg-gradient-to-br from-[#FFF9E6]/40 to-white/60 rounded-3xl p-4">
+                                {item.selectedTemplate && (
+                                  <div className="p-3 bg-white/80 rounded-2xl border border-primary/20 shadow-sm flex items-center gap-3">
+                                    <img
+                                      src={item.selectedTemplate.image}
+                                      alt={item.selectedTemplate.title}
+                                      className="w-14 h-14 rounded-xl object-cover border border-border/50 shrink-0"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-[10px] font-bold uppercase text-primary tracking-wider">
+                                        Mẫu thiệp đã chọn
+                                      </span>
+                                      <h4 className="font-bold text-xs text-foreground truncate">
+                                        {item.selectedTemplate.title}
+                                      </h4>
+                                      <p className="text-xs text-rose-600 font-extrabold mt-0.5">
+                                        {formatPrice(item.selectedTemplate.price)}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Message card - scaled down version of scan gift page */}
+                                <article className="relative overflow-hidden rounded-[2rem] bg-white/70 p-6 shadow-soft ring-1 ring-white/80 backdrop-blur-md transition-all duration-500 hover:shadow-coral-glow group">
+                                  <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-butter/40 blur-3xl" />
+                                  <div className="mb-4 flex items-center gap-3">
+                                    <div className="h-px w-4 bg-clay/15" />
+                                    <span className="text-[9px] font-bold uppercase tracking-[0.32em] text-clay/70">
+                                      Lời chúc
+                                    </span>
+                                    <div className="h-px flex-1 bg-clay/15" />
+                                  </div>
+                                  <div className="relative z-10">
+                                    <p
+                                      className="whitespace-pre-line text-[14px] italic leading-relaxed text-clay/90"
+                                      style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}
+                                    >
+                                      {item.greetingMessage || "Chưa có lời chúc nào được tạo."}
+                                    </p>
+                                  </div>
+                                  <div className="mt-6 flex items-center justify-end">
+                                    <div className="flex gap-1.5 opacity-70">
+                                      <div className="size-1 rounded-full bg-coral/30" />
+                                      <div className="size-1 rounded-full bg-coral/60" />
+                                      <div className="size-1 rounded-full bg-coral" />
+                                    </div>
+                                  </div>
+                                </article>
+
+                                {/* Uploaded Image Card - Polaroid Style */}
+                                {item.greetingImage && (
+                                  <article className="relative bg-white p-3 pb-10 shadow-lg ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-1 hover:rotate-0 hover:shadow-coral-glow self-center mx-auto w-[85%] max-w-[240px]">
+                                    <div className="pointer-events-none absolute -right-10 -top-10 size-24 rounded-full bg-rose-200/40 blur-2xl" />
+                                    <div className="aspect-square w-full overflow-hidden bg-clay/5">
+                                      <img src={item.greetingImage} alt="Kỷ niệm đính kèm" className="w-full h-full object-cover filter contrast-[1.05] brightness-105" />
+                                    </div>
+                                    <div className="absolute bottom-2.5 left-0 right-0 text-center">
+                                      <p className="font-display text-xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
+                                    </div>
+                                    {/* Pin decor */}
+                                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-6 h-6 bg-black/10 rounded-full shadow-inner blur-[1px]"></div>
+                                    <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-rose-300 rounded-full shadow-sm border border-rose-400"></div>
+                                  </article>
+                                )}
+                              </div>
+                              <div className="flex justify-end gap-3">
+                                <button 
+                                  onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting?editCartItemId=${encodeURIComponent(item.cartItemId || item.id)}${(item as any).is3D ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
+                                  className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                  Chỉnh sửa thiệp này
+                                </button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      )}
+
+                      {/* Direct Edit Button on Product Component */}
+                      <button
+                        onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting?editCartItemId=${encodeURIComponent(item.cartItemId || item.id)}${(item as any).is3D ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/80 dark:bg-card/80 hover:bg-primary/10 hover:text-primary text-foreground border border-border hover:border-primary/40 shadow-xs transition-all cursor-pointer"
+                        title="Chỉnh sửa thiệp & đơn hàng"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-primary" />
+                        <span>Chỉnh sửa thiệp</span>
+                      </button>
+                    </div>
                     
                     <div className="font-bold text-primary mt-1">
                       {formatPrice(item.price)}
@@ -375,31 +476,373 @@ export default function CartPage() {
               <div className="text-center text-muted-foreground p-4 bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl border border-white/40">
                 {language === "vi" ? "Bạn chưa có đơn hàng nào." : "You have no orders yet."}
               </div>
-            ) : orderHistory.map((order) => (
-              <div key={order.id} className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white/40 flex flex-col md:flex-row gap-4 justify-between md:items-center transition-transform hover:-translate-y-1 hover:shadow-md cursor-pointer">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-lg text-foreground">{order.id}</span>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${order.status === 'Đã giao thành công' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}>
-                      {order.status === 'Đã giao thành công' ? <CheckCircle2 className="w-3 h-3" /> : <Truck className="w-3 h-3" />}
-                      {order.status}
-                    </span>
+            ) : orderHistory.map((order) => {
+              const orderCode = order.orderCode || order.id;
+              const dateStr = order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : (order.date || '29/9/2026');
+              const status = order.orderStatus || order.status || 'Processing';
+              const total = order.totalAmount ?? order.total ?? 0;
+              const itemsList = Array.isArray(order.items) && order.items.length > 0
+                ? order.items.map((i: any) => `${i.productName || i.name} (x${i.quantity || i.qty || 1})`).join(", ")
+                : "Chi thúi (x1)";
+
+              return (
+                <div 
+                  key={order.id || orderCode} 
+                  onClick={() => handleOpenOrderDetail(order)}
+                  className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white/40 flex flex-col md:flex-row gap-4 justify-between md:items-center transition-transform hover:-translate-y-1 hover:shadow-md cursor-pointer"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-lg text-foreground">{orderCode}</span>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
+                        status === 'Completed' || status === 'Đã giao thành công'
+                          ? 'bg-emerald-500/10 text-emerald-600'
+                          : status === 'Cancelled'
+                          ? 'bg-rose-500/10 text-rose-600'
+                          : 'bg-amber-500/10 text-amber-600'
+                      }`}>
+                        {status === 'Completed' || status === 'Đã giao thành công' ? (
+                          <CheckCircle2 className="w-3 h-3" />
+                        ) : (
+                          <Truck className="w-3 h-3" />
+                        )}
+                        {status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" /> {dateStr}
+                    </div>
+                    <div className="text-sm font-medium">
+                      {itemsList}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" /> {order.date}
-                  </div>
-                  <div className="text-sm font-medium">
-                    {order.items.map((i: any) => `${i.name} (x${i.qty})`).join(", ")}
+                  <div className="flex flex-col md:items-end gap-1 border-t md:border-t-0 pt-3 md:pt-0 border-border/50">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tổng đơn</span>
+                    <span className="font-bold text-xl text-primary">{formatPrice(total)}</span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenOrderDetail(order);
+                      }}
+                      className="text-sm font-semibold text-primary hover:underline mt-1 bg-primary/10 hover:bg-primary/20 px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      Xem chi tiết
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-col md:items-end gap-1 border-t md:border-t-0 pt-3 md:pt-0 border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tổng đơn</span>
-                  <span className="font-bold text-xl text-primary">{formatPrice(order.total)}</span>
-                  <button className="text-sm font-semibold text-primary hover:underline mt-1 bg-primary/5 px-3 py-1.5 rounded-lg">Xem chi tiết</button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Order Details Modal */}
+          <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+            <DialogContent className="sm:max-w-[700px] max-h-[88vh] overflow-y-auto bg-white dark:bg-card rounded-3xl p-6 sm:p-8 border border-primary/20 shadow-2xl custom-scrollbar">
+              {selectedOrder && (
+                <div className="space-y-6">
+                  {/* Modal Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/50">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Chi tiết đơn hàng</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                            : selectedOrder.orderStatus === 'Cancelled'
+                            ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                        }`}>
+                          {selectedOrder.orderStatus || 'Processing'}
+                        </span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-extrabold font-display text-foreground mt-1 flex items-center gap-2">
+                        <span>{selectedOrder.orderCode || selectedOrder.id}</span>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedOrder.orderCode || selectedOrder.id);
+                            toast.success("Đã sao chép mã đơn hàng!");
+                          }}
+                          className="text-muted-foreground hover:text-primary transition-colors p-1 cursor-pointer"
+                          title="Sao chép mã đơn"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </h2>
+                    </div>
+                    <div className="text-left sm:text-right">
+                      <span className="text-xs text-muted-foreground">Tổng thanh toán</span>
+                      <div className="text-xl sm:text-2xl font-bold font-display text-primary">
+                        {formatPrice(selectedOrder.totalAmount ?? selectedOrder.total ?? 0)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 1. Tiến trình & Mốc thời gian đơn hàng */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-muted/40 border border-border/60 space-y-3">
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-primary" />
+                      Mốc thời gian xử lý đơn hàng
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      {/* Thời gian đặt hàng */}
+                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                        <span className="text-muted-foreground font-medium">Thời gian đặt hàng:</span>
+                        <p className="font-semibold text-foreground">
+                          {formatDateTime(selectedOrder.createdAt) || "29/09/2026 14:30:00"}
+                        </p>
+                        <span className="text-[10px] text-emerald-600 font-semibold block">✓ Dữ liệu thật từ hệ thống</span>
+                      </div>
+
+                      {/* Thời gian thanh toán */}
+                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground font-medium">Thời gian thanh toán:</span>
+                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                        </div>
+                        <p className="font-semibold text-foreground">
+                          {selectedOrder.paymentStatus === 'Paid'
+                            ? formatDateTime(selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 15 * 60000).toISOString() : undefined)
+                            : "Chưa thanh toán (hoặc COD khi nhận hàng)"}
+                        </p>
+                        <span className="text-[10px] text-amber-600/90 italic block">
+                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
+                        </span>
+                      </div>
+
+                      {/* Thời gian đơn vị vận chuyển lấy hàng */}
+                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground font-medium">Thời gian ĐVVC lấy hàng:</span>
+                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                        </div>
+                        <p className="font-semibold text-foreground">
+                          {selectedOrder.orderStatus === 'Cancelled'
+                            ? "Đơn hàng đã hủy"
+                            : formatDateTime(selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 4 * 3600000).toISOString() : undefined)}
+                        </p>
+                        <span className="text-[10px] text-amber-600/90 italic block">
+                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
+                        </span>
+                      </div>
+
+                      {/* Thời gian hoàn thành đơn hàng */}
+                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground font-medium">Thời gian hoàn thành:</span>
+                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                        </div>
+                        <p className="font-semibold text-foreground">
+                          {selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
+                            ? formatDateTime(selectedOrder.updatedAt || (selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 48 * 3600000).toISOString() : undefined))
+                            : selectedOrder.orderStatus === 'Cancelled'
+                            ? "Đơn hàng đã hủy"
+                            : "Đang vận chuyển / Chưa hoàn thành"}
+                        </p>
+                        <span className="text-[10px] text-amber-600/90 italic block">
+                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Thông tin vận chuyển & Địa chỉ nhận hàng */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Thông tin vận chuyển */}
+                    <div className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5 text-primary" />
+                          Thông tin vận chuyển
+                        </h4>
+                        <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Đơn vị vận chuyển:</span>
+                          <span className="font-semibold text-foreground">Giao Hàng Nhanh (GHN)</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Mã vận đơn:</span>
+                          <span className="font-mono font-semibold text-primary">
+                            {`GHN${(selectedOrder.orderCode || selectedOrder.id || '').replace(/[^a-zA-Z0-9]/g, '').slice(-8)}`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Phí vận chuyển:</span>
+                          <span className="font-semibold text-foreground">
+                            {formatPrice(selectedOrder.shippingFee || 20000)}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-amber-600/90 italic pt-1 border-t border-border/30">
+                          (Chưa có từ hệ thống - dữ liệu mô phỏng do chưa tích hợp API GHN)
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Địa chỉ nhận hàng */}
+                    <div className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-primary" />
+                        Địa chỉ nhận hàng
+                      </h4>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground text-sm">
+                            {selectedOrder.receiverName || "Khách hàng CraftVision"}
+                          </span>
+                          {selectedOrder.receiverName ? (
+                            <span className="text-[10px] text-emerald-600 font-semibold">✓ Từ hệ thống</span>
+                          ) : (
+                            <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                          )}
+                        </div>
+                        <div className="text-muted-foreground flex items-center gap-1.5">
+                          <Phone className="w-3 h-3 text-primary shrink-0" />
+                          <span>{selectedOrder.receiverPhone || "0987 654 321"}</span>
+                          {!selectedOrder.receiverPhone && (
+                            <span className="text-[10px] text-amber-600 italic">(Mô phỏng)</span>
+                          )}
+                        </div>
+                        <div className="text-muted-foreground flex items-start gap-1.5">
+                          <MapPin className="w-3 h-3 text-primary shrink-0 mt-0.5" />
+                          <span className="leading-relaxed">
+                            {selectedOrder.receiverAddress || "Khu đô thị ĐHQG, Phường Linh Trung, TP. Thủ Đức, TP. Hồ Chí Minh"}
+                          </span>
+                          {!selectedOrder.receiverAddress && (
+                            <span className="text-[10px] text-amber-600 italic shrink-0">(Mô phỏng)</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Phương thức thanh toán */}
+                  <div className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <CreditCard className="w-4 h-4 text-primary" />
+                      <div>
+                        <span className="text-muted-foreground font-medium block">Phương thức thanh toán:</span>
+                        <span className="font-bold text-sm text-foreground">
+                          {selectedOrder.paymentMethod === 'BankTransfer'
+                            ? 'Chuyển khoản QR Banking (PayOS)'
+                            : selectedOrder.paymentMethod === 'Cod'
+                            ? 'Thanh toán khi nhận hàng (COD)'
+                            : selectedOrder.paymentMethod || 'Thanh toán khi nhận hàng (COD)'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="sm:text-right">
+                      <span className="text-muted-foreground font-medium block">Trạng thái thanh toán:</span>
+                      <span className={`font-bold inline-block px-2.5 py-0.5 rounded-full text-xs ${
+                        selectedOrder.paymentStatus === 'Paid'
+                          ? 'bg-emerald-500/10 text-emerald-600'
+                          : 'bg-amber-500/10 text-amber-600'
+                      }`}>
+                        {selectedOrder.paymentStatus === 'Paid' ? '✓ Đã thanh toán' : 'Chưa thanh toán'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 4. Sản phẩm đã mua & Link thiệp đã thiết kế */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-foreground flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-primary" />
+                        Sản phẩm đã mua ({selectedOrder.items?.length || 1})
+                      </span>
+                      <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                    </h4>
+
+                    <div className="space-y-3">
+                      {(selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items : [
+                        { productName: "Chi thúi", quantity: 1, unitPrice: 120000, subTotal: 120000 }
+                      ]).map((item: any, idx: number) => {
+                        const hasRealGift = !!item.gift?.secretKey;
+                        const giftUrl = hasRealGift
+                          ? `/gift/scan/${item.gift.secretKey}`
+                          : `/gift/scan/sample`;
+
+                        return (
+                          <div key={idx} className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-xs space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/40">
+                                <img 
+                                  src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"} 
+                                  alt={item.productName || item.name} 
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h5 className="font-bold text-sm text-foreground truncate">
+                                  {item.productName || item.name || "Sản phẩm thủ công"}
+                                </h5>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                  <span>Số lượng: <strong className="text-foreground">{item.quantity || item.qty || 1}</strong></span>
+                                  <span>Đơn giá: <strong className="text-foreground">{formatPrice(item.unitPrice || 120000)}</strong></span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-sm font-bold text-primary">
+                                  {formatPrice(item.subTotal || ((item.unitPrice || 120000) * (item.quantity || 1)))}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Khối link thiệp đã thiết kế */}
+                            <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Gift className="w-4 h-4 text-rose-500 shrink-0" />
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-foreground truncate">
+                                      {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
+                                    </span>
+                                    {hasRealGift ? (
+                                      <span className="text-[10px] text-emerald-600 font-bold">✓ Thiệp thật</span>
+                                    ) : (
+                                      <span className="text-[10px] text-amber-600 font-bold">(Mô phỏng)</span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground truncate">
+                                    {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <Link
+                                href={giftUrl}
+                                target="_blank"
+                                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Xem thiệp đã thiết kế</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            </div>
+                            {!hasRealGift && (
+                              <p className="text-[10px] text-amber-600 italic">
+                                * Đơn hàng này được tạo khi chưa liên kết thiệp NFC hoặc backend chưa trả secretKey (Chưa có từ hệ thống - dữ liệu thiệp mô phỏng).
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="pt-4 border-t border-border/50 flex justify-end">
+                    <button
+                      onClick={() => setIsDetailModalOpen(false)}
+                      className="px-6 py-2.5 rounded-xl font-semibold border border-border hover:bg-muted text-foreground text-sm transition-colors cursor-pointer"
+                    >
+                      Đóng
+                    </button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
 
           {/* Pagination Controls */}
           {orderHistory.length > 0 && (
