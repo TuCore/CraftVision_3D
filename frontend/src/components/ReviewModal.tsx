@@ -56,9 +56,14 @@ export function ReviewModal({ isOpen, onClose, productId, productName }: ReviewM
         const formData = new FormData();
         formData.append('file', imageFile);
         
-        const { default: api } = await import('@/lib/api');
-        const res = await api.post('/api/uploads', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+        const { default: axios } = await import('axios');
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5192';
+        const token = localStorage.getItem('token');
+        const res = await axios.post(`${apiUrl}/api/uploads`, formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+            // Let axios automatically set multipart/form-data with the correct boundary
+          }
         });
         
         uploadedImageUrl = res.data?.cloudinaryUrl;

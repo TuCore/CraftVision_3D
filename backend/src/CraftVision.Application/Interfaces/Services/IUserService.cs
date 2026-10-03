@@ -6,4 +6,5 @@ public interface IUserService
 {
     Task<UserProfileDto?> GetProfileAsync(Guid userId);
     Task<UserProfileDto> UpdateProfileAsync(Guid userId, UpdateUserProfileDto request);
+    Task DeleteAccountAsync(Guid userId);
 }

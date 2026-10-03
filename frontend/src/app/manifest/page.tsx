@@ -7,13 +7,20 @@ import { Send, Sparkles } from "lucide-react";
 import axios from "axios";
 import confetti from "canvas-confetti";
 
-// Flower positions scattered around the base of the tree
+// Flower positions scattered on the tree canopy (SVG coordinates 0-200)
 const FLOWER_POSITIONS = [
-  { x: 14, y: 82 }, { x: 22, y: 87 }, { x: 8, y: 90 }, { x: 30, y: 84 },
-  { x: 72, y: 85 }, { x: 78, y: 90 }, { x: 86, y: 83 }, { x: 65, y: 88 },
-  { x: 42, y: 91 }, { x: 50, y: 94 }, { x: 58, y: 91 }, { x: 36, y: 89 },
-  { x: 18, y: 95 }, { x: 82, y: 93 }, { x: 26, y: 93 }, { x: 68, y: 92 },
-  { x: 5, y: 86 }, { x: 90, y: 87 }, { x: 44, y: 96 }, { x: 56, y: 97 },
+  // Top
+  { x: 95, y: 30 }, { x: 85, y: 35 }, { x: 105, y: 38 }, { x: 95, y: 45 }, { x: 80, y: 48 }, { x: 110, y: 48 },
+  // Left
+  { x: 65, y: 55 }, { x: 75, y: 65 }, { x: 60, y: 68 }, { x: 70, y: 78 }, { x: 85, y: 75 },
+  // Right
+  { x: 125, y: 55 }, { x: 115, y: 65 }, { x: 132, y: 70 }, { x: 110, y: 80 }, { x: 125, y: 82 },
+  // Middle
+  { x: 100, y: 55 }, { x: 90, y: 60 }, { x: 105, y: 70 }, { x: 95, y: 80 },
+  // Extra layer (just in case)
+  { x: 88, y: 28 }, { x: 102, y: 30 }, { x: 72, y: 45 }, { x: 118, y: 48 },
+  { x: 55, y: 60 }, { x: 138, y: 65 }, { x: 65, y: 80 }, { x: 130, y: 75 },
+  { x: 85, y: 55 }, { x: 115, y: 58 }
 ];
 
 const FLOWER_COLORS = ["#ff9a3c", "#ff6eb4", "#ffd700", "#ff7eb3", "#ff8c55"];
@@ -21,7 +28,7 @@ const FLOWER_COLORS = ["#ff9a3c", "#ff6eb4", "#ffd700", "#ff7eb3", "#ff8c55"];
 function Flower({ x, y, color, animate }: { x: number; y: number; color: string; animate: boolean }) {
   return (
     <g
-      transform={`translate(${x}%, ${y}%)`}
+      transform={`translate(${x}, ${y})`}
       style={{
         transformBox: "fill-box",
         transformOrigin: "center",
@@ -55,7 +62,8 @@ export default function ManifestPage() {
   const [newFlowerIndex, setNewFlowerIndex] = useState<number | null>(null);
   const [isBursting, setIsBursting] = useState(false);
   const [animationState, setAnimationState] = useState<'idle' | 'running' | 'tripping' | 'recovering' | 'praying' | 'placed' | 'leaving' | 'letterSpawns' | 'letterEnters' | 'spaceshipFlies'>('idle');
-  const [hasIncense, setHasIncense] = useState(false);
+  
+  const isIncenseInCenser = ['placed', 'leaving', 'letterSpawns', 'letterEnters', 'spaceshipFlies'].includes(animationState);
   
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5192";
 
@@ -72,20 +80,18 @@ export default function ManifestPage() {
     }
     setIsManifesting(true);
     
-    // Animation sequence for pixel boy: run, trip, get up, pray
     setAnimationState('running');
-    await new Promise(r => setTimeout(r, 600)); // Run in fast from bottom
+    await new Promise(r => setTimeout(r, 1000)); // Run from left edge
     
     setAnimationState('tripping');
-    await new Promise(r => setTimeout(r, 800)); // Ouch! Faceplant
+    await new Promise(r => setTimeout(r, 600)); // Ouch! Faceplant
     
     setAnimationState('recovering');
-    await new Promise(r => setTimeout(r, 500)); // Get up
+    await new Promise(r => setTimeout(r, 600)); // Get up
 
     setAnimationState('praying');
-    await new Promise(r => setTimeout(r, 1500)); // Bow multiple times (1.5s = 3 bows)
+    await new Promise(r => setTimeout(r, 1500)); // Bow multiple times (3 bows = 1.5s)
     
-    setHasIncense(true);
     setAnimationState('placed');
     await new Promise(r => setTimeout(r, 600)); // Placed, step back
     
@@ -93,7 +99,7 @@ export default function ManifestPage() {
     setTimeout(() => setIsBursting(false), 800);
     
     setAnimationState('leaving');
-    await new Promise(r => setTimeout(r, 600)); 
+    await new Promise(r => setTimeout(r, 800)); 
 
     setAnimationState('letterSpawns');
     await new Promise(r => setTimeout(r, 800)); // Envelope pops in & rocket appears
@@ -133,7 +139,20 @@ export default function ManifestPage() {
     }
   };
 
-  const visibleFlowers = FLOWER_POSITIONS.slice(0, Math.min(wishCount, FLOWER_POSITIONS.length));
+  const getDeterministicOffset = (index: number) => {
+    const cycle = Math.floor(index / FLOWER_POSITIONS.length);
+    if (cycle === 0) return { x: 0, y: 0 };
+    // Generate deterministic spread for subsequent cycles to stack flowers
+    const pseudoX = Math.sin(index * 13.5) * 12; 
+    const pseudoY = Math.cos(index * 21.3) * 12;
+    return { x: pseudoX, y: pseudoY };
+  };
+
+  const visibleFlowers = Array.from({ length: wishCount }).map((_, i) => {
+    const basePos = FLOWER_POSITIONS[i % FLOWER_POSITIONS.length];
+    const offset = getDeterministicOffset(i);
+    return { x: basePos.x + offset.x, y: basePos.y + offset.y };
+  });
 
   return (
     <AppShell active="manifest">
@@ -156,13 +175,13 @@ export default function ManifestPage() {
           to   { transform: rotate(-360deg); }
         }
         @keyframes boyWobble {
-          0% { transform: translate(86px, 170px) rotate(-4deg); }
-          100% { transform: translate(86px, 170px) rotate(4deg); }
+          0% { transform: translateY(0px) rotate(-5deg); }
+          50% { transform: translateY(-4px) rotate(5deg); }
+          100% { transform: translateY(0px) rotate(-5deg); }
         }
-        @keyframes armsPray {
-          0%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-8px); }
-          70% { transform: translateY(12px); }
+        @keyframes bowDown {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(45deg); }
         }
         @keyframes smokeRise {
           0% { opacity: 0; transform: translateY(0); }
@@ -295,7 +314,7 @@ export default function ManifestPage() {
             </g>
 
             {/* Placed Incense */}
-            <g className="transition-opacity duration-300" style={{ opacity: hasIncense ? 1 : 0 }}>
+            <g className="transition-opacity duration-300" style={{ opacity: isIncenseInCenser ? 1 : 0 }}>
               <line x1="100" y1="162" x2="100" y2="148" stroke="#8b4513" strokeWidth="1.2" />
               <circle cx="100" cy="148" r="1.5" fill="#ef4444" filter="url(#glow)" />
               <line x1="97" y1="162" x2="94" y2="150" stroke="#8b4513" strokeWidth="1.2" />
@@ -307,51 +326,89 @@ export default function ManifestPage() {
               <path d="M 100 146 Q 98 140 100 135 T 100 125" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" className="smoke-anim" />
             </g>
 
-            {/* Pixel Boy (Praying Animation) */}
+            {/* Vector Boy Character */}
             <g 
               style={{
-                transition: animationState === 'tripping' ? 'all 0.2s cubic-bezier(0.17, 0.89, 0.32, 1.28)' : 'all 0.5s ease-in-out',
+                transition: animationState === 'tripping' ? 'transform 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.28)' : 
+                            animationState === 'running' ? 'transform 1s linear' : 'transform 0.5s ease-in-out',
                 transformOrigin: '14px 18px',
                 opacity: animationState === 'idle' ? 0 : 1,
                 transform: 
-                  animationState === 'idle' ? 'translate(-50px, 250px)' :
-                  animationState === 'running' ? 'translate(86px, 180px) rotate(15deg)' :
-                  animationState === 'tripping' ? 'translate(86px, 176px) rotate(90deg)' :
-                  animationState === 'recovering' ? 'translate(86px, 170px) rotate(0deg)' :
-                  animationState === 'praying' ? 'translate(86px, 170px)' :
-                  animationState === 'placed' ? 'translate(86px, 170px)' :
-                  animationState === 'leaving' ? 'translate(250px, 250px) rotate(-15deg)' : 
-                  'translate(-50px, 250px)',
-                animation: 
-                  animationState === 'running' || animationState === 'leaving' ? 'boyWobble 0.2s infinite alternate' : 'none'
+                  animationState === 'idle' ? 'translate(-100px, 160px)' :
+                  animationState === 'running' ? 'translate(65px, 160px)' :
+                  animationState === 'tripping' ? 'translate(78px, 166px) rotate(80deg)' : // Trip & fall
+                  animationState === 'recovering' ? 'translate(70px, 160px) rotate(0deg)' :
+                  animationState === 'praying' ? 'translate(70px, 160px)' :
+                  animationState === 'placed' ? 'translate(70px, 160px)' :
+                  animationState === 'leaving' ? 'translate(250px, 160px)' : 
+                  'translate(-100px, 160px)',
               }}
             >
-              {/* Head */}
-              <rect x="4" y="-28" width="20" height="16" fill="#1f2937" rx="4" />
-              {/* Body (Shirt) */}
-              <rect x="3" y="-12" width="22" height="14" fill="#ef4444" rx="3" />
-              
-              {/* Incense in hands & Hands */}
               <g 
-                className="transition-opacity duration-200" 
-                style={{ 
-                  opacity: (animationState === 'running' || animationState === 'tripping' || animationState === 'recovering' || animationState === 'praying') ? 1 : 0,
-                  animation: animationState === 'praying' ? 'armsPray 0.7s infinite ease-in-out' : 'none'
+                style={{
+                  animation: (animationState === 'running' || animationState === 'leaving') ? 'boyWobble 0.25s infinite alternate' : 'none'
                 }}
               >
-                <line x1="14" y1="-8" x2="14" y2="-28" stroke="#8b4513" strokeWidth="1.5" />
-                <circle cx="14" cy="-28" r="1.5" fill="#ef4444" filter="url(#glow)" />
-                <path d="M 14 -30 Q 12 -35 14 -40 T 14 -50" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" className="smoke-anim" />
-                
-                {/* Hands holding the incense */}
-                <rect x="11" y="-10" width="6" height="6" fill="#fcd34d" rx="2" />
-              </g>
+                {/* Legs & Kneeling */}
+                <g 
+                  style={{
+                    transition: 'transform 0.3s',
+                    transformOrigin: '14px 10px',
+                    transform: (animationState === 'praying' || animationState === 'placed') ? 'scaleY(0.4) translateY(10px)' : 'scaleY(1)'
+                  }}
+                >
+                  <rect x="6" y="10" width="6" height="12" fill="#1e3a8a" rx="2" />
+                  <rect x="16" y="10" width="6" height="12" fill="#1e3a8a" rx="2" />
+                  {/* Shoes */}
+                  <rect x="5" y="20" width="8" height="3" fill="#111827" rx="1" />
+                  <rect x="15" y="20" width="8" height="3" fill="#111827" rx="1" />
+                </g>
 
-              {/* Pants */}
-              <rect x="4" y="2" width="20" height="8" fill="#1e3a8a" rx="1" />
-              {/* Legs */}
-              <rect x="6" y="10" width="6" height="8" fill="#fcd34d" rx="1" />
-              <rect x="16" y="10" width="6" height="8" fill="#fcd34d" rx="1" />
+                {/* Torso & Head & Arms that will bow */}
+                <g 
+                  style={{
+                    transition: 'transform 0.4s ease-in-out',
+                    transformOrigin: '14px 10px',
+                    transform: (animationState === 'praying' || animationState === 'placed') ? 'translateY(12px)' : 'translateY(0)',
+                  }}
+                >
+                  <g 
+                    style={{
+                      transformOrigin: '14px 5px',
+                      animation: animationState === 'praying' ? 'bowDown 0.5s ease-in-out infinite' : 'none'
+                    }}
+                  >
+                    {/* Body (Shirt) */}
+                    <rect x="3" y="-12" width="22" height="18" fill="#ef4444" rx="5" />
+                    {/* Backpack or detail */}
+                    <rect x="1" y="-8" width="6" height="12" fill="#b91c1c" rx="2" />
+                    
+                    {/* Head */}
+                    <rect x="4" y="-30" width="20" height="20" fill="#ffedd5" rx="10" />
+                    {/* Hair */}
+                    <path d="M 3 -22 C 3 -35 25 -35 25 -22 C 23 -26 18 -28 14 -28 C 10 -28 5 -26 3 -22 Z" fill="#1f2937" />
+                    {/* Face / Eye */}
+                    <circle cx="18" cy="-20" r="1.5" fill="#1f2937" />
+                    
+                    {/* Arms holding incense */}
+                    <g 
+                      style={{ 
+                        opacity: isIncenseInCenser ? 0 : 1,
+                        transition: 'opacity 0.2s'
+                      }}
+                    >
+                      {/* Incense Sticks */}
+                      <line x1="18" y1="-5" x2="32" y2="-22" stroke="#8b4513" strokeWidth="1.5" />
+                      <circle cx="32" cy="-22" r="1.5" fill="#ef4444" filter="url(#glow)" />
+                      <line x1="20" y1="-5" x2="35" y2="-18" stroke="#8b4513" strokeWidth="1.5" />
+                      <circle cx="35" cy="-18" r="1.5" fill="#ef4444" filter="url(#glow)" />
+                      
+                      {/* Hands */}
+                      <circle cx="19" cy="-5" r="3.5" fill="#ffedd5" />
+                    </g>
+                  </g>
+                </g>
+              </g>
             </g>
 
             {/* Rocket & Letter sequence */}
@@ -407,22 +464,13 @@ export default function ManifestPage() {
             {visibleFlowers.map((pos, i) => (
               <Flower
                 key={i}
-                x={pos.x * 2}   // scale to SVG viewBox 0-200
-                y={pos.y * 2}
+                x={pos.x}
+                y={pos.y}
                 color={FLOWER_COLORS[i % FLOWER_COLORS.length]}
                 animate={i === newFlowerIndex}
               />
             ))}
 
-            {/* Wish count badge */}
-            {wishCount > 0 && (
-              <g transform="translate(140, 10)">
-                <rect x="0" y="0" width="48" height="18" rx="9" fill="url(#badgeGrad)" opacity="0.9" filter="url(#glow)"/>
-                <text x="24" y="12.5" textAnchor="middle" fontSize="7" fill="#fff" fontWeight="bold">
-                  ✨ {wishCount} wish
-                </text>
-              </g>
-            )}
           </svg>
         </div>
 

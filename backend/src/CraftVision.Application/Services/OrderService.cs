@@ -196,7 +196,10 @@ public class OrderService : IOrderService
                 }
             }
 
-            order.TotalAmount = totalAmount; // Plus shipping fee if any
+            decimal shippingFee = dto.ShippingFee ?? CalculateShippingFee(dto.ReceiverAddress, totalAmount);
+            order.ShippingFee = shippingFee;
+            order.TotalAmount = totalAmount + shippingFee;
+
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 
@@ -247,8 +250,12 @@ public class OrderService : IOrderService
             PaymentStatus = order.PaymentStatus.ToString(),
             OrderStatus = order.OrderStatus.ToString(),
             ReceiverName = order.ReceiverName,
+            ReceiverPhone = order.ReceiverPhone,
+            ReceiverAddress = order.ReceiverAddress,
+            ShippingFee = order.ShippingFee,
             TotalAmount = order.TotalAmount,
             CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt,
             Items = order.OrderItems.Select(oi => new OrderItemDto
             {
                 Id = oi.Id,
@@ -286,8 +293,12 @@ public class OrderService : IOrderService
                 PaymentStatus = order.PaymentStatus.ToString(),
                 OrderStatus = order.OrderStatus.ToString(),
                 ReceiverName = order.ReceiverName,
+                ReceiverPhone = order.ReceiverPhone,
+                ReceiverAddress = order.ReceiverAddress,
+                ShippingFee = order.ShippingFee,
                 TotalAmount = order.TotalAmount,
                 CreatedAt = order.CreatedAt,
+                UpdatedAt = order.UpdatedAt,
                 Items = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,
@@ -297,7 +308,17 @@ public class OrderService : IOrderService
                     Quantity = oi.Quantity,
                     UnitPrice = oi.UnitPrice,
                     SubTotal = oi.SubTotal,
-                    ProductImageUrl = oi.Product?.SampleImageUrl
+                    ProductImageUrl = oi.Product?.SampleImageUrl,
+                    Gift = oi.Gift != null ? new GiftSummaryDto
+                    {
+                        Id = oi.Gift.Id,
+                        GiftTitle = oi.Gift.GiftTitle,
+                        SenderName = oi.Gift.SenderName,
+                        ReceiverName = oi.Gift.ReceiverName,
+                        NfcTagCode = oi.Gift.NfcTag?.TagCode,
+                        SecretKey = oi.Gift.NfcTag?.SecretKey,
+                        Status = oi.Gift.NfcTag?.Status.ToString() ?? ""
+                    } : null
                 }).ToList()
             }).ToList(),
             TotalItems = total,
@@ -437,5 +458,31 @@ public class OrderService : IOrderService
         var random = new Random();
         string suffix = random.Next(100, 999).ToString();
         return $"{DateTime.UtcNow:yyMMddHHmmss}{suffix}";
+    }
+
+    public static decimal CalculateShippingFee(string? address, decimal subtotal)
+    {
+        if (subtotal >= 500000 || string.IsNullOrWhiteSpace(address) || string.Equals(address, "Online", StringComparison.OrdinalIgnoreCase))
+        {
+            return 0;
+        }
+
+        var addr = address.ToLowerInvariant();
+        bool isHcm = addr.Contains("hồ chí minh") || addr.Contains("ho chi minh") || addr.Contains("hcm") || addr.Contains("tphcm");
+
+        if (isHcm)
+        {
+            // Các huyện ngoại thành TP.HCM: Bình Chánh, Hóc Môn, Củ Chi, Nhà Bè, Cần Giờ
+            bool isSuburban = addr.Contains("bình chánh") || addr.Contains("binh chanh") ||
+                              addr.Contains("hóc môn") || addr.Contains("hoc mon") ||
+                              addr.Contains("củ chi") || addr.Contains("cu chi") ||
+                              addr.Contains("nhà bè") || addr.Contains("nha be") ||
+                              addr.Contains("cần giờ") || addr.Contains("can gio");
+
+            return isSuburban ? 30000 : 20000;
+        }
+
+        // Ngoại tỉnh
+        return 35000;
     }
 }

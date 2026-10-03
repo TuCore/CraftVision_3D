@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { ProvinceDistrictSelect } from "@/components/common/ProvinceDistrictSelect";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -45,7 +46,12 @@ export default function CheckoutPage() {
   const [preview3D, setPreview3D] = useState<string | null>(null);
   const [success3DUrl, setSuccess3DUrl] = useState<string | null>(null);
 
-  const hasPhysicalItems = items.some(item => !(item.product as any).is3D);
+  const hasPhysicalItems = items.some(
+    (item) =>
+      !(item.product as any).is3D &&
+      !(item.product as any).isDigital &&
+      (item.product as any).category !== "Thiệp điện tử"
+  );
 
 
 
@@ -144,8 +150,11 @@ export default function CheckoutPage() {
         receiverPhone: hasPhysicalItems ? shippingInfo.phone : "0999999999",
         receiverAddress: hasPhysicalItems ? fullAddress : "Online",
         paymentMethod: paymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
+        shippingFee: shipping,
         items: items.map(item => ({
-          productId: item.product.id.startsWith("custom-") ? "11111111-1111-1111-1111-111111111111" : item.product.id,
+          productId: (item.product.id.startsWith("custom-") || item.product.id.startsWith("template-") || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.product.id))
+            ? "11111111-1111-1111-1111-111111111111" 
+            : item.product.id,
           quantity: item.quantity,
           wantNfc: useNfcGift || !!item.gift,
           gift: (useNfcGift || item.gift) ? {
@@ -186,7 +195,7 @@ export default function CheckoutPage() {
       }
       
       clearItems();
-      router.push("/profile");
+      router.push("/settings?tab=orders");
     } catch (error: any) {
       setIsOrderPlaced(false);
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt hàng.");
@@ -198,7 +207,28 @@ export default function CheckoutPage() {
   if (!items || items.length === 0) return null;
 
   const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const shipping = !hasPhysicalItems || subtotal > 500000 ? 0 : 30000;
+
+  const calculateShippingFee = () => {
+    if (!hasPhysicalItems || subtotal >= 500000) return 0;
+
+    const province = (shippingInfo.province || "").toLowerCase().trim();
+    const district = (shippingInfo.district || "").toLowerCase().trim();
+    const address = (shippingInfo.address || "").toLowerCase().trim();
+    const fullText = `${province} ${district} ${address}`;
+
+    const isHcm = fullText.includes("hồ chí minh") || fullText.includes("ho chi minh") || fullText.includes("hcm") || fullText.includes("tphcm");
+
+    if (isHcm) {
+      // Huyện ngoại thành TP.HCM: Bình Chánh, Hóc Môn, Củ Chi, Nhà Bè, Cần Giờ
+      const suburbanKeywords = ["bình chánh", "binh chanh", "hóc môn", "hoc mon", "củ chi", "cu chi", "nhà bè", "nha be", "cần giờ", "can gio"];
+      const isSuburban = suburbanKeywords.some(kw => fullText.includes(kw));
+      return isSuburban ? 30000 : 20000;
+    }
+
+    return 35000; // Ngoại tỉnh
+  };
+
+  const shipping = calculateShippingFee();
   const total = subtotal + shipping;
 
   const showGlobalNfc = items.length === 1 && !items[0].gift;
@@ -252,22 +282,12 @@ export default function CheckoutPage() {
                       className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Tỉnh / Thành phố</label>
-                    <input 
-                      type="text" 
-                      value={shippingInfo.province}
-                      onChange={e => setShippingInfo({...shippingInfo, province: e.target.value})}
-                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Quận / Huyện</label>
-                    <input 
-                      type="text" 
-                      value={shippingInfo.district}
-                      onChange={e => setShippingInfo({...shippingInfo, district: e.target.value})}
-                      className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                  <div className="md:col-span-2">
+                    <ProvinceDistrictSelect
+                      province={shippingInfo.province}
+                      district={shippingInfo.district}
+                      onProvinceChange={(p) => setShippingInfo(prev => ({ ...prev, province: p, district: "" }))}
+                      onDistrictChange={(d) => setShippingInfo(prev => ({ ...prev, district: d }))}
                     />
                   </div>
                 </div>
@@ -368,7 +388,14 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Phí giao hàng</span>
-                  <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
+                  <div className="text-right">
+                    <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
+                    {hasPhysicalItems && shipping > 0 && (
+                      <span className="block text-[11px] text-muted-foreground">
+                        {shipping === 20000 ? "(Nội thành TP.HCM)" : shipping === 30000 ? "(Ngoại thành TP.HCM)" : "(Ngoại tỉnh)"}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
               </div>
@@ -420,7 +447,7 @@ export default function CheckoutPage() {
         if (!open) {
           setSuccess3DUrl(null);
           clearItems();
-          router.push("/profile");
+          router.push("/settings?tab=orders");
         }
       }}>
         <DialogContent className="sm:max-w-md text-center p-8 bg-white rounded-3xl border-primary/20 shadow-2xl">
@@ -460,11 +487,11 @@ export default function CheckoutPage() {
             <button 
               onClick={() => {
                 clearItems();
-                router.push("/profile");
+                router.push("/settings?tab=orders");
               }}
               className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
             >
-              Về trang cá nhân
+              Xem lịch sử đơn hàng
             </button>
           </div>
         </DialogContent>
@@ -474,7 +501,7 @@ export default function CheckoutPage() {
         if (!open) {
           setShowBankInfo(false);
           clearItems();
-          router.push("/profile");
+          router.push("/settings?tab=orders");
         }
       }}>
         <DialogContent className="sm:max-w-md text-center p-8 bg-white rounded-3xl border-primary/20 shadow-2xl">
@@ -513,7 +540,7 @@ export default function CheckoutPage() {
               onClick={() => {
                 setShowBankInfo(false);
                 clearItems();
-                router.push("/profile");
+                router.push("/settings?tab=orders");
               }}
               className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
             >

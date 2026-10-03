@@ -8,6 +8,7 @@ public class CreateOrderDto
     public string? ReceiverPhone { get; set; }
     public string? ReceiverAddress { get; set; }
     public string? PaymentMethod { get; set; }
+    public decimal? ShippingFee { get; set; }
     
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }

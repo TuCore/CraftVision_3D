@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { X, Eye, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/components/LanguageProvider";
 
 interface Product {
   id: number;
@@ -22,6 +24,8 @@ interface ProductDemoModalProps {
 }
 
 export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalProps) {
+  const router = useRouter();
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -62,7 +66,7 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
-          <h2 className="text-lg font-bold text-gray-800">Xem mẫu sản phẩm</h2>
+          <h2 className="text-lg font-bold text-gray-800">{t("demo.title")}</h2>
           <button 
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
@@ -90,8 +94,8 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
                 {/* Fake Demo Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center h-full w-full p-4 text-center mt-12">
                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 w-full border border-white/20 shadow-lg">
-                     <h4 className="text-lg font-bold text-white mb-2 leading-tight">Có một món quà nhỏ dành cho cậu...</h4>
-                     <p className="text-xs text-white/80">Nhưng trước khi mở, thổi nến trước nhé 🎂</p>
+                     <h4 className="text-lg font-bold text-white mb-2 leading-tight">{t("demo.gift_title")}</h4>
+                     <p className="text-xs text-white/80">{t("demo.gift_desc")}</p>
                    </div>
                 </div>
 
@@ -110,20 +114,20 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
             
             <div className="bg-gray-50 rounded-xl p-5 flex flex-col gap-4 text-sm text-gray-600">
               <div className="grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr] gap-4">
-                <span className="font-semibold text-rose-500">Thiết kế:</span>
-                <span>Mẫu thiết kế đẹp mắt, sang trọng, tùy chỉnh nhanh chóng theo nhu cầu của bạn.</span>
+                <span className="font-semibold text-rose-500">{t("demo.spec_design_label")}</span>
+                <span>{t("demo.spec_design_desc")}</span>
               </div>
               <div className="grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr] gap-4">
-                <span className="font-semibold text-rose-500">Thao tác:</span>
-                <span>Chỉnh sửa nội dung, hình ảnh, màu sắc và âm nhạc dễ dàng chỉ với vài thao tác.</span>
+                <span className="font-semibold text-rose-500">{t("demo.spec_action_label")}</span>
+                <span>{t("demo.spec_action_desc")}</span>
               </div>
               <div className="grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr] gap-4">
-                <span className="font-semibold text-rose-500">Chia sẻ:</span>
-                <span>Gửi link hoặc QR code cho người thương qua Zalo, Facebook, Messenger nhanh chóng.</span>
+                <span className="font-semibold text-rose-500">{t("demo.spec_share_label")}</span>
+                <span>{t("demo.spec_share_desc")}</span>
               </div>
               <div className="grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr] gap-4">
-                <span className="font-semibold text-rose-500">Tương thích:</span>
-                <span>Chạy mượt trên mọi thiết bị: điện thoại, máy tính bảng, laptop và máy tính.</span>
+                <span className="font-semibold text-rose-500">{t("demo.spec_compat_label")}</span>
+                <span>{t("demo.spec_compat_desc")}</span>
               </div>
             </div>
 
@@ -141,16 +145,19 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
 
             <div className="grid grid-cols-2 gap-3 mt-2">
               <button 
-                onClick={() => toast.info("Đang mở bản demo...")}
+                onClick={() => toast.info(t("demo.live_view"))}
                 className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-colors text-sm"
               >
-                <Eye className="w-4 h-4" /> Xem trực tiếp
+                <Eye className="w-4 h-4" /> {t("demo.live_view")}
               </button>
               <button 
-                onClick={() => toast.success("Đã thêm vào giỏ hàng")}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors shadow-sm text-sm"
+                onClick={() => {
+                  onClose();
+                  router.push(`/shop/template-${product.id}/greeting`);
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors shadow-sm text-sm cursor-pointer"
               >
-                <ShoppingCart className="w-4 h-4" /> Mua ngay
+                <ShoppingCart className="w-4 h-4" /> {t("template.buy_now")}
               </button>
             </div>
 
@@ -186,7 +193,7 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
                    </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-6 text-center max-w-[200px]">Quét mã QR để xem trên điện thoại</p>
+              <p className="text-xs text-gray-400 mt-6 text-center max-w-[200px]">{t("demo.scan_qr")}</p>
             </div>
 
           </div>

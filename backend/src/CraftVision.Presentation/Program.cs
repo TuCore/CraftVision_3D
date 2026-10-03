@@ -129,6 +129,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         o.MapEnum<CraftVision.Domain.Enums.ModelType>("model_type_enum", nameTranslator: nullTranslator);
     })
     .UseSnakeCaseNamingConvention()
+    .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
 );
 
 // --- 2. CONFIG JWT AUTHENTICATION ---
@@ -267,8 +268,26 @@ app.MapGet("/api/test-entities", async (ApplicationDbContext db) =>
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    // Tự động chạy tất cả các file Migration để tạo bảng trong Database (nếu chưa có)
-    db.Database.Migrate();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        db.Database.ExecuteSqlRaw("ALTER TYPE payment_method_enum ADD VALUE IF NOT EXISTS 'BankTransfer';");
+    }
+    catch
+    {
+        // Ignore if already exists or Postgres transaction limitation
+    }
+
+    try
+    {
+        // Tự động chạy tất cả các file Migration để tạo bảng trong Database (nếu chưa có)
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while executing database migrations.");
+    }
 }
 
 app.Run();

@@ -15,6 +15,7 @@ export interface Product {
   supportsNfc: boolean;
   estimatedProductionDays?: number;
   categoryName?: string;
+  productCategoryId?: string;
   primaryImageUrl?: string;
 }
 
@@ -38,9 +39,11 @@ export function useProducts(page = 1, size = 12, type?: string) {
       }
       const { data } = await api.get<PagedResult<Product>>(url);
       
-      // Compute primaryImageUrl for convenience
+      // Compute images and primaryImageUrl for convenience
       data.items = data.items.map(p => {
-        return { ...p, primaryImageUrl: p.sampleImageUrl || p.thumbnailUrl || (p.images && p.images[0]) || 'https://placehold.co/600x400/png' };
+        const parsedImages = p.sampleImageUrl ? p.sampleImageUrl.split(',') : (p.images || []);
+        const primary = parsedImages.length > 0 ? parsedImages[0] : (p.thumbnailUrl || 'https://placehold.co/600x400/png');
+        return { ...p, images: parsedImages, primaryImageUrl: primary };
       });
       
       return data;
@@ -53,7 +56,9 @@ export function useProduct(id: string) {
     queryKey: ['product', id],
     queryFn: async () => {
       const { data } = await api.get<Product>(`/api/products/${id}`);
-      data.primaryImageUrl = data.sampleImageUrl || data.thumbnailUrl || (data.images && data.images[0]) || 'https://placehold.co/600x400/png';
+      const parsedImages = data.sampleImageUrl ? data.sampleImageUrl.split(',') : (data.images || []);
+      data.images = parsedImages;
+      data.primaryImageUrl = parsedImages.length > 0 ? parsedImages[0] : (data.thumbnailUrl || 'https://placehold.co/600x400/png');
       return data;
     },
     enabled: !!id,

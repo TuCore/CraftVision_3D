@@ -4,6 +4,7 @@ import { Star, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ReviewModal } from './ReviewModal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSearchParams } from 'next/navigation';
 
 interface ReviewListProps {
@@ -17,6 +18,7 @@ export function ReviewList({ productId, productName = "Sản phẩm" }: ReviewLi
   const searchParams = useSearchParams();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -87,9 +89,7 @@ export function ReviewList({ productId, productName = "Sản phẩm" }: ReviewLi
                 {currentUserId === review.userId && (
                   <button
                     onClick={() => {
-                      if (confirm('Bạn có chắc muốn xóa đánh giá này?')) {
-                        deleteReview(review.id);
-                      }
+                      setReviewToDelete(review.id);
                     }}
                     className="text-red-500 hover:text-red-700 p-1 shrink-0 ml-4"
                     title="Xóa đánh giá"
@@ -111,6 +111,29 @@ export function ReviewList({ productId, productName = "Sản phẩm" }: ReviewLi
         ))}
       </div>
       )}
+      
+      <AlertDialog open={!!reviewToDelete} onOpenChange={(open) => !open && setReviewToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-md bg-background/95 backdrop-blur-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold font-display text-foreground">Xóa đánh giá</AlertDialogTitle>
+            <AlertDialogDescription className="text-base text-muted-foreground">
+              Bạn có chắc muốn xóa đánh giá này không? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="rounded-xl px-6 font-bold" onClick={() => setReviewToDelete(null)}>Hủy</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (reviewToDelete) deleteReview(reviewToDelete);
+                setReviewToDelete(null);
+              }} 
+              className="rounded-xl px-6 font-bold bg-rose-500 hover:bg-rose-600 text-white"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -7,23 +7,18 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Footer } from "@/components/Footer";
+import { LanguageSwitcher, FlagVN, FlagUK } from "@/components/LanguageSwitcher";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
-  const { t } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
   const wishlistItems = useWishlistStore((state) => state.items);
   const wishlistCount = wishlistItems.length;
   const pathname = usePathname();
   const router = useRouter();
   const [isBumping, setIsBumping] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
-    if (typeof window !== "undefined") {
-      const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
-      if (isDemoMode) return false;
-      return !localStorage.getItem("token");
-    }
-    return true;
-  });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const [bumpingKey, setBumpingKey] = useState<string | null>(null);
   const prevCount = useRef(wishlistCount);
 
@@ -31,19 +26,16 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     if (typeof window !== "undefined") {
       const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
       setIsDemo(isDemoMode);
-
-      if (!isDemoMode) {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          router.replace("/auth");
-        } else {
-          setIsCheckingAuth(false);
-        }
+      
+      const token = localStorage.getItem("token");
+      if (!token && !isDemoMode) {
+        setIsGuest(true);
       } else {
-        setIsCheckingAuth(false);
+        setIsGuest(false);
       }
+      setIsCheckingAuth(false);
     }
-  }, [pathname, router]);
+  }, [pathname]);
 
 
   useEffect(() => {
@@ -66,8 +58,12 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
     { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
-    { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
   ] as const;
+
+  const visibleNav = nav.filter(item => {
+    if (isGuest && item.key === 'chat') return false;
+    return true;
+  });
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -114,7 +110,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
 
       {!(pathname?.startsWith('/admin')) && (
       <header 
-        className={`fixed top-0 left-0 right-0 z-[1000] w-full transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ease-in-out ${
           isHomePage
             ? isScrolled 
               ? 'scrolled bg-white/95 dark:bg-card/95 backdrop-blur-md shadow-md py-3.5 px-4 sm:px-8 border-b border-border/70' 
@@ -149,7 +145,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </Link>
           {!isDemo && (
           <nav className="hidden md:flex items-center gap-1.5">
-            {nav.map((item) => {
+            {visibleNav.map((item) => {
               const Icon = item.icon;
               const isActive = active === item.key;
               const isCart = (item.key as string) === "cart";
@@ -186,7 +182,27 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </nav>
           )}
           <div className="flex items-center gap-2">
-            {!isDemo ? (
+            <LanguageSwitcher isTransparentNav={isTransparentNav} />
+
+            {isGuest ? (
+              <Link
+                href="/auth"
+                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold shadow-sm transition-all hover:scale-105 ${
+                  isTransparentNav ? "bg-white text-black" : "bg-[color:var(--coral)] text-white"
+                }`}
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("nav.login")}</span>
+              </Link>
+            ) : isDemo ? (
+              <Link
+                href="/auth"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:opacity-90"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Thoát Demo</span>
+              </Link>
+            ) : (
               <>
                 <Link
                   href="/cart"
@@ -254,14 +270,6 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   <span className="hidden sm:inline">{t("nav.logout")}</span>
                 </button>
               </>
-            ) : (
-              <Link
-                href="/auth"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:opacity-90"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Thoát Demo</span>
-              </Link>
             )}
 
             {/* Mobile Menu Toggle Button */}
@@ -290,7 +298,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 ? "bg-[#250d1e]/90 border-white/20 text-white"
                 : "bg-white/95 dark:bg-card/95 border-border text-foreground"
             }`}>
-              {nav.map((item) => {
+              {visibleNav.map((item) => {
                 const Icon = item.icon;
                 const isActive = active === item.key;
                 const isCart = (item.key as string) === "cart";
@@ -322,6 +330,92 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   </Link>
                 );
               })}
+
+              {!isGuest && (
+                <>
+                  <Link
+                    href="/settings"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleNavClick("settings");
+                    }}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      active === "settings"
+                        ? isTransparentNav
+                          ? "bg-white/20 text-white font-bold"
+                          : "bg-primary/10 text-primary font-bold"
+                        : isTransparentNav
+                          ? "text-white/80 hover:bg-white/10 hover:text-white"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Cài đặt</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      localStorage.removeItem("token");
+                      localStorage.removeItem("userId");
+                      localStorage.removeItem("email");
+                      localStorage.removeItem("fullName");
+                      localStorage.removeItem("createdAt");
+                      router.replace("/auth");
+                    }}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left transition-all ${
+                      isTransparentNav
+                        ? "text-white/80 hover:bg-white/10 hover:text-white"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>{t("nav.logout")}</span>
+                  </button>
+                </>
+              )}
+
+              {/* Mobile Language Switcher Row */}
+              <div className={`mt-2 pt-2 border-t flex items-center justify-between px-3 py-1.5 ${
+                isTransparentNav ? "border-white/15" : "border-border/60"
+              }`}>
+                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  {t("nav.language")}:
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("vi")}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      language === "vi"
+                        ? isTransparentNav
+                          ? "bg-white/20 text-white shadow-xs"
+                          : "bg-primary text-primary-foreground shadow-xs"
+                        : isTransparentNav
+                          ? "text-white/70 hover:bg-white/10"
+                          : "bg-muted/50 hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <FlagVN className="w-4 h-3 rounded-[2px]" />
+                    <span>VI</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("en")}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      language === "en"
+                        ? isTransparentNav
+                          ? "bg-white/20 text-white shadow-xs"
+                          : "bg-primary text-primary-foreground shadow-xs"
+                        : isTransparentNav
+                          ? "text-white/70 hover:bg-white/10"
+                          : "bg-muted/50 hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <FlagUK className="w-4 h-3 rounded-[2px]" />
+                    <span>EN</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
