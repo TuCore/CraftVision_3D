@@ -1,0 +1,146 @@
+{
+  "1": {
+    "id": 1,
+    "templateId": 1,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán",
+    "videoUrl": "https://youtu.be/I_UqnKdz3XA",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "2": {
+    "id": 2,
+    "templateId": 2,
+    "headerTitle": "Video Hướng Dẫn Chi Tiết",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Tuỳ Chỉnh & Thanh Toán",
+    "captionDesc": "Cách tạo thiệp online và quét mã QR thanh toán nhanh chóng",
+    "detailUrl": "/shop"
+  },
+  "3": {
+    "id": 3,
+    "templateId": 3,
+    "headerTitle": "Video Hướng Dẫn Sử Dụng Thẻ NFC",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Kích Hoạt & Cài Đặt Thẻ Quà Tặng NFC",
+    "captionDesc": "Chạm nhẹ điện thoại vào thẻ để mở thiệp chúc mừng cá nhân hoá 3D",
+    "detailUrl": "/shop"
+  },
+  "4": {
+    "id": 4,
+    "templateId": 4,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - LOVE VIP - Mưa lời yêu thương 3D",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "5": {
+    "id": 5,
+    "templateId": 5,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Món quà tình yêu lấp lánh",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "6": {
+    "id": 6,
+    "templateId": 6,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Thiệp chúc mừng ngày phụ nữ 20/10",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "7": {
+    "id": 7,
+    "templateId": 7,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Happy Birthday - Vũ trụ tình yêu",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "8": {
+    "id": 8,
+    "templateId": 8,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Kỷ niệm ngày cưới 3D đặc biệt",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "9": {
+    "id": 9,
+    "templateId": 9,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Trung thu - Ngàn Đèn Lồng, Một Lời Thương (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "10": {
+    "id": 10,
+    "templateId": 10,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - TRUNG THU - Đèn hoa dưới ánh trăng 🌸 (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "11": {
+    "id": 11,
+    "templateId": 11,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - VIP - Món quà kỷ niệm, tình yêu, sinh nhật (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "12": {
+    "id": 12,
+    "templateId": 12,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - LOVE VIP - Mưa lời yêu thương 3D (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "13": {
+    "id": 13,
+    "templateId": 13,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Món quà tình yêu lấp lánh (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "14": {
+    "id": 14,
+    "templateId": 14,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Thiệp chúc mừng ngày phụ nữ 20/10 (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "15": {
+    "id": 15,
+    "templateId": 15,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Happy Birthday - Vũ trụ tình yêu (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  },
+  "16": {
+    "id": 16,
+    "templateId": 16,
+    "headerTitle": "Video Hướng Dẫn Thanh Toán - Kỷ niệm ngày cưới 3D đặc biệt (Mẫu 2)",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "captionTitle": "Hướng Dẫn Thanh Toán An Toàn",
+    "captionDesc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "detailUrl": "/shop"
+  }
+}

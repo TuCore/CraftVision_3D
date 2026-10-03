@@ -1,38 +1,61 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Flame, Info, PlayCircle, ShoppingCart, Eye, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { ProductDemoModal } from "./ProductDemoModal";
-
-// Mock data for template products
-const TEMPLATE_PRODUCTS = [
-  { id: 1, image: "/dreamy-hero-bg.jpg", title: "Trung thu - Ngàn Đèn Lồng, Một Lời Thương", sold: 116, originalPrice: 69998, price: 49999, discount: 40 },
-  { id: 2, image: "/dreamy-hero-bg.jpg", title: "TRUNG THU - Đèn hoa dưới ánh trăng 🌸", sold: 227, originalPrice: 69998, price: 49999, discount: 40 },
-  { id: 3, image: "/dreamy-hero-bg.jpg", title: "VIP - Món quà kỷ niệm, tình yêu, sinh nhật", sold: 491, originalPrice: 69998, price: 49999, discount: 40 },
-  { id: 4, image: "/dreamy-hero-bg.jpg", title: "LOVE VIP - Mưa lời yêu thương 3D", sold: 144, originalPrice: 66665, price: 39999, discount: 40 },
-  { id: 5, image: "/dreamy-hero-bg.jpg", title: "Món quà tình yêu lấp lánh", sold: 89, originalPrice: 49999, price: 29999, discount: 40 },
-  { id: 6, image: "/dreamy-hero-bg.jpg", title: "Thiệp chúc mừng ngày phụ nữ 20/10", sold: 342, originalPrice: 55000, price: 33000, discount: 40 },
-  { id: 7, image: "/dreamy-hero-bg.jpg", title: "Happy Birthday - Vũ trụ tình yêu", sold: 56, originalPrice: 80000, price: 48000, discount: 40 },
-  { id: 8, image: "/dreamy-hero-bg.jpg", title: "Kỷ niệm ngày cưới 3D đặc biệt", sold: 12, originalPrice: 100000, price: 60000, discount: 40 },
-  { id: 9, image: "/dreamy-hero-bg.jpg", title: "Trung thu - Ngàn Đèn Lồng, Một Lời Thương (Mẫu 2)", sold: 116, originalPrice: 69998, price: 49999, discount: 40 },
-  { id: 10, image: "/dreamy-hero-bg.jpg", title: "TRUNG THU - Đèn hoa dưới ánh trăng 🌸 (Mẫu 2)", sold: 227, originalPrice: 69998, price: 49999, discount: 40 },
-  { id: 11, image: "/dreamy-hero-bg.jpg", title: "VIP - Món quà kỷ niệm, tình yêu, sinh nhật (Mẫu 2)", sold: 491, originalPrice: 69998, price: 49999, discount: 40 },
-  { id: 12, image: "/dreamy-hero-bg.jpg", title: "LOVE VIP - Mưa lời yêu thương 3D (Mẫu 2)", sold: 144, originalPrice: 66665, price: 39999, discount: 40 },
-  { id: 13, image: "/dreamy-hero-bg.jpg", title: "Món quà tình yêu lấp lánh (Mẫu 2)", sold: 89, originalPrice: 49999, price: 29999, discount: 40 },
-  { id: 14, image: "/dreamy-hero-bg.jpg", title: "Thiệp chúc mừng ngày phụ nữ 20/10 (Mẫu 2)", sold: 342, originalPrice: 55000, price: 33000, discount: 40 },
-  { id: 15, image: "/dreamy-hero-bg.jpg", title: "Happy Birthday - Vũ trụ tình yêu (Mẫu 2)", sold: 56, originalPrice: 80000, price: 48000, discount: 40 },
-  { id: 16, image: "/dreamy-hero-bg.jpg", title: "Kỷ niệm ngày cưới 3D đặc biệt (Mẫu 2)", sold: 12, originalPrice: 100000, price: 60000, discount: 40 },
-];
+import { TutorialVideoModal } from "./TutorialVideoModal";
+import { INITIAL_TEMPLATE_PRODUCTS, TemplateProduct, TemplateVideo, DEFAULT_TUTORIAL_VIDEO } from "@/data/templateProducts";
+import { useTranslation } from "@/components/LanguageProvider";
 
 export function TemplateProductsSection() {
+  const { t } = useTranslation();
+  const [products] = useState<TemplateProduct[]>(INITIAL_TEMPLATE_PRODUCTS);
+  const [videoMap, setVideoMap] = useState<Record<number, TemplateVideo>>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState<typeof TEMPLATE_PRODUCTS[0] | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<TemplateProduct | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Tutorial Video Modal State
+  const [activeVideo, setActiveVideo] = useState<TemplateVideo | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  // Fetch updated videos from API
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const res = await fetch("/api/template-videos");
+        if (res.ok) {
+          const data = await res.json();
+          setVideoMap(data);
+        }
+      } catch (e) {
+        console.error("Lỗi khi tải video hướng dẫn:", e);
+      }
+    };
+    fetchVideos();
+  }, []);
+
+  const handleOpenVideo = (product: TemplateProduct) => {
+    // If customized in videoMap, use it; otherwise use default video
+    const video = videoMap[product.id] || product.video || {
+      id: product.id,
+      templateId: product.id,
+      headerTitle: `${DEFAULT_TUTORIAL_VIDEO.headerTitle} - ${product.title}`,
+      videoUrl: DEFAULT_TUTORIAL_VIDEO.videoUrl,
+      captionTitle: DEFAULT_TUTORIAL_VIDEO.captionTitle,
+      captionDesc: DEFAULT_TUTORIAL_VIDEO.captionDesc,
+      detailUrl: DEFAULT_TUTORIAL_VIDEO.detailUrl,
+    };
+    setActiveVideo(video);
+    setSelectedProduct(product);
+    setIsVideoModalOpen(true);
+  };
+
   const itemsPerPage = 8;
-  const totalPages = Math.ceil(TEMPLATE_PRODUCTS.length / itemsPerPage);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
   
-  const displayedProducts = TEMPLATE_PRODUCTS.slice(
+  const displayedProducts = products.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -56,7 +79,7 @@ export function TemplateProductsSection() {
           <div className="relative inline-flex items-center gap-3 sm:gap-4 z-10">
             <Sparkles className="h-7 w-7 sm:h-10 sm:w-10 text-[#4a0b19]" strokeWidth={2.5} />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#4a0b19] tracking-tight text-center">
-              Các mẫu thiết kế đang chờ bạn khám phá
+              {t("template.heading")}
             </h2>
           </div>
         </div>
@@ -89,7 +112,7 @@ export function TemplateProductsSection() {
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs font-medium text-orange-500">
                       <Flame className="h-3.5 w-3.5 fill-orange-500" />
-                      Đã bán: {product.sold}
+                      {t("template.sold")} {product.sold}
                     </span>
                     <span className="text-[11px] sm:text-xs text-muted-foreground line-through decoration-muted-foreground/50">
                       {formatPrice(product.originalPrice)}
@@ -108,10 +131,10 @@ export function TemplateProductsSection() {
                 {/* Buttons */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <button
-                    onClick={() => toast.success("Đã thêm vào giỏ hàng")}
+                    onClick={() => toast.success(t("template.added_to_cart"))}
                     className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"
                   >
-                    <ShoppingCart className="h-4 w-4" /> Mua ngay
+                    <ShoppingCart className="h-4 w-4" /> {t("template.buy_now")}
                   </button>
                   <button
                     onClick={() => {
@@ -120,17 +143,23 @@ export function TemplateProductsSection() {
                     }}
                     className="flex items-center justify-center gap-1.5 bg-transparent hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"
                   >
-                    <Eye className="h-4 w-4" /> Xem demo
+                    <Eye className="h-4 w-4" /> {t("template.view_demo")}
                   </button>
                 </div>
 
                 {/* Links */}
                 <div className="flex items-center justify-between text-[11px] sm:text-xs font-medium px-1">
-                  <button className="flex items-center gap-1.5 text-blue-500 hover:underline hover:text-blue-600 transition-all">
-                    <Info className="h-3.5 w-3.5" /> Hướng dẫn
+                  <button 
+                    onClick={() => handleOpenVideo(product)}
+                    className="flex items-center gap-1.5 text-blue-500 hover:underline hover:text-blue-600 transition-all cursor-pointer"
+                  >
+                    <Info className="h-3.5 w-3.5" /> {t("template.guide")}
                   </button>
-                  <button className="flex items-center gap-1.5 text-rose-500 hover:underline hover:text-rose-600 transition-all">
-                    <PlayCircle className="h-3.5 w-3.5" /> Video hướng dẫn
+                  <button 
+                    onClick={() => handleOpenVideo(product)}
+                    className="flex items-center gap-1.5 text-rose-500 hover:underline hover:text-rose-600 transition-all cursor-pointer font-semibold"
+                  >
+                    <PlayCircle className="h-3.5 w-3.5" /> {t("template.tutorial_video")}
                   </button>
                 </div>
               </div>
@@ -153,7 +182,7 @@ export function TemplateProductsSection() {
               <ChevronLeft className="h-5 w-5" />
             </button>
             <span className="text-sm font-medium text-foreground min-w-[4rem] text-center">
-              Trang {currentPage}
+              {t("template.page")} {currentPage}
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -170,10 +199,19 @@ export function TemplateProductsSection() {
         )}
       </div>
 
+      {/* Product Demo Modal */}
       <ProductDemoModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         product={selectedProduct}
+      />
+
+      {/* Tutorial Video Modal (Matching Hình 1) */}
+      <TutorialVideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        video={activeVideo}
+        productTitle={selectedProduct?.title}
       />
     </section>
   );
