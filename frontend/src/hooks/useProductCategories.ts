@@ -10,13 +10,16 @@ export interface ProductCategory {
   displayOrder: number;
 }
 
-export function useProductCategories() {
+export function useProductCategories(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['productCategories'],
     queryFn: async () => {
       const { data } = await api.get<ProductCategory[]>('/api/product-categories');
       return data;
     },
+    enabled: options?.enabled !== undefined ? options.enabled : true,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 }
 
