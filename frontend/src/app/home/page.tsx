@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { Sparkles, MessageCircle, ArrowRight, ChevronDown } from "lucide-react";
+import { Sparkles, MessageCircle, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Studio3DSection } from "@/components/studio/Studio3DSection";
 import { TemplateProductsSection } from "@/components/home/TemplateProductsSection";
@@ -33,8 +33,6 @@ export default function HomePage() {
       btn1Text: t("home.slide1.btn1"),
       btn1Link: "/chat",
       btn1Icon: MessageCircle,
-      btn2Text: t("home.slide1.btn2"),
-      btn2Link: "#explore-section"
     },
     { 
       id: 1, 
@@ -46,8 +44,6 @@ export default function HomePage() {
       btn1Text: t("home.slide2.btn1"),
       btn1Link: "#template-products",
       btn1Icon: Sparkles,
-      btn2Text: t("home.slide2.btn2"),
-      btn2Link: "/studio"
     },
     { 
       id: 2, 
@@ -59,8 +55,6 @@ export default function HomePage() {
       btn1Text: t("home.slide3.btn1"),
       btn1Link: "/shop",
       btn1Icon: Sparkles,
-      btn2Text: t("home.slide3.btn2"),
-      btn2Link: "#explore-section"
     },
   ];
 
@@ -168,26 +162,6 @@ export default function HomePage() {
                 })()}
                 {slides[activeSlide].btn1Text}
               </Link>
-              
-              {slides[activeSlide].btn2Link.startsWith('#') ? (
-                <a
-                  href={slides[activeSlide].btn2Link}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.querySelector(slides[activeSlide].btn2Link)?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-white font-medium text-sm sm:text-base bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 hover:border-white/40 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                >
-                  {slides[activeSlide].btn2Text} <ArrowRight className="h-4 w-4" />
-                </a>
-              ) : (
-                <Link
-                  href={slides[activeSlide].btn2Link}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-white font-medium text-sm sm:text-base bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 hover:border-white/40 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                >
-                  {slides[activeSlide].btn2Text} <ArrowRight className="h-4 w-4" />
-                </Link>
-              )}
             </div>
           </div>
 

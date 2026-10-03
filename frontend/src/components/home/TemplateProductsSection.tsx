@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Flame, Info, PlayCircle, ShoppingCart, Eye, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { ProductDemoModal } from "./ProductDemoModal";
@@ -9,6 +10,7 @@ import { INITIAL_TEMPLATE_PRODUCTS, TemplateProduct, TemplateVideo, DEFAULT_TUTO
 import { useTranslation } from "@/components/LanguageProvider";
 
 export function TemplateProductsSection() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [products] = useState<TemplateProduct[]>(INITIAL_TEMPLATE_PRODUCTS);
   const [videoMap, setVideoMap] = useState<Record<number, TemplateVideo>>({});
@@ -131,8 +133,8 @@ export function TemplateProductsSection() {
                 {/* Buttons */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <button
-                    onClick={() => toast.success(t("template.added_to_cart"))}
-                    className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"
+                    onClick={() => router.push(`/shop/template-${product.id}/greeting`)}
+                    className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                   >
                     <ShoppingCart className="h-4 w-4" /> {t("template.buy_now")}
                   </button>

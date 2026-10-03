@@ -123,7 +123,7 @@ export default function PreOrderCheckoutPage({ params }: { params: Promise<{ pro
 
       await api.post("/api/orders", payload);
       toast.success("Đặt hàng Pre-order thành công!");
-      router.push("/profile");
+      router.push("/settings?tab=orders");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt hàng.");
     } finally {

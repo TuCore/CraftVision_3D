@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { X, Eye, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ interface ProductDemoModalProps {
 }
 
 export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalProps) {
+  const router = useRouter();
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -149,8 +151,11 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
                 <Eye className="w-4 h-4" /> {t("demo.live_view")}
               </button>
               <button 
-                onClick={() => toast.success(t("template.added_to_cart"))}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors shadow-sm text-sm"
+                onClick={() => {
+                  onClose();
+                  router.push(`/shop/template-${product.id}/greeting`);
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors shadow-sm text-sm cursor-pointer"
               >
                 <ShoppingCart className="w-4 h-4" /> {t("template.buy_now")}
               </button>
