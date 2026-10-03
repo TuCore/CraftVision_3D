@@ -28,7 +28,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
     productCategoryId: ''
   });
 
-  const { data: categories, isLoading: isLoadingCategories } = useProductCategories();
+  const { data: categories, isLoading: isLoadingCategories } = useProductCategories({ enabled: isOpen });
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
@@ -57,6 +57,23 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
       });
     }
   }, [product, isOpen]);
+
+  // Fallback: when categories finish loading, resolve productCategoryId from categoryName
+  // This handles the case where the list API doesn't return productCategoryId
+  useEffect(() => {
+    if (product && isOpen && categories && categories.length > 0) {
+      setFormData(prev => {
+        if (!prev.productCategoryId) {
+          // Try matching by productCategoryId first, then by categoryName
+          const matchById = categories.find((cat: any) => cat.id === product.productCategoryId);
+          const matchByName = categories.find((cat: any) => cat.name === product.categoryName);
+          const resolved = matchById?.id || matchByName?.id || '';
+          return resolved ? { ...prev, productCategoryId: resolved } : prev;
+        }
+        return prev;
+      });
+    }
+  }, [categories, product, isOpen]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -212,14 +229,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
                 {isLoadingCategories ? (
                   <option value="" disabled>Đang tải danh mục...</option>
                 ) : (
-                  categories
-                    ?.filter((cat: any) => {
-                      const n = cat.name.toLowerCase();
-                      return n.includes('móc khóa') || n.includes('móc khoá') || 
-                             n.includes('vòng tay') || n.includes('dây chuyền') || 
-                             n.includes('hoa') || n.includes('lego') || n.includes('gấu bông');
-                    })
-                    .map((cat: any) => (
+                  categories?.map((cat: any) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
