@@ -58,11 +58,10 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
     { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
-    { to: "/profile", label: t("nav.profile"), icon: User, key: "profile" },
   ] as const;
 
   const visibleNav = nav.filter(item => {
-    if (isGuest && (item.key === 'chat' || item.key === 'profile')) return false;
+    if (isGuest && item.key === 'chat') return false;
     return true;
   });
 
@@ -331,6 +330,49 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   </Link>
                 );
               })}
+
+              {!isGuest && (
+                <>
+                  <Link
+                    href="/settings"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleNavClick("settings");
+                    }}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      active === "settings"
+                        ? isTransparentNav
+                          ? "bg-white/20 text-white font-bold"
+                          : "bg-primary/10 text-primary font-bold"
+                        : isTransparentNav
+                          ? "text-white/80 hover:bg-white/10 hover:text-white"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Cài đặt</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      localStorage.removeItem("token");
+                      localStorage.removeItem("userId");
+                      localStorage.removeItem("email");
+                      localStorage.removeItem("fullName");
+                      localStorage.removeItem("createdAt");
+                      router.replace("/auth");
+                    }}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left transition-all ${
+                      isTransparentNav
+                        ? "text-white/80 hover:bg-white/10 hover:text-white"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>{t("nav.logout")}</span>
+                  </button>
+                </>
+              )}
 
               {/* Mobile Language Switcher Row */}
               <div className={`mt-2 pt-2 border-t flex items-center justify-between px-3 py-1.5 ${
