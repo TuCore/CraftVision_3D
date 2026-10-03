@@ -250,9 +250,12 @@ public class OrderService : IOrderService
             PaymentStatus = order.PaymentStatus.ToString(),
             OrderStatus = order.OrderStatus.ToString(),
             ReceiverName = order.ReceiverName,
+            ReceiverPhone = order.ReceiverPhone,
+            ReceiverAddress = order.ReceiverAddress,
             ShippingFee = order.ShippingFee,
             TotalAmount = order.TotalAmount,
             CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt,
             Items = order.OrderItems.Select(oi => new OrderItemDto
             {
                 Id = oi.Id,
@@ -290,8 +293,12 @@ public class OrderService : IOrderService
                 PaymentStatus = order.PaymentStatus.ToString(),
                 OrderStatus = order.OrderStatus.ToString(),
                 ReceiverName = order.ReceiverName,
+                ReceiverPhone = order.ReceiverPhone,
+                ReceiverAddress = order.ReceiverAddress,
+                ShippingFee = order.ShippingFee,
                 TotalAmount = order.TotalAmount,
                 CreatedAt = order.CreatedAt,
+                UpdatedAt = order.UpdatedAt,
                 Items = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,
@@ -301,7 +308,17 @@ public class OrderService : IOrderService
                     Quantity = oi.Quantity,
                     UnitPrice = oi.UnitPrice,
                     SubTotal = oi.SubTotal,
-                    ProductImageUrl = oi.Product?.SampleImageUrl
+                    ProductImageUrl = oi.Product?.SampleImageUrl,
+                    Gift = oi.Gift != null ? new GiftSummaryDto
+                    {
+                        Id = oi.Gift.Id,
+                        GiftTitle = oi.Gift.GiftTitle,
+                        SenderName = oi.Gift.SenderName,
+                        ReceiverName = oi.Gift.ReceiverName,
+                        NfcTagCode = oi.Gift.NfcTag?.TagCode,
+                        SecretKey = oi.Gift.NfcTag?.SecretKey,
+                        Status = oi.Gift.NfcTag?.Status.ToString() ?? ""
+                    } : null
                 }).ToList()
             }).ToList(),
             TotalItems = total,
