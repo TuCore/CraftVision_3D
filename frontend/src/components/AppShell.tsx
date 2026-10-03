@@ -7,9 +7,10 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Footer } from "@/components/Footer";
+import { LanguageSwitcher, FlagVN, FlagUK } from "@/components/LanguageSwitcher";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
-  const { t } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
   const wishlistItems = useWishlistStore((state) => state.items);
   const wishlistCount = wishlistItems.length;
   const pathname = usePathname();
@@ -182,6 +183,8 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </nav>
           )}
           <div className="flex items-center gap-2">
+            <LanguageSwitcher isTransparentNav={isTransparentNav} />
+
             {isGuest ? (
               <Link
                 href="/auth"
@@ -190,7 +193,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 }`}
               >
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Đăng nhập</span>
+                <span className="hidden sm:inline">{t("nav.login")}</span>
               </Link>
             ) : isDemo ? (
               <Link
@@ -328,6 +331,49 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   </Link>
                 );
               })}
+
+              {/* Mobile Language Switcher Row */}
+              <div className={`mt-2 pt-2 border-t flex items-center justify-between px-3 py-1.5 ${
+                isTransparentNav ? "border-white/15" : "border-border/60"
+              }`}>
+                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  {t("nav.language")}:
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("vi")}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      language === "vi"
+                        ? isTransparentNav
+                          ? "bg-white/20 text-white shadow-xs"
+                          : "bg-primary text-primary-foreground shadow-xs"
+                        : isTransparentNav
+                          ? "text-white/70 hover:bg-white/10"
+                          : "bg-muted/50 hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <FlagVN className="w-4 h-3 rounded-[2px]" />
+                    <span>VI</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("en")}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      language === "en"
+                        ? isTransparentNav
+                          ? "bg-white/20 text-white shadow-xs"
+                          : "bg-primary text-primary-foreground shadow-xs"
+                        : isTransparentNav
+                          ? "text-white/70 hover:bg-white/10"
+                          : "bg-muted/50 hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <FlagUK className="w-4 h-3 rounded-[2px]" />
+                    <span>EN</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
