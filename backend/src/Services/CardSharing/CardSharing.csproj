@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
+    <EmbeddedResource Include="../../../../databases/CardSharing/001_initial.sql" LogicalName="CardSharing.schema.sql" />
+    <EmbeddedResource Include="../../../../api-specs/card-fields.json" LogicalName="CardSharing.fields.json" />
+  </ItemGroup>
+</Project>

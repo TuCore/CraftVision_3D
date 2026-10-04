@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import { X, Eye, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/components/LanguageProvider";
+import Link from "next/link";
+import { legacyCardSlug, legacyCardPath } from "@/features/cards/legacy";
 
 interface Product {
   id: number;
@@ -87,7 +89,7 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
               {/* A separate viewport keeps the scene and letter inside the phone. */}
               <iframe
                 key={product.id}
-                src="/love-gift?preview=1"
+                src={`${legacyCardPath(product.id)}?preview=1`}
                 title={t("demo.preview_title")}
                 className="absolute inset-0 h-full w-full border-0 bg-black"
               />
@@ -133,7 +135,7 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
               <button 
                 onClick={() => {
                   onClose();
-                  router.push(`/love-gift`);
+                  router.push(legacyCardPath(product.id));
                 }}
                 className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-colors text-sm cursor-pointer"
               >
@@ -155,6 +157,8 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
                 <ShoppingCart className="w-4 h-4" /> {t("template.buy_now")}
               </button>
             </div>
+
+            <Link href={`/cards/${legacyCardSlug(product.id)}/edit`} onClick={onClose} className="text-center text-sm font-semibold text-rose-600 underline underline-offset-4">Cá nhân hóa thiệp 3D →</Link>
 
             {/* QR Code Section */}
             <div className="mt-4 flex flex-col items-center justify-center pt-6 relative">

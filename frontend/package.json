@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:cards": "tsc --ignoreConfig --target ES2020 --module commonjs --lib ES2020,DOM --skipLibCheck --outDir node_modules/.card-tests src/features/cards/catalog.ts src/features/cards/storage.ts && node --test tests/card-schema.test.cjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

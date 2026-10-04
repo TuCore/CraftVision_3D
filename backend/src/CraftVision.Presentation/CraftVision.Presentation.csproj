@@ -22,6 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../Gateway/CardSharingController.cs" Link="Gateway/CardSharingController.cs" />
+    <ProjectReference Include="../Services/CardSharing/CardSharing.csproj" />
     <ProjectReference Include="..\CraftVision.Application\CraftVision.Application.csproj" />
     <ProjectReference Include="..\CraftVision.Infrastructure\CraftVision.Infrastructure.csproj" />
   </ItemGroup>

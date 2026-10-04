@@ -1,4 +1,5 @@
 using System.Text;
+using CraftVision.CardSharing;
 using CraftVision.Presentation.HostedServices;
 using CraftVision.Presentation.Middlewares;
 using CraftVision.Application;
@@ -169,6 +170,8 @@ builder.Services.AddScoped<IUserAddressService, UserAddressService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddApplication();
+builder.Services.AddCardSharing(builder.Configuration);
+builder.Services.AddScoped<CraftVision.Gateway.CardErrorFilter>();
 builder.Services.AddInfrastructure(builder.Configuration);
 // AI & Knowledge Base DI
 builder.Services.AddHttpClient<IEmbeddingProvider, GeminiEmbeddingProvider>();
@@ -186,6 +189,12 @@ builder.Services.AddSignalR();
 builder.Services.AddHostedService<MemoryMonitorService>();
 
 var app = builder.Build();
+
+using (var cardScope = app.Services.CreateScope())
+{
+    var cards = cardScope.ServiceProvider.GetService<CardDatabase>();
+    if (cards is not null) await cards.InitializeAsync();
+}
 
 app.UseMiddleware<ApiProfilerMiddleware>();
 

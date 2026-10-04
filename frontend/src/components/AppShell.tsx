@@ -63,7 +63,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const nav = [
     { to: "/home", label: t("nav.home"), icon: Home, key: "home" },
     { to: "/shop", label: t("nav.shop"), icon: Store, key: "shop" },
-    { to: "/love-gift", label: t("nav.love_gift"), icon: Heart, key: "love-gift" },
+    { to: "/cards", label: t("nav.love_gift"), icon: Heart, key: "love-gift" },
     { to: "/manifest", label: "Manifest", icon: Sparkles, key: "manifest" },
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
   ] as const;

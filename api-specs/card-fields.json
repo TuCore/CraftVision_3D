@@ -1,0 +1,6309 @@
+{
+  "rose-love": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu hoa",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "ribbon",
+      "label": "Chữ trên nơ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 12
+    }
+  ],
+  "heart-key": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "confession",
+      "label": "Lời tỏ tình",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "engraving",
+      "label": "Chữ khắc trên khóa",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "keyLabel",
+      "label": "Chữ trên chìa",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "memory-train": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "memories",
+      "label": "Các ga kỷ niệm (ít nhất 2)",
+      "type": "list",
+      "required": true,
+      "max": 6,
+      "columns": [
+        "Tên ga",
+        "Kỷ niệm",
+        "Ngày",
+        "Địa điểm"
+      ]
+    },
+    {
+      "key": "trainName",
+      "label": "Tên chuyến tàu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 6
+    }
+  ],
+  "secret-ring": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "proposal",
+      "label": "Lời cầu hôn",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "couple",
+      "label": "Tên hai người",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "engraving",
+      "label": "Chữ khắc trên nhẫn",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "metal",
+      "label": "Kim loại",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Vàng",
+        "Bạc",
+        "Vàng hồng"
+      ]
+    },
+    {
+      "key": "gem",
+      "label": "Màu đá",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trong suốt",
+        "Hồng",
+        "Xanh"
+      ]
+    }
+  ],
+  "distant-islands": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "origin",
+      "label": "Nơi người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "destination",
+      "label": "Nơi người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "reunion",
+      "label": "Ngày hẹn gặp",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "distance",
+      "label": "Khoảng cách hoặc lời nhắn",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 2
+    }
+  ],
+  "our-music": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "couple",
+      "label": "Tên hai người",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "weddingDate",
+      "label": "Ngày cưới",
+      "type": "date",
+      "required": true
+    },
+    {
+      "key": "years",
+      "label": "Số năm kỷ niệm",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "song",
+      "label": "Tên bản nhạc kỷ niệm",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "engraving",
+      "label": "Chữ khắc hộp nhạc",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 6
+    }
+  ],
+  "birthday-wish": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "age",
+      "label": "Tuổi muốn hiển thị (bỏ trống để ẩn)",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "cakeText",
+      "label": "Chữ trên bánh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "flavor",
+      "label": "Kiểu bánh",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Dâu",
+        "Chocolate",
+        "Vani"
+      ]
+    },
+    {
+      "key": "wish",
+      "label": "Lời dẫn điều ước",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "birthday-balloon": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "age",
+      "label": "Tuổi muốn hiển thị (bỏ trống để ẩn)",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "flight",
+      "label": "Tên chuyến bay",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "wishes",
+      "label": "Những mong ước",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu khinh khí cầu",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "birthday-space": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "age",
+      "label": "Tuổi muốn hiển thị (bỏ trống để ẩn)",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "planet",
+      "label": "Tên hành tinh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "astronaut",
+      "label": "Biệt danh phi hành gia",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "mission",
+      "label": "Thông điệp nhiệm vụ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu tên lửa",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "birthday-bear": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "bearName",
+      "label": "Tên gấu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu gấu",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "layers",
+      "label": "Lời nhắn cho từng lớp quà",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    }
+  ],
+  "birthday-stage": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "age",
+      "label": "Tuổi muốn hiển thị (bỏ trống để ẩn)",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "party",
+      "label": "Tên bữa tiệc",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "wishes",
+      "label": "Lời chúc từ bạn bè",
+      "type": "list",
+      "required": false,
+      "max": 8,
+      "columns": [
+        "Người chúc",
+        "Lời chúc"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu bóng bay",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "birthday-garden": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "age",
+      "label": "Tuổi muốn hiển thị (bỏ trống để ẩn)",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "gardenName",
+      "label": "Tên khu vườn",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "flower",
+      "label": "Loại hoa",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Hoa hồng",
+        "Tulip",
+        "Hoa cúc"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu hoa",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "wishes",
+      "label": "Lời chúc trên hoa",
+      "type": "list",
+      "required": false,
+      "max": 5,
+      "columns": [
+        "Nội dung"
+      ]
+    }
+  ],
+  "tet-apricot": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "family",
+      "label": "Tên gia đình / công ty",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "wishes",
+      "label": "Lời chúc lộc xuân",
+      "type": "list",
+      "required": false,
+      "max": 5,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "potText",
+      "label": "Chữ trên chậu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu lì xì",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "tet-peach": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "tags",
+      "label": "Thẻ chúc",
+      "type": "list",
+      "required": false,
+      "max": 6,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "coupletLeft",
+      "label": "Câu đối — vế trái",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "coupletRight",
+      "label": "Câu đối — vế phải",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu đào",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "family",
+      "label": "Tên gia đình",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "tet-reunion": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "family",
+      "label": "Tên gia đình",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "members",
+      "label": "Thành viên",
+      "type": "list",
+      "required": false,
+      "max": 8,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "reunionWish",
+      "label": "Lời chúc sum vầy",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "food",
+      "label": "Món chính",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Bánh chưng",
+        "Bánh tét",
+        "Mâm trái cây"
+      ]
+    }
+  ],
+  "tet-lion": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "organization",
+      "label": "Tên cá nhân / tổ chức",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "scrollText",
+      "label": "Lời trên cuộn chúc",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu lân",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "logo",
+      "label": "Logo",
+      "type": "image",
+      "required": false
+    }
+  ],
+  "new-year-clock": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "wishes",
+      "label": "Mong ước năm mới",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "midnight",
+      "label": "Câu chúc giao thừa",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu pháo hoa",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "new-voyage": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "journey",
+      "label": "Chủ đề hành trình",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "boatName",
+      "label": "Tên thuyền",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "destination",
+      "label": "Bến đến",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "goals",
+      "label": "Mục tiêu",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "sailText",
+      "label": "Chữ trên buồm",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "mothers-day": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "address",
+      "label": "Cách gọi mẹ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 2
+    },
+    {
+      "key": "gratitude",
+      "label": "Điều biết ơn",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu hoa",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "cupText",
+      "label": "Chữ trên tách",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "fathers-day": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "address",
+      "label": "Cách gọi cha",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "award",
+      "label": "Danh hiệu trên huy hiệu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "admiration",
+      "label": "Điều con ngưỡng mộ",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "vu-lan": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "honoree",
+      "label": "Người được tri ân",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu hoa",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "memory",
+      "label": "Một kỷ niệm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "tone",
+      "label": "Sắc thái",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Tri ân",
+        "Tưởng nhớ"
+      ]
+    }
+  ],
+  "family-home": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "family",
+      "label": "Tên gia đình",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "members",
+      "label": "Thành viên",
+      "type": "list",
+      "required": false,
+      "max": 8,
+      "columns": [
+        "Tên",
+        "Cách gọi"
+      ]
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 6
+    },
+    {
+      "key": "motto",
+      "label": "Thông điệp mái ấm",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu nhà",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "family-tree": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "honorific",
+      "label": "Danh xưng",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "age",
+      "label": "Tuổi mừng thọ",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "members",
+      "label": "Các nhánh con cháu",
+      "type": "list",
+      "required": false,
+      "max": 12,
+      "columns": [
+        "Tên / nhóm",
+        "Thế hệ"
+      ]
+    }
+  ],
+  "welcome-baby": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "baby",
+      "label": "Tên / biệt danh em bé",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "parents",
+      "label": "Tên cha mẹ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "weight",
+      "label": "Cân nặng lúc sinh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "height",
+      "label": "Chiều dài lúc sinh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu nôi",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "womens-day": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "quality",
+      "label": "Phẩm chất muốn tôn vinh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "wishes",
+      "label": "Lời chúc ngắn",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu tulip",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "vietnamese-women": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "ribbon",
+      "label": "Câu trên dải lụa",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu sen",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "pattern",
+      "label": "Họa tiết nón",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trơn",
+        "Hoa",
+        "Ngôi sao"
+      ]
+    },
+    {
+      "key": "team",
+      "label": "Tập thể gửi tặng",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "teachers-chalk": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "teacher",
+      "label": "Cách gọi thầy / cô",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "subject",
+      "label": "Môn học",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "className",
+      "label": "Lớp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "school",
+      "label": "Trường",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "schoolYear",
+      "label": "Niên khóa",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "boardText",
+      "label": "Câu trên bảng",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "team",
+      "label": "Tập thể gửi",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "teachers-seed": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "teacher",
+      "label": "Cách gọi người được tri ân",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "lessons",
+      "label": "Bài học đáng nhớ",
+      "type": "list",
+      "required": false,
+      "max": 6,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "school",
+      "label": "Trường / lớp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "quote",
+      "label": "Câu trích dẫn",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "graduation": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "school",
+      "label": "Trường / chương trình",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "major",
+      "label": "Ngành học",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "degree",
+      "label": "Bậc học",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "schoolYear",
+      "label": "Niên khóa",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "goal",
+      "label": "Mục tiêu tiếp theo",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu lễ phục",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "achievement": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "achievement",
+      "label": "Thành tích",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "organization",
+      "label": "Tổ chức trao",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "milestones",
+      "label": "Dấu mốc",
+      "type": "list",
+      "required": false,
+      "max": 4,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "goal",
+      "label": "Mục tiêu tiếp theo",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "cupText",
+      "label": "Chữ trên cúp",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "candy-world": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "nickname",
+      "label": "Biệt danh bé",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu kẹo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "castle",
+      "label": "Tên lâu đài",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "wishes",
+      "label": "Lời chúc vui",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    }
+  ],
+  "dinosaur-friend": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "dinosaur",
+      "label": "Tên bạn khủng long",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu khủng long",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "symbol",
+      "label": "Biểu tượng trên trứng",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "hello",
+      "label": "Câu chào",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "star-lantern": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu đèn",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "handleText",
+      "label": "Tên trên cán đèn",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "wishes",
+      "label": "Lời chúc trên sao",
+      "type": "list",
+      "required": false,
+      "max": 5,
+      "columns": [
+        "Nội dung"
+      ]
+    }
+  ],
+  "moon-rabbit": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "rabbit",
+      "label": "Tên thỏ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "boxText",
+      "label": "Chữ trên hộp bánh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu hộp",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "lantern-street": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "street",
+      "label": "Tên phố / chủ đề",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "lanterns",
+      "label": "Lời trên đèn",
+      "type": "list",
+      "required": false,
+      "max": 6,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu đèn",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    }
+  ],
+  "back-to-school": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "schoolYear",
+      "label": "Năm học",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "className",
+      "label": "Lớp / chương trình",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "school",
+      "label": "Trường",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "nickname",
+      "label": "Biệt danh học sinh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "goals",
+      "label": "Mục tiêu",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu cặp",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "christmas-tree": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu trang trí",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "ornaments",
+      "label": "Chữ trên quả châu",
+      "type": "list",
+      "required": false,
+      "max": 6,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "starText",
+      "label": "Chữ trên ngôi sao",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "snow-globe": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "engraving",
+      "label": "Chữ trên bệ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu nhà",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "snowman",
+      "label": "Người tuyết",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Mũ đỏ",
+        "Mũ xanh"
+      ]
+    },
+    {
+      "key": "snow",
+      "label": "Lượng tuyết",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Nhẹ",
+        "Vừa"
+      ]
+    }
+  ],
+  "reindeer-mail": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "nickname",
+      "label": "Tên trên kiện hàng",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "reindeer",
+      "label": "Tên tuần lộc",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu xe",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "tagText",
+      "label": "Chữ trên nhãn quà",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "christmas-fireplace": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "stockings",
+      "label": "Tên trên tất",
+      "type": "list",
+      "required": false,
+      "max": 6,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "sign",
+      "label": "Câu trên bảng gỗ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu tất",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "halloween-pumpkin": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "face",
+      "label": "Nét mặt",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Vui vẻ",
+        "Tinh nghịch",
+        "Ngạc nhiên"
+      ]
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu mũ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "surprise",
+      "label": "Lời bất ngờ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "candies",
+      "label": "Lời trên kẹo",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    }
+  ],
+  "friendly-ghost": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "houseName",
+      "label": "Tên nhà",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "ghost",
+      "label": "Tên bóng ma",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "boo",
+      "label": "Câu trên bảng",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu nhà",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "surpriseMode",
+      "label": "Mức bất ngờ",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Nhẹ",
+        "Tắt"
+      ]
+    }
+  ],
+  "national-day": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "organization",
+      "label": "Tên đơn vị / gia đình",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "shortWish",
+      "label": "Lời chúc ngắn",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "logo",
+      "label": "Logo",
+      "type": "image",
+      "required": false
+    }
+  ],
+  "peace-dove": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "peace",
+      "label": "Thông điệp hòa bình",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "team",
+      "label": "Tên tập thể",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "ribbon",
+      "label": "Chữ trên dải băng",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "labor-day": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "team",
+      "label": "Cá nhân / tập thể tri ân",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "industry",
+      "label": "Ngành nghề",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "contributions",
+      "label": "Đóng góp",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "logo",
+      "label": "Logo",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu thương hiệu",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "lotus-peace": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "honorific",
+      "label": "Danh xưng người nhận",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "peace",
+      "label": "Câu chúc an lành",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu sen",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "occasion",
+      "label": "Năm / tên dịp",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "earth-day": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "pledge",
+      "label": "Thông điệp / cam kết xanh",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "campaign",
+      "label": "Tên chiến dịch",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "actions",
+      "label": "Hành động xanh",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "logo",
+      "label": "Logo",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "team",
+      "label": "Tên nhóm",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "thanksgiving": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "gratitude",
+      "label": "Điều biết ơn",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "places",
+      "label": "Thẻ bàn",
+      "type": "list",
+      "required": false,
+      "max": 6,
+      "columns": [
+        "Tên",
+        "Câu cảm ơn"
+      ]
+    },
+    {
+      "key": "year",
+      "label": "Năm chúc mừng",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu lá phong",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "new-home": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "family",
+      "label": "Tên gia chủ / gia đình",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "homeName",
+      "label": "Tên tổ ấm",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "houseNumber",
+      "label": "Số nhà trang trí",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu nhà",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "grand-opening": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "business",
+      "label": "Tên cửa hàng / doanh nghiệp",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "industry",
+      "label": "Ngành kinh doanh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "logo",
+      "label": "Logo",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "slogan",
+      "label": "Slogan",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu thương hiệu",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "website",
+      "label": "Website (hiển thị dạng chữ)",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "location",
+      "label": "Địa điểm",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "thank-you-tea": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "gratitude",
+      "label": "Điều muốn cảm ơn",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu tách",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "cupText",
+      "label": "Chữ trên tách",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "shortThanks",
+      "label": "Câu cảm ơn ngắn",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "sincere-apology": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "apology",
+      "label": "Điều muốn nhận lỗi",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "change",
+      "label": "Điều sẽ sửa đổi",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "invitation",
+      "label": "Lời đề nghị trò chuyện",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "engraving",
+      "label": "Chữ trên trái tim",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "brighter-tomorrow": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "context",
+      "label": "Ngữ cảnh",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Động viên",
+        "Chúc mau khỏe"
+      ]
+    },
+    {
+      "key": "encouragement",
+      "label": "Câu động viên",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "memory",
+      "label": "Kỷ niệm tích cực",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "support",
+      "label": "Lời đề nghị hỗ trợ",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "detailColor",
+      "label": "Màu hoa",
+      "type": "color",
+      "required": false
+    }
+  ],
+  "new-horizon": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "occasion",
+      "label": "Dịp đi xa",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Chuyển nơi ở",
+        "Du học",
+        "Công việc",
+        "Chia tay"
+      ]
+    },
+    {
+      "key": "destination",
+      "label": "Nơi đến",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "labels",
+      "label": "Nhãn kỷ niệm",
+      "type": "list",
+      "required": false,
+      "max": 3,
+      "columns": [
+        "Nội dung"
+      ]
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 6
+    },
+    {
+      "key": "promise",
+      "label": "Lời hẹn gặp",
+      "type": "text",
+      "required": false
+    }
+  ]
+}

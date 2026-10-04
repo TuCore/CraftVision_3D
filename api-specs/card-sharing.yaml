@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: CraftVision Card Sharing Gateway API
+  version: 1.0.0
+  description: >-
+    Owner-authenticated drafts and explicit public snapshots for the 54 card templates.
+    All frontend requests use the same-origin /api Gateway. Card data has its own database.
+    Public reads never expose owner identifiers or unpublished edits. Media is represented
+    by /api/cards/media/{id}, never inline base64 or arbitrary external URLs.
+    This API publishes the free personalization collection; it does not grant a paid
+    order, NFC activation or paid product entitlement.
+servers:
+  - url: /
+security:
+  - bearerAuth: []
+paths:
+  /api/cards:
+    get:
+      summary: List the caller's cards, newest first (maximum 100)
+      responses:
+        '200':
+          description: Owner cards
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/OwnerCard' } }
+        '401': { description: Sign in required }
+        '503': { description: Card database or durable storage not configured }
+    post:
+      summary: Create a private draft (maximum 100 per owner)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [draft]
+              properties:
+                draft: { $ref: '#/components/schemas/Draft' }
+      responses:
+        '201':
+          description: Draft created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnerCard' }
+        '400': { description: Invalid template, schema or media ownership }
+        '401': { description: Sign in required }
+        '422': { description: Owner card quota reached }
+  /api/cards/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Read an owned draft
+      responses:
+        '200':
+          description: Owned card including its private draft
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnerCard' }
+        '404': { description: Not found or not owned }
+    put:
+      summary: Save draft without changing the public snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [revision, draft]
+              properties:
+                revision: { type: integer, minimum: 1 }
+                draft: { $ref: '#/components/schemas/Draft' }
+      responses:
+        '200':
+          description: Updated draft and incremented revision
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnerCard' }
+        '400': { description: Invalid draft }
+        '404': { description: Not found or not owned }
+        '409': { description: Stale revision; reload before retrying }
+  /api/cards/{id}/publish:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Publish an immutable copy of the saved draft, or explicitly replace that snapshot
+      description: A cryptographically random 256-bit token is created on first publication or after revocation. Updating a live snapshot retains its link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Revision' }
+      responses:
+        '200':
+          description: Published owner card; sharePath is relative to the frontend origin
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnerCard' }
+        '404': { description: Not found or not owned }
+        '409': { description: Stale revision }
+  /api/cards/{id}/publication:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      summary: Revoke the public snapshot and invalidate its token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Revision' }
+      responses:
+        '200':
+          description: Private owner card with no share path
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnerCard' }
+        '404': { description: Not found or not owned }
+        '409': { description: Stale revision }
+  /api/cards/public/{token}:
+    get:
+      security: []
+      summary: Read only the currently published snapshot
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{43}$' } }
+      responses:
+        '200':
+          description: Published draft, Cache-Control no-store and X-Robots-Tag noindex
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Draft' }
+        '404': { description: Unknown or revoked link }
+  /api/cards/media:
+    post:
+      summary: Upload and deduplicate owned image/audio to durable Cloudinary storage
+      description: Maximum 8 MiB/file; signature-checked JPEG, PNG, WebP, MP3, WAV, OGG. Owner storage quota 256 MiB. No local-disk production fallback.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: Owned media reference
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url: { type: string, example: '/api/cards/media/54fd21c8-16c7-47db-8613-95574c80f6ac' }
+        '400': { description: Invalid or mismatched signature/type }
+        '413': { description: File too large }
+        '422': { description: Owner storage quota reached }
+  /api/cards/media/{id}:
+    get:
+      security: []
+      summary: Stream media for an authenticated owner or when referenced by a live public snapshot
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Image/audio bytes; no-store, nosniff }
+        '404': { description: Unpublished, revoked, not owned or unknown }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    Revision:
+      type: object
+      required: [revision]
+      properties:
+        revision: { type: integer, minimum: 1 }
+    Draft:
+      type: object
+      required: [version, template, values]
+      properties:
+        version: { type: integer, enum: [1] }
+        template: { type: string, description: Registered card slug }
+        values:
+          type: object
+          description: Validated against the versioned template schema; maximum 256 KiB JSON. Media values must be owned references.
+          additionalProperties: true
+    OwnerCard:
+      type: object
+      required: [id, revision, draft, updatedAt, sharePath]
+      properties:
+        id: { type: string, format: uuid }
+        revision: { type: integer }
+        draft: { $ref: '#/components/schemas/Draft' }
+        updatedAt: { type: string, format: date-time }
+        publishedAt: { type: string, format: date-time, nullable: true }
+        sharePath: { type: string, nullable: true, example: '/love-gift/s/a-random-256-bit-token' }

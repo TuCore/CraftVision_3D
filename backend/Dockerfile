@@ -9,13 +9,16 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy toàn bộ thư mục src vào container
-COPY ["src/", "src/"]
+# Build context must be the repository root (shared API and database contracts).
+COPY ["backend/src/", "backend/src/"]
+COPY ["api-specs/", "api-specs/"]
+COPY ["databases/CardSharing/", "databases/CardSharing/"]
 
 # Phục hồi các gói phụ thuộc (NuGet packages)
-RUN dotnet restore "src/CraftVision.Presentation/CraftVision.Presentation.csproj"
+RUN dotnet restore "backend/src/CraftVision.Presentation/CraftVision.Presentation.csproj"
 
 # Di chuyển vào thư mục Presentation để Build
-WORKDIR "/src/src/CraftVision.Presentation"
+WORKDIR "/src/backend/src/CraftVision.Presentation"
 RUN dotnet build "CraftVision.Presentation.csproj" -c Release -o /app/build
 
 # Publish code thành các file chạy độc lập
