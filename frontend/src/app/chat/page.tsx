@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History, MessageSquare, Box } from "lucide-react";
 import { fetchApi } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type Message = {
   role: "user" | "ai";
@@ -27,6 +28,7 @@ const mockHistory = [
 ];
 
 export default function ChatPage() {
+  const router = useRouter();
   const [chatMode, setChatMode] = useState<"vision" | "three-d">("vision");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -36,8 +38,16 @@ export default function ChatPage() {
   const historyBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // Đọc URL query parameter để mở thẳng Studio 3D nếu có ?mode=three-d
     if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      const isDemo = new URLSearchParams(window.location.search).get("demo") === "true";
+      if (!token && !isDemo) {
+        toast.info("Vui lòng đăng nhập hoặc đăng ký để sử dụng Trợ lý AI & Vision Plus!");
+        router.replace("/auth?redirect=/chat");
+        return;
+      }
+
+      // Đọc URL query parameter để mở thẳng Studio 3D nếu có ?mode=three-d
       const params = new URLSearchParams(window.location.search);
       if (params.get("mode") === "three-d") {
         setChatMode("three-d");
@@ -463,7 +473,7 @@ function Studio3DView() {
                <button 
                  key={s}
                  onClick={() => setStyle(s)}
-                 className={style === s ? "rounded-lg py-1.5 text-sm text-white shadow-md btn-hero" : "chip-btn rounded-lg py-1.5 text-sm hover-accent transition-colors"}
+                 className={style === s ? "rounded-lg py-1.5 text-sm text-black shadow-md btn-hero" : "chip-btn rounded-lg py-1.5 text-sm hover-accent transition-colors"}
                >{s}</button>
             ))}
           </div>
@@ -501,7 +511,7 @@ function Studio3DView() {
           <div className="mt-1 flex flex-col gap-1.5">
             <button 
               onClick={handleMockGenerate}
-              className="rounded-xl py-2.5 text-sm font-semibold text-white shadow-lg btn-hero w-full"
+              className="rounded-xl py-2.5 text-sm font-semibold text-black shadow-lg btn-hero w-full"
             >
               Tạo mô hình 3D (Demo)
             </button>
@@ -548,7 +558,7 @@ function Studio3DView() {
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
             Tinh chỉnh
           </button>
-          <button onClick={() => setIsNamePopupOpen(true)} className="rounded-full px-5 py-2 text-sm text-white font-medium shadow-md btn-hero flex items-center gap-1.5">
+          <button onClick={() => setIsNamePopupOpen(true)} className="rounded-full px-5 py-2 text-sm text-black font-medium shadow-md btn-hero flex items-center gap-1.5">
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
             Tạo website
           </button>
@@ -581,7 +591,7 @@ function Studio3DView() {
                   setIsNamePopupOpen(false);
                   router.push(`/shop/22222222-2222-2222-2222-222222222222/greeting?from=3d&modelUrl=${encodeURIComponent(currentModel || '')}&customName=${encodeURIComponent(customName || 'Sản phẩm 3D của tôi')}`);
                 }}
-                className="px-5 py-2 rounded-xl text-sm font-medium btn-hero text-white shadow-md hover:scale-105 transition-transform"
+                className="px-5 py-2 rounded-xl text-sm font-medium btn-hero text-black shadow-md hover:scale-105 transition-transform"
               >
                 Xác nhận
               </button>

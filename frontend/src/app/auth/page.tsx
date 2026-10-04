@@ -146,7 +146,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setMode("login")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-                  mode === "login" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
+                  mode === "login" ? "btn-hero text-black" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Đăng nhập
@@ -154,7 +154,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setMode("register")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-                  mode === "register" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
+                  mode === "register" ? "btn-hero text-black" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Đăng ký
@@ -229,7 +229,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-hero w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
+                className="btn-hero text-black w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
               >
                 {loading ? "Đang xử lý..." : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
                 <ArrowRight className="h-4 w-4" />

@@ -180,7 +180,7 @@ export default function CartPage() {
             <p className="text-muted-foreground max-w-md mx-auto">
               {t("cart.empty_desc")}
             </p>
-            <Link href="/shop" className="btn-hero px-8 py-3 rounded-xl font-bold inline-block mt-4 text-white">
+            <Link href="/shop" className="btn-hero px-8 py-3 rounded-xl font-bold inline-block mt-4 text-black">
               {t("cart.continue_shopping")}
             </Link>
           </div>
@@ -346,7 +346,7 @@ export default function CartPage() {
                               <div className="flex justify-end gap-3">
                                 <button
                                   onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting?editCartItemId=${encodeURIComponent(item.cartItemId || item.id)}${(item as any).is3D ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
-                                  className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
+                                  className="w-full btn-hero px-6 py-3 rounded-xl text-black font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
                                 >
                                   <Pencil className="w-4 h-4" />
                                   Chỉnh sửa thiệp này
@@ -456,6 +456,12 @@ export default function CartPage() {
 
                 <button
                   onClick={() => {
+                    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                    if (!token) {
+                      toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
+                      router.push("/auth?redirect=/checkout");
+                      return;
+                    }
                     const selectedCartItems = items.filter(i => selectedItems.includes(i.cartItemId || i.id));
                     const orderItems = selectedCartItems.map(item => {
                       const hasCard = !!(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate);
@@ -486,7 +492,7 @@ export default function CartPage() {
                     router.push("/checkout");
                   }}
                   disabled={selectedItems.length === 0}
-                  className="w-full btn-hero py-3.5 rounded-xl text-white font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
+                  className="w-full btn-hero py-3.5 rounded-xl text-black font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {language === "vi" ? "Thanh toán" : "Checkout"} {selectedItems.length > 0 ? `(${selectedItems.length})` : ""}
                 </button>

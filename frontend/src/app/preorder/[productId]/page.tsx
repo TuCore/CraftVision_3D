@@ -293,7 +293,7 @@ export default function PreOrderCheckoutPage({ params }: { params: Promise<{ pro
               <button 
                 onClick={handlePlaceOrder}
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl btn-hero font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all"
+                className="w-full py-4 rounded-2xl btn-hero text-black font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all"
               >
                 {isSubmitting ? "Đang xử lý..." : "Đặt hàng Pre-order"}
               </button>

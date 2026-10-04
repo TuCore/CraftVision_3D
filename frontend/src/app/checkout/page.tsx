@@ -55,6 +55,12 @@ export default function CheckoutPage() {
   );
 
   useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
+      router.replace("/auth?redirect=/checkout");
+      return;
+    }
     if ((!items || items.length === 0) && !isOrderPlaced) {
       toast.error("Bạn chưa chọn món quà nào!");
       router.push("/shop");
@@ -491,7 +497,7 @@ export default function CheckoutPage() {
             <button 
               onClick={handlePlaceOrder}
               disabled={isSubmitting || !agreedTerms}
-              className="w-full py-4 rounded-2xl btn-hero font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
+              className="w-full py-4 rounded-2xl btn-hero text-black font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
             >
               {isSubmitting ? "Đang xử lý..." : "Đặt hàng ngay"}
             </button>
@@ -545,7 +551,7 @@ export default function CheckoutPage() {
                 clearItems();
                 router.push("/settings?tab=orders");
               }}
-              className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
+              className="w-full btn-hero py-3.5 rounded-xl font-bold text-black shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
             >
               Xem lịch sử đơn hàng
             </button>
@@ -598,7 +604,7 @@ export default function CheckoutPage() {
                 clearItems();
                 router.push("/settings?tab=orders");
               }}
-              className="w-full btn-hero py-3.5 rounded-xl font-bold text-white shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
+              className="w-full btn-hero py-3.5 rounded-xl font-bold text-black shadow-coral-glow mt-4 hover:-translate-y-1 transition-transform"
             >
               Tôi đã thanh toán
             </button>

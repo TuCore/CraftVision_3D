@@ -364,7 +364,7 @@ export default function SettingsPage() {
                 ) : (
                   <>
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="relative h-16 w-16 rounded-2xl overflow-hidden btn-hero grid place-items-center text-2xl font-bold text-white shrink-0 group">
+                      <div className="relative h-16 w-16 rounded-2xl overflow-hidden btn-hero grid place-items-center text-2xl font-bold text-black shrink-0 group">
                         {avatarUrl ? (
                           <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
@@ -411,7 +411,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div className="flex gap-3 pt-2">
-                      <button onClick={handleSave} className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
+                      <button onClick={handleSave} className="btn-hero text-black rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
                       <button className="rounded-xl bg-card/70 hover:bg-card px-5 py-2.5 text-sm font-medium">Huỷ</button>
                     </div>
                   </>
@@ -515,7 +515,7 @@ export default function SettingsPage() {
                           } catch (error: any) {
                             import("sonner").then(({ toast }) => toast.error(error.message || "Lỗi khi lưu địa chỉ"));
                           }
-                        }} className="btn-hero rounded-xl px-6 py-2.5 text-sm font-semibold shadow-coral-glow">Lưu địa chỉ</button>
+                        }} className="btn-hero text-black rounded-xl px-6 py-2.5 text-sm font-semibold shadow-coral-glow">Lưu địa chỉ</button>
                         <button onClick={() => { setEditingAddressId(null); setNewAddress({}); }} className="rounded-xl bg-card/70 hover:bg-card border border-border px-6 py-2.5 text-sm font-medium transition-colors">Huỷ</button>
                       </div>
                     </div>
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground bg-card/40 rounded-2xl border border-dashed border-border/60">
                       <Package className="w-16 h-16 mb-4 opacity-25 text-primary" />
                       <p className="text-sm font-medium">Chưa có đơn hàng nào trong mục này</p>
-                      <Link href="/shop" className="mt-3 btn-hero px-4 py-2 rounded-xl text-xs font-semibold text-white">
+                      <Link href="/shop" className="mt-3 btn-hero px-4 py-2 rounded-xl text-xs font-semibold text-black">
                         Khám phá sản phẩm
                       </Link>
                     </div>
@@ -707,7 +707,7 @@ export default function SettingsPage() {
                               {["ReadyToShip", "Shipped"].includes(order.orderStatus) && (
                                 <button 
                                   onClick={() => handleReceiveOrder(order.id)}
-                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-white shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
+                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
                                 >
                                   Đã nhận được hàng
                                 </button>
@@ -719,7 +719,7 @@ export default function SettingsPage() {
                                   onClick={() => {
                                     router.push(`/shop/${order.items[0].productId}`);
                                   }}
-                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-white shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
+                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
                                 >
                                   Mua lại
                                 </button>

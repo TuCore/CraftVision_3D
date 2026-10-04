@@ -318,7 +318,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
             <button
               type="submit"
               disabled={isSubmitting || isUploadingImage}
-              className="btn-hero px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 disabled:opacity-50"
+              className="btn-hero text-black px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 disabled:opacity-50"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isEdit ? 'Lưu thay đổi' : 'Tạo Sản phẩm'}

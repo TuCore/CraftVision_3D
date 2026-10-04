@@ -281,6 +281,13 @@ function GreetingDesignContent() {
   const handleConfirm = () => {
     if (!product) return;
 
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.info("Vui lòng đăng nhập hoặc đăng ký để thêm vào giỏ hàng!");
+      router.push("/auth");
+      return;
+    }
+
     let finalProduct = product;
     if (from3d && modelUrl) {
       finalProduct = {
@@ -357,6 +364,13 @@ function GreetingDesignContent() {
   // Xử lý Thanh toán ngay (chuyển thẳng sang trang thanh toán không kèm chi phí ship nếu là thiệp điện tử)
   const handleDirectCheckout = () => {
     if (!product) return;
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
+      router.push("/auth?redirect=/checkout");
+      return;
+    }
 
     const { basePrice, cardPrice, unitPrice } = calculatePricing;
 
@@ -767,7 +781,7 @@ function GreetingDesignContent() {
                         setSelectedTemplate(defaultProductTemplate);
                       }
                     }}
-                    className="px-4 py-2 rounded-xl btn-hero text-white text-xs font-bold shadow-coral-glow hover:scale-105 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl btn-hero text-black text-xs font-bold shadow-coral-glow hover:scale-105 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     Dùng mẫu mặc định
@@ -1028,7 +1042,7 @@ function GreetingDesignContent() {
 
                     <button
                       onClick={handleDirectCheckout}
-                      className="w-full sm:w-auto btn-hero px-7 py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-coral-glow cursor-pointer text-sm"
+                      className="w-full sm:w-auto btn-hero px-7 py-3 rounded-xl font-bold text-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-coral-glow cursor-pointer text-sm"
                     >
                       <CreditCard className="w-4 h-4" />
                       Thanh toán ngay
@@ -1169,7 +1183,7 @@ function GreetingDesignContent() {
             </button>
             <button
               onClick={handleDirectCheckout}
-              className="py-3 px-4 rounded-xl font-bold btn-hero text-white shadow-coral-glow hover:scale-[1.02] flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="py-3 px-4 rounded-xl font-bold btn-hero text-black shadow-coral-glow hover:scale-[1.02] flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <CreditCard className="w-4 h-4" />
               Thanh toán ({formatPrice(selectedTemplate?.price || product?.price)})

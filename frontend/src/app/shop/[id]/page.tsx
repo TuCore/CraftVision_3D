@@ -413,7 +413,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                         e.stopPropagation();
                         router.push(`/shop/${p.id}`);
                       }}
-                      className="w-full py-2.5 rounded-xl btn-hero text-sm font-semibold mt-auto"
+                      className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto"
                     >
                       Xem chi tiết
                     </button>
