@@ -47,7 +47,7 @@ export const dictionaries = {
     "template.sold": "Đã bán:",
     "template.buy_now": "Mua ngay",
     "template.view_demo": "Xem demo",
-    "template.guide": "Hướng dẫn",
+    // "template.guide": "Hướng dẫn",
     "template.tutorial_video": "Video hướng dẫn",
     "template.page": "Trang",
     "template.added_to_cart": "Đã thêm vào giỏ hàng",

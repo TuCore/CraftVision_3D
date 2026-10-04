@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import Link from "next/link";
 import { Search, Star, Sparkles, Loader2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Product, Category } from "@/lib/product.types";
@@ -75,27 +76,9 @@ export default function ShopPage() {
 
   return (
     <AppShell active="shop">
-      <div className="mx-auto max-w-7xl space-y-8">
-        {/* Hero */}
-        <section className="relative glass-strong rounded-3xl p-8 md:p-12 overflow-hidden text-center">
-          <div className="blob animate-pulse-glow" style={{ top: -50, left: "20%", width: 300, height: 300, background: "oklch(0.74 0.18 55)" }} />
-          <div className="blob animate-pulse-glow" style={{ bottom: -50, right: "20%", width: 300, height: 300, background: "oklch(0.72 0.2 25)", animationDelay: "1s" }} />
-          
-          <div className="relative z-10 max-w-2xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-extrabold font-display leading-tight">
-              {language === "vi" ? "Khám phá sản phẩm" : "Discover Unique"} <br />
-              <span className="gradient-text">{language === "vi" ? "handmade độc đáo" : "Handcrafted Products"}</span>
-            </h1>
-            <p className="mt-4 text-muted-foreground">
-              {language === "vi"
-                ? "Tìm kiếm các loại hạt, charm, dây và bộ kit tự làm có tích hợp NFC để tạo ra những tác phẩm nghệ thuật của riêng bạn."
-                : "Explore beads, charms, cords, and bespoke DIY kits with integrated NFC to bring your creative gifts to life."}
-            </p>
-          </div>
-        </section>
-
+      <div className="space-y-8">
         {/* Search & Filter */}
-        <section className="space-y-4">
+        <section id="products-grid" className="space-y-4 scroll-mt-24">
           <div className="relative max-w-md mx-auto md:mx-0">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input
@@ -172,6 +155,39 @@ export default function ShopPage() {
                   placeholder="Mô tả ngắn gọn thiết kế bạn muốn..." 
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 h-20 resize-none outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                 />
+              </div>
+
+              {/* Liên hệ trực tiếp qua Facebook / TikTok */}
+              <div className="pt-1">
+                <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground font-medium">
+                  <span className="h-px bg-border flex-1" />
+                  <span>Hoặc liên hệ trực tiếp qua</span>
+                  <span className="h-px bg-border flex-1" />
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <a
+                    href="https://www.facebook.com/profile.php?id=61594809743775"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] border border-[#1877F2]/30 font-semibold text-xs transition-all hover:scale-[1.02] shadow-sm"
+                  >
+                    <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                      <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
+                    </svg>
+                    <span>Facebook</span>
+                  </a>
+                  <a
+                    href="https://www.tiktok.com/@sixc.ent?is_from_webapp=1&sender_device=pc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-900/10 hover:bg-neutral-900/20 dark:bg-white/10 dark:hover:bg-white/20 text-foreground border border-border font-semibold text-xs transition-all hover:scale-[1.02] shadow-sm"
+                  >
+                    <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.3 3.93v-8.12a8.27 8.27 0 003.29.69v-3.45a4.79 4.79 0 01-2-.04z" />
+                    </svg>
+                    <span>TikTok</span>
+                  </a>
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-3">
