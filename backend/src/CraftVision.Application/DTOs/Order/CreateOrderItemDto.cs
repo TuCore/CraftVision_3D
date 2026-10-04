@@ -8,6 +8,7 @@ public class CreateOrderItemDto
     public Guid ProductId { get; set; }
     public int Quantity { get; set; }
     public bool WantNfc { get; set; }
+    public decimal? ExtraPrice { get; set; }
     
     public CreateGiftDto? Gift { get; set; }
 }

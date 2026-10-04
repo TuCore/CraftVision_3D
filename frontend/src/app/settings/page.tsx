@@ -195,6 +195,18 @@ export default function SettingsPage() {
     }
   };
 
+  const getEstimatedDelivery = (dateStr?: string) => {
+    if (!dateStr) return "3 - 5 ngày làm việc";
+    try {
+      const d = new Date(dateStr);
+      const from = new Date(d.getTime() + 3 * 24 * 3600000);
+      const to = new Date(d.getTime() + 5 * 24 * 3600000);
+      return `${from.toLocaleDateString("vi-VN")} - ${to.toLocaleDateString("vi-VN")}`;
+    } catch {
+      return "3 - 5 ngày làm việc";
+    }
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -879,61 +891,31 @@ export default function SettingsPage() {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {/* Thời gian đặt hàng */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                     <span className="text-muted-foreground font-medium">Thời gian đặt hàng:</span>
-                    <p className="font-semibold text-foreground">
+                    <p className="font-semibold text-foreground text-sm">
                       {formatDateTime(selectedOrderDetail.createdAt) || "29/09/2026 14:30:00"}
                     </p>
                     <span className="text-[10px] text-emerald-600 font-semibold block">✓ Dữ liệu thật từ hệ thống</span>
                   </div>
 
-                  {/* Thời gian thanh toán */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                  {/* Thời gian dự kiến nhận hàng */}
+                  <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Thời gian thanh toán:</span>
-                      <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                      <span className="text-muted-foreground font-medium">Thời gian dự kiến nhận hàng:</span>
+                      <span className="text-[10px] text-primary font-semibold">3 - 5 ngày</span>
                     </div>
-                    <p className="font-semibold text-foreground">
-                      {selectedOrderDetail.paymentStatus === 'Paid'
-                        ? formatDateTime(selectedOrderDetail.createdAt ? new Date(new Date(selectedOrderDetail.createdAt).getTime() + 15 * 60000).toISOString() : undefined)
-                        : "Chưa thanh toán (hoặc COD khi nhận hàng)"}
-                    </p>
-                    <span className="text-[10px] text-amber-600/90 italic block">
-                      (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                    </span>
-                  </div>
-
-                  {/* Thời gian đơn vị vận chuyển lấy hàng */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Thời gian ĐVVC lấy hàng:</span>
-                      <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                    </div>
-                    <p className="font-semibold text-foreground">
+                    <p className="font-semibold text-foreground text-sm">
                       {selectedOrderDetail.orderStatus === 'Cancelled'
                         ? "Đơn hàng đã hủy"
-                        : formatDateTime(selectedOrderDetail.createdAt ? new Date(new Date(selectedOrderDetail.createdAt).getTime() + 4 * 3600000).toISOString() : undefined)}
+                        : selectedOrderDetail.orderStatus === 'Completed' || selectedOrderDetail.orderStatus === 'Delivered'
+                        ? `Đã nhận hàng (${formatDateTime(selectedOrderDetail.updatedAt || selectedOrderDetail.createdAt)})`
+                        : getEstimatedDelivery(selectedOrderDetail.createdAt)}
                     </p>
-                    <span className="text-[10px] text-amber-600/90 italic block">
-                      (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                    </span>
-                  </div>
-
-                  {/* Thời gian hoàn thành đơn hàng */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Thời gian hoàn thành:</span>
-                      <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                    </div>
-                    <p className="font-semibold text-foreground">
-                      {selectedOrderDetail.orderStatus === 'Completed' || selectedOrderDetail.orderStatus === 'Delivered'
-                        ? formatDateTime(selectedOrderDetail.updatedAt || (selectedOrderDetail.createdAt ? new Date(new Date(selectedOrderDetail.createdAt).getTime() + 48 * 3600000).toISOString() : undefined))
-                        : selectedOrderDetail.orderStatus === 'Cancelled'
-                        ? "Đơn hàng đã hủy"
-                        : "Đang vận chuyển / Chưa hoàn thành"}
-                    </p>
-                    <span className="text-[10px] text-amber-600/90 italic block">
-                      (Chưa có từ hệ thống - dữ liệu mô phỏng)
+                    <span className="text-[10px] text-muted-foreground italic block">
+                      {selectedOrderDetail.orderStatus === 'Cancelled'
+                        ? "Đơn hàng không tiếp tục giao"
+                        : "Thời gian giao hàng tiêu chuẩn qua đơn vị vận chuyển"}
                     </span>
                   </div>
                 </div>

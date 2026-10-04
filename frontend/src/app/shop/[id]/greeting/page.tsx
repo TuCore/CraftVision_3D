@@ -11,7 +11,6 @@ import {
   Sparkles,
   Flame,
   Eye,
-  Info,
   PlayCircle,
   ChevronLeft,
   ChevronRight,
@@ -63,7 +62,7 @@ function GreetingDesignContent() {
   const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
   const [quantity, setQuantity] = useState(1);
 
-  // Template mặc định cố định ban đầu của sản phẩm
+  // Template mặc định cố định ban đầu của sản phẩm (thêm 5.000đ cho câu chúc riêng mẫu mặc định)
   const defaultProductTemplate = useMemo<TemplateProduct | null>(() => {
     if (!product) return null;
     return {
@@ -71,11 +70,43 @@ function GreetingDesignContent() {
       image: product.image,
       title: `Thiệp NFC mặc định (${product.name})`,
       sold: 1,
-      originalPrice: 0,
-      price: 0,
-      discount: 0,
+      originalPrice: 10000,
+      price: 5000,
+      discount: 50,
     };
   }, [product]);
+
+  const isPhysical = useMemo(() => {
+    if (!product) return false;
+    return (
+      !product.id.startsWith("template-") &&
+      product.category !== "Thiệp điện tử" &&
+      !(product as any).isDigital
+    );
+  }, [product]);
+
+  const getCardPrice = (template: TemplateProduct | null | undefined): number => {
+    if (!template) return 5000;
+    if (template.id === 0) return 5000;
+    return template.price || 5000;
+  };
+
+  const calculatePricing = useMemo(() => {
+    if (!product) return { basePrice: 0, cardPrice: 0, unitPrice: 0, totalItemPrice: 0 };
+    if (!isPhysical) {
+      const price = selectedTemplate?.price || product.price || 49999;
+      return { basePrice: 0, cardPrice: price, unitPrice: price, totalItemPrice: price * quantity };
+    }
+    const basePrice = product.price || 0;
+    const cardPrice = getCardPrice(selectedTemplate);
+    const unitPrice = basePrice + cardPrice;
+    return {
+      basePrice,
+      cardPrice,
+      unitPrice,
+      totalItemPrice: unitPrice * quantity,
+    };
+  }, [product, isPhysical, selectedTemplate, quantity]);
 
   // Nếu người dùng chọn mode=default và chưa chọn template khác, tự động áp dụng template mặc định
   useEffect(() => {
@@ -262,20 +293,37 @@ function GreetingDesignContent() {
       } as any;
     }
 
+    const { basePrice, cardPrice, unitPrice } = calculatePricing;
+
     const templateData = selectedTemplate
       ? {
           id: selectedTemplate.id,
           title: selectedTemplate.title,
           image: selectedTemplate.image,
-          price: selectedTemplate.price,
+          price: cardPrice,
           originalPrice: selectedTemplate.originalPrice,
           discount: selectedTemplate.discount,
         }
-      : undefined;
+      : {
+          id: 0,
+          title: "Thiệp lời chúc riêng (Mẫu mặc định)",
+          image: product.image,
+          price: 5000,
+        };
+
+    const cartProduct = {
+      ...finalProduct,
+      name: isPhysical ? finalProduct.name : (selectedTemplate?.title || finalProduct.name),
+      price: unitPrice,
+      basePrice: isPhysical ? basePrice : undefined,
+      cardPrice: isPhysical ? cardPrice : undefined,
+      image: isPhysical ? finalProduct.image : (selectedTemplate?.image || finalProduct.image),
+    };
 
     // Chế độ chỉnh sửa item trong giỏ: Cập nhật trực tiếp, KHÔNG tăng biến đếm sản phẩm!
     if (editCartItemId) {
       updateCartItem(editCartItemId, {
+        ...cartProduct,
         hasGreeting: true,
         greetingMessage: message,
         greetingImage: greetingImage || undefined,
@@ -292,7 +340,7 @@ function GreetingDesignContent() {
 
     // Chế độ thêm mới hoặc từ trang chi tiết:
     toggleFavorite(
-      finalProduct,
+      cartProduct,
       true,
       message,
       greetingImage || undefined,
@@ -310,29 +358,33 @@ function GreetingDesignContent() {
   const handleDirectCheckout = () => {
     if (!product) return;
 
-    const isDigitalCard = !!(selectedTemplate && (product.id.startsWith("template-") || (product as any).is3D));
+    const { basePrice, cardPrice, unitPrice } = calculatePricing;
 
     const orderItem = {
       product: {
         ...product,
         id: product.id,
-        name: selectedTemplate?.title || product.name,
-        price: selectedTemplate?.price || product.price,
-        image: selectedTemplate?.image || product.image,
-        category: isDigitalCard ? "Thiệp điện tử" : product.category,
-        is3D: isDigitalCard ? true : (product as any).is3D,
-        isDigital: isDigitalCard ? true : false,
+        name: isPhysical ? product.name : (selectedTemplate?.title || product.name),
+        price: unitPrice,
+        basePrice: isPhysical ? basePrice : undefined,
+        cardPrice: isPhysical ? cardPrice : undefined,
+        image: isPhysical ? product.image : (selectedTemplate?.image || product.image),
+        category: isPhysical ? product.category : "Thiệp điện tử",
+        is3D: isPhysical ? (product as any).is3D : true,
+        isDigital: !isPhysical,
       },
       quantity: quantity,
       gift: {
-        giftTitle: selectedTemplate?.title || `Thiệp thông điệp - ${product.name}`,
+        giftTitle: selectedTemplate?.title || (isDefaultMode ? "Thiệp lời chúc riêng (Mẫu mặc định)" : `Thiệp thông điệp - ${product.name}`),
+        templateTitle: selectedTemplate?.title || (isDefaultMode ? "Mẫu mặc định" : "Câu chúc riêng"),
+        cardPrice: cardPrice,
+        templateId: selectedTemplate?.id ?? 0,
         senderName: store.senderName || "Người gửi",
         receiverName: store.receiverName || "Người nhận",
         message: message,
         greetingMessage: message,
         greetingImage: greetingImage || undefined,
         previewImageUrl: greetingImage || selectedTemplate?.image,
-        templateTitle: selectedTemplate?.title,
         secretKey: `CARD-${Date.now()}`,
       },
     };
@@ -581,21 +633,49 @@ function GreetingDesignContent() {
                         {selectedTemplate.title}
                       </h4>
                       {selectedTemplate.id === 0 ? (
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                          Mẫu thiết kế cố định ban đầu (Tặng kèm sản phẩm)
-                        </p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-xs font-extrabold text-rose-600">
+                            +5.000 đ
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            (Phụ phí câu chúc riêng mẫu mặc định)
+                          </span>
+                        </div>
                       ) : (
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs font-extrabold text-rose-600">
-                            {formatPrice(selectedTemplate.price)}
+                            +{formatPrice(selectedTemplate.price)}
                           </span>
-                          <span className="text-[10px] text-muted-foreground line-through">
-                            {formatPrice(selectedTemplate.originalPrice)}
+                          <span className="text-[11px] text-muted-foreground">
+                            (Phụ phí mẫu thiệp)
                           </span>
                         </div>
                       )}
                     </div>
                   </div>
+
+                  {isPhysical && (
+                    <div className="pt-2.5 border-t border-primary/20 space-y-1.5 text-xs">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Giá sản phẩm vật lý:</span>
+                        <span className="font-semibold text-foreground">{formatPrice(product.price)}</span>
+                      </div>
+                      <div className="flex justify-between text-rose-600 font-medium">
+                        <span>Phụ phí thiệp kèm theo:</span>
+                        <span>+{formatPrice(calculatePricing.cardPrice)}</span>
+                      </div>
+                      <div className="border-t border-primary/10 pt-1.5 flex justify-between font-bold text-foreground">
+                        <span>Tổng 1 sản phẩm:</span>
+                        <span className="text-primary font-extrabold text-sm">{formatPrice(calculatePricing.unitPrice)}</span>
+                      </div>
+                      {quantity > 1 && (
+                        <div className="flex justify-between text-muted-foreground font-semibold">
+                          <span>Tổng tiền (x{quantity}):</span>
+                          <span className="text-primary font-bold">{formatPrice(calculatePricing.totalItemPrice)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300 text-xs sm:text-sm flex items-start gap-2.5">
@@ -780,14 +860,8 @@ function GreetingDesignContent() {
                           </button>
                         </div>
 
-                        {/* Links: Hướng dẫn & Video hướng dẫn */}
-                        <div className="flex items-center justify-between text-xs font-medium px-1">
-                          <button
-                            onClick={() => handleOpenVideo(template)}
-                            className="flex items-center gap-1.5 text-blue-500 hover:underline hover:text-blue-600 transition-all cursor-pointer"
-                          >
-                            <Info className="h-3.5 w-3.5" /> Hướng dẫn
-                          </button>
+                        {/* Link: Video hướng dẫn */}
+                        <div className="flex items-center justify-end text-xs font-medium px-1">
                           <button
                             onClick={() => handleOpenVideo(template)}
                             className="flex items-center gap-1.5 text-rose-500 hover:underline hover:text-rose-600 transition-all cursor-pointer font-semibold"
@@ -1013,27 +1087,33 @@ function GreetingDesignContent() {
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-border/60 shrink-0">
                   <img
-                    src={selectedTemplate?.image || product?.image}
+                    src={isPhysical ? product?.image : (selectedTemplate?.image || product?.image)}
                     alt="Template"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-foreground line-clamp-1">
-                    {selectedTemplate?.title || product?.name}
+                    {isPhysical ? product?.name : (selectedTemplate?.title || product?.name)}
                   </h4>
                   <span className="text-[11px] font-semibold text-primary">
-                    Thiệp điện tử NFC & 3D
+                    {isPhysical ? `Kèm thiệp NFC: ${selectedTemplate?.title || "Mẫu mặc định"}` : "Thiệp điện tử NFC & 3D"}
                   </span>
                 </div>
               </div>
               <div className="text-right">
                 <span className="text-base font-extrabold text-rose-600 block">
-                  {formatPrice(selectedTemplate?.price || product?.price)}
+                  {formatPrice(calculatePricing.unitPrice)}
                 </span>
-                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-100 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
-                  Miễn phí vận chuyển (0đ)
-                </span>
+                {isPhysical ? (
+                  <span className="text-[10px] text-muted-foreground block">
+                    (Gồm {formatPrice(product?.price || 0)} + {formatPrice(calculatePricing.cardPrice)})
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-100 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
+                    Miễn phí vận chuyển (0đ)
+                  </span>
+                )}
               </div>
             </div>
 
