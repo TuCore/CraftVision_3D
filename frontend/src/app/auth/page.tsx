@@ -208,10 +208,22 @@ export default function AuthPage() {
                   <a href="#" className="text-primary font-medium hover:underline">Quên mật khẩu?</a>
                 </div>
               ) : (
-                <label className="flex items-start gap-2 text-sm text-muted-foreground cursor-pointer">
-                  <Checkbox className="mt-0.5" />
-                  <span>Tôi đồng ý với <a href="#" className="text-primary font-medium">Điều khoản</a> và <a href="#" className="text-primary font-medium">Chính sách bảo mật</a>.</span>
-                </label>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <Checkbox id="terms-auth" className="mt-0.5" />
+                  <div>
+                    <label htmlFor="terms-auth" className="cursor-pointer">
+                      Tôi đồng ý với{" "}
+                    </label>
+                    <Link href="/terms" className="text-primary font-medium hover:underline">Điều khoản</Link>{" "}
+                    <label htmlFor="terms-auth" className="cursor-pointer">
+                      và{" "}
+                    </label>
+                    <Link href="/privacy" className="text-primary font-medium hover:underline">Chính sách bảo mật</Link>
+                    <label htmlFor="terms-auth" className="cursor-pointer">
+                      .
+                    </label>
+                  </div>
+                </div>
               )}
 
               <button
