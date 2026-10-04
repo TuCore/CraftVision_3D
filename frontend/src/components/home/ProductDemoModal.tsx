@@ -69,6 +69,7 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
           <h2 className="text-lg font-bold text-gray-800">{t("demo.title")}</h2>
           <button 
             onClick={onClose}
+            aria-label={t("demo.close")}
             className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -81,30 +82,15 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
           <div className="flex-1 p-6 md:p-8 flex justify-center items-center bg-gray-50/50">
             <div className="relative w-full max-w-[280px] aspect-[9/19] bg-[#1a1a1a] rounded-[2.5rem] border-[8px] border-gray-800 shadow-xl overflow-hidden shrink-0 flex flex-col">
               {/* Phone Notch */}
-              <div className="absolute top-0 inset-x-0 h-5 flex justify-center z-20 bg-gray-800 rounded-b-xl w-32 mx-auto"></div>
+              <div className="absolute top-0 inset-x-0 h-5 flex justify-center z-20 bg-gray-800 rounded-b-xl w-32 mx-auto pointer-events-none" aria-hidden="true"></div>
               
-              {/* Phone Content (Fake UI to look like demo) */}
-              <div className="relative flex-1 bg-black text-white overflow-hidden flex flex-col items-center">
-                <img 
-                  src={product.image} 
-                  alt="Demo preview" 
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
-                />
-                
-                {/* Fake Demo Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center h-full w-full p-4 text-center mt-12">
-                   <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 w-full border border-white/20 shadow-lg">
-                     <h4 className="text-lg font-bold text-white mb-2 leading-tight">{t("demo.gift_title")}</h4>
-                     <p className="text-xs text-white/80">{t("demo.gift_desc")}</p>
-                   </div>
-                </div>
-
-                {/* Bottom lang selector mock */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 border border-white/20 px-3 py-1.5 rounded-full backdrop-blur-md z-10">
-                   <div className="w-3 h-3 rounded-full border border-white"></div>
-                   <span className="text-[10px] font-medium">VN</span>
-                </div>
-              </div>
+              {/* A separate viewport keeps the scene and letter inside the phone. */}
+              <iframe
+                key={product.id}
+                src="/love-gift?preview=1"
+                title={t("demo.preview_title")}
+                className="absolute inset-0 h-full w-full border-0 bg-black"
+              />
             </div>
           </div>
 

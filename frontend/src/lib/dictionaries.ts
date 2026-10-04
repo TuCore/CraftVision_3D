@@ -2,6 +2,8 @@ export const dictionaries = {
   vi: {
     // Navigation (AppShell)
     "nav.home": "Trang chủ",
+    "demo.preview_title": "Xem trước thiệp 3D trên điện thoại",
+    "demo.close": "Đóng xem mẫu",
     "nav.love_gift": "Thiệp 3D",
     "home.view_love_gift": "Xem thiệp 3D",
     "nav.shop": "Cửa hàng",
@@ -176,6 +178,8 @@ export const dictionaries = {
   en: {
     // Navigation (AppShell)
     "nav.home": "Home",
+    "demo.preview_title": "3D gift card phone preview",
+    "demo.close": "Close preview",
     "nav.love_gift": "3D Gift Card",
     "home.view_love_gift": "View 3D Gift Card",
     "nav.shop": "Shop",

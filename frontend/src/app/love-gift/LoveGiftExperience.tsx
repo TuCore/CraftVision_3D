@@ -28,9 +28,11 @@ export default function LoveGiftExperience() {
   const [typed, setTyped] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [fallback, setFallback] = useState(false);
+  const [embedded, setEmbedded] = useState(false);
 
   useEffect(() => {
     if (!host.current) return;
+    setEmbedded(window.self !== window.top);
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(motion.matches);
     let disposed = false;
@@ -68,8 +70,8 @@ export default function LoveGiftExperience() {
   return (
     <main className={styles.experience}>
       <div ref={host} className={styles.scene} aria-hidden="true" />
-      <nav className={styles.controls} aria-label="Điều khiển thiệp">
-        <Link href="/" className={styles.control}><ArrowLeft size={14} /> Quay lại</Link>
+      <nav className={`${styles.controls} ${embedded ? styles.embeddedControls : ""}`} aria-label="Điều khiển thiệp">
+        {!embedded && <Link href="/" className={styles.control}><ArrowLeft size={14} /> Quay lại</Link>}
         {phase !== "loading" && <button className={styles.control} onClick={replay}><RotateCcw size={14} /> Xem lại</button>}
       </nav>
       {phase === "loading" && <div className={styles.center} role="status">
