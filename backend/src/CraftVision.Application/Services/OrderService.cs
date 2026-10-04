@@ -95,13 +95,16 @@ public class OrderService : IOrderService
                     throw new Exception($"Product {product.Name} does not support NFC.");
                 }
 
+                decimal extraFee = itemDto.ExtraPrice ?? (itemDto.WantNfc ? 5000m : 0m);
+                decimal unitPrice = product.Price + extraFee;
+
                 var orderItem = new OrderItem
                 {
                     OrderId = order.Id,
                     ProductId = product.Id,
                     Quantity = itemDto.Quantity,
-                    UnitPrice = product.Price,
-                    SubTotal = product.Price * itemDto.Quantity,
+                    UnitPrice = unitPrice,
+                    SubTotal = unitPrice * itemDto.Quantity,
                     CreatedAt = DateTime.UtcNow
                 };
                 
