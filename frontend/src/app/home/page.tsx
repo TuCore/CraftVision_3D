@@ -3,21 +3,28 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { Sparkles, MessageCircle, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Studio3DSection } from "@/components/studio/Studio3DSection";
 import { TemplateProductsSection } from "@/components/home/TemplateProductsSection";
 import { useTranslation } from "@/components/LanguageProvider";
 import { toast } from "sonner";
 
 export default function HomePage() {
+  const router = useRouter();
   const { t, language } = useTranslation();
   const [firstName, setFirstName] = useState("bạn");
+  const [isGuest, setIsGuest] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollOpacity, setScrollOpacity] = useState(0);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsGuest(!token);
     const storedName = localStorage.getItem("fullName");
-    if (storedName) {
+    if (storedName && token) {
       setFirstName(storedName.split(' ').pop() || "bạn");
+    } else {
+      setFirstName("bạn");
     }
   }, []);
 
@@ -152,16 +159,29 @@ export default function HomePage() {
 
             {/* Các nút hành động CTA */}
             <div className="mt-8 flex flex-wrap gap-4 items-center justify-center">
-              <Link
-                href={slides[activeSlide].btn1Link}
-                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-200 via-[#ffd0d7] to-rose-300 hover:from-rose-100 hover:to-rose-200 text-rose-950 font-bold text-sm sm:text-base shadow-xl shadow-rose-300/35 hover:scale-105 active:scale-95 transition-all border border-white/50"
+              <button
+                type="button"
+                onClick={() => {
+                  const link = slides[activeSlide].btn1Link;
+                  if (link.startsWith("#")) {
+                    document.querySelector(link)?.scrollIntoView({ behavior: "smooth" });
+                    return;
+                  }
+                  if (isGuest && (link === "/chat" || link.startsWith("/chat"))) {
+                    toast.info("Vui lòng đăng nhập hoặc đăng ký để sử dụng Trợ lý AI!");
+                    router.push("/auth?redirect=/chat");
+                    return;
+                  }
+                  router.push(link);
+                }}
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-200 via-[#ffd0d7] to-rose-300 hover:from-rose-100 hover:to-rose-200 text-rose-950 font-bold text-sm sm:text-base shadow-xl shadow-rose-300/35 hover:scale-105 active:scale-95 transition-all border border-white/50 cursor-pointer"
               >
                 {(() => {
                   const Icon = slides[activeSlide].btn1Icon;
                   return <Icon className="h-5 w-5 text-rose-900" />;
                 })()}
                 {slides[activeSlide].btn1Text}
-              </Link>
+              </button>
             </div>
           </div>
 

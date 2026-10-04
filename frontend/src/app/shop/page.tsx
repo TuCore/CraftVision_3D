@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import Link from "next/link";
 import { Search, Star, Sparkles, Loader2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Product, Category } from "@/lib/product.types";
@@ -75,27 +76,9 @@ export default function ShopPage() {
 
   return (
     <AppShell active="shop">
-      <div className="mx-auto max-w-7xl space-y-8">
-        {/* Hero */}
-        <section className="relative glass-strong rounded-3xl p-8 md:p-12 overflow-hidden text-center">
-          <div className="blob animate-pulse-glow" style={{ top: -50, left: "20%", width: 300, height: 300, background: "oklch(0.74 0.18 55)" }} />
-          <div className="blob animate-pulse-glow" style={{ bottom: -50, right: "20%", width: 300, height: 300, background: "oklch(0.72 0.2 25)", animationDelay: "1s" }} />
-          
-          <div className="relative z-10 max-w-2xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-extrabold font-display leading-tight">
-              {language === "vi" ? "Khám phá sản phẩm" : "Discover Unique"} <br />
-              <span className="gradient-text">{language === "vi" ? "handmade độc đáo" : "Handcrafted Products"}</span>
-            </h1>
-            <p className="mt-4 text-muted-foreground">
-              {language === "vi"
-                ? "Tìm kiếm các loại hạt, charm, dây và bộ kit tự làm có tích hợp NFC để tạo ra những tác phẩm nghệ thuật của riêng bạn."
-                : "Explore beads, charms, cords, and bespoke DIY kits with integrated NFC to bring your creative gifts to life."}
-            </p>
-          </div>
-        </section>
-
+      <div className="space-y-8">
         {/* Search & Filter */}
-        <section className="space-y-4">
+        <section id="products-grid" className="space-y-4 scroll-mt-24">
           <div className="relative max-w-md mx-auto md:mx-0">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input
@@ -114,7 +97,7 @@ export default function ShopPage() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === cat
-                    ? "btn-hero text-white"
+                    ? "btn-hero text-black font-bold"
                     : "glass-card border border-border hover:bg-white/50 text-foreground"
                 }`}
               >
@@ -137,7 +120,7 @@ export default function ShopPage() {
             </div>
             <DialogTrigger asChild>
               <button 
-                className="btn-hero px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
+                className="btn-hero text-black px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
               >
                 Nhận tư vấn ngay
               </button>
@@ -173,11 +156,44 @@ export default function ShopPage() {
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 h-20 resize-none outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                 />
               </div>
+
+              {/* Liên hệ trực tiếp qua Facebook / Instagram */}
+              <div className="pt-1">
+                <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground font-medium">
+                  <span className="h-px bg-border flex-1" />
+                  <span>Hoặc liên hệ trực tiếp qua</span>
+                  <span className="h-px bg-border flex-1" />
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <a
+                    href="https://www.facebook.com/profile.php?id=61594809743775"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] border border-[#1877F2]/30 font-semibold text-xs transition-all hover:scale-[1.02] shadow-sm"
+                  >
+                    <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                      <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
+                    </svg>
+                    <span>Facebook</span>
+                  </a>
+                  <a
+                    href="https://www.instagram.com/sixc.ent921?stkn=MTNpaDFpZGFicDl2cQ%3D%3D&utm_source=qr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#E1306C]/10 hover:bg-[#E1306C]/20 text-[#E1306C] border border-[#E1306C]/30 font-semibold text-xs transition-all hover:scale-[1.02] shadow-sm"
+                  >
+                    <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                    </svg>
+                    <span>Instagram</span>
+                  </a>
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => toast.success("Đã gửi thông tin! Chúng tôi sẽ liên hệ sớm nhất.")}
-                className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2"
+                className="w-full btn-hero px-6 py-3 rounded-xl text-black font-semibold flex items-center justify-center gap-2"
               >
                 Gửi yêu cầu
               </button>
@@ -237,7 +253,7 @@ export default function ShopPage() {
                     e.stopPropagation();
                     router.push(`/shop/${product.id}`);
                   }}
-                  className="w-full py-2.5 rounded-xl btn-hero text-sm font-semibold mt-auto"
+                  className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto"
                 >
                   {t("shop.view_details")}
                 </button>

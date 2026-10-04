@@ -3,18 +3,18 @@
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { AppShell } from "@/components/AppShell";
-import { 
-  ShoppingCart, 
-  Trash2, 
-  Minus, 
-  Plus, 
-  Package, 
-  Calendar, 
-  CheckCircle2, 
-  Truck, 
-  ChevronLeft, 
-  ChevronRight, 
-  Pencil, 
+import {
+  ShoppingCart,
+  Trash2,
+  Minus,
+  Plus,
+  Package,
+  Calendar,
+  CheckCircle2,
+  Truck,
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
   Sparkles,
   Eye,
   MapPin,
@@ -51,7 +51,7 @@ export default function CartPage() {
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(3);
+  const pageSize = 3;
   const [totalPages, setTotalPages] = useState(1);
 
   // Order Details Modal State
@@ -71,6 +71,18 @@ export default function CartPage() {
       });
     } catch {
       return dateStr;
+    }
+  };
+
+  const getEstimatedDelivery = (dateStr?: string) => {
+    if (!dateStr) return "3 - 5 ngày làm việc";
+    try {
+      const d = new Date(dateStr);
+      const from = new Date(d.getTime() + 3 * 24 * 3600000);
+      const to = new Date(d.getTime() + 5 * 24 * 3600000);
+      return `${from.toLocaleDateString("vi-VN")} - ${to.toLocaleDateString("vi-VN")}`;
+    } catch {
+      return "3 - 5 ngày làm việc";
     }
   };
 
@@ -121,7 +133,7 @@ export default function CartPage() {
       }
     };
     fetchOrders();
-  }, [page, pageSize]);
+  }, [page]);
 
   // Initialize selected items once when mounted, and filter out removed items
   useEffect(() => {
@@ -168,7 +180,7 @@ export default function CartPage() {
             <p className="text-muted-foreground max-w-md mx-auto">
               {t("cart.empty_desc")}
             </p>
-            <Link href="/shop" className="btn-hero px-8 py-3 rounded-xl font-bold inline-block mt-4 text-white">
+            <Link href="/shop" className="btn-hero px-8 py-3 rounded-xl font-bold inline-block mt-4 text-black">
               {t("cart.continue_shopping")}
             </Link>
           </div>
@@ -177,14 +189,14 @@ export default function CartPage() {
             {/* Left Column: Cart Items */}
             <div className="lg:col-span-8 space-y-4">
               {items.map((item) => (
-                <div 
-                  key={item.cartItemId || item.id} 
+                <div
+                  key={item.cartItemId || item.id}
                   className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-white/40"
                 >
                   {/* Custom Checkbox */}
                   <label className="flex items-center self-start sm:self-auto pt-2 sm:pt-0 cursor-pointer relative group">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="peer sr-only"
                       checked={selectedItems.includes(item.cartItemId || item.id)}
                       onChange={(e) => {
@@ -217,9 +229,9 @@ export default function CartPage() {
                         ></model-viewer>
                       </div>
                     ) : (
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
+                      <img
+                        src={item.image}
+                        alt={item.name}
                         className="w-full h-full object-cover"
                       />
                     )}
@@ -229,7 +241,7 @@ export default function CartPage() {
                   <div className="flex-1 w-full text-center sm:text-left">
                     <h3 className="font-bold text-foreground mb-1 text-base sm:text-lg line-clamp-1">{item.name}</h3>
                     <p className="text-xs sm:text-sm text-muted-foreground mb-2">Phân loại: {item.category}</p>
-                    
+
                     {/* Greeting Indicator, Preview & Edit Buttons */}
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       {(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate) && (
@@ -237,12 +249,21 @@ export default function CartPage() {
                           <span className="flex items-center gap-1.5">
                             <span className="text-sm">🎁</span> Đã kèm thiệp
                           </span>
-                          {item.selectedTemplate && (
+                          {item.selectedTemplate ? (
                             <>
                               <span className="text-primary/40">•</span>
                               <span className="font-semibold text-primary max-w-[150px] truncate" title={item.selectedTemplate.title}>
                                 {item.selectedTemplate.title}
                               </span>
+                              <span className="text-[11px] text-rose-600 font-bold">
+                                (+{formatPrice(item.selectedTemplate.price || 5000)})
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-primary/40">•</span>
+                              <span className="font-semibold text-primary">Mẫu mặc định</span>
+                              <span className="text-[11px] text-rose-600 font-bold">(+5.000 đ)</span>
                             </>
                           )}
                           <div className="w-px h-3 bg-primary/30 mx-0.5"></div>
@@ -323,9 +344,9 @@ export default function CartPage() {
                                 )}
                               </div>
                               <div className="flex justify-end gap-3">
-                                <button 
+                                <button
                                   onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting?editCartItemId=${encodeURIComponent(item.cartItemId || item.id)}${(item as any).is3D ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
-                                  className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
+                                  className="w-full btn-hero px-6 py-3 rounded-xl text-black font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
                                 >
                                   <Pencil className="w-4 h-4" />
                                   Chỉnh sửa thiệp này
@@ -346,7 +367,7 @@ export default function CartPage() {
                         <span>Chỉnh sửa thiệp</span>
                       </button>
                     </div>
-                    
+
                     <div className="font-bold text-primary mt-1">
                       {formatPrice(item.price)}
                     </div>
@@ -357,14 +378,14 @@ export default function CartPage() {
                     {/* Desktop layout vs Mobile layout */}
                     <div className="flex flex-col sm:flex-row items-center sm:gap-6">
                       <div className="flex items-center bg-white dark:bg-background rounded-2xl border border-primary/20 shadow-sm overflow-hidden h-9">
-                        <button 
+                        <button
                           onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) - 1)}
                           className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="w-8 text-center text-sm font-semibold text-primary">{item.quantity || 1}</span>
-                        <button 
+                        <button
                           onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) + 1)}
                           className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
                         >
@@ -372,12 +393,17 @@ export default function CartPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col items-end gap-1">
                       <div className="font-bold text-base text-foreground">
                         {formatPrice(item.price * (item.quantity || 1))}
                       </div>
-                      <button 
+                      {(item.quantity || 1) > 1 && (
+                        <div className="text-[11px] text-muted-foreground text-right">
+                          {formatPrice(item.price)} / cái
+                        </div>
+                      )}
+                      <button
                         onClick={() => {
                           removeFromCart(item.cartItemId || item.id);
                           toast.success("Đã xoá sản phẩm khỏi giỏ hàng");
@@ -398,7 +424,7 @@ export default function CartPage() {
                 <h2 className="text-xl font-bold font-display text-foreground mb-6">
                   {language === "vi" ? "Tóm tắt đơn hàng" : "Order Summary"}
                 </h2>
-                
+
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("cart.subtotal")}:</span>
@@ -407,8 +433,8 @@ export default function CartPage() {
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{language === "vi" ? "Phí vận chuyển:" : "Shipping:"}</span>
                     <span className="font-bold text-emerald-500">
-                      {subtotal === 0 || subtotal >= 500000 
-                        ? (language === "vi" ? "Miễn phí" : "Free") 
+                      {subtotal === 0 || subtotal >= 500000
+                        ? (language === "vi" ? "Miễn phí" : "Free")
                         : (language === "vi" ? "Từ 20.000 đ (nội thành HCM)" : "From 20,000 VND (HCM local)")}
                     </span>
                   </div>
@@ -428,34 +454,51 @@ export default function CartPage() {
                   )}
                 </div>
 
-                <button 
+                <button
                   onClick={() => {
+                    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                    if (!token) {
+                      toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
+                      router.push("/auth?redirect=/checkout");
+                      return;
+                    }
                     const selectedCartItems = items.filter(i => selectedItems.includes(i.cartItemId || i.id));
-                    const orderItems = selectedCartItems.map(item => ({
-                      product: item,
-                      quantity: item.quantity || 1,
-                      cartItemId: item.cartItemId || item.id,
-                      gift: (item.hasGreeting || item.greetingMessage || item.greetingImage) ? {
-                        giftTitle: `Quà tặng kèm`,
-                        senderName: item.senderName || undefined,
-                        receiverName: item.receiverName || undefined,
-                        message: item.greetingMessage || "",
-                        previewImageUrl: item.greetingImage || null,
-                        theme: "sincere",
-                        messageSource: "Manual"
-                      } : null
-                    }));
+                    const orderItems = selectedCartItems.map(item => {
+                      const hasCard = !!(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate);
+                      const cardFee = item.selectedTemplate?.price || item.cardPrice || (hasCard ? 5000 : 0);
+                      return {
+                        product: {
+                          ...item,
+                          price: item.price,
+                          basePrice: item.basePrice,
+                          cardPrice: cardFee,
+                        },
+                        quantity: item.quantity || 1,
+                        cartItemId: item.cartItemId || item.id,
+                        gift: hasCard ? {
+                          giftTitle: item.selectedTemplate?.title || `Thiệp thông điệp`,
+                          templateTitle: item.selectedTemplate?.title || "Mẫu mặc định",
+                          cardPrice: cardFee,
+                          senderName: item.senderName || undefined,
+                          receiverName: item.receiverName || undefined,
+                          message: item.greetingMessage || "",
+                          previewImageUrl: item.greetingImage || item.selectedTemplate?.image || null,
+                          theme: "sincere",
+                          messageSource: "Manual"
+                        } : null
+                      };
+                    });
                     setItems(orderItems);
                     router.push("/checkout");
                   }}
                   disabled={selectedItems.length === 0}
-                  className="w-full btn-hero py-3.5 rounded-xl text-white font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
+                  className="w-full btn-hero py-3.5 rounded-xl text-black font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {language === "vi" ? "Thanh toán" : "Checkout"} {selectedItems.length > 0 ? `(${selectedItems.length})` : ""}
                 </button>
-                <p className="text-center text-xs text-muted-foreground mt-4 font-medium">
+                {/* <p className="text-center text-xs text-muted-foreground mt-4 font-medium">
                   {language === "vi" ? "Thanh toán sẽ sớm ra mắt ✨" : "Checkout coming soon ✨"}
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
@@ -466,7 +509,7 @@ export default function CartPage() {
           <h2 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
             <Package className="w-6 h-6 text-primary" /> {t("cart.order_history")}
           </h2>
-          
+
           <div className="grid gap-4">
             {isLoadingOrders ? (
               <div className="text-center text-muted-foreground p-4">
@@ -486,21 +529,20 @@ export default function CartPage() {
                 : "Chi thúi (x1)";
 
               return (
-                <div 
-                  key={order.id || orderCode} 
+                <div
+                  key={order.id || orderCode}
                   onClick={() => handleOpenOrderDetail(order)}
                   className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white/40 flex flex-col md:flex-row gap-4 justify-between md:items-center transition-transform hover:-translate-y-1 hover:shadow-md cursor-pointer"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-lg text-foreground">{orderCode}</span>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
-                        status === 'Completed' || status === 'Đã giao thành công'
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${status === 'Completed' || status === 'Đã giao thành công'
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : status === 'Cancelled'
-                          ? 'bg-rose-500/10 text-rose-600'
-                          : 'bg-amber-500/10 text-amber-600'
-                      }`}>
+                            ? 'bg-rose-500/10 text-rose-600'
+                            : 'bg-amber-500/10 text-amber-600'
+                        }`}>
                         {status === 'Completed' || status === 'Đã giao thành công' ? (
                           <CheckCircle2 className="w-3 h-3" />
                         ) : (
@@ -519,7 +561,7 @@ export default function CartPage() {
                   <div className="flex flex-col md:items-end gap-1 border-t md:border-t-0 pt-3 md:pt-0 border-border/50">
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tổng đơn</span>
                     <span className="font-bold text-xl text-primary">{formatPrice(total)}</span>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOpenOrderDetail(order);
@@ -545,19 +587,18 @@ export default function CartPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Chi tiết đơn hàng</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
                             ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                             : selectedOrder.orderStatus === 'Cancelled'
-                            ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                        }`}>
+                              ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                              : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                          }`}>
                           {selectedOrder.orderStatus || 'Processing'}
                         </span>
                       </div>
                       <h2 className="text-xl sm:text-2xl font-extrabold font-display text-foreground mt-1 flex items-center gap-2">
                         <span>{selectedOrder.orderCode || selectedOrder.id}</span>
-                        <button 
+                        <button
                           onClick={() => {
                             navigator.clipboard.writeText(selectedOrder.orderCode || selectedOrder.id);
                             toast.success("Đã sao chép mã đơn hàng!");
@@ -585,61 +626,31 @@ export default function CartPage() {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       {/* Thời gian đặt hàng */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                         <span className="text-muted-foreground font-medium">Thời gian đặt hàng:</span>
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-foreground text-sm">
                           {formatDateTime(selectedOrder.createdAt) || "29/09/2026 14:30:00"}
                         </p>
                         <span className="text-[10px] text-emerald-600 font-semibold block">✓ Dữ liệu thật từ hệ thống</span>
                       </div>
 
-                      {/* Thời gian thanh toán */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                      {/* Thời gian dự kiến nhận hàng */}
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground font-medium">Thời gian thanh toán:</span>
-                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                          <span className="text-muted-foreground font-medium">Thời gian dự kiến nhận hàng:</span>
+                          <span className="text-[10px] text-primary font-semibold">3 - 5 ngày</span>
                         </div>
-                        <p className="font-semibold text-foreground">
-                          {selectedOrder.paymentStatus === 'Paid'
-                            ? formatDateTime(selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 15 * 60000).toISOString() : undefined)
-                            : "Chưa thanh toán (hoặc COD khi nhận hàng)"}
-                        </p>
-                        <span className="text-[10px] text-amber-600/90 italic block">
-                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                        </span>
-                      </div>
-
-                      {/* Thời gian đơn vị vận chuyển lấy hàng */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground font-medium">Thời gian ĐVVC lấy hàng:</span>
-                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                        </div>
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-foreground text-sm">
                           {selectedOrder.orderStatus === 'Cancelled'
                             ? "Đơn hàng đã hủy"
-                            : formatDateTime(selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 4 * 3600000).toISOString() : undefined)}
+                            : selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
+                              ? `Đã nhận hàng (${formatDateTime(selectedOrder.updatedAt || selectedOrder.createdAt)})`
+                              : getEstimatedDelivery(selectedOrder.createdAt)}
                         </p>
-                        <span className="text-[10px] text-amber-600/90 italic block">
-                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                        </span>
-                      </div>
-
-                      {/* Thời gian hoàn thành đơn hàng */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground font-medium">Thời gian hoàn thành:</span>
-                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                        </div>
-                        <p className="font-semibold text-foreground">
-                          {selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
-                            ? formatDateTime(selectedOrder.updatedAt || (selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 48 * 3600000).toISOString() : undefined))
-                            : selectedOrder.orderStatus === 'Cancelled'
-                            ? "Đơn hàng đã hủy"
-                            : "Đang vận chuyển / Chưa hoàn thành"}
-                        </p>
-                        <span className="text-[10px] text-amber-600/90 italic block">
-                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
+                        <span className="text-[10px] text-muted-foreground italic block">
+                          {selectedOrder.orderStatus === 'Cancelled'
+                            ? "Đơn hàng không tiếp tục giao"
+                            : "Thời gian giao hàng tiêu chuẩn qua đơn vị vận chuyển"}
                         </span>
                       </div>
                     </div>
@@ -726,18 +737,17 @@ export default function CartPage() {
                           {selectedOrder.paymentMethod === 'BankTransfer'
                             ? 'Chuyển khoản QR Banking (PayOS)'
                             : selectedOrder.paymentMethod === 'Cod'
-                            ? 'Thanh toán khi nhận hàng (COD)'
-                            : selectedOrder.paymentMethod || 'Thanh toán khi nhận hàng (COD)'}
+                              ? 'Thanh toán khi nhận hàng (COD)'
+                              : selectedOrder.paymentMethod || 'Thanh toán khi nhận hàng (COD)'}
                         </span>
                       </div>
                     </div>
                     <div className="sm:text-right">
                       <span className="text-muted-foreground font-medium block">Trạng thái thanh toán:</span>
-                      <span className={`font-bold inline-block px-2.5 py-0.5 rounded-full text-xs ${
-                        selectedOrder.paymentStatus === 'Paid'
+                      <span className={`font-bold inline-block px-2.5 py-0.5 rounded-full text-xs ${selectedOrder.paymentStatus === 'Paid'
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : 'bg-amber-500/10 text-amber-600'
-                      }`}>
+                        }`}>
                         {selectedOrder.paymentStatus === 'Paid' ? '✓ Đã thanh toán' : 'Chưa thanh toán'}
                       </span>
                     </div>
@@ -766,9 +776,9 @@ export default function CartPage() {
                           <div key={idx} className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-xs space-y-3">
                             <div className="flex items-center gap-3">
                               <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/40">
-                                <img 
-                                  src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"} 
-                                  alt={item.productName || item.name} 
+                                <img
+                                  src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"}
+                                  alt={item.productName || item.name}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
@@ -846,44 +856,24 @@ export default function CartPage() {
 
           {/* Pagination Controls */}
           {orderHistory.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 bg-white/40 dark:bg-card/40 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
-                <span>Hiển thị</span>
-                <select 
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                  className="bg-background border border-border rounded-lg px-2 py-1 text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer"
-                >
-                  <option value={3}>3</option>
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
-                <span>đơn hàng</span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1 || isLoadingOrders}
-                  className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <span className="text-sm font-bold w-24 text-center">
-                  Trang {page} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages || isLoadingOrders}
-                  className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
+            <div className="flex items-center justify-center gap-3 mt-6 bg-white/40 dark:bg-card/40 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1 || isLoadingOrders}
+                className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm font-bold min-w-24 text-center">
+                Trang {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages || isLoadingOrders}
+                className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           )}
         </div>

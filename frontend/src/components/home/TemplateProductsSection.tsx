@@ -56,7 +56,7 @@ export function TemplateProductsSection() {
 
   const itemsPerPage = 8;
   const totalPages = Math.ceil(products.length / itemsPerPage);
-  
+
   const displayedProducts = products.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -77,7 +77,7 @@ export function TemplateProductsSection() {
         <div className="relative flex items-center justify-center mb-12 sm:mb-16 py-4">
           {/* Aura Effect */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-3xl h-[150%] bg-[#ffd1da] opacity-80 blur-[50px] rounded-[100%] pointer-events-none" />
-          
+
           <div className="relative inline-flex items-center gap-3 sm:gap-4 z-10">
             <Sparkles className="h-7 w-7 sm:h-10 sm:w-10 text-[#4a0b19]" strokeWidth={2.5} />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#4a0b19] tracking-tight text-center">
@@ -133,7 +133,15 @@ export function TemplateProductsSection() {
                 {/* Buttons */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <button
-                    onClick={() => router.push(`/shop/template-${product.id}/greeting`)}
+                    onClick={() => {
+                      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                      if (!token) {
+                        toast.info("Vui lòng đăng nhập hoặc đăng ký để mua sản phẩm!");
+                        router.push(`/auth?redirect=/shop/template-${product.id}/greeting`);
+                        return;
+                      }
+                      router.push(`/shop/template-${product.id}/greeting`);
+                    }}
                     className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                   >
                     <ShoppingCart className="h-4 w-4" /> {t("template.buy_now")}
@@ -151,13 +159,13 @@ export function TemplateProductsSection() {
 
                 {/* Links */}
                 <div className="flex items-center justify-between text-[11px] sm:text-xs font-medium px-1">
-                  <button 
+                  {/* <button 
                     onClick={() => handleOpenVideo(product)}
                     className="flex items-center gap-1.5 text-blue-500 hover:underline hover:text-blue-600 transition-all cursor-pointer"
                   >
                     <Info className="h-3.5 w-3.5" /> {t("template.guide")}
-                  </button>
-                  <button 
+                  </button> */}
+                  <button
                     onClick={() => handleOpenVideo(product)}
                     className="flex items-center gap-1.5 text-rose-500 hover:underline hover:text-rose-600 transition-all cursor-pointer font-semibold"
                   >
@@ -175,11 +183,10 @@ export function TemplateProductsSection() {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors ${
-                currentPage === 1 
-                  ? "opacity-50 cursor-not-allowed bg-muted/50 text-muted-foreground" 
+              className={`flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors ${currentPage === 1
+                  ? "opacity-50 cursor-not-allowed bg-muted/50 text-muted-foreground"
                   : "hover:bg-muted text-foreground"
-              }`}
+                }`}
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -189,11 +196,10 @@ export function TemplateProductsSection() {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors ${
-                currentPage === totalPages 
-                  ? "opacity-50 cursor-not-allowed bg-muted/50 text-muted-foreground" 
+              className={`flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors ${currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed bg-muted/50 text-muted-foreground"
                   : "hover:bg-muted text-foreground"
-              }`}
+                }`}
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -202,7 +208,7 @@ export function TemplateProductsSection() {
       </div>
 
       {/* Product Demo Modal */}
-      <ProductDemoModal 
+      <ProductDemoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         product={selectedProduct}

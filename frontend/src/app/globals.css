@@ -124,7 +124,7 @@
 
 @utility btn-hero {
   background: linear-gradient(to right, #fecdd3, #ffd0d7, #fda4af);
-  color: #4c0519;
+  color: #000000 !important;
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 4px 14px rgba(253, 164, 175, 0.35);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -132,8 +132,10 @@
     transform: translateY(-6px);
     background: linear-gradient(to right, #ffe4e6, #fecdd3);
     box-shadow: 0 8px 20px rgba(253, 164, 175, 0.5);
+    color: #000000 !important;
   }
   & svg {
+    color: #000000 !important;
     transition: transform 0.3s ease;
   }
   &:hover svg {

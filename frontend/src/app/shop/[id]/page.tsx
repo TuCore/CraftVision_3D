@@ -279,7 +279,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                   toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
                   router.push("/cart");
                 }}
-                className="w-full py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 text-base transition-colors btn-hero text-white"
+                className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] shadow-lg shadow-rose-300/40 hover:shadow-rose-400/50 border border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer"
               >
                 <ShoppingBag className="h-5 w-5" />
                 Thêm vào giỏ hàng
@@ -413,7 +413,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                         e.stopPropagation();
                         router.push(`/shop/${p.id}`);
                       }}
-                      className="w-full py-2.5 rounded-xl btn-hero text-sm font-semibold mt-auto"
+                      className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto"
                     >
                       Xem chi tiết
                     </button>

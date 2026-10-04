@@ -48,7 +48,7 @@ export default function AdminOrderDetailPage() {
       </div>
       <h3 className="text-2xl font-extrabold font-display">Không tìm thấy đơn hàng</h3>
       <p className="text-muted-foreground font-medium">Có lỗi xảy ra hoặc đơn hàng không tồn tại trong hệ thống.</p>
-      <Link href="/admin/orders" className="btn-hero px-6 py-2.5 rounded-xl font-bold mt-4 shadow-sm">
+      <Link href="/admin/orders" className="btn-hero text-black px-6 py-2.5 rounded-xl font-bold mt-4 shadow-sm">
         Quay lại danh sách
       </Link>
     </div>
@@ -168,7 +168,7 @@ export default function AdminOrderDetailPage() {
                 <button 
                   onClick={handleUpdateStatus}
                   disabled={isPending || ((selectedStatus || order.orderStatus) === order.orderStatus)}
-                  className="btn-hero text-white w-full py-3.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                  className="btn-hero text-black w-full py-3.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
                 >
                   {isPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thay Đổi'}
                 </button>

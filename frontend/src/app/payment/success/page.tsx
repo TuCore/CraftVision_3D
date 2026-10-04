@@ -40,7 +40,7 @@ export default function PaymentSuccessPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-          <Link href="/cart" className="flex-1 btn-hero py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-coral-glow">
+          <Link href="/cart" className="flex-1 btn-hero text-black py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-coral-glow">
             <Package className="w-5 h-5" /> Xem đơn hàng
           </Link>
           <Link href="/shop" className="flex-1 bg-card hover:bg-muted border border-border py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">

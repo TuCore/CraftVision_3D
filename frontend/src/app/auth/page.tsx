@@ -146,7 +146,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setMode("login")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-                  mode === "login" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
+                  mode === "login" ? "btn-hero text-black" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Đăng nhập
@@ -154,7 +154,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setMode("register")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-                  mode === "register" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
+                  mode === "register" ? "btn-hero text-black" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Đăng ký
@@ -208,16 +208,28 @@ export default function AuthPage() {
                   <a href="#" className="text-primary font-medium hover:underline">Quên mật khẩu?</a>
                 </div>
               ) : (
-                <label className="flex items-start gap-2 text-sm text-muted-foreground cursor-pointer">
-                  <Checkbox className="mt-0.5" />
-                  <span>Tôi đồng ý với <a href="#" className="text-primary font-medium">Điều khoản</a> và <a href="#" className="text-primary font-medium">Chính sách bảo mật</a>.</span>
-                </label>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <Checkbox id="terms-auth" className="mt-0.5" />
+                  <div>
+                    <label htmlFor="terms-auth" className="cursor-pointer">
+                      Tôi đồng ý với{" "}
+                    </label>
+                    <Link href="/terms" className="text-primary font-medium hover:underline">Điều khoản</Link>{" "}
+                    <label htmlFor="terms-auth" className="cursor-pointer">
+                      và{" "}
+                    </label>
+                    <Link href="/privacy" className="text-primary font-medium hover:underline">Chính sách bảo mật</Link>
+                    <label htmlFor="terms-auth" className="cursor-pointer">
+                      .
+                    </label>
+                  </div>
+                </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-hero w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
+                className="btn-hero text-black w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
               >
                 {loading ? "Đang xử lý..." : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
                 <ArrowRight className="h-4 w-4" />
