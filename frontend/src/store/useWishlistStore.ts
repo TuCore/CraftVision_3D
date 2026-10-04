@@ -5,6 +5,8 @@ import { Product } from '@/lib/product.types';
 export interface CartItem extends Product {
   cartItemId: string;
   quantity: number;
+  basePrice?: number;
+  cardPrice?: number;
   hasGreeting?: boolean;
   greetingMessage?: string;
   greetingImage?: string;
@@ -67,6 +69,10 @@ export const useWishlistStore = create<WishlistStore>()(
           const newItems = [...state.items];
           newItems[existsIndex] = { 
             ...newItems[existsIndex], 
+            ...product,
+            price: product.price,
+            basePrice: (product as any).basePrice ?? newItems[existsIndex].basePrice,
+            cardPrice: (product as any).cardPrice ?? newItems[existsIndex].cardPrice,
             quantity: preserveQuantity ? newItems[existsIndex].quantity : newItems[existsIndex].quantity + 1,
             hasGreeting: hasGreeting !== undefined ? hasGreeting : newItems[existsIndex].hasGreeting,
             greetingMessage: greetingMessage !== undefined ? greetingMessage : newItems[existsIndex].greetingMessage,
