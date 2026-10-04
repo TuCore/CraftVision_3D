@@ -133,7 +133,15 @@ export function TemplateProductsSection() {
                 {/* Buttons */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <button
-                    onClick={() => router.push(`/shop/template-${product.id}/greeting`)}
+                    onClick={() => {
+                      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                      if (!token) {
+                        toast.info("Vui lòng đăng nhập hoặc đăng ký để mua sản phẩm!");
+                        router.push(`/auth?redirect=/shop/template-${product.id}/greeting`);
+                        return;
+                      }
+                      router.push(`/shop/template-${product.id}/greeting`);
+                    }}
                     className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                   >
                     <ShoppingCart className="h-4 w-4" /> {t("template.buy_now")}

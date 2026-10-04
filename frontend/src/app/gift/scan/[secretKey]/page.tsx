@@ -173,7 +173,7 @@ export default function GiftScanPage() {
           </p>
           <button 
             onClick={() => setShowContent(true)}
-            className="btn-hero px-12 py-5 rounded-full text-xl font-bold shadow-coral-glow hover:scale-105 transition-transform flex items-center gap-3 animate-bounce"
+            className="btn-hero text-black px-12 py-5 rounded-full text-xl font-bold shadow-coral-glow hover:scale-105 transition-transform flex items-center gap-3 animate-bounce"
           >
             <Sparkles className="w-6 h-6" /> Mở Quà Ngay
           </button>

@@ -61,7 +61,7 @@ export default function AdminProductsPage() {
         </div>
         <button 
           onClick={() => { setSelectedProduct(null); setModalOpen(true); }}
-          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-white"
+          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-black"
         >
           <Plus className="w-5 h-5" /> Tạo Sản phẩm Mới
         </button>

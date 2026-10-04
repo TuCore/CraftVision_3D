@@ -97,7 +97,7 @@ export default function ShopPage() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === cat
-                    ? "btn-hero text-white"
+                    ? "btn-hero text-black font-bold"
                     : "glass-card border border-border hover:bg-white/50 text-foreground"
                 }`}
               >
@@ -120,7 +120,7 @@ export default function ShopPage() {
             </div>
             <DialogTrigger asChild>
               <button 
-                className="btn-hero px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
+                className="btn-hero text-black px-6 py-3 rounded-xl font-semibold whitespace-nowrap shrink-0 hover:scale-105 transition-transform"
               >
                 Nhận tư vấn ngay
               </button>
@@ -157,7 +157,7 @@ export default function ShopPage() {
                 />
               </div>
 
-              {/* Liên hệ trực tiếp qua Facebook / TikTok */}
+              {/* Liên hệ trực tiếp qua Facebook / Instagram */}
               <div className="pt-1">
                 <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground font-medium">
                   <span className="h-px bg-border flex-1" />
@@ -177,15 +177,15 @@ export default function ShopPage() {
                     <span>Facebook</span>
                   </a>
                   <a
-                    href="https://www.tiktok.com/@sixc.ent?is_from_webapp=1&sender_device=pc"
+                    href="https://www.instagram.com/sixc.ent921?stkn=MTNpaDFpZGFicDl2cQ%3D%3D&utm_source=qr"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-900/10 hover:bg-neutral-900/20 dark:bg-white/10 dark:hover:bg-white/20 text-foreground border border-border font-semibold text-xs transition-all hover:scale-[1.02] shadow-sm"
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#E1306C]/10 hover:bg-[#E1306C]/20 text-[#E1306C] border border-[#E1306C]/30 font-semibold text-xs transition-all hover:scale-[1.02] shadow-sm"
                   >
                     <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0011.3 3.93v-8.12a8.27 8.27 0 003.29.69v-3.45a4.79 4.79 0 01-2-.04z" />
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                     </svg>
-                    <span>TikTok</span>
+                    <span>Instagram</span>
                   </a>
                 </div>
               </div>
@@ -193,7 +193,7 @@ export default function ShopPage() {
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => toast.success("Đã gửi thông tin! Chúng tôi sẽ liên hệ sớm nhất.")}
-                className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2"
+                className="w-full btn-hero px-6 py-3 rounded-xl text-black font-semibold flex items-center justify-center gap-2"
               >
                 Gửi yêu cầu
               </button>
@@ -253,7 +253,7 @@ export default function ShopPage() {
                     e.stopPropagation();
                     router.push(`/shop/${product.id}`);
                   }}
-                  className="w-full py-2.5 rounded-xl btn-hero text-sm font-semibold mt-auto"
+                  className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto"
                 >
                   {t("shop.view_details")}
                 </button>

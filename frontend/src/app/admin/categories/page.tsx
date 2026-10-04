@@ -87,7 +87,7 @@ export default function AdminCategoriesPage() {
           <button 
             type="submit"
             disabled={isCreating}
-            className="btn-hero px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-white disabled:opacity-50"
+            className="btn-hero px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-black disabled:opacity-50"
           >
             {isCreating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />} 
             Thêm mới

@@ -8,6 +8,7 @@ import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Footer } from "@/components/Footer";
 import { LanguageSwitcher, FlagVN, FlagUK } from "@/components/LanguageSwitcher";
+import { toast } from "sonner";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
   const { t, language, setLanguage } = useTranslation();
@@ -48,7 +49,13 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     prevCount.current = wishlistCount;
   }, [wishlistCount]);
 
-  const handleNavClick = (key: string) => {
+  const handleNavClick = (key: string, e?: React.MouseEvent) => {
+    if (isGuest && key === 'chat') {
+      e?.preventDefault();
+      toast.info("Vui lòng đăng nhập hoặc đăng ký để sử dụng Vision Plus!");
+      router.push("/auth?redirect=/chat");
+      return;
+    }
     setBumpingKey(key);
     setTimeout(() => setBumpingKey(null), 400);
   };
@@ -60,10 +67,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     { to: "/chat", label: t("nav.ai"), icon: MessageCircle, key: "chat" },
   ] as const;
 
-  const visibleNav = nav.filter(item => {
-    if (isGuest && item.key === 'chat') return false;
-    return true;
-  });
+  const visibleNav = nav;
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -81,7 +85,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const isHomePage = pathname === "/home" || active === "home";
+  const isHomePage = pathname === "/home" || pathname === "/" || active === "home";
   const isTransparentNav = isHomePage && !isScrolled;
 
   // Avoid showing full screen loader if we are just hydrating with a token
@@ -147,13 +151,13 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           <nav className="hidden md:flex items-center gap-1.5">
             {visibleNav.map((item) => {
               const Icon = item.icon;
-              const isActive = active === item.key;
+              const isActive = active === item.key || (item.key === "home" && (pathname === "/" || pathname === "/home"));
               const isCart = (item.key as string) === "cart";
               return (
                 <Link
                   key={item.key}
                   href={item.to}
-                  onClick={() => handleNavClick(item.key)}
+                  onClick={(e) => handleNavClick(item.key, e)}
                   className={`relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-300 ${
                     isTransparentNav
                       ? isActive
@@ -185,15 +189,25 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             <LanguageSwitcher isTransparentNav={isTransparentNav} />
 
             {isGuest ? (
-              <Link
-                href="/auth"
-                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold shadow-sm transition-all hover:scale-105 ${
-                  isTransparentNav ? "bg-white text-black" : "bg-[color:var(--coral)] text-white"
-                }`}
-              >
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">{t("nav.login")}</span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/auth"
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition-all ${
+                    isTransparentNav
+                      ? "bg-white/20 hover:bg-white/30 text-white backdrop-blur-md"
+                      : "bg-muted/70 hover:bg-muted text-foreground"
+                  }`}
+                >
+                  <User className="h-4 w-4" />
+                  <span>{t("nav.login")}</span>
+                </Link>
+                <Link
+                  href="/auth"
+                  className="btn-hero hidden sm:inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold text-black shadow-sm hover:scale-105 transition-transform"
+                >
+                  <span>Bắt đầu</span>
+                </Link>
+              </div>
             ) : isDemo ? (
               <Link
                 href="/auth"
@@ -306,9 +320,9 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   <Link
                     key={item.key}
                     href={item.to}
-                    onClick={() => {
+                    onClick={(e) => {
                       setIsMobileMenuOpen(false);
-                      handleNavClick(item.key);
+                      handleNavClick(item.key, e);
                     }}
                     className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       isActive

@@ -172,7 +172,7 @@ export default function AdminVideosPage() {
         </div>
         <button
           onClick={() => handleOpenAdd()}
-          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-white cursor-pointer w-fit"
+          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-black cursor-pointer w-fit"
         >
           <Plus className="w-5 h-5" /> Thêm / Cập Nhật Video
         </button>
@@ -535,7 +535,7 @@ export default function AdminVideosPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="btn-hero rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all shadow-coral-glow disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-2"
+                className="btn-hero rounded-xl px-6 py-2.5 text-sm font-bold text-black transition-all shadow-coral-glow disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-2"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 Lưu Thay Đổi

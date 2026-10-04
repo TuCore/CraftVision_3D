@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { AudioPlayer } from '@/components/greeting-card/AudioPlayer';
 import { EnvelopeUnfold } from '@/components/greeting-card/EnvelopeUnfold';
 import { SceneContainer } from '@/components/greeting-card/scene/SceneContainer';
+import { ExperienceCanvas } from '@/components/experience/ExperienceCanvas';
+import { CandleScene } from '@/components/experience/scenes/CandleScene';
 import { Sparkles, CreditCard, MessageSquare, ArrowLeft, Heart } from 'lucide-react';
 import { useOrderStore } from '@/store/useOrderStore';
 import { toast } from 'sonner';
@@ -87,7 +89,13 @@ function GreetingCardContent() {
       {/* Hiệu ứng 3D chỉ xuất hiện sau khi mở thư hoặc luôn render nhưng bị che đi */}
       {isOpened && (
         <div className="absolute inset-0 z-0 animate-in fade-in duration-1000">
-          <SceneContainer customImage={data.photoUrl} />
+          {Number(data.templateId) === 5 ? (
+            <ExperienceCanvas>
+              <CandleScene />
+            </ExperienceCanvas>
+          ) : (
+            <SceneContainer customImage={data.photoUrl} />
+          )}
         </div>
       )}
 
@@ -130,7 +138,7 @@ function GreetingCardContent() {
           <div className="absolute top-6 right-20 z-30">
             <button
               onClick={handlePayNow}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full btn-hero text-white text-xs font-bold shadow-coral-glow hover:scale-105 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full btn-hero text-black text-xs font-bold shadow-coral-glow hover:scale-105 transition-all cursor-pointer"
             >
               <CreditCard className="w-4 h-4" /> Thanh toán thiệp này
             </button>
@@ -166,7 +174,7 @@ function GreetingCardContent() {
                   </button>
                   <button
                     onClick={handlePayNow}
-                    className="flex-1 py-2.5 rounded-xl btn-hero text-white text-xs font-bold shadow-sm cursor-pointer"
+                    className="flex-1 py-2.5 rounded-xl btn-hero text-black text-xs font-bold shadow-sm cursor-pointer"
                   >
                     Thanh toán ngay
                   </button>

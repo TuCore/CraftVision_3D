@@ -145,14 +145,23 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
 
             <div className="grid grid-cols-2 gap-3 mt-2">
               <button 
-                onClick={() => toast.info(t("demo.live_view"))}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-colors text-sm"
+                onClick={() => {
+                  onClose();
+                  router.push(`/love-gift`);
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-colors text-sm cursor-pointer"
               >
                 <Eye className="w-4 h-4" /> {t("demo.live_view")}
               </button>
               <button 
                 onClick={() => {
                   onClose();
+                  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                  if (!token) {
+                    toast.info("Vui lòng đăng nhập hoặc đăng ký để mua sản phẩm!");
+                    router.push(`/auth?redirect=/shop/template-${product.id}/greeting`);
+                    return;
+                  }
                   router.push(`/shop/template-${product.id}/greeting`);
                 }}
                 className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors shadow-sm text-sm cursor-pointer"
