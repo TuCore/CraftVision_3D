@@ -2,6 +2,8 @@ export const dictionaries = {
   vi: {
     // Navigation (AppShell)
     "nav.home": "Trang chủ",
+    "nav.love_gift": "Thiệp 3D",
+    "home.view_love_gift": "Xem thiệp 3D",
     "nav.shop": "Cửa hàng",
     "nav.manifest": "Manifest",
     "nav.ai": "Vision plus",
@@ -174,6 +176,8 @@ export const dictionaries = {
   en: {
     // Navigation (AppShell)
     "nav.home": "Home",
+    "nav.love_gift": "3D Gift Card",
+    "home.view_love_gift": "View 3D Gift Card",
     "nav.shop": "Shop",
     "nav.manifest": "Manifest",
     "nav.ai": "Vision plus",

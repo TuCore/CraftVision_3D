@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { Sparkles, MessageCircle, ChevronDown } from "lucide-react";
+import { Sparkles, MessageCircle, ChevronDown, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Studio3DSection } from "@/components/studio/Studio3DSection";
@@ -182,6 +182,13 @@ export default function HomePage() {
                 })()}
                 {slides[activeSlide].btn1Text}
               </button>
+              <Link
+                href="/love-gift"
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full border border-white/50 bg-white/10 backdrop-blur-md text-white font-bold text-sm sm:text-base hover:bg-white/20 transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                <Heart className="h-5 w-5 text-rose-200" aria-hidden="true" />
+                {t("home.view_love_gift")}
+              </Link>
             </div>
           </div>
 
