@@ -60,7 +60,7 @@ export const dictionaries = {
     // Template Video Modal
     "video.default_header": "Video Hướng Dẫn Thanh Toán",
     "video.default_caption": "Hướng Dẫn Thanh Toán An Toàn",
-    "video.default_desc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "video.default_desc": "Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận.",
     "video.view_detail": "Xem Hướng Dẫn Chi Tiết",
     "video.close": "Đóng",
 
@@ -237,7 +237,7 @@ export const dictionaries = {
     // Template Video Modal
     "video.default_header": "Payment Tutorial Video",
     "video.default_caption": "Secure Payment Guide",
-    "video.default_desc": "Detailed video tutorial on making secure payments with QR Banking and ZaloPay",
+    "video.default_desc": "PayOS payment guide: open your banking app, scan the QR code on the checkout page, and review the payment details before confirming.",
     "video.view_detail": "View Detailed Guide",
     "video.close": "Close",
 
