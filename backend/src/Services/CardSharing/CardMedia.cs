@@ -52,7 +52,7 @@ public sealed class CardMedia(CardDatabase db, IConfiguration configuration)
     public async Task<StoredAsset> Get(Guid id, Guid? owner, CancellationToken ct)
     {
         var asset = await db.Assets.AsNoTracking().SingleOrDefaultAsync(a => a.Id == id, ct);
-        if (asset is null || (asset.OwnerId != owner && !await db.PublishedAssets.AnyAsync(p => p.AssetId == id, ct))) throw new CardError(404, "Không tìm thấy media.");
+        if (asset is null || (asset.OwnerId != owner && !await db.PublishedAssets.AnyAsync(p => p.AssetId == id && db.Cards.Any(c => c.Id == p.CardId && c.PaidAt != null && c.ShareToken != null), ct))) throw new CardError(404, "Không tìm thấy media.");
         return asset;
     }
 }

@@ -7,13 +7,43 @@ info:
     All frontend requests use the same-origin /api Gateway. Card data has its own database.
     Public reads never expose owner identifiers or unpublished edits. Media is represented
     by /api/cards/media/{id}, never inline base64 or arbitrary external URLs.
-    This API publishes the free personalization collection; it does not grant a paid
-    order, NFC activation or paid product entitlement.
+    Drafts and local previews are free. Publication and public media require a paid
+    entitlement for that individual saved card. Existing unpaid links are blocked.
+    Payment is verified server-to-server with PayOS, never from browser return parameters.
+    Prices in VND are defined by card-prices.json; clients cannot submit an amount.
+    Payment covers subsequent edits and republication of the same card and template.
 servers:
   - url: /
 security:
   - bearerAuth: []
 paths:
+  /api/cards/{id}/payment:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Create or reuse the owner's PayOS QR checkout for a saved card
+      description: Returns a PayOS checkout URL. Pending orders are reused; cancelled or expired orders can be retried. Provider errors never return a dummy URL.
+      responses:
+        '200':
+          description: Payment status and checkout URL
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CardPayment' }
+        '401': { description: Sign in required }
+        '404': { description: Card not owned or not found }
+        '503': { description: Payment provider unavailable or not configured }
+    get:
+      summary: Verify payment directly with PayOS and return the saved entitlement
+      description: Requires matching stored order code, payment link ID, VND amount, full amount paid and PAID status. Query parameters from a checkout redirect are never proof of payment.
+      responses:
+        '200':
+          description: Verified payment state; paid does not publish the draft automatically
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CardPayment' }
+        '401': { description: Sign in required }
+        '404': { description: Card not owned or not found }
+        '503': { description: Could not verify payment; publication remains blocked }
   /api/cards:
     get:
       summary: List the caller's cards, newest first (maximum 100)
@@ -83,7 +113,7 @@ paths:
       - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
     post:
       summary: Publish an immutable copy of the saved draft, or explicitly replace that snapshot
-      description: A cryptographically random 256-bit token is created on first publication or after revocation. Updating a live snapshot retains its link.
+      description: Requires verified payment for this card. A cryptographically random 256-bit token is created on first publication or after revocation. Updating a live snapshot retains its link.
       requestBody:
         required: true
         content:
@@ -96,6 +126,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/OwnerCard' }
         '404': { description: Not found or not owned }
+        '402': { description: Card payment required before publication }
         '409': { description: Stale revision }
   /api/cards/{id}/publication:
     parameters:
@@ -182,6 +213,13 @@ components:
           type: object
           description: Validated against the versioned template schema; maximum 256 KiB JSON. Media values must be owned references.
           additionalProperties: true
+    CardPayment:
+      type: object
+      required: [status, amount, checkoutUrl]
+      properties:
+        status: { type: string, enum: [UNPAID, PENDING, PROCESSING, PAID, CANCELLED, EXPIRED] }
+        amount: { type: integer, description: Server-calculated amount in VND }
+        checkoutUrl: { type: string, nullable: true }
     OwnerCard:
       type: object
       required: [id, revision, draft, updatedAt, sharePath]
@@ -191,4 +229,5 @@ components:
         draft: { $ref: '#/components/schemas/Draft' }
         updatedAt: { type: string, format: date-time }
         publishedAt: { type: string, format: date-time, nullable: true }
+        paidAt: { type: string, format: date-time, nullable: true }
         sharePath: { type: string, nullable: true, example: '/love-gift/s/a-random-256-bit-token' }

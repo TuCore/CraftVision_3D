@@ -1,7 +1,8 @@
 import { fieldsFor, cardTemplates, type CardDraft } from "./catalog";
 import { parseDraft } from "./storage";
 
-export interface ServerCard { id: string; revision: number; draft: CardDraft; updatedAt: string; publishedAt: string | null; sharePath: string | null }
+export interface ServerCard { id: string; revision: number; draft: CardDraft; updatedAt: string; publishedAt: string | null; sharePath: string | null; paidAt: string | null }
+export interface CardPayment { status: "UNPAID" | "PENDING" | "PROCESSING" | "PAID" | "CANCELLED" | "EXPIRED"; amount: number; checkoutUrl: string | null }
 export async function cardRequest<T>(path: string, options: RequestInit = {}, authenticated = true): Promise<T> {
   const headers = new Headers(options.headers);
   if (authenticated) {

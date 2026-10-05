@@ -3,6 +3,13 @@ const assert = require('node:assert/strict');
 const { cardTemplates, categories, defaultDraft, fieldsFor, validateDraft } = require('../node_modules/.card-tests/catalog.js');
 const { parseDraft } = require('../node_modules/.card-tests/storage.js');
 
+test('all card prices match the authoritative backend contract', () => {
+  const prices = require('../../api-specs/card-prices.json');
+  assert.deepEqual(require('../src/data/card-prices.json'), prices);
+  assert.deepEqual(Object.keys(prices).sort(), cardTemplates.map(card => card.slug).sort());
+  for (const price of Object.values(prices)) assert.ok(Number.isInteger(price) && price >= 29000 && price <= 49000);
+});
+
 test('API field schema stays in sync with all frontend templates', () => {
   const schema = require('../../api-specs/card-fields.json');
   assert.deepEqual(schema, Object.fromEntries(cardTemplates.map(t => [t.slug, fieldsFor(t)])));
