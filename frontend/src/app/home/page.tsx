@@ -183,7 +183,14 @@ export default function HomePage() {
                 {slides[activeSlide].btn1Text}
               </button>
               <Link
-                href="/cards"
+                href="#template-products"
+                onClick={(event) => {
+                  event.preventDefault();
+                  document.getElementById("template-products")?.scrollIntoView({
+                    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+                    block: "start",
+                  });
+                }}
                 className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full border border-white/50 bg-white/10 backdrop-blur-md text-white font-bold text-sm sm:text-base hover:bg-white/20 transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
                 <Heart className="h-5 w-5 text-rose-200" aria-hidden="true" />
