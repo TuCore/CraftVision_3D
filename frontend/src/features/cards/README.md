@@ -35,7 +35,7 @@ Bản nháp nằm trong IndexedDB của trình duyệt. Link `?draft=1` không t
 
 ## Phạm vi và giới hạn
 
-Đã có backend lưu bản nháp, upload media, xuất bản/cập nhật/thu hồi link. Xem cấu hình và cách dùng trong [hướng dẫn triển khai](../../../../docs/card-sharing-deployment.md). Chưa có thanh toán cho bộ 54 mẫu, mật khẩu truy cập hay hẹn giờ gửi.
+Đã có backend lưu bản nháp, upload media, thanh toán QR qua PayOS và xuất bản/cập nhật/thu hồi link. Bản nháp và xem thử miễn phí; link công khai yêu cầu backend xác nhận thanh toán riêng cho thiệp. Xem cấu hình và cách dùng trong [hướng dẫn triển khai](../../../../docs/card-sharing-deployment.md). Chưa có mật khẩu truy cập hay hẹn giờ gửi.
 
 Model dùng hình học procedural, chưa đạt mức tài sản 3D chân thực. Tương tác có ba kiểu: chạm theo bước, kéo thanh điều khiển và giữ; có nút thay thế cho bàn phím. Một số chi tiết trong ý tưởng ban đầu (ví dụ kéo thả từng vật đúng vị trí, nhân vật diễn xuất, đường ray nhiều ga và âm thanh môi trường riêng) cần tiếp tục trau chuốt. Dữ liệu riêng được đưa vào nhãn trên model ở các vị trí được hỗ trợ và phần kỷ niệm trong thư; không phải mọi trường đều biến đổi hình học 3D.
 

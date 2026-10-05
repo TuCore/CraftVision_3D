@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { commonFields, defaultDraft, fieldsFor, validateDraft, type CardField, type CardTemplate, type CardValue } from "./catalog";
 import { importPhoto, importAudio, parseDraft, readDraft, saveDraft } from "./storage";
-import { cardRequest, downloadDraft, uploadDraft, type ServerCard } from "./server";
+import { cardRequest, downloadDraft, uploadDraft, type ServerCard, type CardPayment } from "./server";
+import { getCardCommerce, formatCardPrice } from "./commerce";
 import "./cards.css";
 
 export default function CardEditor({ template }: { template: CardTemplate }) {
@@ -22,6 +23,8 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
   const [shareUrl, setShareUrl] = useState("");
   const [loadFailed, setLoadFailed] = useState(false);
   const [loginPath, setLoginPath] = useState(`/cards/${template.slug}/edit`);
+  const [payment, setPayment] = useState<CardPayment | null>(null);
+  const price = payment?.amount ?? getCardCommerce(template.slug).salePrice;
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
     let cancelled = false;
@@ -35,6 +38,17 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
           if (card.draft.template !== template.slug) throw new Error("Thiệp này thuộc một mẫu khác. Hãy mở từ Thiệp của tôi.");
           const saved = await downloadDraft(card.draft);
           if (!cancelled) { setDraft(saved); setServerCard(card); setShareUrl(card.sharePath ? window.location.origin + card.sharePath : ""); }
+          // A PayOS redirect is only a prompt to verify; its query parameters never grant access.
+          try {
+            const status = await cardRequest<CardPayment>(`/${card.id}/payment`);
+            if (!cancelled) {
+              setPayment(status);
+              if (status.status === "PAID") {
+                const verified = await cardRequest<ServerCard>(`/${card.id}`);
+                if (!cancelled) { setServerCard(verified); setShareUrl(verified.sharePath ? window.location.origin + verified.sharePath : ""); setNotice("Đã xác nhận thanh toán. Bạn có thể xuất bản và tạo link thiệp."); }
+              } else if (new URLSearchParams(window.location.search).has("payment")) setNotice("Chưa xác nhận thanh toán. Bạn có thể kiểm tra lại hoặc tiếp tục thanh toán qua PayOS.");
+            }
+          } catch { if (!cancelled) setNotice("Chưa kiểm tra được thanh toán. Bản nháp đã tải; nhấn Kiểm tra thanh toán để thử lại."); }
         } else { const saved = await readDraft(template.slug); if (!cancelled && saved) setDraft(saved); }
       } catch (error) { if (!cancelled) { setNotice(error instanceof Error ? error.message : "Không thể đọc bản nháp."); if (id) setLoadFailed(true); } }
       finally { if (!cancelled) setReady(true); }
@@ -45,7 +59,7 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
     setServerCard(card); setShareUrl(card.sharePath ? window.location.origin + card.sharePath : "");
     const url = new URL(window.location.href); url.searchParams.set("card", card.id); window.history.replaceState(null, "", url);
   };
-  const saveServer = async (publish = false) => {
+  const saveServer = async (publish = false, checkout = false) => {
     if (!validate()) return;
     setBusy(true);
     try {
@@ -53,9 +67,33 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
       const uploaded = await uploadDraft(draft);
       let card = await cardRequest<ServerCard>(serverCard ? `/${serverCard.id}` : "", { method: serverCard ? "PUT" : "POST", body: JSON.stringify({ draft: uploaded, revision: serverCard?.revision }) });
       rememberServer(card);
+      if (checkout) {
+        const status = await cardRequest<CardPayment>(`/${card.id}/payment`, { method: "POST" });
+        setPayment(status);
+        if (status.status === "PAID") {
+          rememberServer(await cardRequest<ServerCard>(`/${card.id}`));
+          setNotice("Đã thanh toán. Nhấn Xuất bản & tạo link để gửi thiệp.");
+        } else if (status.checkoutUrl) {
+          const url = new URL(status.checkoutUrl);
+          if (url.protocol !== "https:" || !(url.hostname === "payos.vn" || url.hostname.endsWith(".payos.vn"))) throw new Error("Liên kết thanh toán không hợp lệ.");
+          window.location.assign(url.href);
+        } else setNotice("Chưa tạo được liên kết thanh toán. Vui lòng thử lại.");
+        return;
+      }
       if (publish) { card = await cardRequest<ServerCard>(`/${card.id}/publish`, { method: "POST", body: JSON.stringify({ revision: card.revision }) }); rememberServer(card); }
       setNotice(publish ? "Đã xuất bản! Ai có link bên dưới đều có thể mở thiệp, không cần đăng nhập." : "Đã lưu lên server. Bản công khai chỉ thay đổi khi bạn nhấn Xuất bản / cập nhật link.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "Không thể lưu thiệp lên server."); }
+    finally { setBusy(false); }
+  };
+  const checkPayment = async () => {
+    if (!serverCard) return;
+    setBusy(true);
+    try {
+      const status = await cardRequest<CardPayment>(`/${serverCard.id}/payment`);
+      setPayment(status);
+      rememberServer(await cardRequest<ServerCard>(`/${serverCard.id}`));
+      setNotice(status.status === "PAID" ? "Đã xác nhận thanh toán. Nhấn Xuất bản & tạo link để gửi thiệp." : "Chưa nhận đủ thanh toán. Nếu bạn vừa chuyển tiền, vui lòng kiểm tra lại sau ít phút.");
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Không thể xác minh thanh toán."); }
     finally { setBusy(false); }
   };
   const revoke = async () => {
@@ -112,8 +150,15 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
   const visible = tab === 0 ? commonFields.filter(field => !designKeys.includes(field.key)) : tab === 1 ? template.fields.filter(field => !commonFields.some(common => common.key === field.key)) : all.filter(field => designKeys.includes(field.key));
   return <div className="cards-workspace"><header className="cards-top"><Link href="/cards">← Bộ sưu tập 54 thiệp</Link><Link href="/cards/mine">Thiệp của tôi ☁</Link></header>
     <div className="editor-heading"><p>{template.category}</p><h1>{template.title}</h1><p>{template.action}. {template.reveal}.</p></div>
-    <section className="server-card-panel" aria-label="Lưu và chia sẻ công khai"><h2>Lưu & gửi thiệp</h2><p>Lưu bản nháp riêng tư vào tài khoản. Khi xuất bản, người có link xem được lời chúc, ảnh và nhạc bạn đã chọn. Thu hồi link sẽ chặn lượt truy cập mới; nội dung người nhận đã tải không thể thu hồi.</p>
-      {!signedIn ? <Link href={`/auth?redirect=${encodeURIComponent(loginPath)}`} onClick={async event => { event.preventDefault(); try { if (!loadFailed) await saveDraft(draft); window.location.assign(`/auth?redirect=${encodeURIComponent(loginPath)}`); } catch { setNotice("Không lưu được bản nháp trên thiết bị. Hãy tải tệp thiệp trước khi đăng nhập."); } }}>Đăng nhập để lưu và chia sẻ →</Link> : <div className="editor-tools"><button disabled={!ready || busy || loadFailed} onClick={() => void saveServer()}>Lưu lên server</button><button className="card-primary" disabled={!ready || busy || loadFailed} onClick={() => void saveServer(true)}>{serverCard?.sharePath ? "Cập nhật bản công khai" : "Xuất bản & tạo link"}</button>{serverCard?.sharePath && <button disabled={busy} onClick={() => void revoke()}>Thu hồi link</button>}</div>}
+    <section className="server-card-panel" aria-label="Lưu và chia sẻ công khai"><h2>Lưu & gửi thiệp</h2><p>Bạn có thể chỉnh sửa, lưu bản nháp và xem thử miễn phí. Để tạo link gửi người nhận, hãy thanh toán thiệp qua mã QR trên PayOS. Chỉ sau khi hệ thống xác nhận đã nhận đủ tiền, bạn mới có thể xuất bản thiệp.</p>
+      <p><strong>{serverCard?.paidAt ? "Đã thanh toán" : `Giá thiệp: ${price === undefined ? "Đang cập nhật" : formatCardPrice(price)}`}</strong>{!serverCard?.paidAt && " · Thanh toán một lần cho thiệp này; các lần chỉnh sửa sau không cần trả lại."}</p>
+      <p>Khi xuất bản, người có link xem được lời chúc, ảnh và nhạc đã chọn. Thu hồi link chỉ chặn truy cập mới, không thu hồi nội dung người nhận đã tải.</p>
+      {!signedIn ? <Link href={`/auth?redirect=${encodeURIComponent(loginPath)}`} onClick={async event => { event.preventDefault(); try { if (!loadFailed) await saveDraft(draft); window.location.assign(`/auth?redirect=${encodeURIComponent(loginPath)}`); } catch { setNotice("Không lưu được bản nháp trên thiết bị. Hãy tải tệp thiệp trước khi đăng nhập."); } }}>Đăng nhập để lưu và thanh toán →</Link> : <div className="editor-tools">
+        <button disabled={!ready || busy || loadFailed} onClick={() => void saveServer()}>Lưu lên server</button>
+        {serverCard?.paidAt ? <button className="card-primary" disabled={!ready || busy || loadFailed} onClick={() => void saveServer(true)}>{serverCard.sharePath ? "Cập nhật bản công khai" : "Xuất bản & tạo link"}</button> : <button className="card-primary" disabled={!ready || busy || loadFailed} onClick={() => void saveServer(false, true)}>Thanh toán QR qua PayOS{price !== undefined ? ` · ${formatCardPrice(price)}` : ""}</button>}
+        {serverCard && !serverCard.paidAt && <button disabled={busy || loadFailed} onClick={() => void checkPayment()}>Kiểm tra thanh toán</button>}
+        {serverCard?.sharePath && <button disabled={busy} onClick={() => void revoke()}>Thu hồi link</button>}
+      </div>}
       {busy && <p role="status">Đang xử lý, vui lòng đợi…</p>}
       {shareUrl && <div className="share-link"><label htmlFor="public-card-link">Link chia sẻ công khai</label><input id="public-card-link" value={shareUrl} readOnly onFocus={event => event.target.select()} /><button onClick={async () => { try { await navigator.clipboard.writeText(shareUrl); setNotice("Đã sao chép link chia sẻ."); } catch { setNotice("Hãy chọn và sao chép link trong ô bên trên."); } }}>Sao chép link</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở thiệp ↗</a>{shareUrl.startsWith("http://localhost") && <p>Đây là link thử trên máy của bạn. Để gửi cho người khác, hãy mở website đã deploy và xuất bản tại đó.</p>}</div>}
       {loadFailed && <p role="alert">Không tải được thiệp trên server. <Link href="/cards/mine">Quay lại Thiệp của tôi</Link> hoặc tải lại trang để thử lại.</p>}

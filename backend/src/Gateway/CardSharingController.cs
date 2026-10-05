@@ -17,6 +17,9 @@ public sealed record RevisionRequest(int Revision);
 public sealed class CardSharingController(IServiceProvider services, IHttpClientFactory clients) : ControllerBase
 {
     private CardService Cards => services.GetService<CardService>() ?? throw new CardError(503, "Chưa cấu hình ConnectionStrings:Cards trên server.");
+    private CardPaymentService Payments => services.GetService<CardPaymentService>() ?? throw new CardError(503, "Chưa cấu hình dịch vụ thanh toán thiệp.");
+    [HttpPost("{id:guid}/payment")] public async Task<IActionResult> Checkout(Guid id, CancellationToken ct) => Ok(await Payments.Checkout(Owner, id, ct));
+    [HttpGet("{id:guid}/payment")] public async Task<IActionResult> Payment(Guid id, CancellationToken ct) => Ok(await Payments.Status(Owner, id, ct));
     private CardMedia Media => services.GetService<CardMedia>() ?? throw new CardError(503, "Chưa cấu hình ConnectionStrings:Cards trên server.");
     private Guid Owner => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : throw new CardError(401, "Vui lòng đăng nhập lại.");
     [HttpGet] public async Task<IActionResult> List(CancellationToken ct) => Ok(await Cards.List(Owner, ct));

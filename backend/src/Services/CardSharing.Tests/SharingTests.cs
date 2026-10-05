@@ -48,6 +48,12 @@ public sealed class SharingTests
             Assert.Equal(asset.Id, (await media.Get(asset.Id, owner, ct)).Id);
             await db.InitializeAsync(); // Existing populated rows survive startup initialization.
             Assert.Equal(created.Id, (await service.Find(owner, created.Id, ct)).Id);
+            Assert.Equal(402, (await Assert.ThrowsAsync<CardError>(() => service.Publish(owner, created.Id, created.Revision, false, ct))).Status);
+            var provider = new FakePaymentProvider();
+            var payments = new CardPaymentService(db, service, provider, new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["FrontendUrl"] = "http://localhost:3000" }).Build());
+            await payments.Checkout(owner, created.Id, ct);
+            provider.Status = "PAID";
+            Assert.Equal("PAID", (await payments.Status(owner, created.Id, ct)).Status);
             var published = await service.Publish(owner, created.Id, created.Revision, false, ct);
             var token = published.SharePath!.Split('/').Last();
             Assert.Equal(43, token.Length);
@@ -75,6 +81,7 @@ public sealed class SharingTests
         {
             var ids = await db.Cards.Where(c => c.OwnerId == owner || c.OwnerId == outsider).Select(c => c.Id).ToArrayAsync();
             await db.PublishedAssets.Where(p => ids.Contains(p.CardId)).ExecuteDeleteAsync();
+            await db.Payments.Where(p => ids.Contains(p.CardId)).ExecuteDeleteAsync();
             await db.Cards.Where(c => c.OwnerId == owner || c.OwnerId == outsider).ExecuteDeleteAsync();
             await db.Assets.Where(a => a.OwnerId == owner || a.OwnerId == outsider).ExecuteDeleteAsync();
         }
