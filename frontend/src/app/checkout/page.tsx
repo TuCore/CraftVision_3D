@@ -245,12 +245,11 @@ export default function CheckoutPage() {
     const fullText = `${province} ${district} ${address}`;
 
     const isHcm = fullText.includes("hồ chí minh") || fullText.includes("ho chi minh") || fullText.includes("hcm") || fullText.includes("tphcm");
+    const isThuDuc = fullText.includes("thủ đức") || fullText.includes("thu duc");
 
-    if (isHcm) {
-      // Huyện ngoại thành TP.HCM: Bình Chánh, Hóc Môn, Củ Chi, Nhà Bè, Cần Giờ
-      const suburbanKeywords = ["bình chánh", "binh chanh", "hóc môn", "hoc mon", "củ chi", "cu chi", "nhà bè", "nha be", "cần giờ", "can gio"];
-      const isSuburban = suburbanKeywords.some(kw => fullText.includes(kw));
-      return isSuburban ? 30000 : 20000;
+    if (isHcm || isThuDuc) {
+      if (isThuDuc) return 0; // Miễn phí vận chuyển cho Thủ Đức
+      return 20000; // Tất cả các quận/huyện còn lại của TP.HCM
     }
 
     return 35000; // Ngoại tỉnh
@@ -413,9 +412,13 @@ export default function CheckoutPage() {
                     hasAddressLocation ? (
                       <>
                         <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
-                        {shipping > 0 && (
+                        {shipping >= 0 && (
                           <span className="block text-[11px] text-muted-foreground">
-                            {shipping === 20000 ? "(Nội thành TP.HCM)" : shipping === 30000 ? "(Ngoại thành TP.HCM)" : `(Ngoại tỉnh - ${shippingInfo.province})`}
+                            {shipping === 0 
+                              ? (subtotal >= 500000 ? "(Freeship đơn trên 500k)" : "(TP. Thủ Đức)") 
+                              : shipping === 20000 
+                                ? "(TP.HCM)" 
+                                : `(Ngoại tỉnh - ${shippingInfo.province})`}
                           </span>
                         )}
                       </>
