@@ -498,11 +498,16 @@ public class OrderService : IOrderService
         {
             if (item.Gift != null)
             {
-                if (item.Gift.NfcTag != null)
-                {
-                    _unitOfWork.NfcTags.Remove(item.Gift.NfcTag);
-                }
+                var nfcTag = item.Gift.NfcTag;
+                
+                // Remove Dependent first
                 _unitOfWork.Gifts.Remove(item.Gift);
+                
+                // Then remove Principal
+                if (nfcTag != null)
+                {
+                    _unitOfWork.NfcTags.Remove(nfcTag);
+                }
             }
             _unitOfWork.OrderItems.Remove(item);
         }
