@@ -4,6 +4,7 @@
 .controls { position: absolute; z-index: 3; inset: max(16px, env(safe-area-inset-top)) 20px auto; display: flex; justify-content: space-between; pointer-events: none; }
 .control { pointer-events: auto; display: inline-flex; align-items: center; gap: 7px; border: 1px solid #ed447946; background: #5e102640; box-shadow: 0 0 20px #ed245024, inset 0 0 12px #ef32621c; border-radius: 30px; padding: 9px 14px; color: #ffd6e4; font-size: 11px; cursor: pointer; backdrop-filter: blur(8px); text-decoration: none; }
 .control:hover { background: #8e234866; }
+.embeddedControls { top: 28px; left: 12px; right: 12px; justify-content: flex-end; }
 .experience button:focus-visible, .control:focus-visible { outline: 2px solid #ff96ca; outline-offset: 6px; }
 .center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background: radial-gradient(ellipse, #20020bd9, #060003fa); }
 .loadingTitle { font: italic bold clamp(23px, 4vw, 38px) Georgia, serif; color: #ff70a8; text-shadow: 0 0 9px #ff176f, 0 0 28px #e81565; padding: 20px; text-align: center; }

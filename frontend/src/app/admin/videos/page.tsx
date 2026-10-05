@@ -504,7 +504,7 @@ export default function AdminVideosPage() {
               <textarea
                 rows={2}
                 required
-                placeholder="Ví dụ: Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay"
+                placeholder="Ví dụ: Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận."
                 value={formData.captionDesc}
                 onChange={(e) => setFormData({ ...formData, captionDesc: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-muted/50 border border-border text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"

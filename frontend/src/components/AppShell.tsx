@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Box, Home, MessageCircle, Settings, User, LogOut, Heart, Store, ShoppingCart, Menu, X, Sparkles } from "lucide-react";
+import { Home, MessageCircle, Settings, User, LogOut, Store, ShoppingCart, Menu, X, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Footer } from "@/components/Footer";
+import { ShopNavDropdown } from "@/components/ShopNavDropdown";
 import { LanguageSwitcher, FlagVN, FlagUK } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 
@@ -125,7 +126,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
         }`}
       >
         <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg group">
+          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-base sm:text-lg group">
             <img 
               src="/image/logoweb.jpg" 
               alt="CraftVision3D Logo" 
@@ -150,6 +151,9 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           {!isDemo && (
           <nav className="hidden md:flex items-center gap-1.5">
             {visibleNav.map((item) => {
+              if (item.key === "shop") {
+                return <ShopNavDropdown key={item.key} active={active} transparent={isTransparentNav} />;
+              }
               const Icon = item.icon;
               const isActive = active === item.key || (item.key === "home" && (pathname === "/" || pathname === "/home"));
               const isCart = (item.key as string) === "cart";
@@ -186,7 +190,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </nav>
           )}
           <div className="flex items-center gap-2">
-            <LanguageSwitcher isTransparentNav={isTransparentNav} />
+            <div className="hidden md:block"><LanguageSwitcher isTransparentNav={isTransparentNav} /></div>
 
             {isGuest ? (
               <div className="flex items-center gap-2">
@@ -313,6 +317,9 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 : "bg-white/95 dark:bg-card/95 border-border text-foreground"
             }`}>
               {visibleNav.map((item) => {
+                if (item.key === "shop") {
+                  return <ShopNavDropdown key={item.key} active={active} transparent={isTransparentNav} mobile onNavigate={() => setIsMobileMenuOpen(false)} />;
+                }
                 const Icon = item.icon;
                 const isActive = active === item.key;
                 const isCart = (item.key as string) === "cart";

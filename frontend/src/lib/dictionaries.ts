@@ -2,7 +2,12 @@ export const dictionaries = {
   vi: {
     // Navigation (AppShell)
     "nav.home": "Trang chủ",
+    "demo.preview_title": "Xem trước thiệp 3D trên điện thoại",
+    "demo.close": "Đóng xem mẫu",
+    "nav.love_gift": "Thiệp 3D",
+    "home.view_love_gift": "Xem thiệp 3D",
     "nav.shop": "Cửa hàng",
+    "nav.handmade": "Sản phẩm handmade",
     "nav.manifest": "Manifest",
     "nav.ai": "Vision plus",
     "nav.profile": "Hồ sơ",
@@ -55,7 +60,7 @@ export const dictionaries = {
     // Template Video Modal
     "video.default_header": "Video Hướng Dẫn Thanh Toán",
     "video.default_caption": "Hướng Dẫn Thanh Toán An Toàn",
-    "video.default_desc": "Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay",
+    "video.default_desc": "Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận.",
     "video.view_detail": "Xem Hướng Dẫn Chi Tiết",
     "video.close": "Đóng",
 
@@ -174,7 +179,12 @@ export const dictionaries = {
   en: {
     // Navigation (AppShell)
     "nav.home": "Home",
+    "demo.preview_title": "3D gift card phone preview",
+    "demo.close": "Close preview",
+    "nav.love_gift": "3D Gift Card",
+    "home.view_love_gift": "View 3D Gift Card",
     "nav.shop": "Shop",
+    "nav.handmade": "Handmade products",
     "nav.manifest": "Manifest",
     "nav.ai": "Vision plus",
     "nav.profile": "Profile",
@@ -227,7 +237,7 @@ export const dictionaries = {
     // Template Video Modal
     "video.default_header": "Payment Tutorial Video",
     "video.default_caption": "Secure Payment Guide",
-    "video.default_desc": "Detailed video tutorial on making secure payments with QR Banking and ZaloPay",
+    "video.default_desc": "PayOS payment guide: open your banking app, scan the QR code on the checkout page, and review the payment details before confirming.",
     "video.view_detail": "View Detailed Guide",
     "video.close": "Close",
 
