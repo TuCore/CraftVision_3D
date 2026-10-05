@@ -606,6 +606,7 @@ function GreetingDesignContent() {
               </div>
 
               {/* Mảng bên trái: Giữ lại thông tin mẫu thiết kế đã chọn */}
+              <div className="hidden">
               {selectedTemplate ? (
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
@@ -738,6 +739,7 @@ function GreetingDesignContent() {
                   Thiệp vật lý tích hợp NFC sẽ được đóng gói cẩn thận cùng sản phẩm này, mang đến trải nghiệm mở quà bất ngờ cho người nhận.
                 </div>
               )}
+              </div>
             </div>
           </div>
 

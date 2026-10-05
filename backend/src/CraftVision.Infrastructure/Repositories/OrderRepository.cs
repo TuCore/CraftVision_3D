@@ -70,4 +70,9 @@ public class OrderRepository : IOrderRepository
     {
         _context.Set<Order>().Update(order);
     }
+
+    public void Remove(Order order)
+    {
+        _context.Set<Order>().Remove(order);
+    }
 }

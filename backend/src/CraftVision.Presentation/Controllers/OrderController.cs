@@ -82,4 +82,12 @@ public class OrderController : ControllerBase
         await _service.CancelUserOrderAsync(userId, id);
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteOrder(Guid id)
+    {
+        await _service.DeleteOrderAsync(id);
+        return NoContent();
+    }
 }
