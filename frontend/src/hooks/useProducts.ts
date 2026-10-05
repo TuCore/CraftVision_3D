@@ -17,6 +17,7 @@ export interface Product {
   categoryName?: string;
   productCategoryId?: string;
   primaryImageUrl?: string;
+  isComingSoon?: boolean;
 }
 
 export interface PagedResult<T> {

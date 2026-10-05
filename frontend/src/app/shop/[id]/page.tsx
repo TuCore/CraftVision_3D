@@ -73,7 +73,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             description: p.description || "",
             matchScore: 0,
             productType: p.productType,
-            images: parsedImages
+            images: parsedImages,
+            isComingSoon: p.isComingSoon
           };
           setProduct(mappedProduct as any);
 
@@ -167,11 +168,19 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <img
                   src={((product as any).images?.length > 0 ? (product as any).images[activeImageIndex] : product.image) || product.image}
                   alt={product.name}
-                  className="w-full h-full object-cover transition-opacity duration-300"
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${(product as any).isComingSoon ? 'blur-[8px] opacity-80' : ''}`}
                 />
                 
+                {(product as any).isComingSoon && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-all duration-500">
+                    <div className="px-8 py-2.5 rounded-2xl bg-black/40 border border-white/10 text-white/90 text-sm font-medium tracking-[0.25em] shadow-2xl backdrop-blur-md">
+                      COMING SOON
+                    </div>
+                  </div>
+                )}
+                
                 {/* Image Navigation Arrows */}
-                {(product as any).images && (product as any).images.length > 1 && (
+                {!(product as any).isComingSoon && (product as any).images && (product as any).images.length > 1 && (
                   <>
                     <button 
                       onClick={(e) => {
@@ -210,7 +219,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       onClick={() => setActiveImageIndex(idx)}
                       className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${activeImageIndex === idx ? 'border-[color:var(--coral)]' : 'border-transparent opacity-70 hover:opacity-100'}`}
                     >
-                      <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                      <img src={img} alt={`Thumbnail ${idx}`} className={`w-full h-full object-cover ${(product as any).isComingSoon ? 'blur-[4px] opacity-80' : ''}`} />
                     </button>
                   ))}
                 </div>
@@ -268,92 +277,102 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             </div>
 
             <div className="flex flex-col gap-4 mt-auto">
-              <button
-                onClick={() => {
-                  if (isGuest) {
-                    toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng!");
-                    router.push("/auth");
-                    return;
-                  }
-                  toggleFavorite(product);
-                  toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
-                  router.push("/cart");
-                }}
-                className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] shadow-lg shadow-rose-300/40 hover:shadow-rose-400/50 border border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer"
-              >
-                <ShoppingBag className="h-5 w-5" />
-                Thêm vào giỏ hàng
-              </button>
+              {product.isComingSoon ? (
+                <div className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-neutral-400 cursor-not-allowed">
+                  <span className="tracking-wider">COMING SOON</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (isGuest) {
+                      toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng!");
+                      router.push("/auth");
+                      return;
+                    }
+                    toggleFavorite(product);
+                    toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
+                    router.push("/cart");
+                  }}
+                  className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] shadow-lg shadow-rose-300/40 hover:shadow-rose-400/50 border border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer"
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  Thêm vào giỏ hàng
+                </button>
+              )}
 
-              {/* Component 1: Thiết kế câu chúc riêng với MẪU MẶC ĐỊNH (Không chọn mẫu web) */}
-              <div
-                onClick={() => {
-                  if (isGuest) {
-                    toast.info("Vui lòng đăng nhập để thiết kế thiệp!");
-                    router.push("/auth");
-                    return;
-                  }
-                  router.push(`/shop/${product.id}/greeting?mode=default`);
-                }}
-                className="w-full mt-3 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center shrink-0">
-                    <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors text-sm sm:text-base">
-                        Thiết kế câu chúc riêng
-                      </h3>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[color:var(--coral)]/15 text-[color:var(--coral)] font-bold shrink-0">
-                        Mẫu mặc định
-                      </span>
+              {!product.isComingSoon && (
+                <>
+                  {/* Component 1: Thiết kế câu chúc riêng với MẪU MẶC ĐỊNH (Không chọn mẫu web) */}
+                  <div
+                    onClick={() => {
+                      if (isGuest) {
+                        toast.info("Vui lòng đăng nhập để thiết kế thiệp!");
+                        router.push("/auth");
+                        return;
+                      }
+                      router.push(`/shop/${product.id}/greeting?mode=default`);
+                    }}
+                    className="w-full mt-3 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-[color:var(--coral)]/20 flex items-center justify-center shrink-0">
+                        <Sparkles className="h-5 w-5 text-[color:var(--coral)]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors text-sm sm:text-base">
+                            Thiết kế câu chúc riêng
+                          </h3>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[color:var(--coral)]/15 text-[color:var(--coral)] font-bold shrink-0">
+                            Mẫu mặc định
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Dùng mẫu thiệp mặc định cố định ban đầu, không qua bước chọn mẫu web.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Dùng mẫu thiệp mặc định cố định ban đầu, không qua bước chọn mẫu web.
-                    </p>
+                    <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shrink-0 shadow-coral-glow group-hover:scale-105 transition-transform">
+                      Thiết kế ngay
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shrink-0 shadow-coral-glow group-hover:scale-105 transition-transform">
-                  Thiết kế ngay
-                </div>
-              </div>
 
-              {/* Component 2: Thiết kế theo mẫu có sẵn (Kho mẫu thiệp Web) */}
-              <div
-                onClick={() => {
-                  if (isGuest) {
-                    toast.info("Vui lòng đăng nhập để thiết kế thiệp!");
-                    router.push("/auth");
-                    return;
-                  }
-                  router.push(`/shop/${product.id}/greeting`);
-                }}
-                className="w-full cursor-pointer relative overflow-hidden rounded-2xl border border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                    <LayoutGrid className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors text-sm sm:text-base">
-                        Chọn mẫu thiệp từ thư viện Web
-                      </h3>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold shrink-0">
-                        16 mẫu 3D
-                      </span>
+                  {/* Component 2: Thiết kế theo mẫu có sẵn (Kho mẫu thiệp Web) */}
+                  <div
+                    onClick={() => {
+                      if (isGuest) {
+                        toast.info("Vui lòng đăng nhập để thiết kế thiệp!");
+                        router.push("/auth");
+                        return;
+                      }
+                      router.push(`/shop/${product.id}/greeting`);
+                    }}
+                    className="w-full cursor-pointer relative overflow-hidden rounded-2xl border border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                        <LayoutGrid className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors text-sm sm:text-base">
+                            Chọn mẫu thiệp từ thư viện Web
+                          </h3>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold shrink-0">
+                            16 mẫu 3D
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Lựa chọn trong kho mẫu thiệp phong phú (Trung thu, Sinh nhật, Tình yêu...).
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Lựa chọn trong kho mẫu thiệp phong phú (Trung thu, Sinh nhật, Tình yêu...).
-                    </p>
+                    <div className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-transform group-hover:scale-105">
+                      Chọn mẫu web
+                    </div>
                   </div>
-                </div>
-                <div className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-transform group-hover:scale-105">
-                  Chọn mẫu web
-                </div>
-              </div>
+                </>
+              )}
 
               <button
                 onClick={() => router.push("/shop")}

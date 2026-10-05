@@ -59,6 +59,7 @@ public class ProductService : IProductService
             ProductType = Enum.Parse<ProductType>(dto.ProductType),
             SupportsNfc = dto.SupportsNfc,
             EstimatedProductionDays = dto.EstimatedProductionDays,
+            IsComingSoon = dto.IsComingSoon,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -100,6 +101,7 @@ public class ProductService : IProductService
         product.SampleImageUrl = dto.SampleImageUrl;
         product.SupportsNfc = dto.SupportsNfc;
         product.EstimatedProductionDays = dto.EstimatedProductionDays;
+        product.IsComingSoon = dto.IsComingSoon;
         product.UpdatedAt = DateTime.UtcNow;
         
         _unitOfWork.Products.Update(product);
@@ -130,6 +132,7 @@ public class ProductService : IProductService
             SupportsNfc = p.SupportsNfc,
             EstimatedProductionDays = p.EstimatedProductionDays,
             CategoryName = p.ProductCategory?.Name,
+            IsComingSoon = p.IsComingSoon,
             ThumbnailUrl = p.ProductImages?.OrderBy(pi => pi.DisplayOrder).FirstOrDefault(pi => pi.IsThumbnail)?.File?.FileUrl,
             Images = p.ProductImages?.OrderBy(pi => pi.DisplayOrder).Select(pi => pi.File?.FileUrl ?? "").Where(url => !string.IsNullOrEmpty(url)).ToList() ?? new List<string>()
         };

@@ -24,6 +24,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
     stock: 0,
     productType: 'InStock',
     supportsNfc: true,
+    isComingSoon: false,
     imageUrls: [] as string[],
     productCategoryId: ''
   });
@@ -41,6 +42,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
         stock: product.stock || 0,
         productType: product.productType || 'InStock',
         supportsNfc: product.supportsNfc ?? true,
+        isComingSoon: product.isComingSoon ?? false,
         imageUrls: (product.sampleImageUrl ? product.sampleImageUrl.split(',') : (product.images?.map((img: any) => img.url) || [])).filter(Boolean) as string[],
         productCategoryId: product.productCategoryId || ''
       });
@@ -52,6 +54,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
         stock: 0,
         productType: 'InStock',
         supportsNfc: true,
+        isComingSoon: false,
         imageUrls: [] as string[],
         productCategoryId: ''
       });
@@ -140,6 +143,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
       stock: formData.stock,
       productType: formData.productType,
       supportsNfc: formData.supportsNfc,
+      isComingSoon: formData.isComingSoon,
       productCategoryId: formData.productCategoryId,
       sampleImageUrl: formData.imageUrls.join(','),
     };
@@ -250,17 +254,31 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
               </select>
             </div>
 
-            <div className="space-y-2 flex items-center gap-3 pt-6">
-              <input
-                type="checkbox"
-                id="supportsNfc"
-                checked={formData.supportsNfc}
-                onChange={e => setFormData({ ...formData, supportsNfc: e.target.checked })}
-                className="w-5 h-5 rounded border-gray-300 text-[color:var(--coral)] focus:ring-[color:var(--coral)]"
-              />
-              <label htmlFor="supportsNfc" className="text-sm font-bold text-muted-foreground cursor-pointer">
-                Hỗ trợ gắn thẻ NFC
-              </label>
+            <div className="space-y-2 flex flex-col gap-3 pt-6 justify-center">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="supportsNfc"
+                  checked={formData.supportsNfc}
+                  onChange={e => setFormData({ ...formData, supportsNfc: e.target.checked })}
+                  className="w-5 h-5 rounded border-gray-300 text-[color:var(--coral)] focus:ring-[color:var(--coral)]"
+                />
+                <label htmlFor="supportsNfc" className="text-sm font-bold text-muted-foreground cursor-pointer">
+                  Hỗ trợ NFC (Gắn thẻ lời chúc)
+                </label>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isComingSoon"
+                  checked={formData.isComingSoon}
+                  onChange={e => setFormData({ ...formData, isComingSoon: e.target.checked })}
+                  className="w-5 h-5 rounded border-gray-300 text-[color:var(--coral)] focus:ring-[color:var(--coral)]"
+                />
+                <label htmlFor="isComingSoon" className="text-sm font-bold text-muted-foreground cursor-pointer">
+                  Sắp ra mắt (Coming Soon)
+                </label>
+              </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">
