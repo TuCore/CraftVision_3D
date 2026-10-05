@@ -488,4 +488,26 @@ public class OrderService : IOrderService
         // Ngoại tỉnh
         return 35000;
     }
+
+    public async Task DeleteOrderAsync(Guid id)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
+        if (order == null) throw new Exception("Order not found");
+
+        foreach (var item in order.OrderItems.ToList())
+        {
+            if (item.Gift != null)
+            {
+                if (item.Gift.NfcTag != null)
+                {
+                    _unitOfWork.NfcTags.Remove(item.Gift.NfcTag);
+                }
+                _unitOfWork.Gifts.Remove(item.Gift);
+            }
+            _unitOfWork.OrderItems.Remove(item);
+        }
+
+        _unitOfWork.Orders.Remove(order);
+        await _unitOfWork.SaveChangesAsync();
+    }
 }

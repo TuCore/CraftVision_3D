@@ -212,17 +212,6 @@ export default function HomePage() {
 
 
 
-        {/* Nút cuộn xuống khám phá */}
-        <button
-          type="button"
-          onClick={() => {
-            document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 hover:text-white transition-colors animate-bounce cursor-pointer flex flex-col items-center gap-0.5 z-20"
-          aria-label={t("home.scroll_explore")}
-        >
-          <ChevronDown className="h-5 w-5" />
-        </button>
 
         {/* Lớp phủ gradient mượt mà khi cuộn trang (ẩn ở top, hiện dần khi scroll) */}
         <div 

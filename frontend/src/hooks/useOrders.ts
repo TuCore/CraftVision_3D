@@ -58,3 +58,17 @@ export function useOrderDetails(id: string) {
     enabled: !!id,
   });
 }
+
+export function useDeleteOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.delete(`/api/orders/${id}`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+}

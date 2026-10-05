@@ -1,9 +1,11 @@
 'use client';
 
-import { useOrders } from '@/hooks/useOrders';
+import { useOrders, useDeleteOrder } from '@/hooks/useOrders';
 import Link from 'next/link';
-import { Package, Search, ChevronRight, Calendar, User, DollarSign, Clock, Truck, CheckCircle2, XCircle, Hammer, ChevronLeft } from 'lucide-react';
+import { Package, Search, ChevronRight, Calendar, User, DollarSign, Clock, Truck, CheckCircle2, XCircle, Hammer, ChevronLeft, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from 'sonner';
 
 export const getOrderStatusConfig = (status: string) => {
   switch (status) {
@@ -22,6 +24,22 @@ export const getOrderStatusConfig = (status: string) => {
 export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading, error } = useOrders(page, 5);
+  const deleteMutation = useDeleteOrder();
+  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+
+  const confirmDelete = async () => {
+    if (!deleteOrderId) return;
+    await deleteMutation.mutateAsync(deleteOrderId, {
+      onSuccess: () => {
+        toast.success('Đã xóa đơn hàng thành công!');
+        setDeleteOrderId(null);
+      },
+      onError: () => {
+        toast.error('Có lỗi xảy ra khi xóa đơn hàng.');
+        setDeleteOrderId(null);
+      }
+    });
+  };
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -142,12 +160,21 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <Link 
-                        href={`/admin/orders/${order.id}`} 
-                        className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-muted-foreground hover:text-primary group-hover:bg-primary/5"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link 
+                          href={`/admin/orders/${order.id}`} 
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-muted-foreground hover:text-primary group-hover:bg-primary/5"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </Link>
+                        <button
+                          onClick={() => setDeleteOrderId(order.id)}
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-red-500/30 transition-all text-muted-foreground hover:text-red-500 hover:bg-red-50"
+                          title="Xóa vĩnh viễn đơn hàng"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -192,6 +219,34 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteOrderId} onOpenChange={(open) => !open && setDeleteOrderId(null)}>
+        <AlertDialogContent className="rounded-3xl p-6 sm:p-8 max-w-md">
+          <AlertDialogHeader className="space-y-4">
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-bold font-display text-center text-gray-800">
+              Xóa vĩnh viễn
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-gray-500 font-medium text-base">
+              Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng này? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex gap-3 sm:gap-3 flex-col sm:flex-row">
+            <AlertDialogCancel className="w-full sm:w-1/2 rounded-xl py-3 border border-gray-200 font-bold hover:bg-gray-50 m-0">
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              disabled={deleteMutation.isPending}
+              className="w-full sm:w-1/2 rounded-xl py-3 bg-red-600 hover:bg-red-700 text-white font-bold border-none m-0 flex justify-center items-center gap-2"
+            >
+              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa ngay'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
