@@ -9,7 +9,11 @@ import { fieldsFor, type CardTemplate, type CardDraft } from "./catalog";
 import "./cards.css";
 
 const CardScene = dynamic(() => import("./CardScene"), { ssr: false, loading: () => <div className="scene-loading">Đang dựng món quà 3D…</div> });
-export default function CardExperience({ template, draft, embedded = false }: { template: CardTemplate; draft: CardDraft; embedded?: boolean }) {
+const RoseRainExperience = dynamic(() => import("./RoseRainExperience"), { ssr: false });
+export default function CardExperience(props: { template: CardTemplate; draft: CardDraft; embedded?: boolean }) {
+  return props.template.slug === "rose-love" ? <RoseRainExperience {...props} /> : <StandardCardExperience {...props} />;
+}
+function StandardCardExperience({ template, draft, embedded = false }: { template: CardTemplate; draft: CardDraft; embedded?: boolean }) {
   const [stage, setStage] = useState<"intro" | "play" | "celebrate" | "envelope" | "opening" | "letter">("intro");
   const [progress, setProgress] = useState(0);
   const [reduced, setReduced] = useState(false);

@@ -126,7 +126,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
         }`}
       >
         <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-lg group">
+          <Link href={isDemo ? "/" : "/home"} className="flex items-center gap-2 font-bold text-base sm:text-lg group">
             <img 
               src="/image/logoweb.jpg" 
               alt="CraftVision3D Logo" 
@@ -187,7 +187,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           </nav>
           )}
           <div className="flex items-center gap-2">
-            <LanguageSwitcher isTransparentNav={isTransparentNav} />
+            <div className="hidden md:block"><LanguageSwitcher isTransparentNav={isTransparentNav} /></div>
 
             {isGuest ? (
               <div className="flex items-center gap-2">

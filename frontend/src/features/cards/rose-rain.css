@@ -1,0 +1,27 @@
+.rose-rain { position: relative; height: 100dvh; min-height: 320px; overflow: hidden; background: #000; color: #fff; font-family: Arial, sans-serif; }
+.rose-rain-canvas { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+.rose-rain-canvas:active { cursor: grabbing; }
+.rose-rain-canvas canvas { display: block; width: 100%; height: 100%; }
+.rose-rain-intro { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse at center, #420408 0%, #180000 38%, #000 78%); }
+.rose-rain-start { display: flex; flex-direction: column; align-items: center; gap: 20px; cursor: pointer; border: 0; background: transparent; color: white; }
+.rose-rain-start > span { color: #ff124d; font-size: 110px; line-height: 1; filter: drop-shadow(0 0 28px #ff003b99); animation: rose-heartbeat 1.5s ease-in-out infinite; }
+.rose-rain-start small { font-size: 13px; font-weight: 400; opacity: .9; }
+.rose-rain-controls { position: absolute; z-index: 3; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+.rose-rain-controls :is(a, button) { border: 1px solid #ffffff26; background: #0008; border-radius: 24px; padding: 8px 12px; color: #ddd; font-size: 11px; cursor: pointer; backdrop-filter: blur(10px); }
+.rose-rain-actions { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: 16px; right: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; pointer-events: none; }
+.rose-rain-actions p { font-size: 11px; color: #ccc; text-shadow: 0 2px 8px black; }
+.rose-rain-envelope { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 30px; background: #190712df; border: 1px solid #fd799e66; box-shadow: 0 0 24px #ff245524; color: #ffe1ed; font-size: 12px; cursor: pointer; max-width: 100%; }
+.rose-rain-envelope span { font-size: 25px; }
+.rose-rain-letter { margin: auto; width: min(540px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; border: 1px solid #f1b3c8; border-radius: 20px; background: #fff8f4; color: #563142; padding: 40px 28px; box-shadow: 0 0 80px #ff286a33; }
+.rose-rain-letter::backdrop { background: #000a; backdrop-filter: blur(8px); }
+.rose-letter-close { position: absolute; top: 10px; right: 14px; font-size: 28px; cursor: pointer; }
+.rose-letter-to { font-size: 10px; letter-spacing: 2px; padding-right: 20px; }
+.rose-rain-letter h1 { font: italic 28px/1.4 Georgia, serif; color: #a02b59; margin: 16px 0 24px; }
+.rose-letter-message { white-space: pre-wrap; overflow-wrap: anywhere; font: 17px/1.9 Georgia, serif; margin-bottom: 24px; }
+.rose-letter-photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 20px 0; }
+.rose-letter-photos img { width: 100%; border-radius: 10px; }
+.rose-letter-return { display: block; margin: 24px auto 0; color: #a02b59; cursor: pointer; }
+.rose-rain-fallback { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 30px; color: #ffa0ba; }
+.rose-rain :is(button, a, [tabindex]):focus-visible { outline: 2px solid #f58db7; outline-offset: 4px; }
+@keyframes rose-heartbeat { 50% { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .rose-rain-start > span { animation: none; } }

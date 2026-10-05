@@ -37,7 +37,7 @@ const color = (label: string) => f("detailColor", label, "color");
 
 type Definition = [string, string, string, string, string, CardField[]];
 const definitions: Definition[] = [
-  ["rose-love", "Hoa hồng dành cho em", "rose", "Chạm để đón bó hoa", "Bó hồng hạ xuống, tỏa sáng và trao thư", [color("Màu hoa"), f("ribbon", "Chữ trên nơ"), album(12)]],
+  ["rose-love", "Hoa hồng dành cho em", "rose", "Chạm trái tim, kéo để xoay lời yêu", "Mưa chữ neon, trái tim và bó hồng rơi giữa không gian 3D", [color("Màu hoa"), f("ribbon", "Chữ trên nơ"), album(12)]],
   ["heart-key", "Chìa khóa trái tim", "lock", "Xoay chìa khóa mở trái tim", "Hai cánh trái tim mở ra lời tỏ tình", [f("confession", "Lời tỏ tình", "textarea", true), f("engraving", "Chữ khắc trên khóa"), f("keyLabel", "Chữ trên chìa"), date, photo]],
   ["memory-train", "Chuyến tàu đôi mình", "train", "Đưa tàu qua từng ga kỷ niệm", "Toa thư dừng lại ở ga cuối", [list("memories", "Các ga kỷ niệm (ít nhất 2)", 6, ["Tên ga", "Kỷ niệm", "Ngày", "Địa điểm"], true), f("trainName", "Tên chuyến tàu"), album(6)]],
   ["secret-ring", "Chiếc nhẫn bí mật", "ring", "Giữ để mở hộp nhẫn", "Nhẫn nâng lên trong vòng sáng", [f("proposal", "Lời cầu hôn", "textarea", true), f("couple", "Tên hai người"), date, f("engraving", "Chữ khắc trên nhẫn"), choice("metal", "Kim loại", ["Vàng", "Bạc", "Vàng hồng"]), choice("gem", "Màu đá", ["Trong suốt", "Hồng", "Xanh"]), photo]],
