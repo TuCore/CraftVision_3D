@@ -179,7 +179,7 @@ export default function CheckoutPage() {
           const cleanedId = rawId.replace(/-3d$/, "");
           const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanedId);
           return {
-            productId: isGuid ? cleanedId : "82067dac-8d7c-47b8-9379-bf19d74295d0",
+            productId: isGuid ? cleanedId : "00000000-0000-0000-0000-000000000000",
             quantity: item.quantity,
             wantNfc: !!item.gift,
             extraPrice: cardPrice,

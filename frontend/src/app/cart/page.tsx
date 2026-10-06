@@ -44,7 +44,7 @@ export default function CartPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
   const { items, removeFromCart, updateQuantity, clearWishlist } = useWishlistStore();
-  const { setItems } = useOrderStore();
+  const { setItems, orderNote, setOrderNote } = useOrderStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
@@ -430,13 +430,16 @@ export default function CartPage() {
                     <span className="text-muted-foreground">{t("cart.subtotal")}:</span>
                     <span className="font-bold text-foreground">{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">{language === "vi" ? "Phí vận chuyển:" : "Shipping:"}</span>
-                    <span className="font-bold text-emerald-500">
-                      {subtotal === 0 || subtotal >= 500000
-                        ? (language === "vi" ? "Miễn phí" : "Free")
-                        : (language === "vi" ? "Từ 20.000 đ (nội thành HCM)" : "From 20,000 VND (HCM local)")}
-                    </span>
+                  <div className="flex flex-col gap-2 mt-6">
+                    <label className="text-sm font-medium text-foreground">
+                      {language === "vi" ? "Ghi chú đơn hàng" : "Order Note"}
+                    </label>
+                    <textarea
+                      value={orderNote || ""}
+                      onChange={(e) => setOrderNote(e.target.value)}
+                      placeholder={language === "vi" ? "Ghi chú về đơn hàng của bạn..." : "Notes about your order..."}
+                      className="w-full bg-white dark:bg-background border border-primary/20 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none h-20 placeholder:text-muted-foreground/60 shadow-inner-sm transition-all"
+                    />
                   </div>
                 </div>
 
@@ -444,14 +447,9 @@ export default function CartPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-foreground font-semibold">{t("cart.total")}:</span>
                     <span className="text-2xl font-bold text-primary">
-                      {formatPrice(subtotal + (subtotal >= 500000 || subtotal === 0 ? 0 : 20000))}
+                      {formatPrice(subtotal)}
                     </span>
                   </div>
-                  {subtotal > 0 && subtotal < 500000 && (
-                    <p className="text-[11px] text-muted-foreground mt-1 text-right italic">
-                      {language === "vi" ? "(Đã gồm phí ship nội thành HCM 20.000đ)" : "(Includes HCM local shipping 20,000 VND)"}
-                    </p>
-                  )}
                 </div>
 
                 <button
