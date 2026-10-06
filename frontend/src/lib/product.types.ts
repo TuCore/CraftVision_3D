@@ -12,6 +12,7 @@ export interface Product {
   productType?: string;
   images?: string[];
   isComingSoon?: boolean;
+  stock?: number;
 }
 
 

@@ -74,7 +74,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             matchScore: 0,
             productType: p.productType,
             images: parsedImages,
-            isComingSoon: p.isComingSoon
+            isComingSoon: p.isComingSoon,
+            stock: p.stock ?? 0
           };
           setProduct(mappedProduct as any);
 
@@ -168,7 +169,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <img
                   src={((product as any).images?.length > 0 ? (product as any).images[activeImageIndex] : product.image) || product.image}
                   alt={product.name}
-                  className={`w-full h-full object-cover transition-opacity duration-300 ${(product as any).isComingSoon ? 'blur-[8px] opacity-80' : ''}`}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${(product as any).isComingSoon || (product as any).stock === 0 ? 'blur-[8px] opacity-80' : ''}`}
                 />
                 
                 {(product as any).isComingSoon && (
@@ -178,9 +179,16 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                     </div>
                   </div>
                 )}
+                {!(product as any).isComingSoon && (product as any).stock === 0 && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-all duration-500">
+                    <div className="px-8 py-2.5 rounded-2xl bg-red-500/40 border border-red-500/20 text-white/90 text-sm font-medium tracking-[0.25em] shadow-2xl backdrop-blur-md">
+                      HẾT HÀNG
+                    </div>
+                  </div>
+                )}
                 
                 {/* Image Navigation Arrows */}
-                {!(product as any).isComingSoon && (product as any).images && (product as any).images.length > 1 && (
+                {!(product as any).isComingSoon && (product as any).stock !== 0 && (product as any).images && (product as any).images.length > 1 && (
                   <>
                     <button 
                       onClick={(e) => {
@@ -219,7 +227,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       onClick={() => setActiveImageIndex(idx)}
                       className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${activeImageIndex === idx ? 'border-[color:var(--coral)]' : 'border-transparent opacity-70 hover:opacity-100'}`}
                     >
-                      <img src={img} alt={`Thumbnail ${idx}`} className={`w-full h-full object-cover ${(product as any).isComingSoon ? 'blur-[4px] opacity-80' : ''}`} />
+                      <img src={img} alt={`Thumbnail ${idx}`} className={`w-full h-full object-cover ${(product as any).isComingSoon || (product as any).stock === 0 ? 'blur-[4px] opacity-80' : ''}`} />
                     </button>
                   ))}
                 </div>
@@ -277,9 +285,9 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             </div>
 
             <div className="flex flex-col gap-4 mt-auto">
-              {product.isComingSoon ? (
+              {product.isComingSoon || (product as any).stock === 0 ? (
                 <div className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-neutral-400 cursor-not-allowed">
-                  <span className="tracking-wider">COMING SOON</span>
+                  <span className="tracking-wider">{product.isComingSoon ? "COMING SOON" : "TẠM HẾT HÀNG"}</span>
                 </div>
               ) : (
                 <button

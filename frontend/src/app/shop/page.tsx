@@ -55,6 +55,7 @@ export default function ShopPage() {
             description: p.description || "",
             matchScore: 0,
             isComingSoon: p.isComingSoon,
+            stock: p.stock ?? 0,
           };
         });
         setProducts(mapped);
@@ -216,7 +217,7 @@ export default function ShopPage() {
                 <img
                   src={product.image}
                   alt={product.name}
-                  className={`relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${product.isComingSoon ? 'blur-[4px] opacity-80' : ''}`}
+                  className={`relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${product.isComingSoon || product.stock === 0 ? 'blur-[4px] opacity-80' : ''}`}
                 />
                 <div className="absolute top-2 left-2 z-20 glass-strong px-2 py-1 rounded-lg text-[10px] font-semibold text-foreground">
                   {product.category}
@@ -226,6 +227,13 @@ export default function ShopPage() {
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-500">
                     <div className="px-5 py-2 rounded-xl bg-black/40 border border-white/10 text-white/90 text-xs font-medium tracking-[0.2em] shadow-xl backdrop-blur-md">
                       COMING SOON
+                    </div>
+                  </div>
+                )}
+                {!product.isComingSoon && product.stock === 0 && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-500">
+                    <div className="px-5 py-2 rounded-xl bg-red-500/40 border border-red-500/20 text-white/90 text-xs font-medium tracking-[0.2em] shadow-xl backdrop-blur-md">
+                      HẾT HÀNG
                     </div>
                   </div>
                 )}
@@ -260,11 +268,14 @@ export default function ShopPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/shop/${product.id}`);
+                    if (!product.isComingSoon && product.stock !== 0) {
+                      router.push(`/shop/${product.id}`);
+                    }
                   }}
-                  className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto"
+                  disabled={product.isComingSoon || product.stock === 0}
+                  className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                 >
-                  {t("shop.view_details")}
+                  {product.isComingSoon || product.stock === 0 ? "Tạm hết hàng" : t("shop.view_details")}
                 </button>
               </div>
             </TiltCard>
