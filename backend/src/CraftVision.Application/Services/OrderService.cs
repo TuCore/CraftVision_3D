@@ -60,7 +60,7 @@ public class OrderService : IOrderService
                 if (itemDto.ProductId == Guid.Empty)
                 {
                     // Fallback for digital templates from frontend
-                    var filter = new CraftVision.Application.DTOs.Product.ProductFilterDto { Keyword = "Thiệp 3D", PageSize = 1, PageNumber = 1 };
+                    var filter = new CraftVision.Application.DTOs.Product.ProductFilterDto { Keyword = "Thiệp 3D", PageSize = 1, Page = 1 };
                     var (items, _) = await _unitOfWork.Products.SearchAndFilterAsync(filter);
                     var templateProduct = items.FirstOrDefault();
                     
