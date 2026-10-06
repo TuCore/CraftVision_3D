@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Box, Mail, Lock, User, Sparkles, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { StarryBackground } from "@/components/StarryBackground";
 import { motion, Variants } from "framer-motion";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +38,7 @@ export default function AuthPage() {
         localStorage.setItem("email", res.email);
         localStorage.setItem("fullName", res.fullName);
         if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
-        window.location.href = email === "admin@craftvision.vn" ? "/admin/nfc" : "/home";
+        router.replace(email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
       } else {
         const res = await fetchApi("/api/auth/login", {
           method: "POST",
@@ -47,7 +49,7 @@ export default function AuthPage() {
         localStorage.setItem("email", res.email);
         localStorage.setItem("fullName", res.fullName);
         if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
-        window.location.href = email === "admin@craftvision.vn" ? "/admin/nfc" : "/home";
+        router.replace(email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
       }
     } catch (err: any) {
       setError(err.message);
@@ -260,7 +262,7 @@ export default function AuthPage() {
                           localStorage.setItem("fullName", res.fullName);
                           if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
                           toast.success("Đăng nhập Google thành công!");
-                          window.location.href = res.email === "admin@craftvision.vn" ? "/admin/nfc" : "/home";
+                          router.replace(res.email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
                         } catch (err: any) {
                           setError("Đăng nhập Google thất bại: " + err.message);
                         } finally {

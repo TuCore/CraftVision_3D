@@ -22,7 +22,7 @@ export interface TemplateProduct {
 // Default video used when a template has not customized its own
 export const DEFAULT_TUTORIAL_VIDEO: Omit<TemplateVideo, "id" | "templateId"> = {
   headerTitle: "Video Hướng Dẫn Thanh Toán",
-  videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  videoUrl: "/videos/payment-tutorial.mp4",
   captionTitle: "Hướng Dẫn Thanh Toán An Toàn",
   captionDesc: "Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận.",
   detailUrl: "/shop",
@@ -41,7 +41,7 @@ export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
       id: 1,
       templateId: 1,
       headerTitle: "Video Hướng Dẫn Thanh Toán",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      videoUrl: "/videos/payment-tutorial.mp4",
       captionTitle: "Hướng Dẫn Thanh Toán An Toàn",
       captionDesc: "Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận.",
       detailUrl: "/shop"

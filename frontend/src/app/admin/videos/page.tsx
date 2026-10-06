@@ -450,15 +450,15 @@ export default function AdminVideosPage() {
                 Đường dẫn Video (MP4 / WebM / Cloudinary / YouTube) *
               </label>
               <input
-                type="url"
+                type="text"
                 required
-                placeholder="https://.../video.mp4 hoặc https://youtube.com/watch?v=..."
+                placeholder="/videos/payment-tutorial.mp4 hoặc https://.../video.mp4"
                 value={formData.videoUrl}
                 onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-muted/50 border border-border text-sm outline-none focus:ring-2 focus:ring-primary/30 font-mono text-xs"
               />
               <p className="text-[11px] text-muted-foreground mt-1">
-                Hỗ trợ link video MP4 trực tiếp, video từ Cloudinary, hoặc link video YouTube.
+                Hỗ trợ đường dẫn nội bộ /videos/..., link MP4 trực tiếp, Cloudinary hoặc YouTube.
               </p>
             </div>
 
