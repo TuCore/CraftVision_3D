@@ -57,6 +57,20 @@ public class OrderService : IOrderService
 
             foreach (var itemDto in dto.Items)
             {
+                if (itemDto.ProductId == Guid.Empty)
+                {
+                    // Fallback for digital templates from frontend
+                    var filter = new CraftVision.Application.DTOs.Product.ProductFilterDto { Keyword = "Thiệp 3D", PageSize = 1, PageNumber = 1 };
+                    var (items, _) = await _unitOfWork.Products.SearchAndFilterAsync(filter);
+                    var templateProduct = items.FirstOrDefault();
+                    
+                    if (templateProduct == null)
+                    {
+                        throw new Exception("Lỗi: Không tìm thấy sản phẩm 'Thiệp 3D' trong hệ thống. Vui lòng tạo một sản phẩm có tên 'Thiệp 3D' trong phần quản trị (Admin) để bán các mẫu thiệp điện tử.");
+                    }
+                    itemDto.ProductId = templateProduct.Id;
+                }
+
                 var product = await _unitOfWork.Products.GetByIdAsync(itemDto.ProductId);
                 if (product == null)
                 {

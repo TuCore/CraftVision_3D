@@ -305,37 +305,10 @@ using (var scope = app.Services.CreateScope())
     {
         // Tự động chạy tất cả các file Migration để tạo bảng trong Database (nếu chưa có)
         db.Database.Migrate();
-
-        // Ensure default 3D template product exists for frontend templates fallback
-        var defaultProductId = Guid.Parse("82067dac-8d7c-47b8-9379-bf19d74295d0");
-        var existingProduct = db.Products.FirstOrDefault(p => p.Id == defaultProductId);
-        if (existingProduct == null)
-        {
-            var category = db.ProductCategories.FirstOrDefault();
-            if (category != null)
-            {
-                db.Products.Add(new CraftVision.Domain.Entities.Product
-                {
-                    Id = defaultProductId,
-                    ProductCategoryId = category.Id,
-                    Name = "Thiệp 3D Đặc Biệt",
-                    Description = "Thiệp 3D kèm chức năng NFC dành cho người thân yêu.",
-                    Price = 49999m,
-                    Stock = 999999,
-                    IsActive = true,
-                    SupportsNfc = true,
-                    ProductType = CraftVision.Domain.Enums.ProductType.InStock,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
-                db.SaveChanges();
-                logger.LogInformation("Added default 3D Template product successfully.");
-            }
-        }
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "An error occurred while executing database migrations or seeding.");
+        logger.LogError(ex, "An error occurred while executing database migrations.");
     }
 }
 
