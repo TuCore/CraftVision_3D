@@ -494,25 +494,43 @@ public class OrderService : IOrderService
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
         if (order == null) throw new Exception("Order not found");
 
-        foreach (var item in order.OrderItems.ToList())
-        {
-            if (item.Gift != null)
-            {
-                var nfcTag = item.Gift.NfcTag;
-                
-                // Remove Dependent first
-                _unitOfWork.Gifts.Remove(item.Gift);
-                
-                // Then remove Principal
-                if (nfcTag != null)
-                {
-                    _unitOfWork.NfcTags.Remove(nfcTag);
-                }
-            }
-            _unitOfWork.OrderItems.Remove(item);
-        }
+        var nfcTagsToDelete = new System.Collections.Generic.List<CraftVision.Domain.Entities.NfcTag>();
 
-        _unitOfWork.Orders.Remove(order);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            foreach (var item in order.OrderItems.ToList())
+            {
+                if (item.Gift != null)
+                {
+                    if (item.Gift.NfcTag != null)
+                    {
+                        nfcTagsToDelete.Add(item.Gift.NfcTag);
+                    }
+                    _unitOfWork.Gifts.Remove(item.Gift);
+                }
+                _unitOfWork.OrderItems.Remove(item);
+            }
+
+            _unitOfWork.Orders.Remove(order);
+            await _unitOfWork.SaveChangesAsync();
+
+            foreach (var tag in nfcTagsToDelete)
+            {
+                _unitOfWork.NfcTags.Remove(tag);
+            }
+
+            if (nfcTagsToDelete.Any())
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 }
