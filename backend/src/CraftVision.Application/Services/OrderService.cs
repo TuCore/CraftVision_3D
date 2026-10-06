@@ -90,10 +90,8 @@ public class OrderService : IOrderService
                     order.OrderStatus = OrderStatus.WaitingProduction;
                 }
 
-                if (itemDto.WantNfc && !product.SupportsNfc)
-                {
-                    throw new Exception($"Product {product.Name} does not support NFC.");
-                }
+                // We allow adding NFC cards to any product even if SupportsNfc is false.
+                // The physical NFC card can just be shipped alongside the product.
 
                 decimal extraFee = itemDto.ExtraPrice ?? (itemDto.WantNfc ? 5000m : 0m);
                 decimal unitPrice = product.Price + extraFee;
@@ -118,7 +116,7 @@ public class OrderService : IOrderService
 
                     if (itemDto.Gift.MessageSource == "Manual" && string.IsNullOrWhiteSpace(itemDto.Gift.Message))
                     {
-                        throw new Exception("Message cannot be empty for manual source.");
+                        itemDto.Gift.Message = "Không có lời chúc";
                     }
 
                     var availableTag = await _unitOfWork.NfcTags.GetFirstAvailableAsync();
