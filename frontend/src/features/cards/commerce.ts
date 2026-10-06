@@ -13,7 +13,7 @@ export const cardCommerce: Record<string, CardCommerce> = Object.fromEntries(
   cardTemplates.map(({ slug }) => [slug, { salePrice: (cardPrices as Record<string, number>)[slug] }]),
 );
 export const sharedCardCommerce: CardCommerce = {
-  videoUrl: "https://youtu.be/nT1jwkHs0I8?si=yimdIpy9oQmEvsRp",
+  videoUrl: "/videos/payment-tutorial.mp4",
 };
 
 export function getCardCommerce(slug: string): CardCommerce {

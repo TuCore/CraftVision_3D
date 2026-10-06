@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { commonFields, defaultDraft, fieldsFor, validateDraft, type CardField, type CardTemplate, type CardValue } from "./catalog";
 import { importPhoto, importAudio, parseDraft, readDraft, saveDraft } from "./storage";
 import { cardRequest, downloadDraft, uploadDraft, type ServerCard, type CardPayment } from "./server";
@@ -11,6 +12,7 @@ import { getCardCommerce, formatCardPrice } from "./commerce";
 import "./cards.css";
 
 export default function CardEditor({ template }: { template: CardTemplate }) {
+  const router = useRouter();
   const [draft, setDraft] = useState(() => defaultDraft(template));
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState(0);
@@ -153,7 +155,7 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
     <section className="server-card-panel" aria-label="Lưu và chia sẻ công khai"><h2>Lưu & gửi thiệp</h2><p>Bạn có thể chỉnh sửa, lưu bản nháp và xem thử miễn phí. Để tạo link gửi người nhận, hãy thanh toán thiệp qua mã QR trên PayOS. Chỉ sau khi hệ thống xác nhận đã nhận đủ tiền, bạn mới có thể xuất bản thiệp.</p>
       <p><strong>{serverCard?.paidAt ? "Đã thanh toán" : `Giá thiệp: ${price === undefined ? "Đang cập nhật" : formatCardPrice(price)}`}</strong>{!serverCard?.paidAt && " · Thanh toán một lần cho thiệp này; các lần chỉnh sửa sau không cần trả lại."}</p>
       <p>Khi xuất bản, người có link xem được lời chúc, ảnh và nhạc đã chọn. Thu hồi link chỉ chặn truy cập mới, không thu hồi nội dung người nhận đã tải.</p>
-      {!signedIn ? <Link href={`/auth?redirect=${encodeURIComponent(loginPath)}`} onClick={async event => { event.preventDefault(); try { if (!loadFailed) await saveDraft(draft); window.location.assign(`/auth?redirect=${encodeURIComponent(loginPath)}`); } catch { setNotice("Không lưu được bản nháp trên thiết bị. Hãy tải tệp thiệp trước khi đăng nhập."); } }}>Đăng nhập để lưu và thanh toán →</Link> : <div className="editor-tools">
+      {!signedIn ? <Link href={`/auth?redirect=${encodeURIComponent(loginPath)}`} onClick={async event => { event.preventDefault(); try { if (!loadFailed) await saveDraft(draft); router.push(`/auth?redirect=${encodeURIComponent(loginPath)}`); } catch { setNotice("Không lưu được bản nháp trên thiết bị. Hãy tải tệp thiệp trước khi đăng nhập."); } }}>Đăng nhập để lưu và thanh toán →</Link> : <div className="editor-tools">
         <button disabled={!ready || busy || loadFailed} onClick={() => void saveServer()}>Lưu lên server</button>
         {serverCard?.paidAt ? <button className="card-primary" disabled={!ready || busy || loadFailed} onClick={() => void saveServer(true)}>{serverCard.sharePath ? "Cập nhật bản công khai" : "Xuất bản & tạo link"}</button> : <button className="card-primary" disabled={!ready || busy || loadFailed} onClick={() => void saveServer(false, true)}>Thanh toán QR qua PayOS{price !== undefined ? ` · ${formatCardPrice(price)}` : ""}</button>}
         {serverCard && !serverCard.paidAt && <button disabled={busy || loadFailed} onClick={() => void checkPayment()}>Kiểm tra thanh toán</button>}

@@ -1,0 +1,124 @@
+openapi: 3.0.3
+info:
+  title: CraftVision Background Music Gateway API
+  version: 1.0.0
+  description: Public ordered playlist and admin-only music management. Audio files are stored in the Music service database.
+servers:
+  - url: /
+paths:
+  /api/music:
+    get:
+      summary: List enabled tracks ordered by sortOrder, then id
+      responses:
+        '200':
+          description: Playlist (empty when Music is not configured)
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Track' } }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /api/music/tracks:
+    get:
+      summary: List all tracks, including disabled tracks
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Admin playlist
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Track' } }
+        '401': { description: Sign in required }
+        '403': { description: Admin role required }
+        '503': { $ref: '#/components/responses/Unavailable' }
+    post:
+      summary: Create a track from an HTTPS audio URL or an uploaded MP3/WAV/OGG file (maximum 15 MiB)
+      security: [{ bearerAuth: [] }]
+      requestBody: { $ref: '#/components/requestBodies/TrackForm' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Track' }
+        '400': { description: Invalid title, URL, order or audio signature; provide exactly one source }
+        '401': { description: Sign in required }
+        '403': { description: Admin role required }
+        '413': { description: File or request too large }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /api/music/tracks/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      summary: Edit metadata or replace audio; omit both sources to keep existing audio
+      description: Revision is required. A title/order change preserves audioUrl; replacing audio changes the media version.
+      security: [{ bearerAuth: [] }]
+      requestBody: { $ref: '#/components/requestBodies/TrackForm' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Track' }
+        '400': { description: Validation failed }
+        '401': { description: Sign in required }
+        '403': { description: Admin role required }
+        '404': { description: Track not found }
+        '409': { description: Another admin changed this track; reload before saving }
+        '413': { description: File or request too large }
+        '503': { $ref: '#/components/responses/Unavailable' }
+    delete:
+      summary: Delete a track and its stored audio
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: revision, in: query, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '204': { description: Deleted }
+        '401': { description: Sign in required }
+        '403': { description: Admin role required }
+        '404': { description: Track not found }
+        '409': { description: Revision conflict }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /api/music/tracks/{id}/audio:
+    get:
+      summary: Stream enabled uploaded audio; admins may preview disabled audio
+      description: Supports byte ranges. Deleting/disabling cannot revoke audio already buffered in a browser.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: v, in: query, schema: { type: integer }, description: Media cache version }
+      responses:
+        '200': { description: Audio bytes }
+        '206': { description: Partial audio bytes }
+        '404': { description: Missing, disabled or externally hosted track }
+        '416': { description: Invalid byte range }
+        '503': { $ref: '#/components/responses/Unavailable' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT, description: JWT must contain the Admin role for write access }
+  responses:
+    Unavailable: { description: Music database is unavailable or admin music is not configured }
+  requestBodies:
+    TrackForm:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [title, isEnabled, sortOrder]
+            properties:
+              title: { type: string, minLength: 1, maxLength: 120 }
+              audioUrl: { type: string, maxLength: 2048, description: Direct HTTPS audio URL; not a YouTube/Spotify page }
+              file: { type: string, format: binary }
+              isEnabled: { type: boolean }
+              sortOrder: { type: integer, minimum: 0, maximum: 10000 }
+              revision: { type: integer, minimum: 1, description: Required for updates }
+  schemas:
+    Track:
+      type: object
+      required: [id, title, audioUrl, isEnabled, sortOrder, revision]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        audioUrl: { type: string, description: Relative Gateway URL for uploaded files, HTTPS URL otherwise }
+        sourceUrl: { type: string, nullable: true, description: Original external URL; null for uploaded audio }
+        isEnabled: { type: boolean }
+        sortOrder: { type: integer }
+        revision: { type: integer }
