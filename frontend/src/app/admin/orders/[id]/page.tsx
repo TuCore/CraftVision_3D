@@ -148,8 +148,39 @@ export default function AdminOrderDetailPage() {
               </p>
               <p className="font-semibold text-foreground">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
             </div>
+          </div>
             
-            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm sm:col-span-2 flex flex-col justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center sm:col-span-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5" /> Thông tin liên hệ & Địa chỉ
+              </p>
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-20">SĐT:</span> {order.receiverPhone || 'Chưa cung cấp'}</p>
+                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-20">Địa chỉ:</span> {order.receiverAddress || 'Chưa cung cấp'}</p>
+              </div>
+            </div>
+            
+            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5" /> Thanh toán
+              </p>
+              <div className="flex flex-col gap-1.5">
+                <p className="font-semibold text-foreground">
+                  {order.paymentMethod === 'Cod' ? 'Thanh toán khi nhận hàng (COD)' : 
+                   order.paymentMethod === 'BankTransfer' ? 'Chuyển khoản (QR)' : order.paymentMethod}
+                </p>
+                {order.paymentMethod === 'BankTransfer' && (
+                  <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border w-fit ${
+                    order.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'
+                  }`}>
+                    {order.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5" /> Tổng tiền
               </p>
@@ -247,18 +278,22 @@ export default function AdminOrderDetailPage() {
                     <ExternalLink className="w-5 h-5 text-indigo-500" /> Dữ liệu NFC & Quà tặng
                   </h4>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
                       <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Tiêu đề quà</span>
                       <span className="font-bold text-indigo-950 text-base">{item.gift.giftTitle || 'N/A'}</span>
                     </div>
                     <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
-                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">NFC Tag Code</span>
-                      <span className="font-bold text-indigo-950 text-base font-mono">{item.gift.nfcTagCode || 'Chưa gán'}</span>
+                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Người gửi</span>
+                      <span className="font-bold text-indigo-950 text-base">{item.gift.senderName || 'N/A'}</span>
                     </div>
                     <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
-                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Trạng thái NFC</span>
-                      <span className="font-bold text-indigo-950 text-base">{item.gift.status || 'N/A'}</span>
+                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Người nhận</span>
+                      <span className="font-bold text-indigo-950 text-base">{item.gift.receiverName || 'N/A'}</span>
+                    </div>
+                    <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
+                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">NFC Tag Code</span>
+                      <span className="font-bold text-indigo-950 text-base font-mono">{item.gift.nfcTagCode || 'Chưa gán'}</span>
                     </div>
                   </div>
                   

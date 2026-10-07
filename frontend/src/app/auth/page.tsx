@@ -244,7 +244,7 @@ export default function AuthPage() {
               </div>
 
               <div className="flex justify-center">
-                <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                <div className="w-full flex justify-center">
                   <GoogleLogin
                     onSuccess={(credentialResponse) => {
                       (async () => {

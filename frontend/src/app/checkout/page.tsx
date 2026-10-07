@@ -16,7 +16,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearItems } = useOrderStore();
   const { removeFromCart } = useWishlistStore(); // to clear cart items on success
-  
+
   const [shippingInfo, setShippingInfo] = useState({
     receiverName: "",
     phone: "",
@@ -26,7 +26,7 @@ export default function CheckoutPage() {
     ward: "",
     note: ""
   });
-  
+
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [isFirstAddressUser, setIsFirstAddressUser] = useState(false);
   const [isDefaultAddressSaved, setIsDefaultAddressSaved] = useState(false);
@@ -166,7 +166,7 @@ export default function CheckoutPage() {
       }
 
       const fullAddress = `${shippingInfo.address}, ${shippingInfo.ward}, ${shippingInfo.district}, ${shippingInfo.province}`;
-      
+
       const payload = {
         receiverName: hasPhysicalItems ? shippingInfo.receiverName : "Khách hàng 3D",
         receiverPhone: hasPhysicalItems ? shippingInfo.phone : "0999999999",
@@ -202,25 +202,20 @@ export default function CheckoutPage() {
       const res = await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
       if (paymentMethod === "BANK_TRANSFER") {
-        if (res.data.checkoutUrl) {
-          window.location.href = res.data.checkoutUrl;
-        } else {
-          router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}`);
-        }
+        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}`);
         return;
       }
 
-      // Clear items from cart (only if not bank transfer, bank transfer will clear on success)
       items.forEach(item => {
         if (item.cartItemId) removeFromCart(item.cartItemId);
       });
-      
+
       if (!hasPhysicalItems) {
         const secretKey = res.data?.items?.[0]?.gift?.secretKey || res.data?.items?.[0]?.id;
         setSuccess3DUrl(`${window.location.origin}/gift/scan/${secretKey}`);
         return;
       }
-      
+
       clearItems();
       router.push("/settings?tab=orders");
     } catch (error: any) {
@@ -267,9 +262,9 @@ export default function CheckoutPage() {
           </button>
           <h1 className="text-3xl font-extrabold font-display gradient-text">Thanh toán</h1>
         </div>
-        
+
         <div className="flex flex-col gap-6">
-          
+
           {/* 1. Thông tin giao hàng */}
           {hasPhysicalItems && (
             <div className="glass-card p-6 rounded-3xl space-y-4">
@@ -277,33 +272,33 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-bold flex items-center gap-2"><Truck className="w-5 h-5 text-primary" /> Thông tin giao hàng</h2>
                 <button onClick={() => router.push('/settings?tab=address')} className="text-sm font-semibold text-primary hover:underline text-left sm:text-right">Thay đổi địa chỉ</button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Họ tên người nhận *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={shippingInfo.receiverName}
-                    onChange={e => setShippingInfo({...shippingInfo, receiverName: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    onChange={e => setShippingInfo({ ...shippingInfo, receiverName: e.target.value })}
+                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Số điện thoại *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={shippingInfo.phone}
-                    onChange={e => setShippingInfo({...shippingInfo, phone: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    onChange={e => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
+                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">Địa chỉ cụ thể *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={shippingInfo.address}
-                    onChange={e => setShippingInfo({...shippingInfo, address: e.target.value})}
-                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5" 
+                    onChange={e => setShippingInfo({ ...shippingInfo, address: e.target.value })}
+                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -363,7 +358,7 @@ export default function CheckoutPage() {
           {/* 2. Đơn hàng */}
           <div className="glass-card p-6 rounded-3xl space-y-6">
             <h2 className="text-xl font-bold flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary" /> Đơn hàng</h2>
-            
+
             <div className="space-y-4">
               {items.map((item, idx) => {
                 const cardPrice = item.gift?.cardPrice ?? (item.product as any).cardPrice ?? (item.gift ? 5000 : 0);
@@ -414,10 +409,10 @@ export default function CheckoutPage() {
                         <span className="font-semibold">{shipping === 0 ? "Miễn phí" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}</span>
                         {shipping >= 0 && (
                           <span className="block text-[11px] text-muted-foreground">
-                            {shipping === 0 
-                              ? (subtotal >= 500000 ? "(Freeship đơn trên 500k)" : "(TP. Thủ Đức)") 
-                              : shipping === 20000 
-                                ? "(TP.HCM)" 
+                            {shipping === 0
+                              ? (subtotal >= 500000 ? "(Freeship đơn trên 500k)" : "(TP. Thủ Đức)")
+                              : shipping === 20000
+                                ? "(TP.HCM)"
                                 : `(Ngoại tỉnh - ${shippingInfo.province})`}
                           </span>
                         )}
@@ -452,7 +447,7 @@ export default function CheckoutPage() {
           {/* 3. Phương thức thanh toán */}
           <div className="glass-card p-6 rounded-3xl space-y-6">
             <h2 className="text-xl font-bold flex items-center gap-2"><CreditCard className="w-5 h-5 text-primary" /> Thanh toán</h2>
-            
+
             <div className="space-y-3">
               <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'COD' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
                 <input type="radio" name="payment" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} className="w-4 h-4 text-primary" />
@@ -465,8 +460,8 @@ export default function CheckoutPage() {
             </div>
 
             <div className="flex items-start gap-2 mt-4">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="agreed-terms-checkout"
                 checked={agreedTerms}
                 onChange={e => setAgreedTerms(e.target.checked)}
@@ -476,8 +471,8 @@ export default function CheckoutPage() {
                 <label htmlFor="agreed-terms-checkout" className="cursor-pointer">
                   Tôi đồng ý với{" "}
                 </label>
-                <Link 
-                  href="/terms" 
+                <Link
+                  href="/terms"
                   className="text-primary hover:underline font-medium"
                 >
                   Điều khoản dịch vụ
@@ -485,8 +480,8 @@ export default function CheckoutPage() {
                 <label htmlFor="agreed-terms-checkout" className="cursor-pointer">
                   và{" "}
                 </label>
-                <Link 
-                  href="/privacy" 
+                <Link
+                  href="/privacy"
                   className="text-primary hover:underline font-medium"
                 >
                   Chính sách bảo mật
@@ -497,7 +492,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={handlePlaceOrder}
               disabled={isSubmitting || !agreedTerms}
               className="w-full py-4 rounded-2xl btn-hero text-black font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
@@ -523,7 +518,7 @@ export default function CheckoutPage() {
           </DialogHeader>
           <div className="space-y-6 py-4">
             <p className="text-muted-foreground text-sm">Website 3D kèm câu chúc của bạn đã được tạo. Hãy chia sẻ mã QR hoặc link dưới đây cho người nhận nhé!</p>
-            
+
             <div className="bg-primary/5 p-4 rounded-2xl flex justify-center border border-primary/20 mx-auto w-fit">
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(success3DUrl || '')}`} alt="QR Code" className="w-48 h-48 rounded-lg shadow-sm" />
             </div>
@@ -531,13 +526,13 @@ export default function CheckoutPage() {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground text-left block">Link website của bạn:</label>
               <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  readOnly 
-                  value={success3DUrl || ''} 
+                <input
+                  type="text"
+                  readOnly
+                  value={success3DUrl || ''}
                   className="flex-1 bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-medium text-primary"
                 />
-                <button 
+                <button
                   onClick={() => {
                     navigator.clipboard.writeText(success3DUrl || '');
                     toast.success("Đã copy link!");
@@ -549,7 +544,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={() => {
                 clearItems();
                 router.push("/settings?tab=orders");
@@ -577,7 +572,7 @@ export default function CheckoutPage() {
           </DialogHeader>
           <div className="space-y-6 py-4">
             <p className="text-muted-foreground text-sm">Vui lòng quét mã QR dưới đây để thanh toán cho đơn hàng của bạn.</p>
-            
+
             <div className="bg-primary/5 p-4 rounded-2xl flex justify-center border border-primary/20 mx-auto w-fit">
               <img src={`https://img.vietqr.io/image/970422-0382343939-compact2.png?amount=${total}&addInfo=Thanh toan don hang CraftVision`} alt="VietQR Code" className="w-64 h-64 rounded-lg shadow-sm" />
             </div>
@@ -601,7 +596,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={() => {
                 setShowBankInfo(false);
                 clearItems();

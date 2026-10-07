@@ -18,6 +18,12 @@ public class OrderDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string? CheckoutUrl { get; set; }
+    public string? QrCode { get; set; }
+    public string? PayOsBin { get; set; }
+    public string? PayOsAccountNumber { get; set; }
+    public string? PayOsAccountName { get; set; }
+    public int? PayOsAmount { get; set; }
+    public string? PayOsDescription { get; set; }
     
     public List<OrderItemDto> Items { get; set; } = new();
 }
