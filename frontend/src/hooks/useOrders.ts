@@ -9,7 +9,10 @@ export interface Order {
   paymentStatus: string;
   paymentMethod: string;
   receiverName: string;
+  receiverAddress?: string;
+  receiverPhone?: string;
   createdAt: string;
+  items?: any[];
 }
 
 export interface PagedResult<T> {

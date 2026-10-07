@@ -275,7 +275,7 @@ export default function ShopPage() {
                   disabled={product.isComingSoon || product.stock === 0}
                   className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                 >
-                  {product.isComingSoon || product.stock === 0 ? "Tạm hết hàng" : t("shop.view_details")}
+                  {product.isComingSoon ? "COMING SOON" : product.stock === 0 ? "Tạm hết hàng" : t("shop.view_details")}
                 </button>
               </div>
             </TiltCard>

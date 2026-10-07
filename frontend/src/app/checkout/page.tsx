@@ -200,15 +200,14 @@ export default function CheckoutPage() {
       };
 
       const res = await api.post("/api/orders", payload);
-      toast.success("Đặt hàng thành công!");
+      
       if (paymentMethod === "BANK_TRANSFER") {
-        if (res.data.checkoutUrl) {
-          window.location.href = res.data.checkoutUrl;
-        } else {
-          router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}`);
-        }
+        toast.info("Đang chuyển hướng đến trang thanh toán...");
+        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}`);
         return;
       }
+
+      toast.success("Đặt hàng thành công!");
 
       // Clear items from cart (only if not bank transfer, bank transfer will clear on success)
       items.forEach(item => {

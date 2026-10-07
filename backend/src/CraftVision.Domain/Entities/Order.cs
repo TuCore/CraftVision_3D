@@ -21,6 +21,12 @@ public class Order
     public decimal ShippingFee { get; set; }
     public decimal TotalAmount { get; set; }
     
+    public string? PayOsCheckoutUrl { get; set; }
+    public string? PayOsQrCode { get; set; }
+    public string? PayOsBin { get; set; }
+    public string? PayOsAccountNumber { get; set; }
+    public string? PayOsAccountName { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

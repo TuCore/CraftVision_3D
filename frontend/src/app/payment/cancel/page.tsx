@@ -4,9 +4,17 @@ import { AppShell } from "@/components/AppShell";
 import { XCircle, ArrowLeft, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function PaymentCancelPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    // If the page is loaded inside an iframe (like the PayOS checkout modal), break out of it.
+    if (window !== window.top) {
+      window.top!.location.href = window.location.href;
+    }
+  }, []);
 
   return (
     <AppShell active="shop">

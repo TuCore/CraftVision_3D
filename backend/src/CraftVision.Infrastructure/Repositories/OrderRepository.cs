@@ -55,7 +55,9 @@ public class OrderRepository : IOrderRepository
 
     public async Task<(IEnumerable<Order> Items, int TotalCount)> GetAllAsync(int page, int size)
     {
-        var query = _context.Set<Order>();
+        var query = _context.Set<Order>()
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Gift);
         int total = await query.CountAsync();
         var items = await query.OrderByDescending(o => o.CreatedAt).Skip((page - 1) * size).Take(size).ToListAsync();
         return (items, total);
