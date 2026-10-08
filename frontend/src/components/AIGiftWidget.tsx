@@ -184,7 +184,7 @@ export const AIGiftWidget: React.FC<AIGiftWidgetProps> = ({ receiverName, sender
             type="button"
             onClick={handleGenerate} 
             disabled={store.status === 'generating'} 
-            className="btn-hero text-black px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:translate-y-0"
+            className="btn-hero px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:translate-y-0"
           >
             {store.status === 'generating' ? (
               <span className="flex items-center gap-2 animate-pulse">

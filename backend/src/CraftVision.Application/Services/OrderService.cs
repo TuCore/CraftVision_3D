@@ -226,7 +226,7 @@ public class OrderService : IOrderService
                 string returnUrl = $"{frontendUrl}/payment/success";
                 string cancelUrl = $"{frontendUrl}/payment/cancel";
                 
-                var (checkoutUrl, qrCode, bin, accNum, accName, payAmt, payDesc) = await _payOsService.CreatePaymentLinkAsync(
+                var paymentInfo = await _payOsService.CreatePaymentLinkAsync(
                     order.Id,
                     long.Parse(order.OrderCode),
                     order.TotalAmount,
@@ -235,22 +235,7 @@ public class OrderService : IOrderService
                     cancelUrl
                 );
                 
-                order.PayOsCheckoutUrl = checkoutUrl;
-                order.PayOsQrCode = qrCode;
-                order.PayOsBin = bin;
-                order.PayOsAccountNumber = accNum;
-                order.PayOsAccountName = accName;
-                
-                _unitOfWork.Orders.Update(order);
-                await _unitOfWork.SaveChangesAsync();
-                
-                resultDto.CheckoutUrl = checkoutUrl;
-                resultDto.QrCode = qrCode;
-                resultDto.PayOsBin = bin;
-                resultDto.PayOsAccountNumber = accNum;
-                resultDto.PayOsAccountName = accName;
-                resultDto.PayOsAmount = payAmt;
-                resultDto.PayOsDescription = payDesc;
+                resultDto.CheckoutUrl = paymentInfo.CheckoutUrl;
             }
 
             return resultDto;
@@ -272,7 +257,7 @@ public class OrderService : IOrderService
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
         if (order == null) throw new Exception("Order not found");
         
-        var dto = new OrderDto
+        return new OrderDto
         {
             Id = order.Id,
             OrderCode = order.OrderCode,
@@ -284,13 +269,6 @@ public class OrderService : IOrderService
             ReceiverAddress = order.ReceiverAddress,
             ShippingFee = order.ShippingFee,
             TotalAmount = order.TotalAmount,
-            CheckoutUrl = order.PayOsCheckoutUrl,
-            QrCode = order.PayOsQrCode,
-            PayOsBin = order.PayOsBin,
-            PayOsAccountNumber = order.PayOsAccountNumber,
-            PayOsAccountName = order.PayOsAccountName,
-            PayOsAmount = (int)order.TotalAmount,
-            PayOsDescription = $"Thanh toan CV3D {order.OrderCode}",
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
             Items = order.OrderItems.Select(oi => new OrderItemDto
@@ -315,8 +293,6 @@ public class OrderService : IOrderService
                 } : null
             }).ToList()
         };
-
-        return dto;
     }
 
     public async Task<PagedResult<OrderDto>> GetUserOrdersAsync(Guid userId, int page, int size)
@@ -336,13 +312,6 @@ public class OrderService : IOrderService
                 ReceiverAddress = order.ReceiverAddress,
                 ShippingFee = order.ShippingFee,
                 TotalAmount = order.TotalAmount,
-                CheckoutUrl = order.PayOsCheckoutUrl,
-                QrCode = order.PayOsQrCode,
-                PayOsBin = order.PayOsBin,
-                PayOsAccountNumber = order.PayOsAccountNumber,
-                PayOsAccountName = order.PayOsAccountName,
-                PayOsAmount = (int)order.TotalAmount,
-                PayOsDescription = $"Thanh toan CV3D {order.OrderCode}",
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 Items = order.OrderItems.Select(oi => new OrderItemDto
@@ -390,25 +359,7 @@ public class OrderService : IOrderService
                 OrderStatus = order.OrderStatus.ToString(),
                 ReceiverName = order.ReceiverName,
                 TotalAmount = order.TotalAmount,
-                CreatedAt = order.CreatedAt,
-                Items = order.OrderItems.Select(oi => new OrderItemDto
-                {
-                    Id = oi.Id,
-                    ProductId = oi.ProductId,
-                    ProductName = "",
-                    ProductType = "",
-                    Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice,
-                    SubTotal = oi.SubTotal,
-                    Gift = oi.Gift != null ? new GiftSummaryDto
-                    {
-                        Id = oi.Gift.Id,
-                        GiftTitle = oi.Gift.GiftTitle,
-                        SenderName = oi.Gift.SenderName,
-                        ReceiverName = oi.Gift.ReceiverName,
-                        Status = oi.Gift.Status.ToString()
-                    } : null
-                }).ToList()
+                CreatedAt = order.CreatedAt
             }).ToList(),
             TotalItems = total,
             Page = page,
@@ -449,42 +400,6 @@ public class OrderService : IOrderService
             }
         }
 
-        await _unitOfWork.SaveChangesAsync();
-    }
-
-    public async Task<bool> CheckAndUpdatePaymentStatusAsync(Guid orderId)
-    {
-        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
-        if (order == null) return false;
-
-        if (order.PaymentStatus == PaymentStatus.Paid) return true;
-        if (order.PaymentMethod != PaymentMethod.BankTransfer) return false;
-
-        bool isPaid = await _payOsService.CheckPaymentStatusAsync(long.Parse(order.OrderCode));
-        if (isPaid)
-        {
-            order.PaymentStatus = PaymentStatus.Paid;
-            order.OrderStatus = OrderStatus.Processing;
-            order.UpdatedAt = DateTime.UtcNow;
-            
-            _unitOfWork.Orders.Update(order);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
-        }
-
-        return false;
-    }
-
-    public async Task SimulatePaymentAsync(Guid orderId)
-    {
-        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
-        if (order == null) throw new Exception("Order not found");
-
-        order.PaymentStatus = PaymentStatus.Paid;
-        order.OrderStatus = OrderStatus.Processing;
-        order.UpdatedAt = DateTime.UtcNow;
-
-        _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -629,5 +544,38 @@ public class OrderService : IOrderService
             await _unitOfWork.RollbackTransactionAsync();
             throw;
         }
+    }
+
+    public async Task<bool> CheckAndUpdatePaymentStatusAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        if (order.PaymentStatus == PaymentStatus.Paid) return true;
+
+        if (long.TryParse(order.OrderCode, out long orderCodeLong))
+        {
+            bool isPaid = await _payOsService.CheckPaymentStatusAsync(orderCodeLong);
+            if (isPaid)
+            {
+                order.PaymentStatus = PaymentStatus.Paid;
+                order.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public async Task SimulatePaymentAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        order.PaymentStatus = PaymentStatus.Paid;
+        order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
     }
 }
