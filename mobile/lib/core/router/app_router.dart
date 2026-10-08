@@ -21,7 +21,12 @@ import '../../features/checkout/presentation/screens/checkout_screen.dart';
 import '../../features/checkout/presentation/screens/checkout_success_screen.dart';
 import '../../features/chat/presentation/screens/chat_list_screen.dart';
 import '../../features/order/presentation/screens/order_list_screen.dart';
+import '../../features/order/presentation/screens/order_list_screen.dart';
 import '../../features/order/presentation/screens/order_detail_screen.dart';
+import '../../features/profile/presentation/screens/address_screen.dart';
+import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/profile/presentation/screens/help_screen.dart';
+import '../../features/profile/presentation/screens/wishlist_screen.dart';
 
 CustomTransitionPage heroPage(GoRouterState state, Widget child) {
   return CustomTransitionPage(
@@ -54,6 +59,10 @@ final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/',
+      redirect: (context, state) => '/splash',
+    ),
     GoRoute(
       path: '/splash',
       pageBuilder: (context, state) => fadePage(state, const AuthScreen()),
@@ -191,6 +200,22 @@ final appRouter = GoRouter(
               path: '/profile',
               pageBuilder: (context, state) =>
                   const NoTransitionPage(child: ProfileScreen()),
+            ),
+            GoRoute(
+              path: '/address',
+              pageBuilder: (context, state) => slideFadePage(state, const AddressScreen()),
+            ),
+            GoRoute(
+              path: '/settings',
+              pageBuilder: (context, state) => slideFadePage(state, const SettingsScreen()),
+            ),
+            GoRoute(
+              path: '/help',
+              pageBuilder: (context, state) => slideFadePage(state, const HelpScreen()),
+            ),
+            GoRoute(
+              path: '/wishlist',
+              pageBuilder: (context, state) => slideFadePage(state, const WishlistScreen()),
             ),
           ],
         ),

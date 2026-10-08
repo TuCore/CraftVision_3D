@@ -1,28 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/cv_top_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/mock_data.dart';
+import '../../../../core/widgets/cv_button.dart';
+import '../providers/order_provider.dart';
 
-import 'package:go_router/go_router.dart';
-
-class OrderListScreen extends StatefulWidget {
+class OrderListScreen extends ConsumerWidget {
   const OrderListScreen({super.key});
 
   @override
-  State<OrderListScreen> createState() => _OrderListScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ordersAsync = ref.watch(ordersProvider);
 
-class _OrderListScreenState extends State<OrderListScreen> {
-  final List<String> _statuses = [
-    'Chờ xác nhận',
-    'Chờ lấy hàng',
-    'Đang giao',
-    'Đã giao',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.neutral100,
       appBar: CvTopBar(
@@ -34,216 +25,149 @@ class _OrderListScreenState extends State<OrderListScreen> {
           ),
         ],
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        itemCount: 8,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final status = _statuses[index % _statuses.length];
-          return _buildOrderCard(status, index);
+      body: ordersAsync.when(
+        data: (orders) {
+          if (orders.isEmpty) {
+            return const Center(child: Text('Bạn chưa có đơn hàng nào.'));
+          }
+          // Sort orders by newest first
+          final sortedOrders = List.from(orders)..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            itemCount: sortedOrders.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final order = sortedOrders[index];
+              return _buildOrderCard(order, context);
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) {
+          final errorStr = e.toString().toLowerCase();
+          if (errorStr.contains('401') || errorStr.contains('unauthorized')) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock_outline, size: 64, color: AppColors.neutral400),
+                  const SizedBox(height: 16),
+                  Text('Vui lòng đăng nhập', style: AppTypography.heading3),
+                  const SizedBox(height: 8),
+                  Text('Bạn cần đăng nhập để xem đơn hàng', style: AppTypography.bodyMedium),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: 200,
+                    child: CvButton(
+                      text: 'Đăng nhập ngay',
+                      onPressed: () => context.push('/auth'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return Center(child: Text('Lỗi tải dữ liệu: $e'));
         },
       ),
     );
   }
 
-  Widget _buildOrderCard(String status, int index) {
-    final product = MockData.products[index % MockData.products.length];
+  Widget _buildOrderCard(dynamic order, BuildContext context) {
+    final statusColor = order.status == 'pending' ? AppColors.warning : AppColors.primary;
     
-    // Status color mapping
-    Color statusColor = AppColors.neutral600;
-    if (status == 'Chờ giao hàng' || status == 'Chờ lấy hàng' || status == 'Đã giao' || status == 'Đang giao') {
-      statusColor = AppColors.primary; // Shopee uses red/primary for status text
-    }
-
-    return Container(
-      color: AppColors.surfaceLight,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header (Shop name + Status)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: Text(
-                        'Yêu thích',
-                        style: AppTypography.bodySmall.copyWith(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text('doublefair.vn', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Text(
-                  status,
-                  style: AppTypography.bodyMedium.copyWith(color: statusColor),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: AppColors.neutral200),
-          
-          // Product Info
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.neutral200),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.network(
-                      product.imageUrl,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              product.name,
-                              style: AppTypography.bodyMedium,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Text('x2', style: AppTypography.bodyMedium.copyWith(color: AppColors.neutral600)),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Phân loại: Mặc định',
-                        style: AppTypography.bodySmall.copyWith(color: AppColors.neutral400),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${(product.price * 1.2).toStringAsFixed(0)}đ',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.neutral400,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${product.price.toStringAsFixed(0)}đ',
-                            style: AppTypography.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: AppColors.neutral200),
-          
-          // Total
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text('Tổng số tiền (2 sản phẩm): ', style: AppTypography.bodyMedium),
-                Text(
-                  '${(product.price * 2).toStringAsFixed(0)}đ',
-                  style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-
-          // Delivery Status Pill
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4), // Light green tint
-                borderRadius: BorderRadius.circular(8),
-              ),
+    // We display the first item as a summary or loop through all items
+    return InkWell(
+      onTap: () {
+        // Navigate to order details if implemented
+        // context.push('/order/${order.id}');
+      },
+      child: Container(
+        color: AppColors.surfaceLight,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      'Giao hàng thành công vào 2 Thg 10',
-                      style: AppTypography.bodyMedium.copyWith(color: const Color(0xFF16A34A)), // Green text
-                    ),
+                  Text('Đơn hàng #${order.orderNumber}', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    order.status.toUpperCase(),
+                    style: AppTypography.bodyMedium.copyWith(color: statusColor, fontWeight: FontWeight.bold),
                   ),
-                  const Icon(Icons.chevron_right, size: 16, color: Color(0xFF16A34A)),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Action Buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: _buildActionButtons(status, product),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: AppColors.neutral200),
+            
+            // Items
+            if (order.items != null && order.items.isNotEmpty)
+              ...order.items.map((item) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: AppColors.neutral200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      // If the item had product images, we'd use them, but we only have product name for now
+                      child: const Icon(Icons.image_outlined, color: AppColors.neutral400),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.productName, style: AppTypography.bodyLarge, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          if (item.selectedOptions != null && item.selectedOptions.isNotEmpty)
+                            Text(item.selectedOptions, style: AppTypography.bodySmall.copyWith(color: AppColors.neutral600)),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('${item.unitPrice.toStringAsFixed(0)} đ', style: AppTypography.bodyMedium),
+                              Text('x${item.quantity}', style: AppTypography.bodyMedium),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
+              
+            const Divider(height: 1, color: AppColors.neutral200),
+            
+            // Footer
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${order.items?.length ?? 0} sản phẩm', style: AppTypography.bodyMedium.copyWith(color: AppColors.neutral600)),
+                  Row(
+                    children: [
+                      Text('Thành tiền: ', style: AppTypography.bodyMedium),
+                      Text('${order.totalAmount.toStringAsFixed(0)} đ', style: AppTypography.priceText),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
-  List<Widget> _buildActionButtons(String status, MockProduct product) {
-    return [
-      _buildOutlineButton('Xem chi tiết', false, () {
-        context.push('/order/detail/${product.id}');
-      }),
-      const SizedBox(width: 8),
-      if (status == 'Đang giao' || status == 'Chờ lấy hàng')
-        _buildOutlineButton('Đã nhận được hàng', true, () {}),
-      if (status == 'Đã giao')
-        _buildOutlineButton('Mua lại', true, () {}),
-    ];
-  }
-
-  Widget _buildOutlineButton(String text, bool isPrimary, VoidCallback onPressed) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: isPrimary ? AppColors.primary : AppColors.neutral900,
-        side: BorderSide(color: isPrimary ? AppColors.primary : AppColors.neutral300),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        minimumSize: Size.zero,
-      ),
-      child: Text(text, style: AppTypography.bodyMedium),
-    );
-  }
-
-
 }

@@ -1,33 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
 import '../../../../core/widgets/cv_input.dart';
-import 'package:go_router/go_router.dart';
+import '../../../order/presentation/providers/order_provider.dart';
 
-class CheckoutScreen extends StatefulWidget {
+class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
+class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   int _currentStep = 0;
   bool _isLoading = false;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _noteController = TextEditingController();
+  
+  String _paymentMethod = 'COD';
+
+  Future<void> _submitOrder() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final repository = ref.read(orderRepositoryProvider);
+      // Constructing a payload that backend expects. 
+      // The backend has `CreateOrderDto` which probably expects shipping information.
+      await repository.createOrder({
+        'shippingAddress': _addressController.text.trim(),
+        'shippingPhone': _phoneController.text.trim(),
+        'notes': _noteController.text.trim(),
+        // paymentMethod etc. might be needed depending on API
+      });
+
+      setState(() => _isLoading = false);
+      
+      // Navigate directly to Order History and invalidate so it fetches the new order.
+      ref.invalidate(ordersProvider);
+      context.go('/order');
+      
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi đặt hàng: $e')),
+      );
+    }
+  }
 
   void _onStepContinue() {
     if (_currentStep < 3) {
       setState(() => _currentStep += 1);
     } else {
-      // Final step -> Submit
-      setState(() => _isLoading = true);
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          context.pushReplacement('/checkout/success');
-        }
-      });
+      _submitOrder();
     }
   }
 
@@ -80,12 +110,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Step(
             title: Text('Giao hàng', style: AppTypography.heading3),
             content: Column(
-              children: const [
-                CvInput(labelText: 'Họ và tên', hintText: 'Nguyễn Văn A'),
-                SizedBox(height: 16),
-                CvInput(labelText: 'Số điện thoại', hintText: '0901234567'),
-                SizedBox(height: 16),
-                CvInput(labelText: 'Địa chỉ nhận hàng', hintText: '123 Đường số 4, TP.HCM'),
+              children: [
+                CvInput(
+                  controller: _nameController,
+                  labelText: 'Họ và tên', 
+                  hintText: 'Nguyễn Văn A'
+                ),
+                const SizedBox(height: 16),
+                CvInput(
+                  controller: _phoneController,
+                  labelText: 'Số điện thoại', 
+                  hintText: '0901234567'
+                ),
+                const SizedBox(height: 16),
+                CvInput(
+                  controller: _addressController,
+                  labelText: 'Địa chỉ nhận hàng', 
+                  hintText: '123 Đường số 4, TP.HCM'
+                ),
               ],
             ),
             isActive: _currentStep >= 0,
@@ -95,12 +137,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             title: Text('Quà tặng & Lời chúc', style: AppTypography.heading3),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Chọn mẫu thiệp', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                CvInput(hintText: 'Nhập lời chúc của bạn (tuỳ chọn)'),
-                SizedBox(height: 16),
-                Text('Tùy chọn gói quà: Giấy Kraft Vintage', style: TextStyle(color: AppColors.neutral600)),
+              children: [
+                const Text('Chọn mẫu thiệp', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                CvInput(
+                  controller: _noteController,
+                  hintText: 'Nhập lời chúc của bạn (tuỳ chọn)'
+                ),
+                const SizedBox(height: 16),
+                const Text('Tùy chọn gói quà: Giấy Kraft Vintage', style: TextStyle(color: AppColors.neutral600)),
               ],
             ),
             isActive: _currentStep >= 1,
@@ -111,19 +156,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             content: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.radio_button_checked, color: AppColors.primary),
+                  leading: Icon(
+                    _paymentMethod == 'COD' ? Icons.radio_button_checked : Icons.radio_button_unchecked, 
+                    color: _paymentMethod == 'COD' ? AppColors.primary : AppColors.neutral400
+                  ),
                   title: const Text('Thanh toán khi nhận hàng (COD)'),
-                  onTap: () {},
+                  onTap: () => setState(() => _paymentMethod = 'COD'),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.radio_button_unchecked, color: AppColors.neutral400),
-                  title: const Text('Thẻ tín dụng / Ghi nợ'),
-                  onTap: () {},
-                ),
-                ListTile(
-                  leading: const Icon(Icons.radio_button_unchecked, color: AppColors.neutral400),
-                  title: const Text('Ví Momo'),
-                  onTap: () {},
+                  leading: Icon(
+                    _paymentMethod == 'PAYOS' ? Icons.radio_button_checked : Icons.radio_button_unchecked, 
+                    color: _paymentMethod == 'PAYOS' ? AppColors.primary : AppColors.neutral400
+                  ),
+                  title: const Text('Thanh toán PayOS'),
+                  onTap: () => setState(() => _paymentMethod = 'PAYOS'),
                 ),
               ],
             ),
@@ -135,11 +181,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Tổng tiền: 1,049,000 đ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                // Ideally calculate total from CartProvider here, but for now we just show a static summary.
+                const Text('Vui lòng kiểm tra lại thông tin đơn hàng.', style: TextStyle(fontSize: 16)),
                 const SizedBox(height: 8),
-                Text('Phí vận chuyển: Miễn phí', style: AppTypography.bodyMedium),
-                const SizedBox(height: 8),
-                Text('Thời gian giao dự kiến: 2-3 ngày', style: AppTypography.bodyMedium),
+                Text('Phương thức thanh toán: $_paymentMethod', style: AppTypography.bodyMedium),
               ],
             ),
             isActive: _currentStep >= 3,

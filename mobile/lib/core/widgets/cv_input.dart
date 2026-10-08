@@ -11,6 +11,8 @@ class CvInput extends StatelessWidget {
   final bool isDisabled;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  final Color? textColor;
+  final Color? labelColor;
 
   const CvInput({
     super.key,
@@ -23,10 +25,16 @@ class CvInput extends StatelessWidget {
     this.isDisabled = false,
     this.prefixIcon,
     this.suffixIcon,
+    this.textColor,
+    this.labelColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final finalTextColor = textColor ?? (isDark ? Colors.white : AppTypography.bodyLarge.color);
+    final finalLabelColor = labelColor ?? (isDark ? Colors.white70 : AppTypography.labelText.color);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -34,7 +42,7 @@ class CvInput extends StatelessWidget {
         if (labelText != null) ...[
           Text(
             labelText!,
-            style: AppTypography.labelText,
+            style: AppTypography.labelText.copyWith(color: finalLabelColor),
           ),
           const SizedBox(height: 4),
         ],
@@ -43,13 +51,13 @@ class CvInput extends StatelessWidget {
           onChanged: onChanged,
           obscureText: isPassword,
           enabled: !isDisabled,
-          style: AppTypography.bodyLarge,
+          style: AppTypography.bodyLarge.copyWith(color: finalTextColor),
           decoration: InputDecoration(
             hintText: hintText,
             errorText: errorText,
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
-            // Uses the global inputDecorationTheme from app_theme.dart
+            // Uses the global inputDecorationTheme from app_theme.dart (or overridden in Theme)
           ),
         ),
       ],

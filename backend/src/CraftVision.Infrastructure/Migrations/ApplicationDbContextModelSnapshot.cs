@@ -297,6 +297,78 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("ai_requests", (string)null);
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.Cart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_carts");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_carts_user_id");
+
+                    b.ToTable("carts", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.CartItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CartId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cart_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<string>("SelectedOptions")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("selected_options");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cart_items");
+
+                    b.HasIndex("CartId")
+                        .HasDatabaseName("ix_cart_items_cart_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_cart_items_product_id");
+
+                    b.ToTable("cart_items", (string)null);
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1606,6 +1678,65 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("user_quotas", (string)null);
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.Wishlist", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_wishlists");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_wishlists_user_id");
+
+                    b.ToTable("wishlists", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.WishlistItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<Guid>("WishlistId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("wishlist_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_wishlist_items");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_wishlist_items_product_id");
+
+                    b.HasIndex("WishlistId")
+                        .HasDatabaseName("ix_wishlist_items_wishlist_id");
+
+                    b.ToTable("wishlist_items", (string)null);
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.Ai3dRequest", b =>
                 {
                     b.HasOne("CraftVision.Domain.Entities.UploadedFile", "UploadedFile")
@@ -1689,6 +1820,39 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("UploadedFile");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Cart", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_carts_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.CartItem", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Cart", "Cart")
+                        .WithMany("Items")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_cart_items_carts_cart_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cart_items_products_product_id");
+
+                    b.Navigation("Cart");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>
@@ -1988,6 +2152,39 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.Wishlist", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlists_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.WishlistItem", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_items_products_product_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Wishlist", "Wishlist")
+                        .WithMany("Items")
+                        .HasForeignKey("WishlistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_items_wishlists_wishlist_id");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Wishlist");
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.AiChatSession", b =>
                 {
                     b.Navigation("Messages");
@@ -2002,6 +2199,11 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("Suggestions");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Cart", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>
@@ -2088,6 +2290,11 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("Quota");
 
                     b.Navigation("UploadedFiles");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Wishlist", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }
