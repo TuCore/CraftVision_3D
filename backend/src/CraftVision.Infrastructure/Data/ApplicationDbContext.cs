@@ -40,6 +40,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<MessageTemplate> MessageTemplates { get; set; } = null!;
     public DbSet<ManifestWish> ManifestWishes { get; set; } = null!;
     public DbSet<Review> Reviews { get; set; } = null!;
+    public DbSet<Cart> Carts { get; set; } = null!;
+    public DbSet<CartItem> CartItems { get; set; } = null!;
+    public DbSet<Wishlist> Wishlists { get; set; } = null!;
+    public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -79,6 +83,10 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<MessageTemplate>().ToTable("message_templates");
         modelBuilder.Entity<ManifestWish>().ToTable("manifest_wishes");
         modelBuilder.Entity<Review>().ToTable("reviews");
+        modelBuilder.Entity<Cart>().ToTable("carts");
+        modelBuilder.Entity<CartItem>().ToTable("cart_items");
+        modelBuilder.Entity<Wishlist>().ToTable("wishlists");
+        modelBuilder.Entity<WishlistItem>().ToTable("wishlist_items");
 
         // Soft delete global query filters
         modelBuilder.Entity<ProductCategory>().HasQueryFilter(e => e.IsActive);
@@ -217,6 +225,42 @@ public class ApplicationDbContext : DbContext
             .WithMany()
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Cart>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Cart>()
+            .HasMany(c => c.Items)
+            .WithOne(ci => ci.Cart)
+            .HasForeignKey(ci => ci.CartId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Product)
+            .WithMany()
+            .HasForeignKey(ci => ci.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Wishlist>()
+            .HasOne(w => w.User)
+            .WithMany()
+            .HasForeignKey(w => w.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Wishlist>()
+            .HasMany(w => w.Items)
+            .WithOne(wi => wi.Wishlist)
+            .HasForeignKey(wi => wi.WishlistId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<WishlistItem>()
+            .HasOne(wi => wi.Product)
+            .WithMany()
+            .HasForeignKey(wi => wi.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Seed Admin User
         modelBuilder.Entity<User>().HasData(new User

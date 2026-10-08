@@ -63,6 +63,14 @@ public class OrderController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/payment-status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] CraftVision.Application.DTOs.Common.UpdateStatusDto dto)
+    {
+        await _service.UpdatePaymentStatusAsync(id, dto.Status);
+        return NoContent();
+    }
+
     [HttpPatch("{id:guid}/simulate-payment")]
     public async Task<IActionResult> SimulatePayment(Guid id)
     {
