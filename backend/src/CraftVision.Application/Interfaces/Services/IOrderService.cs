@@ -11,7 +11,10 @@ public interface IOrderService
     Task<OrderDto> GetOrderByIdAsync(Guid id);
     Task<PagedResult<OrderDto>> GetUserOrdersAsync(Guid userId, int page, int size);
     Task<PagedResult<OrderDto>> GetAllOrdersAsync(int page, int size);
+    Task<bool> CheckAndUpdatePaymentStatusAsync(Guid orderId);
     Task UpdateOrderStatusAsync(Guid orderId, string status);
+    Task SimulatePaymentAsync(Guid orderId);
     Task CompleteUserOrderAsync(Guid userId, Guid orderId);
     Task CancelUserOrderAsync(Guid userId, Guid orderId);
+    Task DeleteOrderAsync(Guid id);
 }

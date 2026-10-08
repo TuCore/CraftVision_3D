@@ -13,6 +13,7 @@ WORKDIR /src
 COPY ["backend/src/", "backend/src/"]
 COPY ["api-specs/", "api-specs/"]
 COPY ["databases/CardSharing/", "databases/CardSharing/"]
+COPY ["databases/Music/", "databases/Music/"]
 
 # Phục hồi các gói phụ thuộc (NuGet packages)
 RUN dotnet restore "backend/src/CraftVision.Presentation/CraftVision.Presentation.csproj"

@@ -34,7 +34,7 @@ namespace CraftVision.Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "nfc_status_enum", new[] { "Active", "Available", "Disabled", "Lost", "Reserved", "Sold" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "option_level_enum", new[] { "Advanced", "Basic", "Intermediate" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "order_status_enum", new[] { "Cancelled", "Delivered", "Pending", "Processing", "Producing", "ReadyToShip", "Shipped", "WaitingProduction" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method_enum", new[] { "Cod", "None" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method_enum", new[] { "BankTransfer", "Cod", "None" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_status_enum", new[] { "Failed", "Paid", "Refunded", "Unpaid" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "product_type_enum", new[] { "InStock", "PreOrder" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "request_status_enum", new[] { "Completed", "Failed", "Pending" });
@@ -1037,6 +1037,26 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("order_status_enum")
                         .HasColumnName("order_status");
 
+                    b.Property<string>("PayOsAccountName")
+                        .HasColumnType("text")
+                        .HasColumnName("pay_os_account_name");
+
+                    b.Property<string>("PayOsAccountNumber")
+                        .HasColumnType("text")
+                        .HasColumnName("pay_os_account_number");
+
+                    b.Property<string>("PayOsBin")
+                        .HasColumnType("text")
+                        .HasColumnName("pay_os_bin");
+
+                    b.Property<string>("PayOsCheckoutUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("pay_os_checkout_url");
+
+                    b.Property<string>("PayOsQrCode")
+                        .HasColumnType("text")
+                        .HasColumnName("pay_os_qr_code");
+
                     b.Property<PaymentMethod>("PaymentMethod")
                         .HasColumnType("payment_method_enum")
                         .HasColumnName("payment_method");
@@ -1101,10 +1121,6 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("product_id");
 
-                    b.Property<Guid?>("ProductId1")
-                        .HasColumnType("uuid")
-                        .HasColumnName("product_id1");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("integer")
                         .HasColumnName("quantity");
@@ -1125,9 +1141,6 @@ namespace CraftVision.Infrastructure.Migrations
 
                     b.HasIndex("ProductId")
                         .HasDatabaseName("ix_order_items_product_id");
-
-                    b.HasIndex("ProductId1")
-                        .HasDatabaseName("ix_order_items_product_id1");
 
                     b.ToTable("order_items", (string)null);
                 });
@@ -1154,6 +1167,10 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
+
+                    b.Property<bool>("IsComingSoon")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_coming_soon");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1878,16 +1895,11 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasConstraintName("fk_order_items_orders_order_id");
 
                     b.HasOne("CraftVision.Domain.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_order_items_products_product_id");
-
-                    b.HasOne("CraftVision.Domain.Entities.Product", null)
-                        .WithMany("OrderItems")
-                        .HasForeignKey("ProductId1")
-                        .HasConstraintName("fk_order_items_products_product_id1");
 
                     b.Navigation("Order");
 

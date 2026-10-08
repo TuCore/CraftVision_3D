@@ -642,7 +642,7 @@ export default function SettingsPage() {
 
                           {/* Items */}
                           <div className="p-4 flex flex-col gap-3">
-                            {order.items?.map((item: any) => {
+                            {order.items?.slice(0, 1).map((item: any) => {
                               const imageUrl = item.productImageUrl || item.image || "/dreamy-hero-bg.jpg";
                               const hasGift = !!item.gift?.secretKey;
                               const giftUrl = hasGift ? `/gift/scan/${item.gift.secretKey}` : `/gift/scan/sample`;
@@ -675,6 +675,14 @@ export default function SettingsPage() {
                                 </div>
                               );
                             })}
+                            
+                            {order.items && order.items.length > 1 && (
+                              <div className="pt-2 text-center">
+                                <span className="text-xs text-muted-foreground font-medium italic">
+                                  Và {order.items.length - 1} sản phẩm khác (Bấm Chi tiết để xem)
+                                </span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Footer / Total & Actions */}
@@ -684,7 +692,6 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-                              {/* Xem chi tiết button */}
                               <button
                                 onClick={() => handleOpenOrderDetail(order)}
                                 className="px-3 py-1.5 rounded-xl border border-border hover:bg-muted text-xs font-semibold text-foreground transition-colors flex items-center gap-1 cursor-pointer"
@@ -692,6 +699,18 @@ export default function SettingsPage() {
                                 <Eye className="w-3.5 h-3.5 text-primary" />
                                 Chi tiết
                               </button>
+
+                              {/* Thanh toán ngay */}
+                              {order.paymentMethod === 'BankTransfer' && order.paymentStatus !== 'Paid' && order.orderStatus !== 'Cancelled' && (
+                                <button 
+                                  onClick={() => {
+                                    router.push(`/payment/transfer?orderId=${order.id}&total=${order.totalAmount}`);
+                                  }}
+                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
+                                >
+                                  Thanh toán ngay
+                                </button>
+                              )}
 
                               {/* Hủy đơn hàng */}
                               {["Pending", "Processing"].includes(order.orderStatus) && (

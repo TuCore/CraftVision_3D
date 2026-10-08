@@ -57,6 +57,20 @@ public class OrderService : IOrderService
 
             foreach (var itemDto in dto.Items)
             {
+                if (itemDto.ProductId == Guid.Empty)
+                {
+                    // Fallback for digital templates from frontend
+                    var filter = new CraftVision.Application.DTOs.Product.ProductFilterDto { Keyword = "Thiệp 3D", PageSize = 1, Page = 1 };
+                    var (items, _) = await _unitOfWork.Products.SearchAndFilterAsync(filter);
+                    var templateProduct = items.FirstOrDefault();
+                    
+                    if (templateProduct == null)
+                    {
+                        throw new Exception("Lỗi: Không tìm thấy sản phẩm 'Thiệp 3D' trong hệ thống. Vui lòng tạo một sản phẩm có tên 'Thiệp 3D' trong phần quản trị (Admin) để bán các mẫu thiệp điện tử.");
+                    }
+                    itemDto.ProductId = templateProduct.Id;
+                }
+
                 var product = await _unitOfWork.Products.GetByIdAsync(itemDto.ProductId);
                 if (product == null)
                 {
@@ -90,10 +104,8 @@ public class OrderService : IOrderService
                     order.OrderStatus = OrderStatus.WaitingProduction;
                 }
 
-                if (itemDto.WantNfc && !product.SupportsNfc)
-                {
-                    throw new Exception($"Product {product.Name} does not support NFC.");
-                }
+                // We allow adding NFC cards to any product even if SupportsNfc is false.
+                // The physical NFC card can just be shipped alongside the product.
 
                 decimal extraFee = itemDto.ExtraPrice ?? (itemDto.WantNfc ? 5000m : 0m);
                 decimal unitPrice = product.Price + extraFee;
@@ -118,7 +130,7 @@ public class OrderService : IOrderService
 
                     if (itemDto.Gift.MessageSource == "Manual" && string.IsNullOrWhiteSpace(itemDto.Gift.Message))
                     {
-                        throw new Exception("Message cannot be empty for manual source.");
+                        itemDto.Gift.Message = "Không có lời chúc";
                     }
 
                     var availableTag = await _unitOfWork.NfcTags.GetFirstAvailableAsync();
@@ -214,7 +226,7 @@ public class OrderService : IOrderService
                 string returnUrl = $"{frontendUrl}/payment/success";
                 string cancelUrl = $"{frontendUrl}/payment/cancel";
                 
-                string checkoutUrl = await _payOsService.CreatePaymentLinkAsync(
+                var paymentInfo = await _payOsService.CreatePaymentLinkAsync(
                     order.Id,
                     long.Parse(order.OrderCode),
                     order.TotalAmount,
@@ -223,7 +235,7 @@ public class OrderService : IOrderService
                     cancelUrl
                 );
                 
-                resultDto.CheckoutUrl = checkoutUrl;
+                resultDto.CheckoutUrl = paymentInfo.CheckoutUrl;
             }
 
             return resultDto;
@@ -487,5 +499,83 @@ public class OrderService : IOrderService
 
         // Ngoại tỉnh
         return 35000;
+    }
+
+    public async Task DeleteOrderAsync(Guid id)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
+        if (order == null) throw new Exception("Order not found");
+
+        var nfcTagsToDelete = new System.Collections.Generic.List<CraftVision.Domain.Entities.NfcTag>();
+
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            foreach (var item in order.OrderItems.ToList())
+            {
+                if (item.Gift != null)
+                {
+                    if (item.Gift.NfcTag != null)
+                    {
+                        nfcTagsToDelete.Add(item.Gift.NfcTag);
+                    }
+                    _unitOfWork.Gifts.Remove(item.Gift);
+                }
+                _unitOfWork.OrderItems.Remove(item);
+            }
+
+            _unitOfWork.Orders.Remove(order);
+            await _unitOfWork.SaveChangesAsync();
+
+            foreach (var tag in nfcTagsToDelete)
+            {
+                _unitOfWork.NfcTags.Remove(tag);
+            }
+
+            if (nfcTagsToDelete.Any())
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+    }
+
+    public async Task<bool> CheckAndUpdatePaymentStatusAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        if (order.PaymentStatus == PaymentStatus.Paid) return true;
+
+        if (long.TryParse(order.OrderCode, out long orderCodeLong))
+        {
+            bool isPaid = await _payOsService.CheckPaymentStatusAsync(orderCodeLong);
+            if (isPaid)
+            {
+                order.PaymentStatus = PaymentStatus.Paid;
+                order.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public async Task SimulatePaymentAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        order.PaymentStatus = PaymentStatus.Paid;
+        order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
     }
 }

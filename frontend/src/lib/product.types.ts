@@ -11,6 +11,8 @@ export interface Product {
   matchScore: number;
   productType?: string;
   images?: string[];
+  isComingSoon?: boolean;
+  stock?: number;
 }
 
 

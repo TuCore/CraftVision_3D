@@ -21,4 +21,5 @@ public class ProductDto
     public bool SupportsNfc { get; set; }
     public int? EstimatedProductionDays { get; set; }
     public string? CategoryName { get; set; }
+    public bool IsComingSoon { get; set; }
 }

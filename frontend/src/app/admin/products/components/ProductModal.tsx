@@ -24,6 +24,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
     stock: 0,
     productType: 'InStock',
     supportsNfc: true,
+    isComingSoon: false,
     imageUrls: [] as string[],
     productCategoryId: ''
   });
@@ -41,6 +42,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
         stock: product.stock || 0,
         productType: product.productType || 'InStock',
         supportsNfc: product.supportsNfc ?? true,
+        isComingSoon: product.isComingSoon ?? false,
         imageUrls: (product.sampleImageUrl ? product.sampleImageUrl.split(',') : (product.images?.map((img: any) => img.url) || [])).filter(Boolean) as string[],
         productCategoryId: product.productCategoryId || ''
       });
@@ -52,6 +54,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
         stock: 0,
         productType: 'InStock',
         supportsNfc: true,
+        isComingSoon: false,
         imageUrls: [] as string[],
         productCategoryId: ''
       });
@@ -140,6 +143,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
       stock: formData.stock,
       productType: formData.productType,
       supportsNfc: formData.supportsNfc,
+      isComingSoon: formData.isComingSoon,
       productCategoryId: formData.productCategoryId,
       sampleImageUrl: formData.imageUrls.join(','),
     };
@@ -173,7 +177,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] bg-white rounded-[2rem] p-6 sm:p-8 border-border shadow-soft max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <DialogContent className="sm:max-w-[600px] bg-white rounded-2xl p-6 sm:p-8 border border-orange-200 shadow-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
         <DialogHeader>
           <DialogTitle className="text-2xl font-extrabold font-display">
             {isEdit ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm Mới'}
@@ -183,46 +187,47 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-bold text-muted-foreground">Tên sản phẩm *</label>
+              <label className="text-sm font-bold text-gray-800">Tên sản phẩm <span className="text-[#ff6b6b]">*</span></label>
               <input
                 type="text"
+                placeholder="Nhập tên sản phẩm"
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all"
+                className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all placeholder:text-gray-300 font-medium"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground">Giá (VNĐ) *</label>
+              <label className="text-sm font-bold text-gray-800">Giá (VNĐ) <span className="text-[#ff6b6b]">*</span></label>
               <input
                 type="number"
                 min="0"
                 value={formData.price}
                 onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all"
+                className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all font-medium"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground">Tồn kho *</label>
+              <label className="text-sm font-bold text-gray-800">Tồn kho <span className="text-[#ff6b6b]">*</span></label>
               <input
                 type="number"
                 min="0"
                 value={formData.stock}
                 onChange={e => setFormData({ ...formData, stock: Number(e.target.value) })}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all"
+                className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all font-medium"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground">Danh mục *</label>
+              <label className="text-sm font-bold text-gray-800">Danh mục <span className="text-[#ff6b6b]">*</span></label>
               <select
                 value={formData.productCategoryId}
                 onChange={e => setFormData({ ...formData, productCategoryId: e.target.value })}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all"
+                className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all font-medium"
                 required
               >
                 <option value="" disabled>-- Chọn danh mục --</option>
@@ -239,47 +244,62 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground">Loại sản phẩm</label>
+              <label className="text-sm font-bold text-gray-800">Loại sản phẩm</label>
               <select
                 value={formData.productType}
                 onChange={e => setFormData({ ...formData, productType: e.target.value })}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all"
+                className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all font-medium"
               >
                 <option value="InStock">Có sẵn (InStock)</option>
                 <option value="PreOrder">Đặt trước (PreOrder)</option>
               </select>
             </div>
 
-            <div className="space-y-2 flex items-center gap-3 pt-6">
-              <input
-                type="checkbox"
-                id="supportsNfc"
-                checked={formData.supportsNfc}
-                onChange={e => setFormData({ ...formData, supportsNfc: e.target.checked })}
-                className="w-5 h-5 rounded border-gray-300 text-[color:var(--coral)] focus:ring-[color:var(--coral)]"
-              />
-              <label htmlFor="supportsNfc" className="text-sm font-bold text-muted-foreground cursor-pointer">
-                Hỗ trợ gắn thẻ NFC
-              </label>
+            <div className="space-y-3 md:col-span-2 pt-2">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="supportsNfc"
+                  checked={formData.supportsNfc}
+                  onChange={e => setFormData({ ...formData, supportsNfc: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+                <label htmlFor="supportsNfc" className="text-sm font-medium text-gray-800 cursor-pointer">
+                  Hỗ trợ NFC (Gắn thẻ lời chúc)
+                </label>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isComingSoon"
+                  checked={formData.isComingSoon}
+                  onChange={e => setFormData({ ...formData, isComingSoon: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+                <label htmlFor="isComingSoon" className="text-sm font-medium text-gray-800 cursor-pointer">
+                  Sắp ra mắt (Coming Soon)
+                </label>
+              </div>
             </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-bold text-muted-foreground">Mô tả chi tiết</label>
+            <div className="space-y-2 md:col-span-2 mt-2">
+              <label className="text-sm font-bold text-gray-800">Mô tả chi tiết</label>
               <textarea
+                placeholder="Nhập mô tả sản phẩm..."
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
-                className="w-full border border-border rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[color:var(--coral)]/30 outline-none transition-all min-h-[100px] resize-y custom-scrollbar"
+                className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all min-h-[120px] resize-y custom-scrollbar placeholder:text-gray-300 font-medium"
               />
             </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-bold text-muted-foreground">Hình ảnh</label>
+            <div className="space-y-2 md:col-span-2 mt-2">
+              <label className="text-sm font-bold text-gray-800">Hình ảnh</label>
               <div className="flex flex-col gap-4">
                 {formData.imageUrls.length > 0 && (
                   <div className="flex flex-wrap gap-4">
                     {formData.imageUrls.map((url, i) => (
                       <div key={i} className="relative w-20 h-20 group">
-                        <img src={url} alt={`Preview ${i}`} className="w-full h-full rounded-xl object-cover border border-border" />
+                        <img src={url} alt={`Preview ${i}`} className="w-full h-full rounded-xl object-cover border border-orange-200" />
                         <button 
                           type="button" 
                           onClick={() => setFormData(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, idx) => idx !== i) }))} 
@@ -287,7 +307,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
                         >
                           ✕
                         </button>
-                        {i === 0 && <span className="absolute bottom-1 left-1 bg-[color:var(--coral)] text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Chính</span>}
+                        {i === 0 && <span className="absolute bottom-1 left-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Chính</span>}
                       </div>
                     ))}
                   </div>
@@ -299,7 +319,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
                     multiple
                     onChange={handleImageUpload}
                     disabled={isUploadingImage}
-                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[color:var(--coral)]/10 file:text-[color:var(--coral)] hover:file:bg-[color:var(--coral)]/20 cursor-pointer"
+                    className="block w-full text-sm text-gray-400 file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-red-50 file:text-red-500 hover:file:bg-red-100 cursor-pointer"
                   />
                   {isUploadingImage && <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Đang tải ảnh lên...</p>}
                 </div>
@@ -307,21 +327,14 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2.5 rounded-xl font-bold text-muted-foreground hover:bg-gray-100 transition-colors"
-            >
-              Hủy
-            </button>
+          <div className="pt-4 mt-2">
             <button
               type="submit"
               disabled={isSubmitting || isUploadingImage}
-              className="btn-hero text-black px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 disabled:opacity-50"
+              className="w-full bg-[#2a2626] hover:bg-black text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
             >
-              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isEdit ? 'Lưu thay đổi' : 'Tạo Sản phẩm'}
+              {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isEdit ? 'Lưu thay đổi' : 'Lưu sản phẩm'}
             </button>
           </div>
         </form>

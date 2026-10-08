@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useOrderDetails, useUpdateOrderStatus, Order } from '@/hooks/useOrders';
+import { useOrderDetails, useUpdateOrderStatus, useDeleteOrder, Order } from '@/hooks/useOrders';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift, ChevronDown, CheckCircle2, Clock, Truck, XCircle, Hammer } from 'lucide-react';
+import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift, ChevronDown, CheckCircle2, Clock, Truck, XCircle, Hammer, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -28,11 +28,13 @@ export default function AdminOrderDetailPage() {
   const router = useRouter();
   const { data: order, isLoading, error } = useOrderDetails(id as string);
   const { mutate: updateStatus, isPending } = useUpdateOrderStatus();
+  const deleteMutation = useDeleteOrder();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   
   // Custom dialog state
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [actionLabel, setActionLabel] = useState('');
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -85,17 +87,44 @@ export default function AdminOrderDetailPage() {
     );
   };
 
+  const handleDeleteOrderClick = () => {
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteOrder = async () => {
+    await deleteMutation.mutateAsync(order.id, {
+      onSuccess: () => {
+        toast.success('Đã xóa đơn hàng thành công!');
+        router.push('/admin/orders');
+      },
+      onError: () => {
+        toast.error('Lỗi khi xóa đơn hàng.');
+        setIsDeleteConfirmOpen(false);
+      }
+    });
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-page pb-12">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/admin/orders" className="p-3 bg-white border border-border rounded-full hover:bg-gray-50 shadow-sm transition-all group">
-          <ArrowLeft className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-        </Link>
-        <div>
-          <h1 className="text-3xl font-extrabold font-display text-foreground">Chi tiết đơn hàng</h1>
-          <p className="text-primary font-mono font-semibold mt-1 bg-primary/10 px-3 py-0.5 rounded-md inline-block">{order.orderCode}</p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/orders" className="p-3 bg-white border border-border rounded-full hover:bg-gray-50 shadow-sm transition-all group">
+            <ArrowLeft className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </Link>
+          <div>
+            <h1 className="text-3xl font-extrabold font-display text-foreground">Chi tiết đơn hàng</h1>
+            <p className="text-primary font-mono font-semibold mt-1 bg-primary/10 px-3 py-0.5 rounded-md inline-block">{order.orderCode}</p>
+          </div>
         </div>
+        <button
+          onClick={handleDeleteOrderClick}
+          disabled={deleteMutation.isPending}
+          className="flex items-center gap-2 bg-white hover:bg-red-50 text-red-500 border border-red-200 hover:border-red-300 px-4 py-2.5 rounded-xl font-bold transition-all shadow-sm disabled:opacity-50"
+        >
+          <Trash2 className="w-4 h-4" />
+          {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa đơn hàng'}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -119,8 +148,39 @@ export default function AdminOrderDetailPage() {
               </p>
               <p className="font-semibold text-foreground">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
             </div>
+          </div>
             
-            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm sm:col-span-2 flex flex-col justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center sm:col-span-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5" /> Thông tin liên hệ & Địa chỉ
+              </p>
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-20">SĐT:</span> {order.receiverPhone || 'Chưa cung cấp'}</p>
+                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-20">Địa chỉ:</span> {order.receiverAddress || 'Chưa cung cấp'}</p>
+              </div>
+            </div>
+            
+            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5" /> Thanh toán
+              </p>
+              <div className="flex flex-col gap-1.5">
+                <p className="font-semibold text-foreground">
+                  {order.paymentMethod === 'Cod' ? 'Thanh toán khi nhận hàng (COD)' : 
+                   order.paymentMethod === 'BankTransfer' ? 'Chuyển khoản (QR)' : order.paymentMethod}
+                </p>
+                {order.paymentMethod === 'BankTransfer' && (
+                  <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border w-fit ${
+                    order.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'
+                  }`}>
+                    {order.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5" /> Tổng tiền
               </p>
@@ -218,18 +278,22 @@ export default function AdminOrderDetailPage() {
                     <ExternalLink className="w-5 h-5 text-indigo-500" /> Dữ liệu NFC & Quà tặng
                   </h4>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
                       <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Tiêu đề quà</span>
                       <span className="font-bold text-indigo-950 text-base">{item.gift.giftTitle || 'N/A'}</span>
                     </div>
                     <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
-                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">NFC Tag Code</span>
-                      <span className="font-bold text-indigo-950 text-base font-mono">{item.gift.nfcTagCode || 'Chưa gán'}</span>
+                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Người gửi</span>
+                      <span className="font-bold text-indigo-950 text-base">{item.gift.senderName || 'N/A'}</span>
                     </div>
                     <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
-                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Trạng thái NFC</span>
-                      <span className="font-bold text-indigo-950 text-base">{item.gift.status || 'N/A'}</span>
+                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">Người nhận</span>
+                      <span className="font-bold text-indigo-950 text-base">{item.gift.receiverName || 'N/A'}</span>
+                    </div>
+                    <div className="bg-white/80 p-4 rounded-2xl border border-white shadow-sm">
+                      <span className="block text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-1.5">NFC Tag Code</span>
+                      <span className="font-bold text-indigo-950 text-base font-mono">{item.gift.nfcTagCode || 'Chưa gán'}</span>
                     </div>
                   </div>
                   
@@ -295,6 +359,34 @@ export default function AdminOrderDetailPage() {
               className={`rounded-xl px-6 font-bold ${selectedStatus === 'Cancelled' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
             >
               Đồng ý
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <AlertDialogContent className="rounded-3xl p-6 sm:p-8 max-w-md">
+          <AlertDialogHeader className="space-y-4">
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-bold font-display text-center text-gray-800">
+              Xóa vĩnh viễn
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-gray-500 font-medium text-base">
+              Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng này? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex gap-3 sm:gap-3 flex-col sm:flex-row">
+            <AlertDialogCancel className="w-full sm:w-1/2 rounded-xl py-3 border border-gray-200 font-bold hover:bg-gray-50 m-0">
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteOrder}
+              disabled={deleteMutation.isPending}
+              className="w-full sm:w-1/2 rounded-xl py-3 bg-red-600 hover:bg-red-700 text-white font-bold border-none m-0 flex justify-center items-center gap-2"
+            >
+              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa ngay'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
