@@ -488,6 +488,22 @@ public class OrderService : IOrderService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task UpdatePaymentStatusAsync(Guid orderId, string status)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        if (!Enum.TryParse<PaymentStatus>(status, out var newStatus))
+        {
+            throw new ArgumentException("Invalid payment status");
+        }
+
+        order.PaymentStatus = newStatus;
+        order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     public async Task CompleteUserOrderAsync(Guid userId, Guid orderId)
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
