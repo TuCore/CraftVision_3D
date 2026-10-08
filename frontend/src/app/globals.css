@@ -125,7 +125,7 @@
 @utility btn-hero {
   background: linear-gradient(to right, #fecdd3, #ffd0d7, #fda4af);
   color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 14px rgba(253, 164, 175, 0.35);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
