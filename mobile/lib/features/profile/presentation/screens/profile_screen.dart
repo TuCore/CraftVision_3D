@@ -3,12 +3,23 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_top_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/dio_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class ProfileScreen extends StatelessWidget {
+final userProfileProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final dio = ref.watch(dioProvider);
+  final response = await dio.get('/api/user/profile');
+  return response.data;
+});
+
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileProvider);
+
     return Scaffold(
       appBar: const CvTopBar(title: 'Tài khoản của bạn'),
       body: SingleChildScrollView(
@@ -17,25 +28,29 @@ class ProfileScreen extends StatelessWidget {
             // Header
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 28,
-                    backgroundColor: AppColors.surfaceTint,
-                    child: Icon(Icons.person, size: 32, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Nguyễn Văn A', style: AppTypography.heading2),
-                        const SizedBox(height: 4),
-                        Text('Chào mừng đến CraftVision', style: AppTypography.bodySmall),
-                      ],
+              child: profileAsync.when(
+                data: (data) => Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 28,
+                      backgroundColor: AppColors.surfaceTint,
+                      child: Icon(Icons.person, size: 32, color: AppColors.primary),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(data['fullName'] ?? 'Người dùng', style: AppTypography.heading2),
+                          const SizedBox(height: 4),
+                          Text(data['email'] ?? 'Chào mừng đến CraftVision', style: AppTypography.bodySmall),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, _) => const Text('Lỗi tải thông tin'),
               ),
             ),
 
@@ -52,8 +67,8 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   _buildGridCard(Icons.receipt_long, 'Đơn mua', () => context.push('/order')),
                   _buildGridCard(Icons.star_border, 'Đánh giá', () {}),
-                  _buildGridCard(Icons.favorite_border, 'Quà tặng', () => context.push('/manifest')),
-                  _buildGridCard(Icons.location_on_outlined, 'Địa chỉ', () {}),
+                  _buildGridCard(Icons.favorite_border, 'Sản phẩm yêu thích', () => context.push('/wishlist')),
+                  _buildGridCard(Icons.location_on_outlined, 'Địa chỉ', () => context.push('/address')),
                 ],
               ),
             ),
@@ -61,15 +76,11 @@ class ProfileScreen extends StatelessWidget {
             const Divider(color: AppColors.neutral300, height: 1),
 
             // List options
-            _buildListTile(Icons.mail_outline, 'Tin nhắn', () {}),
-            const Divider(color: AppColors.neutral300, height: 1),
-            _buildListTile(Icons.notifications_none, 'Thông báo & ưu đãi', () {}, hasBadge: true),
-            const Divider(color: AppColors.neutral300, height: 1),
             _buildListTile(Icons.person_outline, 'Hồ sơ', () {}),
             const Divider(color: AppColors.neutral300, height: 1),
-            _buildListTile(Icons.settings_outlined, 'Cài đặt', () {}),
+            _buildListTile(Icons.settings_outlined, 'Cài đặt', () => context.push('/settings')),
             const Divider(color: AppColors.neutral300, height: 1),
-            _buildListTile(Icons.help_outline, 'Trợ giúp', () {}),
+            _buildListTile(Icons.help_outline, 'Trợ giúp', () => context.push('/help')),
             const Divider(color: AppColors.neutral300, height: 1),
             
             const SizedBox(height: 32),

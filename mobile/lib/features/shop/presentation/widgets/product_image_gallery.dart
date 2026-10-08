@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class ProductImageGallery extends StatefulWidget {
   final String heroTag;
-  final String imageUrl;
+  final List<String> images;
 
   const ProductImageGallery({
     super.key,
     required this.heroTag,
-    required this.imageUrl,
+    required this.images,
   });
 
   @override
@@ -17,19 +17,11 @@ class ProductImageGallery extends StatefulWidget {
 class _ProductImageGalleryState extends State<ProductImageGallery> {
   late final PageController _pageController;
   int _currentIndex = 0;
-  
-  // Mock multiple images for the gallery
-  late final List<String> _images;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _images = [
-      widget.imageUrl,
-      'https://picsum.photos/400/600?random=${widget.heroTag.hashCode + 1}',
-      'https://picsum.photos/400/600?random=${widget.heroTag.hashCode + 2}',
-    ];
   }
 
   @override
@@ -51,10 +43,10 @@ class _ProductImageGalleryState extends State<ProductImageGallery> {
             onPageChanged: (index) {
               setState(() => _currentIndex = index);
             },
-            itemCount: _images.length,
+            itemCount: widget.images.length,
             itemBuilder: (context, index) {
               final child = Image.network(
-                _images[index],
+                widget.images[index],
                 fit: BoxFit.cover,
               );
               // Only apply Hero to the first image
@@ -75,7 +67,7 @@ class _ProductImageGalleryState extends State<ProductImageGallery> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                _images.length,
+                widget.images.length,
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
