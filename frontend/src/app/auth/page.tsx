@@ -198,7 +198,7 @@ export default function AuthPage() {
                   <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
                     <Checkbox /> Ghi nhớ tôi
                   </label>
-                  <a href="#" className="text-primary font-medium hover:underline">Quên mật khẩu?</a>
+                  <a href="#" className="text-foreground font-medium hover:underline">Quên mật khẩu?</a>
                 </div>
               ) : (
                 <div className="flex items-start gap-2 text-sm text-muted-foreground">
