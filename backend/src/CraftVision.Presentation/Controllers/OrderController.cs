@@ -63,6 +63,20 @@ public class OrderController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/simulate-payment")]
+    public async Task<IActionResult> SimulatePayment(Guid id)
+    {
+        await _service.SimulatePaymentAsync(id);
+        return NoContent();
+    }
+
+    [HttpGet("{id:guid}/check-payment")]
+    public async Task<IActionResult> CheckPaymentStatus(Guid id)
+    {
+        var isPaid = await _service.CheckAndUpdatePaymentStatusAsync(id);
+        return Ok(new { isPaid });
+    }
+
     [HttpPatch("{id:guid}/receive")]
     public async Task<IActionResult> ReceiveOrder(Guid id)
     {

@@ -2,7 +2,7 @@
 
 import { useOrders, useDeleteOrder } from '@/hooks/useOrders';
 import Link from 'next/link';
-import { Package, Search, ChevronRight, Calendar, User, DollarSign, Clock, Truck, CheckCircle2, XCircle, Hammer, ChevronLeft, Trash2 } from 'lucide-react';
+import { Package, Search, ChevronRight, Calendar, User, DollarSign, Clock, Truck, CheckCircle2, XCircle, Hammer, ChevronLeft, Trash2, Gift } from 'lucide-react';
 import { useState } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from 'sonner';
@@ -19,6 +19,12 @@ export const getOrderStatusConfig = (status: string) => {
     case 'Cancelled': return { label: 'Đã hủy', color: 'bg-rose-100 text-rose-800 border-rose-200', icon: XCircle };
     default: return { label: status, color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Package };
   }
+};
+
+export const getPaymentStatusConfig = (method: string, status: string) => {
+  if (method === 'Cod') return { label: 'COD (Chưa TT)', color: 'bg-slate-100 text-slate-800 border-slate-200' };
+  if (status === 'Paid') return { label: 'Đã thanh toán (QR)', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+  return { label: 'Chưa thanh toán (QR)', color: 'bg-rose-100 text-rose-800 border-rose-200' };
 };
 
 export default function AdminOrdersPage() {
@@ -73,17 +79,30 @@ export default function AdminOrdersPage() {
         <div className="md:hidden space-y-4">
           {data?.items.map((order) => {
             const statusConfig = getOrderStatusConfig(order.orderStatus);
+            const payConfig = getPaymentStatusConfig(order.paymentMethod, order.paymentStatus);
             const StatusIcon = statusConfig.icon;
             return (
               <div key={order.id} className="bg-white rounded-2xl p-4 shadow-sm border border-border">
                 <div className="flex justify-between items-start mb-3">
-                  <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
-                    {order.orderCode}
-                  </span>
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${statusConfig.color}`}>
-                    <StatusIcon className="w-3 h-3" />
-                    {statusConfig.label}
-                  </span>
+                  <div className="flex flex-col gap-1.5 items-start">
+                    <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
+                      {order.orderCode}
+                    </span>
+                    {order.items?.some((i: any) => i.gift) && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
+                        <Gift className="w-3 h-3" /> Có thiệp 3D
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5 items-end">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${statusConfig.color}`}>
+                      <StatusIcon className="w-3 h-3" />
+                      {statusConfig.label}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${payConfig.color}`}>
+                      {payConfig.label}
+                    </span>
+                  </div>
                 </div>
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-2 text-sm">
@@ -126,13 +145,21 @@ export default function AdminOrdersPage() {
             <tbody className="divide-y divide-border/30">
               {data?.items.map((order) => {
                 const statusConfig = getOrderStatusConfig(order.orderStatus);
+                const payConfig = getPaymentStatusConfig(order.paymentMethod, order.paymentStatus);
                 const StatusIcon = statusConfig.icon;
                 return (
                   <tr key={order.id} className="hover:bg-white/60 transition-colors group">
                     <td className="px-6 py-5">
-                      <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
-                        {order.orderCode}
-                      </span>
+                      <div className="flex flex-col gap-2 items-start">
+                        <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
+                          {order.orderCode}
+                        </span>
+                        {order.items?.some((i: any) => i.gift) && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
+                            <Gift className="w-3 h-3" /> Có thiệp 3D
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
@@ -149,10 +176,15 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm border ${statusConfig.color}`}>
-                        <StatusIcon className="w-3.5 h-3.5" />
-                        {statusConfig.label}
-                      </span>
+                      <div className="flex flex-col gap-2 items-start">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm border ${statusConfig.color}`}>
+                          <StatusIcon className="w-3.5 h-3.5" />
+                          {statusConfig.label}
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border ${payConfig.color}`}>
+                          {payConfig.label}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-1.5 font-extrabold text-[color:var(--coral)]">

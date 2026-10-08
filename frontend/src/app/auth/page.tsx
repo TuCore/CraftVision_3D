@@ -92,18 +92,18 @@ export default function AuthPage() {
         <motion.div variants={itemVariants}>
           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-10 h-10 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
-            <span className="font-display text-rose-200">
-              <span>CraftVision3D</span>
+            <span className="font-display">
+              <span className="text-amber-200">Craft</span>
+              <span className="text-white drop-shadow-sm">Vision</span>
+              <span className="text-rose-300 drop-shadow-sm">3D</span>
             </span>
           </Link>
         </motion.div>
 
         <div className="max-w-lg">
-          <motion.span variants={itemVariants} className="inline-flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-semibold text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> AI · Handmade · 3D
-          </motion.span>
-          <motion.h1 variants={itemVariants} className="mt-5 text-4xl md:text-5xl font-extrabold leading-tight font-display drop-shadow-lg">
-            Tạo <span className="gradient-text pb-1">món quà thủ công</span><br />
+
+          <motion.h1 variants={itemVariants} className="mt-5 text-4xl md:text-5xl font-extrabold leading-tight font-display text-white tracking-tight drop-shadow-lg">
+            Tạo <span className="italic font-normal text-rose-200 tracking-normal drop-shadow pb-1">món quà thủ công</span><br />
             đầy ý nghĩa<br />
             cùng AI
           </motion.h1>
@@ -111,18 +111,7 @@ export default function AuthPage() {
             Gợi ý ý tưởng, danh sách nguyên liệu, ước tính chi phí, thời gian và video hướng dẫn — tất cả trong một trợ lý sáng tạo.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="mt-8 grid grid-cols-3 gap-3">
-            {[
-              { label: "Ý tưởng quà", value: "10k+" },
-              { label: "Nguyên liệu", value: "5k+" },
-              { label: "Creators", value: "12k+" },
-            ].map((s) => (
-              <div key={s.label} className="glass-card rounded-2xl p-4 text-center bg-white/10 backdrop-blur-md border-white/20">
-                <div className="text-2xl font-bold gradient-text drop-shadow-sm">{s.value}</div>
-                <div className="text-xs text-black/70 mt-1 font-medium">{s.label}</div>
-              </div>
-            ))}
-          </motion.div>
+
         </div>
 
         <motion.p variants={itemVariants} className="text-sm text-white/70">© 2026 <span className="text-rose-200">CraftVision3D</span>. Made with ♥ in Vietnam.</motion.p>
@@ -138,8 +127,10 @@ export default function AuthPage() {
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center font-bold text-lg text-white">
             <img src="/image/logoweb.jpg" alt="CraftVision3D Logo" className="w-12 h-12 object-cover rounded-full shadow-sm shrink-0 border border-white/20" />
-            <span className="font-display text-rose-200">
-              <span>CraftVision3D</span>
+            <span className="font-display">
+              <span className="text-amber-200">Craft</span>
+              <span className="text-white drop-shadow-sm">Vision</span>
+              <span className="text-rose-300 drop-shadow-sm">3D</span>
             </span>
           </div>
 
@@ -148,7 +139,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setMode("login")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-                  mode === "login" ? "btn-hero text-black" : "text-muted-foreground hover:text-foreground"
+                  mode === "login" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Đăng nhập
@@ -156,7 +147,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setMode("register")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-                  mode === "register" ? "btn-hero text-black" : "text-muted-foreground hover:text-foreground"
+                  mode === "register" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Đăng ký
@@ -207,7 +198,7 @@ export default function AuthPage() {
                   <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
                     <Checkbox /> Ghi nhớ tôi
                   </label>
-                  <a href="#" className="text-primary font-medium hover:underline">Quên mật khẩu?</a>
+                  <a href="#" className="text-foreground font-medium hover:underline">Quên mật khẩu?</a>
                 </div>
               ) : (
                 <div className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -231,7 +222,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-hero text-black w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
+                className="btn-hero w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
               >
                 {loading ? "Đang xử lý..." : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
                 <ArrowRight className="h-4 w-4" />

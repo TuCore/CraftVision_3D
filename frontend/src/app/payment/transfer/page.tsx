@@ -8,19 +8,61 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useWishlistStore } from "@/store/useWishlistStore";
+import { useOrderStore } from "@/store/useOrderStore";
 
 export default function PaymentTransferPage() {
   const router = useRouter();
   const [orderId, setOrderId] = useState<string>("");
   const [total, setTotal] = useState<string>("");
+  const [orderInfo, setOrderInfo] = useState<any>(null);
   
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      setOrderId(params.get("orderId") || `ORD-${Date.now().toString().slice(-6)}`);
-      setTotal(params.get("total") || "0");
+      const oid = params.get("orderId");
+      if (oid) {
+        setOrderId(oid);
+        setTotal(params.get("total") || "0");
+        api.get(`/api/orders/${oid}`)
+          .then(res => {
+            setOrderInfo(res.data);
+            if (res.data.totalAmount) setTotal(res.data.totalAmount.toString());
+          })
+          .catch(err => console.error("Lỗi khi tải thông tin đơn hàng:", err));
+      } else {
+        setOrderId(`ORD-${Date.now().toString().slice(-6)}`);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (orderId && !orderId.startsWith("ORD-")) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await api.get(`/api/orders/${orderId}/check-payment`);
+          if (res.data?.isPaid === true) {
+            clearInterval(intervalId);
+            toast.success("Thanh toán thành công!");
+            const { items, clearItems } = useOrderStore.getState();
+            const { removeFromCart } = useWishlistStore.getState();
+            items.forEach(item => {
+              if (item.cartItemId) removeFromCart(item.cartItemId);
+            });
+            clearItems();
+            router.push(`/payment/success?orderId=${orderId}`);
+          }
+        } catch (err) {
+          console.error("Lỗi khi kiểm tra trạng thái thanh toán:", err);
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [orderId, router]);
 
   const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(price));
@@ -31,14 +73,35 @@ export default function PaymentTransferPage() {
     toast.success(`Đã copy ${label}!`);
   };
 
-  const transferContent = `CV3D ${orderId.slice(-6).toUpperCase()}`;
+  const payAmount = orderInfo?.payOsAmount || total;
+  const bankName = orderInfo?.payOsBin ? `Ngân hàng (BIN: ${orderInfo.payOsBin})` : "MB Bank";
+  const accName = orderInfo?.payOsAccountName || "CRAFTVISION 3D";
+  const accNum = orderInfo?.payOsAccountNumber || "0382343939";
+  const transferContent = orderInfo?.payOsDescription || `CV3D ${orderId.slice(-6).toUpperCase()}`;
 
-  const handleSimulateSuccess = () => {
-    const { items, removeFromCart } = useWishlistStore.getState();
-    items.forEach(item => {
-      if (item.cartItemId) removeFromCart(item.cartItemId);
-    });
-    router.push("/payment/success");
+  const qrUrl = orderInfo?.qrCode
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(orderInfo.qrCode)}`
+    : (orderInfo?.payOsBin && orderInfo?.payOsAccountNumber
+      ? `https://img.vietqr.io/image/${orderInfo.payOsBin}-${orderInfo.payOsAccountNumber}-qr_only.png?amount=${payAmount}&addInfo=${encodeURIComponent(transferContent)}`
+      : `https://img.vietqr.io/image/970422-0382343939-qr_only.png?amount=${payAmount}&addInfo=${encodeURIComponent(transferContent)}`);
+
+  const handleSimulateSuccess = async () => {
+    try {
+      if (orderId && !orderId.startsWith("ORD-")) {
+        await api.patch(`/api/orders/${orderId}/simulate-payment`);
+      }
+      const { items, clearItems } = useOrderStore.getState();
+      const { removeFromCart } = useWishlistStore.getState();
+      items.forEach(item => {
+        if (item.cartItemId) removeFromCart(item.cartItemId);
+      });
+      clearItems();
+      toast.success("Thanh toán thành công (Simulated)!");
+      router.push("/settings?tab=orders");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Đã xảy ra lỗi khi giả lập thanh toán.");
+    }
   };
 
   const handleCancelPayment = async () => {
@@ -71,10 +134,9 @@ export default function PaymentTransferPage() {
             
             <div className="bg-gradient-to-br from-primary/10 to-[#FF37C0]/10 p-4 rounded-3xl border border-primary/20 relative group">
               <div className="absolute inset-0 bg-white/20 blur-xl rounded-3xl -z-10 group-hover:bg-primary/20 transition-colors duration-500"></div>
-              {/* Fake PayOS QR code for now, can replace with actual PayOS QR data */}
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent('https://pay.payos.vn/dummy')}`} 
-                alt="VietQR" 
+                src={qrUrl} 
+                alt="PayOS QR" 
                 className="w-56 h-56 rounded-2xl mix-blend-multiply dark:mix-blend-normal bg-white shadow-sm" 
               />
             </div>
@@ -99,23 +161,22 @@ export default function PaymentTransferPage() {
                   <div>
                     <label className="text-sm font-semibold text-muted-foreground block mb-1">Ngân hàng</label>
                     <div className="flex justify-between items-center bg-card/80 p-4 rounded-xl border border-border">
-                      <span className="font-bold">MB Bank</span>
-                      <img src="https://mbbank.com.vn/images/logo.png" alt="MB" className="h-6 object-contain hidden" />
+                      <span className="font-bold">{bankName}</span>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-semibold text-muted-foreground block mb-1">Chủ tài khoản</label>
                     <div className="flex justify-between items-center bg-card/80 p-4 rounded-xl border border-border">
-                      <span className="font-bold uppercase text-primary">CraftVision 3D</span>
+                      <span className="font-bold uppercase text-primary">{accName}</span>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-semibold text-muted-foreground block mb-1">Số tài khoản</label>
                     <div className="flex justify-between items-center bg-card/80 p-4 rounded-xl border border-border">
-                      <span className="font-bold font-mono text-lg tracking-wider">0123456789</span>
-                      <button onClick={() => handleCopy("0123456789", "số tài khoản")} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                      <span className="font-bold font-mono text-lg tracking-wider">{accNum}</span>
+                      <button onClick={() => handleCopy(accNum, "số tài khoản")} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
                         <Copy className="w-5 h-5" />
                       </button>
                     </div>
@@ -142,6 +203,9 @@ export default function PaymentTransferPage() {
         </div>
 
         <div className="flex justify-center gap-4 pt-8">
+          <button onClick={handleSimulateSuccess} className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3.5 rounded-xl font-bold transition-colors">
+            Đã thanh toán (Dev)
+          </button>
           <button onClick={handleCancelPayment} className="bg-card hover:bg-muted border border-border px-8 py-3.5 rounded-xl font-bold transition-colors text-destructive">
             Huỷ thanh toán
           </button>

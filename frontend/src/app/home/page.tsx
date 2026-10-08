@@ -174,11 +174,11 @@ export default function HomePage() {
                   }
                   router.push(link);
                 }}
-                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-200 via-[#ffd0d7] to-rose-300 hover:from-rose-100 hover:to-rose-200 text-rose-950 font-bold text-sm sm:text-base shadow-xl shadow-rose-300/35 hover:scale-105 active:scale-95 transition-all border border-white/50 cursor-pointer"
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-200 via-[#ffd0d7] to-rose-300 hover:from-rose-100 hover:to-rose-200 text-black font-bold text-sm sm:text-base shadow-xl shadow-rose-300/35 hover:scale-105 active:scale-95 transition-all border border-white/50 cursor-pointer"
               >
                 {(() => {
                   const Icon = slides[activeSlide].btn1Icon;
-                  return <Icon className="h-5 w-5 text-rose-900" />;
+                  return <Icon className="h-5 w-5 text-black" />;
                 })()}
                 {slides[activeSlide].btn1Text}
               </button>

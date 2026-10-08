@@ -226,7 +226,7 @@ public class OrderService : IOrderService
                 string returnUrl = $"{frontendUrl}/payment/success";
                 string cancelUrl = $"{frontendUrl}/payment/cancel";
                 
-                string checkoutUrl = await _payOsService.CreatePaymentLinkAsync(
+                var paymentInfo = await _payOsService.CreatePaymentLinkAsync(
                     order.Id,
                     long.Parse(order.OrderCode),
                     order.TotalAmount,
@@ -235,7 +235,7 @@ public class OrderService : IOrderService
                     cancelUrl
                 );
                 
-                resultDto.CheckoutUrl = checkoutUrl;
+                resultDto.CheckoutUrl = paymentInfo.CheckoutUrl;
             }
 
             return resultDto;
@@ -544,5 +544,38 @@ public class OrderService : IOrderService
             await _unitOfWork.RollbackTransactionAsync();
             throw;
         }
+    }
+
+    public async Task<bool> CheckAndUpdatePaymentStatusAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        if (order.PaymentStatus == PaymentStatus.Paid) return true;
+
+        if (long.TryParse(order.OrderCode, out long orderCodeLong))
+        {
+            bool isPaid = await _payOsService.CheckPaymentStatusAsync(orderCodeLong);
+            if (isPaid)
+            {
+                order.PaymentStatus = PaymentStatus.Paid;
+                order.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public async Task SimulatePaymentAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        order.PaymentStatus = PaymentStatus.Paid;
+        order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
     }
 }
