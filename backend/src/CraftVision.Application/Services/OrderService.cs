@@ -235,7 +235,22 @@ public class OrderService : IOrderService
                     cancelUrl
                 );
                 
+                order.PayOsCheckoutUrl = paymentInfo.CheckoutUrl;
+                order.PayOsQrCode = paymentInfo.QrCode;
+                order.PayOsBin = paymentInfo.Bin;
+                order.PayOsAccountNumber = paymentInfo.AccountNumber;
+                order.PayOsAccountName = paymentInfo.AccountName;
+
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+
                 resultDto.CheckoutUrl = paymentInfo.CheckoutUrl;
+                resultDto.QrCode = paymentInfo.QrCode;
+                resultDto.PayOsBin = paymentInfo.Bin;
+                resultDto.PayOsAccountNumber = paymentInfo.AccountNumber;
+                resultDto.PayOsAccountName = paymentInfo.AccountName;
+                resultDto.PayOsAmount = paymentInfo.Amount;
+                resultDto.PayOsDescription = paymentInfo.Description;
             }
 
             return resultDto;
@@ -269,6 +284,11 @@ public class OrderService : IOrderService
             ReceiverAddress = order.ReceiverAddress,
             ShippingFee = order.ShippingFee,
             TotalAmount = order.TotalAmount,
+            CheckoutUrl = order.PayOsCheckoutUrl,
+            QrCode = order.PayOsQrCode,
+            PayOsBin = order.PayOsBin,
+            PayOsAccountNumber = order.PayOsAccountNumber,
+            PayOsAccountName = order.PayOsAccountName,
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
             Items = order.OrderItems.Select(oi => new OrderItemDto

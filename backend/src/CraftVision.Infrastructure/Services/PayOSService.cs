@@ -27,7 +27,10 @@ public class PayOSService : IPayOSService
 
         if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(checksumKey))
         {
-            _logger.LogWarning("PayOS credentials are missing or not properly configured! Please ensure PayOS__ClientId / PayOS_ClientId is set in environment variables or appsettings.json.");
+            _logger.LogWarning("PayOS credentials are missing or not properly configured! Using dummy credentials.");
+            clientId = "dummy_client_id";
+            apiKey = "dummy_api_key";
+            checksumKey = "dummy_checksum_key";
         }
         
         _payOs = new PayOSClient(clientId, apiKey, checksumKey);
