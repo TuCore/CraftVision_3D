@@ -27,10 +27,7 @@ public class PayOSService : IPayOSService
 
         if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(checksumKey))
         {
-            _logger.LogWarning("PayOS credentials are missing or not properly configured! Using dummy credentials.");
-            clientId = "dummy_client_id";
-            apiKey = "dummy_api_key";
-            checksumKey = "dummy_checksum_key";
+            throw new Exception("PayOS credentials are missing or not properly configured! Please ensure PayOS__ClientId, PayOS__ApiKey, and PayOS__ChecksumKey are set.");
         }
         
         _payOs = new PayOSClient(clientId, apiKey, checksumKey);
@@ -69,12 +66,18 @@ public class PayOSService : IPayOSService
         try
         {
             int finalAmount = Convert.ToInt32(amount); 
+            if (finalAmount < 2000) 
+            {
+                // PayOS usually requires a minimum of 2000 VND
+                // If amount is less than 2000, we should bypass PayOS or throw an explicit error.
+                throw new Exception("Số tiền thanh toán qua PayOS phải lớn hơn hoặc bằng 2000 VNĐ.");
+            }
 
             var paymentRequest = new CreatePaymentLinkRequest
             {
                 OrderCode = orderCode,
                 Amount = finalAmount,
-                Description = "Thanh toan CV3D",
+                Description = $"CV3D {orderCode}", // Keep description short and alphanumeric
                 ReturnUrl = returnUrl,
                 CancelUrl = cancelUrl
             };
@@ -85,7 +88,7 @@ public class PayOSService : IPayOSService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create PayOS payment link");
-            return ("https://pay.payos.vn/dummy-payment-url", "", "", "", "", 0, ""); // Fallback in case of error
+            throw new Exception($"Lỗi kết nối PayOS: {ex.Message}");
         }
     }
 
