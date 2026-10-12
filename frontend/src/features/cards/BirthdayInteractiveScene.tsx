@@ -6,11 +6,11 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 type Particle = { object: T.Object3D; speed: number; spin: number };
 
-export default function BirthdayInteractiveScene({ screen, extinguished, paused, onCandle }: { screen: number; extinguished: number; paused: boolean; onCandle: () => void }) {
+export default function BirthdayInteractiveScene({ screen, candleProgress, paused }: { screen: number; candleProgress: number; paused: boolean }) {
   const host = useRef<HTMLDivElement>(null);
-  const state = useRef({ screen, extinguished, paused, onCandle });
+  const state = useRef({ screen, candleProgress, paused });
   const [decorFailed, setDecorFailed] = useState(false);
-  useEffect(() => { state.current = { screen, extinguished, paused, onCandle }; }, [screen, extinguished, paused, onCandle]);
+  useEffect(() => { state.current = { screen, candleProgress, paused }; }, [screen, candleProgress, paused]);
 
   useEffect(() => {
     const element = host.current!;
@@ -75,8 +75,6 @@ export default function BirthdayInteractiveScene({ screen, extinguished, paused,
       }
     }, undefined, () => { if (!disposed) setDecorFailed(true); });
 
-    const activate = () => { if (state.current.screen === 3 && !state.current.paused) state.current.onCandle(); };
-    element.addEventListener("pointerdown", activate);
     const resize = () => { renderer.setSize(element.clientWidth, element.clientHeight); camera.aspect = element.clientWidth / element.clientHeight; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(element); resize();
 
@@ -84,8 +82,8 @@ export default function BirthdayInteractiveScene({ screen, extinguished, paused,
     const render = (now: number) => {
       const dt = Math.min((now - previous) / 1000, .05); previous = now;
       const current = state.current;
-      cake.visible = current.screen === 3; wish.visible = current.screen === 4; decor.visible = current.screen === 4;
-      flames.forEach((flame, index) => { flame.visible = index >= current.extinguished; });
+      cake.visible = current.screen === 2; wish.visible = current.screen === 9; decor.visible = current.screen === 9;
+      flames.forEach((flame) => { flame.visible = current.candleProgress < 1; flame.scale.y = Math.max(.08, 1.45 * (1 - current.candleProgress)); });
       if (!current.paused && !document.hidden) {
         time += dt;
         flames.forEach((flame, index) => { flame.scale.x = .65 + Math.sin(time * 9 + index) * .12; flame.rotation.z = Math.sin(time * 7 + index) * .12; });
@@ -98,11 +96,11 @@ export default function BirthdayInteractiveScene({ screen, extinguished, paused,
     frame = requestAnimationFrame(render);
 
     return () => {
-      disposed = true; cancelAnimationFrame(frame); observer.disconnect(); element.removeEventListener("pointerdown", activate);
+      disposed = true; cancelAnimationFrame(frame); observer.disconnect();
       geometries.forEach(geometry => geometry.dispose()); materials.forEach(value => value.dispose()); textures.forEach(texture => texture.dispose()); gltfResources.forEach(resource => resource.dispose());
       renderer.dispose(); renderer.domElement.remove();
     };
   }, []);
 
-  return <div ref={host} className="absolute inset-0" role="application" aria-label={screen === 3 ? "Bánh sinh nhật 3D. Chạm để thổi nến." : "Bầu trời điều ước 3D."}>{decorFailed && screen === 4 && <p className="absolute bottom-24 left-1/2 z-10 -translate-x-1/2 text-center text-xs text-amber-100">Bầu trời sao vẫn hoạt động khi thiếu vật thể trang trí.</p>}</div>;
+  return <div ref={host} className="pointer-events-none absolute inset-0" role="application" aria-label={screen === 2 ? "Bánh sinh nhật 3D." : "Bầu trời điều ước 3D."}>{decorFailed && screen === 9 && <p className="absolute bottom-24 left-1/2 z-10 -translate-x-1/2 text-center text-xs text-amber-100">Bầu trời sao vẫn hoạt động khi thiếu vật thể trang trí.</p>}</div>;
 }
