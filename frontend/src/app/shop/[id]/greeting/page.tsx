@@ -406,8 +406,12 @@ function GreetingDesignContent() {
       quantity
     );
 
-    toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!");
-    router.push("/cart");
+    toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!", {
+      action: {
+        label: "Xem giỏ hàng",
+        onClick: () => router.push("/cart"),
+      },
+    });
   };
 
   // Xử lý Thanh toán ngay (chuyển thẳng sang trang thanh toán không kèm chi phí ship nếu là thiệp điện tử)

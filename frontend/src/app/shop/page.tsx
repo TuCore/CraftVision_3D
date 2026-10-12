@@ -4,10 +4,11 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import Link from "next/link";
-import { Search, Star, Sparkles, Loader2, Heart } from "lucide-react";
+import { Search, Star, Sparkles, Loader2, Heart, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { Product, Category } from "@/lib/product.types";
 import { useFavoriteStore } from "@/store/useFavoriteStore";
+import { useWishlistStore } from "@/store/useWishlistStore";
 import { useProductCategories } from "@/hooks/useProductCategories";
 import api from "@/lib/api";
 
@@ -31,9 +32,49 @@ export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isFavorite, toggleFavorite } = useFavoriteStore();
+  const { toggleFavorite: addToCart, items: cartItems } = useWishlistStore();
   const { data: categoriesData } = useProductCategories();
   const allCategoryLabel = language === "vi" ? "Tất cả" : "All";
   const dynamicCategories = [allCategoryLabel, ...(categoriesData?.map(c => c.name) || [])];
+
+  const handleAddToCart = (product: Product) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.info(language === "vi" ? "Vui lòng đăng nhập để thêm vào giỏ hàng!" : "Please login to add to cart!");
+      router.push("/auth");
+      return;
+    }
+
+    if (product.stock !== undefined && product.stock === 0) {
+      toast.error(language === "vi" ? "Sản phẩm đã hết hàng trong kho!" : "Product is out of stock!");
+      return;
+    }
+
+    const existingCartItem = cartItems.find((i) => i.id === product.id && !i.hasGreeting && !(i as any).is3D);
+    if (existingCartItem && product.stock !== undefined && product.stock > 0) {
+      if (existingCartItem.quantity >= product.stock) {
+        toast.warning(
+          language === "vi" 
+            ? `Kho chỉ còn ${product.stock} sản phẩm và giỏ hàng đã đạt tối đa!` 
+            : `Warehouse only has ${product.stock} items and cart reached limit!`
+        );
+        return;
+      }
+    }
+
+    addToCart(product, false, undefined, undefined, undefined, undefined, undefined, false, 1);
+    toast.success(
+      language === "vi" 
+        ? `Đã thêm "${product.name}" vào giỏ hàng!` 
+        : `Added "${product.name}" to cart!`,
+      {
+        action: {
+          label: language === "vi" ? "Xem giỏ hàng" : "View cart",
+          onClick: () => router.push("/cart"),
+        },
+      }
+    );
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -276,18 +317,31 @@ export default function ShopPage() {
                 <div className="text-xl font-display font-bold gradient-text mb-4">
                   {new Intl.NumberFormat(language === "vi" ? 'vi-VN' : 'en-US', { style: 'currency', currency: 'VND' }).format(product.price)}
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!product.isComingSoon && product.stock !== 0) {
-                      router.push(`/shop/${product.id}`);
-                    }
-                  }}
-                  disabled={product.isComingSoon || product.stock === 0}
-                  className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
-                >
-                  {product.isComingSoon ? "COMING SOON" : product.stock === 0 ? "Tạm hết hàng" : t("shop.view_details")}
-                </button>
+                <div className="grid grid-cols-2 gap-2 mt-auto">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(product);
+                    }}
+                    disabled={product.isComingSoon || product.stock === 0}
+                    className="py-2.5 rounded-xl flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] text-white text-xs font-bold shadow-sm shadow-rose-300/30 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    <ShoppingBag className="h-3.5 w-3.5" />
+                    <span>{language === "vi" ? "Thêm giỏ" : "Add cart"}</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!product.isComingSoon && product.stock !== 0) {
+                        router.push(`/shop/${product.id}`);
+                      }
+                    }}
+                    disabled={product.isComingSoon || product.stock === 0}
+                    className="py-2.5 rounded-xl btn-hero text-black text-xs font-semibold disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed transition-all"
+                  >
+                    {product.isComingSoon ? "COMING SOON" : product.stock === 0 ? "Hết hàng" : t("shop.view_details")}
+                  </button>
+                </div>
               </div>
             </TiltCard>
           ))}

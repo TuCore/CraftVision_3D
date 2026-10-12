@@ -373,8 +373,12 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       }
                     }
                     toggleFavorite(product, false, undefined, undefined, undefined, undefined, undefined, false, quantity);
-                    toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`);
-                    router.push("/cart");
+                    toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`, {
+                      action: {
+                        label: "Xem giỏ hàng",
+                        onClick: () => router.push("/cart"),
+                      },
+                    });
                   }}
                   className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] shadow-lg shadow-rose-300/40 hover:shadow-rose-400/50 border border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer"
                 >
