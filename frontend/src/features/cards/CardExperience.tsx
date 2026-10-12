@@ -10,8 +10,13 @@ import "./cards.css";
 
 const CardScene = dynamic(() => import("./CardScene"), { ssr: false, loading: () => <div className="scene-loading">Đang dựng món quà 3D…</div> });
 const RoseRainExperience = dynamic(() => import("./RoseRainExperience"), { ssr: false });
+const HeartKeyExperience = dynamic(() => import("./HeartKeyExperience"), { ssr: false });
+const BirthdayInteractiveExperience = dynamic(() => import("./BirthdayInteractiveExperience"), { ssr: false });
 export default function CardExperience(props: { template: CardTemplate; draft: CardDraft; embedded?: boolean }) {
-  return props.template.slug === "rose-love" ? <RoseRainExperience {...props} /> : <StandardCardExperience {...props} />;
+  if (props.template.slug === "rose-love") return <RoseRainExperience {...props} />;
+  if (props.template.slug === "heart-key") return <HeartKeyExperience {...props} />;
+  if (props.template.slug === "birthday-wish") return <BirthdayInteractiveExperience {...props} />;
+  return <StandardCardExperience {...props} />;
 }
 function StandardCardExperience({ template, draft, embedded = false }: { template: CardTemplate; draft: CardDraft; embedded?: boolean }) {
   const [stage, setStage] = useState<"intro" | "play" | "celebrate" | "envelope" | "opening" | "letter">("intro");
