@@ -79,6 +79,27 @@ public class ProductRepository : IProductRepository
         return (items, totalCount);
     }
 
+    public async Task<int> GetQuantityInCartsAsync(Guid productId)
+    {
+        return await _context.Set<CartItem>()
+            .Where(ci => ci.ProductId == productId)
+            .SumAsync(ci => (int?)ci.Quantity) ?? 0;
+    }
+
+    public async Task<Dictionary<Guid, int>> GetQuantitiesInCartsAsync(IEnumerable<Guid> productIds)
+    {
+        var idList = productIds.Distinct().ToList();
+        if (!idList.Any()) return new Dictionary<Guid, int>();
+
+        var list = await _context.Set<CartItem>()
+            .Where(ci => idList.Contains(ci.ProductId))
+            .GroupBy(ci => ci.ProductId)
+            .Select(g => new { ProductId = g.Key, Total = g.Sum(x => x.Quantity) })
+            .ToListAsync();
+
+        return list.ToDictionary(x => x.ProductId, x => x.Total);
+    }
+
     public void Add(Product product)
     {
         _context.Set<Product>().Add(product);

@@ -31,6 +31,8 @@ class CartItemModel {
   final double price;
   final int quantity;
   final String? selectedOptions;
+  final int? stock;
+  final bool? isOutOfStock;
 
   CartItemModel({
     required this.id,
@@ -40,6 +42,8 @@ class CartItemModel {
     required this.price,
     required this.quantity,
     this.selectedOptions,
+    this.stock,
+    this.isOutOfStock,
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) => _$CartItemModelFromJson(json);

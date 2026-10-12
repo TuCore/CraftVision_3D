@@ -61,6 +61,7 @@ function GreetingDesignContent() {
   const [greetingImage, setGreetingImage] = useState<string | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
   const [quantity, setQuantity] = useState(1);
+  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
 
   // Template mặc định cố định ban đầu của sản phẩm (thêm 5.000đ cho câu chúc riêng mẫu mặc định)
   const defaultProductTemplate = useMemo<TemplateProduct | null>(() => {
@@ -108,6 +109,56 @@ function GreetingDesignContent() {
     };
   }, [product, isPhysical, selectedTemplate, quantity]);
 
+  const inCartQty = useMemo(() => {
+    return items
+      .filter((i) => {
+        const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
+        return idToCheck.includes(id.toLowerCase());
+      })
+      .reduce((sum, item) => sum + (item.quantity || 1), 0);
+  }, [items, id]);
+
+  const rawStock = (product as any)?.stock ?? 0;
+  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined 
+    ? Math.max(0, rawStock - (editCartItemId ? 0 : inCartQty)) 
+    : undefined;
+  const isGreetingOutOfStock = isPhysical && (product as any)?.stock !== undefined && (rawStock === 0 || (!editCartItemId && greetingMaxStock === 0));
+
+  const handleGreetingDecrease = () => setQuantity((q) => Math.max(1, q - 1));
+
+  const handleGreetingIncrease = () => {
+    if (greetingMaxStock !== undefined && greetingMaxStock > 0 && quantity >= greetingMaxStock) {
+      toast.warning(`Kho chỉ còn ${greetingMaxStock} sản phẩm! Không thể tăng thêm.`);
+      return;
+    }
+    setQuantity((q) => {
+      const next = q + 1;
+      if (greetingMaxStock !== undefined && greetingMaxStock > 0 && next > greetingMaxStock) {
+        toast.warning(`Kho chỉ còn ${greetingMaxStock} sản phẩm!`);
+        return greetingMaxStock;
+      }
+      return next;
+    });
+  };
+
+  const handleGreetingQuantityChange = (val: string) => {
+    if (val === "") {
+      setQuantity(1);
+      return;
+    }
+    const parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      setQuantity(1);
+      return;
+    }
+    if (greetingMaxStock !== undefined && greetingMaxStock > 0 && parsed > greetingMaxStock) {
+      toast.warning(`Kho chỉ còn lại ${greetingMaxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`);
+      setQuantity(greetingMaxStock);
+      return;
+    }
+    setQuantity(parsed);
+  };
+
   // Nếu người dùng chọn mode=default và chưa chọn template khác, tự động áp dụng template mặc định
   useEffect(() => {
     if (isDefaultMode && defaultProductTemplate && !selectedTemplate) {
@@ -127,7 +178,6 @@ function GreetingDesignContent() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
-  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
   const { saveItem } = useCollectionStore();
   const store = useGreetingStore();
 
@@ -171,6 +221,7 @@ function GreetingDesignContent() {
             description: p.description || "",
             matchScore: 95,
             productType: p.productType,
+            stock: p.stock ?? 0,
           });
         } else {
           // Fallback to template if product not found
@@ -345,25 +396,48 @@ function GreetingDesignContent() {
       return;
     }
 
-    // Chế độ thêm mới hoặc từ trang chi tiết:
-    toggleFavorite(
-      cartProduct,
-      true,
-      message,
-      greetingImage || undefined,
-      store.senderName,
-      store.receiverName,
-      templateData,
-      true // preserveQuantity: true không tự ý tăng gấp đôi nếu đã có trong giỏ
-    );
+    if (isPhysical && isGreetingOutOfStock) {
+      toast.error("Sản phẩm đã hết hàng trong kho!");
+      return;
+    }
+    if (isPhysical && greetingMaxStock !== undefined && quantity > greetingMaxStock) {
+      toast.warning(`Kho chỉ còn ${greetingMaxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`);
+      setQuantity(greetingMaxStock);
+      return;
+    }
 
-    toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!");
-    router.push("/cart");
+    // Chế độ thêm mới hoặc từ trang chi tiết:
+    toggleFavorite(cartProduct, {
+      hasGreeting: true,
+      greetingMessage: message,
+      greetingImage: greetingImage || undefined,
+      senderName: store.senderName,
+      receiverName: store.receiverName,
+      selectedTemplate: templateData,
+      customQuantity: quantity,
+    });
+
+    toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!", {
+      action: {
+        label: "Xem giỏ hàng",
+        onClick: () => router.push("/cart"),
+      },
+    });
   };
 
   // Xử lý Thanh toán ngay (chuyển thẳng sang trang thanh toán không kèm chi phí ship nếu là thiệp điện tử)
   const handleDirectCheckout = () => {
     if (!product) return;
+
+    if (isPhysical && isGreetingOutOfStock) {
+      toast.error("Sản phẩm đã hết hàng trong kho!");
+      return;
+    }
+    if (isPhysical && greetingMaxStock !== undefined && quantity > greetingMaxStock) {
+      toast.warning(`Kho chỉ còn ${greetingMaxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`);
+      setQuantity(greetingMaxStock);
+      return;
+    }
 
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) {
@@ -583,22 +657,47 @@ function GreetingDesignContent() {
               {/* Quantity Adjustment */}
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/60 dark:bg-card/60 border border-border/60 shadow-xs">
                 <div>
-                  <span className="text-xs font-bold text-foreground">Số lượng đặt:</span>
-                  <p className="text-[11px] text-muted-foreground">Chỉnh sửa số lượng sản phẩm</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-foreground">Số lượng đặt:</span>
+                    {isPhysical && (product as any)?.stock !== undefined && (
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${
+                        (product as any).stock > 0
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                          : "bg-red-500/10 text-red-500 border-red-500/20"
+                      }`}>
+                        {(product as any).stock > 0 ? `Kho: ${(product as any).stock}` : "Hết hàng"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {isPhysical && (product as any)?.stock !== undefined && (product as any).stock > 0
+                      ? `Còn lại trong kho: ${(product as any).stock} sản phẩm`
+                      : "Chỉnh sửa số lượng sản phẩm"}
+                  </p>
                 </div>
                 <div className="flex items-center bg-white dark:bg-background rounded-xl border border-primary/20 overflow-hidden shadow-xs h-8">
                   <button
                     type="button"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer"
+                    onClick={handleGreetingDecrease}
+                    disabled={quantity <= 1 || (isPhysical && (product as any)?.stock === 0)}
+                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     -
                   </button>
-                  <span className="w-8 text-center text-xs sm:text-sm font-bold text-primary">{quantity}</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={greetingMaxStock ?? 9999}
+                    value={quantity}
+                    disabled={isPhysical && (product as any)?.stock === 0}
+                    onChange={(e) => handleGreetingQuantityChange(e.target.value)}
+                    className="w-10 text-center text-xs sm:text-sm font-bold text-primary bg-transparent border-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
                   <button
                     type="button"
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer"
+                    onClick={handleGreetingIncrease}
+                    disabled={greetingMaxStock !== undefined && quantity >= greetingMaxStock}
+                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     +
                   </button>

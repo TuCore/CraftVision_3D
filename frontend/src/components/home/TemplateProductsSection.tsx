@@ -2,23 +2,75 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, ChevronLeft, ChevronRight, Sparkles, PlayCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, ChevronLeft, ChevronRight, Sparkles, PlayCircle, ShoppingBag } from "lucide-react";
 import { cardTemplates, type CardTemplate } from "@/features/cards/catalog";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CardSaleDetails } from "./CardSaleDetails";
 import { TutorialVideoModal } from "./TutorialVideoModal";
 import { getCardCommerce } from "@/features/cards/commerce";
+import { useWishlistStore } from "@/store/useWishlistStore";
+import { Product } from "@/lib/product.types";
+import { toast } from "sonner";
 
 export function TemplateProductsSection() {
+  const router = useRouter();
   const { t, language } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [preview, setPreview] = useState<CardTemplate | null>(null);
   const [tutorial, setTutorial] = useState<CardTemplate | null>(null);
+  const { toggleFavorite } = useWishlistStore();
   const itemsPerPage = 8;
   const totalPages = Math.ceil(cardTemplates.length / itemsPerPage);
   const displayedCards = cardTemplates.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const personalizeLabel = language === "vi" ? "Cá nhân hóa" : "Personalize";
+
+  const handleAddToCart = (card: CardTemplate) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.info(language === "vi" ? "Vui lòng đăng nhập để thêm vào giỏ hàng!" : "Please login to add to cart!");
+      router.push("/auth");
+      return;
+    }
+
+    const commerce = getCardCommerce(card.slug);
+    const price = commerce.salePrice || 49999;
+    const productItem: Product = {
+      id: `template-${card.id}`,
+      name: card.title,
+      price: price,
+      category: "Thiệp điện tử",
+      image: `/cards/previews/${card.slug}.webp`,
+      rating: 5,
+      description: card.action || "Thiệp thông điệp 3D",
+      matchScore: 100,
+      is3D: true,
+      isDigital: true,
+    } as any;
+
+    toggleFavorite(productItem, {
+      hasGreeting: true,
+      selectedTemplate: {
+        id: card.id,
+        title: card.title,
+        image: `/cards/previews/${card.slug}.webp`,
+        price: price,
+      },
+      customQuantity: 1,
+    });
+
+    toast.success(
+      language === "vi" ? `Đã thêm "${card.title}" vào giỏ hàng!` : `Added "${card.title}" to cart!`,
+      {
+        action: {
+          label: language === "vi" ? "Xem giỏ hàng" : "View cart",
+          onClick: () => router.push("/cart"),
+        },
+      }
+    );
+  };
+
   const changePage = (page: number) => {
     setCurrentPage(page);
     document.getElementById("template-products")?.scrollIntoView({
@@ -53,7 +105,15 @@ export function TemplateProductsSection() {
                   <Link href={`/cards/${card.slug}/edit`} className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"><Sparkles className="h-4 w-4" /> {personalizeLabel}</Link>
                   <button onClick={() => setPreview(card)} className="flex items-center justify-center gap-1.5 hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"><Eye className="h-4 w-4" /> {t("template.view_demo")}</button>
                 </div>
-                <button onClick={() => setTutorial(card)} className="mt-4 inline-flex self-end items-center gap-1.5 text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline"><PlayCircle className="h-4 w-4" />{t("template.tutorial_video")}</button>
+                <button
+                  type="button"
+                  onClick={() => handleAddToCart(card)}
+                  className="w-full mt-2.5 flex items-center justify-center gap-2 bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] text-white rounded-xl py-2.5 text-xs font-bold transition-all shadow-md shadow-rose-300/30 active:scale-[0.98] cursor-pointer"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  {language === "vi" ? "Thêm vào giỏ hàng" : "Add to cart"}
+                </button>
+                <button onClick={() => setTutorial(card)} className="mt-3 inline-flex self-end items-center gap-1.5 text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline"><PlayCircle className="h-4 w-4" />{t("template.tutorial_video")}</button>
               </div>
             </article>
           ))}

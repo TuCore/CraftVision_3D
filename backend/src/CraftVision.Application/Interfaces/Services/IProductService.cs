@@ -14,4 +14,5 @@ public interface IProductService
     Task<ProductDto> CreateAsync(CreateProductDto dto);
     Task<ProductDto> UpdateAsync(Guid id, CreateProductDto dto);
     Task DeleteAsync(Guid id);
+    Task<List<ProductStockStatusDto>> CheckStockAsync(CheckStockRequestDto dto);
 }

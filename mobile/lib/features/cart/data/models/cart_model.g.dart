@@ -29,6 +29,8 @@ CartItemModel _$CartItemModelFromJson(Map<String, dynamic> json) =>
       price: (json['price'] as num).toDouble(),
       quantity: (json['quantity'] as num).toInt(),
       selectedOptions: json['selectedOptions'] as String?,
+      stock: (json['stock'] as num?)?.toInt(),
+      isOutOfStock: json['isOutOfStock'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$CartItemModelToJson(CartItemModel instance) =>
@@ -40,4 +42,6 @@ Map<String, dynamic> _$CartItemModelToJson(CartItemModel instance) =>
       'price': instance.price,
       'quantity': instance.quantity,
       'selectedOptions': instance.selectedOptions,
+      'stock': instance.stock,
+      'isOutOfStock': instance.isOutOfStock,
     };
