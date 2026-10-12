@@ -24,4 +24,54 @@
 .rose-rain-fallback { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 30px; color: #ffa0ba; }
 .rose-rain :is(button, a, [tabindex]):focus-visible { outline: 2px solid #f58db7; outline-offset: 4px; }
 @keyframes rose-heartbeat { 50% { transform: scale(1.12); } }
+.heart-key-experience { background: radial-gradient(circle at 50% 42%, #48142f 0%, #210a24 38%, #08040d 82%); }
+.heart-key-experience::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(circle at 50% 45%, #ff4f8720, transparent 38%), linear-gradient(180deg, transparent 65%, #120610aa); }
+.heart-key-intro { background: radial-gradient(circle at 50% 44%, #6b1639 0%, #2b0b29 42%, #08040d 82%); }
+.heart-key-start { gap: 26px; }
+.heart-key-symbol { position: relative; display: grid; place-items: center; width: 180px; height: 150px; filter: drop-shadow(0 0 34px #ff376c77); animation: rose-heartbeat 1.5s ease-in-out infinite; }
+.rose-rain-start > .heart-key-symbol { font-size: inherit; line-height: normal; }
+.heart-key-symbol i { color: #ff5f8b; font: normal 140px/1 Arial, sans-serif; }
+.heart-key-symbol b { position: absolute; right: -4px; bottom: 20px; color: #ffd060; font: 700 76px/1 Georgia, serif; transform: rotate(-38deg); text-shadow: 0 0 20px #ffbd37aa; }
+.heart-key-start small { font-size: 14px; letter-spacing: .08em; color: #ffe1eb; }
+.flower-love-experience { background: radial-gradient(circle at 50% 48%, #281019 0%, #13070d 56%, #090307 100%); }
+.flower-gift-intro { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 28px; background: #fff; color: #ff3e78; }
+.flower-gift-intro h1 { margin: 0; text-align: center; font: italic clamp(32px, 4vw, 58px)/1.2 Georgia, serif; text-shadow: 0 8px 28px #ff7ca244; }
+.flower-gift-card { display: grid; place-items: center; width: min(540px, 78vw); aspect-ratio: 1; overflow: hidden; border: 2px solid #ffd1df; border-radius: 30px; background: #fff; box-shadow: 0 15px 55px #ff84aa40; cursor: pointer; }
+.flower-gift-card img { width: 100%; height: 100%; object-fit: cover; }
+.flower-gift-card span { font-size: clamp(110px, 19vw, 230px); filter: drop-shadow(0 12px 16px #e78ca455); animation: rose-heartbeat 1.6s ease-in-out infinite; }
+.flower-gift-intro p { margin: 0; font: italic 22px/1.4 Georgia, serif; }
+.flower-love-heading { position: absolute; z-index: 2; top: 8%; left: 14%; right: 14%; text-align: center; pointer-events: none; }
+.flower-love-heading h1 { margin: 0; color: #ff5b9d; font: 700 clamp(38px, 4.7vw, 72px)/1.1 Georgia, cursive; font-style: italic; text-shadow: 0 0 13px #ff4f9c, 0 0 34px #ff4f9c77; }
+.flower-love-heading p { margin: 30px 0 0; color: #fff; font-size: clamp(20px, 2.2vw, 38px); text-shadow: 0 0 10px #fff9; }
+.flower-love-heading p i { display: inline-block; width: 2px; height: 1em; margin-left: 4px; vertical-align: -.12em; background: currentColor; animation: flower-caret .8s steps(1) infinite; }
+.flower-love-controls { max-width: 58%; }
+.flower-love-controls :is(a, button) { background: #180b10c9; border-color: #ff8cb951; color: #ffe8f0; }
+.flower-letter-trigger { position: absolute; z-index: 2; left: 50%; bottom: 15%; transform: translateX(-50%); border: 0; background: transparent; color: #ff739e; font: italic clamp(14px, 1.5vw, 22px)/1.4 Georgia, serif; text-shadow: 0 0 16px #ff4d8aaa; cursor: pointer; }
+.flower-photo-gallery { position: absolute; z-index: 2; inset: 28% 0 0; display: flex; align-items: flex-end; justify-content: space-around; gap: 2vw; padding: 0 3vw 2vh; overflow: hidden; pointer-events: none; }
+.flower-photo-gallery img { width: clamp(135px, 17vw, 290px); height: clamp(190px, 31vh, 390px); flex: 0 0 auto; object-fit: cover; border: 2px solid #ffd8e5aa; border-radius: 18px; box-shadow: 0 0 24px #ff77a86e; opacity: 0; animation: flower-photo-rise 1.25s cubic-bezier(.18,.8,.28,1) forwards; }
+.flower-photo-gallery img:nth-child(3n + 1) { transform: rotate(-7deg) translateY(-3vh); }
+.flower-photo-gallery img:nth-child(3n + 2) { transform: rotate(5deg) translateY(4vh); }
+.flower-photo-gallery img:nth-child(3n) { transform: rotate(-3deg) translateY(-1vh); }
+.flower-love-letter { width: min(790px, calc(100vw - 36px)); background: #ffeaf1; border: 0; border-radius: 22px; padding: 38px; transform: rotate(-1.4deg); box-shadow: 0 0 80px #ff4b8d4d; }
+.flower-love-letter::after { content: ""; position: absolute; inset: 22px; border: 2px dashed #ff9bbb; border-radius: 14px; pointer-events: none; }
+.flower-love-letter .rose-letter-close { z-index: 2; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: #dc317a; color: white; line-height: 1; }
+.flower-love-letter-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(170px, .75fr) 1.5fr; gap: 30px; align-items: start; padding: 16px; }
+.flower-love-letter-photo { width: 100%; max-height: 300px; object-fit: cover; border-radius: 15px; box-shadow: 0 8px 22px #9a38532f; }
+.flower-love-letter h1 { margin: 0 0 16px; color: #dd347c; font: 700 clamp(24px, 3vw, 38px)/1.2 Arial, sans-serif; }
+.flower-love-letter .rose-letter-message { margin: 0; color: #71505c; font: italic clamp(16px, 1.7vw, 21px)/1.75 Georgia, serif; }
+.flower-love-date { color: #a04a69; font-size: 13px; }
+@keyframes flower-caret { 50% { opacity: 0; } }
+@keyframes flower-photo-rise { from { opacity: 0; translate: 0 55vh; } to { opacity: 1; translate: 0 0; } }
+@media (max-width: 640px) {
+  .flower-gift-intro { gap: 18px; }
+  .flower-gift-intro p { font-size: 16px; }
+  .flower-love-heading { top: 13%; left: 5%; right: 5%; }
+  .flower-love-heading p { margin-top: 16px; }
+  .flower-letter-trigger { bottom: 11%; width: 90%; }
+  .flower-photo-gallery { inset: 35% 0 0; justify-content: flex-start; overflow-x: hidden; }
+  .flower-photo-gallery img { width: 42vw; height: 34vh; }
+  .flower-love-letter { padding: 34px 18px 24px; transform: none; }
+  .flower-love-letter-grid { grid-template-columns: 1fr; gap: 18px; }
+  .flower-love-letter-photo { max-height: 34vh; }
+}
 @media (prefers-reduced-motion: reduce) { .rose-rain-start > span { animation: none; } }
