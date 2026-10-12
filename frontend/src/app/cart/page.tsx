@@ -43,7 +43,7 @@ import { useTranslation } from "@/components/LanguageProvider";
 export default function CartPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
-  const { items, removeFromCart, updateQuantity, clearWishlist, syncStock } = useWishlistStore();
+  const { items, removeFromCart, updateQuantity, updateCartItem, clearWishlist, syncStock } = useWishlistStore();
   const { setItems, orderNote, setOrderNote } = useOrderStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -137,68 +137,94 @@ export default function CartPage() {
   }, [page]);
 
   // Synchronize live stock with server to fix stale client-side cache
-  useEffect(() => {
-    if (!items || items.length === 0) return;
+  const checkLiveStock = async () => {
+    const currentItems = useWishlistStore.getState().items;
+    if (!currentItems || currentItems.length === 0) return;
 
-    const checkLiveStock = async () => {
-      setIsValidatingStock(true);
-      try {
-        const payloadItems = items
-          .map((item) => {
-            const rawId = item.id ? item.id.replace(/-3d$/, '') : '';
-            const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
-            return {
-              productId: isGuid ? rawId : "00000000-0000-0000-0000-000000000000",
-              quantity: item.quantity || 1,
-            };
-          })
-          .filter((i) => i.productId !== "00000000-0000-0000-0000-000000000000");
+    setIsValidatingStock(true);
+    try {
+      const payloadItems = currentItems
+        .map((item) => {
+          const rawId = ((item as any).productId || item.id || '').replace(/-3d$/, '');
+          const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
+          return {
+            productId: isGuid ? rawId : "00000000-0000-0000-0000-000000000000",
+            quantity: item.quantity || 1,
+          };
+        })
+        .filter((i) => i.productId !== "00000000-0000-0000-0000-000000000000");
 
-        if (payloadItems.length === 0) return;
+      if (payloadItems.length === 0) return;
 
-        let stockStatuses: any[] = [];
-        try {
-          const res = await api.post('/api/products/check-stock', { items: payloadItems });
-          if (Array.isArray(res.data)) {
-            stockStatuses = res.data;
-          }
-        } catch (apiErr) {
-          console.warn("POST /api/products/check-stock failed, falling back to GET /api/products", apiErr);
-          try {
-            const fallbackRes = await api.get('/api/products?page=1&pageSize=100');
-            if (fallbackRes.data && Array.isArray(fallbackRes.data.items)) {
-              stockStatuses = fallbackRes.data.items.map((p: any) => ({
-                productId: p.id,
-                name: p.name,
-                stock: p.stock ?? 0,
-                isOutOfStock: (p.stock ?? 0) <= 0,
-                price: p.price,
-              }));
-            }
-          } catch (fbErr) {
-            console.error("Stock fallback also failed:", fbErr);
-          }
-        }
-
-        if (stockStatuses.length > 0) {
-          syncStock(stockStatuses);
-          stockStatuses.forEach((status: any) => {
-            if (!status.isOutOfStock && status.stock > 0) {
-              const matched = items.find((i) => i.id.replace(/-3d$/, '').toLowerCase() === status.productId.toLowerCase());
-              if (matched && (matched.quantity || 1) > status.stock) {
-                toast.warning(`Sản phẩm "${status.name}" hiện chỉ còn ${status.stock} sản phẩm trong kho. Đã tự động điều chỉnh số lượng!`);
-              }
-            }
-          });
-        }
-      } catch (err) {
-        console.warn("Could not check live stock:", err);
-      } finally {
-        setIsValidatingStock(false);
+      if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+        payloadItems.forEach((pi) => {
+          api.post('/api/cart/items', { productId: pi.productId, quantity: pi.quantity }).catch(() => {});
+        });
       }
-    };
 
+      let stockStatuses: any[] = [];
+      try {
+        const res = await api.post('/api/products/check-stock', { items: payloadItems }, {
+          params: { _t: Date.now() },
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+        if (Array.isArray(res.data)) {
+          stockStatuses = res.data;
+        }
+      } catch (apiErr) {
+        console.warn("POST /api/products/check-stock failed, falling back to GET /api/products", apiErr);
+        try {
+          const fallbackRes = await api.get('/api/products?page=1&pageSize=100', {
+            params: { _t: Date.now() },
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          });
+          if (fallbackRes.data && Array.isArray(fallbackRes.data.items)) {
+            stockStatuses = fallbackRes.data.items.map((p: any) => ({
+              productId: p.id,
+              name: p.name,
+              stock: p.stock ?? 0,
+              isOutOfStock: (p.stock ?? 0) <= 0,
+              price: p.price,
+            }));
+          }
+        } catch (fbErr) {
+          console.error("Stock fallback also failed:", fbErr);
+        }
+      }
+
+      if (stockStatuses.length > 0) {
+        syncStock(stockStatuses);
+        stockStatuses.forEach((status: any) => {
+          const rawStatusId = (status.productId || '').toLowerCase();
+          const matched = currentItems.find((i) => ((i as any).productId || i.id || '').replace(/-3d$/, '').toLowerCase() === rawStatusId);
+          if (status.isOutOfStock || status.stock <= 0) {
+            if (matched && !matched.isOutOfStock) {
+              toast.error(`Sản phẩm "${status.name}" trong giỏ hàng hiện đã hết hàng trong kho!`);
+            }
+          } else if (status.stock > 0 && matched && (matched.quantity || 1) > status.stock) {
+            toast.warning(`Sản phẩm "${status.name}" hiện chỉ còn ${status.stock} sản phẩm trong kho. Đã tự động điều chỉnh số lượng!`);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Could not check live stock:", err);
+    } finally {
+      setIsValidatingStock(false);
+    }
+  };
+
+  useEffect(() => {
     checkLiveStock();
+    const handleFocus = () => checkLiveStock();
+    window.addEventListener("focus", handleFocus);
+    // Poll every 10 seconds while viewing cart so warehouse updates reflect immediately
+    const interval = setInterval(() => {
+      checkLiveStock();
+    }, 10000);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(interval);
+    };
   }, [items.length]);
 
   // Separate items into Available vs Sold Out items
@@ -248,11 +274,19 @@ export default function CartPage() {
   const handleIncreaseQuantity = (item: any) => {
     const currentQty = item.quantity || 1;
     const maxStock = item.stock;
-    if (maxStock !== undefined && currentQty >= maxStock) {
+    if (maxStock !== undefined && (currentQty >= maxStock || maxStock <= 0)) {
       toast.warning(`Đã đạt số lượng tối đa trong kho (${maxStock} sản phẩm). Không thể tăng thêm!`);
       return;
     }
     updateQuantity(item.cartItemId || item.id, currentQty + 1);
+    setTimeout(() => checkLiveStock(), 200);
+  };
+
+  const handleDecreaseQuantity = (item: any) => {
+    const currentQty = item.quantity || 1;
+    if (currentQty <= 1) return;
+    updateQuantity(item.cartItemId || item.id, currentQty - 1);
+    setTimeout(() => checkLiveStock(), 200);
   };
 
   const handleQuantityInputChange = (item: any, valueStr: string) => {
@@ -260,14 +294,17 @@ export default function CartPage() {
     const maxStock = item.stock;
     if (isNaN(val) || val < 1) {
       updateQuantity(item.cartItemId || item.id, 1);
+      setTimeout(() => checkLiveStock(), 200);
       return;
     }
     if (maxStock !== undefined && val > maxStock) {
-      toast.warning(`Số lượng nhập (${val}) vượt quá số lượng còn lại trong kho (${maxStock}). Đã tự động điều chỉnh về tối đa ${maxStock}!`);
+      toast.warning(`Số lượng nhập (${val}) vượt quá số lượng tối đa trong kho (${maxStock}). Đã tự động điều chỉnh về tối đa ${maxStock}!`);
       updateQuantity(item.cartItemId || item.id, maxStock);
+      setTimeout(() => checkLiveStock(), 200);
       return;
     }
     updateQuantity(item.cartItemId || item.id, val);
+    setTimeout(() => checkLiveStock(), 200);
   };
 
   const formatPrice = (price: number) => {
@@ -379,11 +416,21 @@ export default function CartPage() {
                         ></model-viewer>
                       </div>
                     ) : (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <div className="w-full h-full relative flex items-center justify-center bg-muted/50">
+                        <img
+                          src={item.image || "/dreamy-hero-bg.jpg"}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget.nextElementSibling;
+                            if (fallback) (fallback as HTMLElement).style.display = "flex";
+                          }}
+                        />
+                        <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                          <Package className="w-8 h-8" />
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -536,7 +583,7 @@ export default function CartPage() {
                     <div className="flex flex-col sm:flex-row items-center sm:gap-6">
                       <div className="flex items-center bg-white dark:bg-background rounded-2xl border border-primary/20 shadow-sm overflow-hidden h-9">
                         <button
-                          onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) - 1)}
+                          onClick={() => handleDecreaseQuantity(item)}
                           disabled={(item.quantity || 1) <= 1}
                           className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                           title="Giảm số lượng"
@@ -554,14 +601,14 @@ export default function CartPage() {
                         />
                         <button
                           onClick={() => handleIncreaseQuantity(item)}
-                          disabled={item.stock !== undefined && (item.quantity || 1) >= item.stock}
+                          disabled={item.stock !== undefined && ((item.quantity || 1) >= item.stock || item.stock <= 0)}
                           className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={item.stock !== undefined && (item.quantity || 1) >= item.stock ? `Đã đạt tối đa trong kho (${item.stock} sản phẩm)` : "Tăng số lượng"}
+                          title={item.stock !== undefined && ((item.quantity || 1) >= item.stock || item.stock <= 0) ? `Đã đạt tối đa trong kho (${item.stock} sản phẩm)` : "Tăng số lượng"}
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      {item.stock !== undefined && (item.quantity || 1) >= item.stock && (
+                      {item.stock !== undefined && ((item.quantity || 1) >= item.stock || item.stock <= 0) && (
                         <span className="text-[10px] text-amber-600 font-bold mt-1 sm:mt-0">Đã đạt tối đa kho</span>
                       )}
                     </div>
@@ -1035,27 +1082,34 @@ export default function CartPage() {
                         <Package className="w-4 h-4 text-primary" />
                         Sản phẩm đã mua ({selectedOrder.items?.length || 1})
                       </span>
-                      <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                      {selectedOrder.items?.some((it: any) => !!it.gift?.secretKey) && (
+                        <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                      )}
                     </h4>
 
                     <div className="space-y-3">
                       {(selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items : [
-                        { productName: "Chi thúi", quantity: 1, unitPrice: 120000, subTotal: 120000 }
+                        { productName: "Sản phẩm", quantity: 1, unitPrice: 120000, subTotal: 120000 }
                       ]).map((item: any, idx: number) => {
                         const hasRealGift = !!item.gift?.secretKey;
-                        const giftUrl = hasRealGift
-                          ? `/gift/scan/${item.gift.secretKey}`
-                          : `/gift/scan/sample`;
 
                         return (
                           <div key={idx} className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-xs space-y-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/40">
+                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/60 shrink-0 border border-border/40 flex items-center justify-center relative">
                                 <img
                                   src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"}
-                                  alt={item.productName || item.name}
+                                  alt={item.productName || item.name || "Sản phẩm"}
                                   className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                    const fallback = e.currentTarget.nextElementSibling;
+                                    if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                  }}
                                 />
+                                <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                                  <Package className="w-6 h-6" />
+                                </div>
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h5 className="font-bold text-sm text-foreground truncate">
@@ -1073,41 +1127,34 @@ export default function CartPage() {
                               </div>
                             </div>
 
-                            {/* Khối link thiệp đã thiết kế */}
-                            <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <Gift className="w-4 h-4 text-rose-500 shrink-0" />
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-foreground truncate">
-                                      {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
-                                    </span>
-                                    {hasRealGift ? (
+                            {/* Khối link thiệp đã thiết kế - Chỉ hiển thị khi có thiệp thật */}
+                            {hasRealGift && (
+                              <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Gift className="w-4 h-4 text-rose-500 shrink-0" />
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-foreground truncate">
+                                        {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
+                                      </span>
                                       <span className="text-[10px] text-emerald-600 font-bold">✓ Thiệp thật</span>
-                                    ) : (
-                                      <span className="text-[10px] text-amber-600 font-bold">(Mô phỏng)</span>
-                                    )}
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground truncate">
+                                      {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
+                                    </p>
                                   </div>
-                                  <p className="text-[11px] text-muted-foreground truncate">
-                                    {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
-                                  </p>
                                 </div>
-                              </div>
 
-                              <Link
-                                href={giftUrl}
-                                target="_blank"
-                                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
-                              >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span>Xem thiệp đã thiết kế</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </Link>
-                            </div>
-                            {!hasRealGift && (
-                              <p className="text-[10px] text-amber-600 italic">
-                                * Đơn hàng này được tạo khi chưa liên kết thiệp NFC hoặc backend chưa trả secretKey (Chưa có từ hệ thống - dữ liệu thiệp mô phỏng).
-                              </p>
+                                <Link
+                                  href={`/gift/scan/${item.gift.secretKey}`}
+                                  target="_blank"
+                                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span>Xem thiệp đã thiết kế</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </Link>
+                              </div>
                             )}
                           </div>
                         );

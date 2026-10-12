@@ -18,6 +18,9 @@ export interface Product {
   productCategoryId?: string;
   primaryImageUrl?: string;
   isComingSoon?: boolean;
+  availableStock?: number;
+  reservedStock?: number;
+  originalStock?: number;
 }
 
 export interface PagedResult<T> {

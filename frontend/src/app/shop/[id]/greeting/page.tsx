@@ -61,6 +61,7 @@ function GreetingDesignContent() {
   const [greetingImage, setGreetingImage] = useState<string | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
   const [quantity, setQuantity] = useState(1);
+  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
 
   // Template mặc định cố định ban đầu của sản phẩm (thêm 5.000đ cho câu chúc riêng mẫu mặc định)
   const defaultProductTemplate = useMemo<TemplateProduct | null>(() => {
@@ -108,7 +109,20 @@ function GreetingDesignContent() {
     };
   }, [product, isPhysical, selectedTemplate, quantity]);
 
-  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined ? (product as any).stock : undefined;
+  const inCartQty = useMemo(() => {
+    return items
+      .filter((i) => {
+        const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
+        return idToCheck.includes(id.toLowerCase());
+      })
+      .reduce((sum, item) => sum + (item.quantity || 1), 0);
+  }, [items, id]);
+
+  const rawStock = (product as any)?.stock ?? 0;
+  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined 
+    ? Math.max(0, rawStock - (editCartItemId ? 0 : inCartQty)) 
+    : undefined;
+  const isGreetingOutOfStock = isPhysical && (product as any)?.stock !== undefined && (rawStock === 0 || (!editCartItemId && greetingMaxStock === 0));
 
   const handleGreetingDecrease = () => setQuantity((q) => Math.max(1, q - 1));
 
@@ -164,7 +178,6 @@ function GreetingDesignContent() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
-  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
   const { saveItem } = useCollectionStore();
   const store = useGreetingStore();
 
@@ -383,7 +396,7 @@ function GreetingDesignContent() {
       return;
     }
 
-    if (isPhysical && (product as any)?.stock === 0) {
+    if (isPhysical && isGreetingOutOfStock) {
       toast.error("Sản phẩm đã hết hàng trong kho!");
       return;
     }
@@ -416,7 +429,7 @@ function GreetingDesignContent() {
   const handleDirectCheckout = () => {
     if (!product) return;
 
-    if (isPhysical && (product as any)?.stock === 0) {
+    if (isPhysical && isGreetingOutOfStock) {
       toast.error("Sản phẩm đã hết hàng trong kho!");
       return;
     }

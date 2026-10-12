@@ -237,7 +237,21 @@ public class OrderService : IOrderService
                     cancelUrl
                 );
                 
+                order.PayOsCheckoutUrl = paymentInfo.CheckoutUrl;
+                order.PayOsQrCode = paymentInfo.QrCode;
+                order.PayOsBin = paymentInfo.Bin;
+                order.PayOsAccountNumber = paymentInfo.AccountNumber;
+                order.PayOsAccountName = paymentInfo.AccountName;
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+
                 resultDto.CheckoutUrl = paymentInfo.CheckoutUrl;
+                resultDto.QrCode = paymentInfo.QrCode;
+                resultDto.PayOsBin = paymentInfo.Bin;
+                resultDto.PayOsAccountNumber = paymentInfo.AccountNumber;
+                resultDto.PayOsAccountName = paymentInfo.AccountName;
+                resultDto.PayOsAmount = (int)order.TotalAmount;
+                resultDto.PayOsDescription = $"CV3D {order.OrderCode}";
             }
 
             return resultDto;
@@ -273,6 +287,13 @@ public class OrderService : IOrderService
             TotalAmount = order.TotalAmount,
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
+            CheckoutUrl = order.PayOsCheckoutUrl,
+            QrCode = order.PayOsQrCode,
+            PayOsBin = order.PayOsBin,
+            PayOsAccountNumber = order.PayOsAccountNumber,
+            PayOsAccountName = order.PayOsAccountName,
+            PayOsAmount = (int)order.TotalAmount,
+            PayOsDescription = $"CV3D {order.OrderCode}",
             Items = order.OrderItems.Select(oi => new OrderItemDto
             {
                 Id = oi.Id,
@@ -316,6 +337,13 @@ public class OrderService : IOrderService
                 TotalAmount = order.TotalAmount,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
+                CheckoutUrl = order.PayOsCheckoutUrl,
+                QrCode = order.PayOsQrCode,
+                PayOsBin = order.PayOsBin,
+                PayOsAccountNumber = order.PayOsAccountNumber,
+                PayOsAccountName = order.PayOsAccountName,
+                PayOsAmount = (int)order.TotalAmount,
+                PayOsDescription = $"CV3D {order.OrderCode}",
                 Items = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,
@@ -383,7 +411,32 @@ public class OrderService : IOrderService
         order.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Orders.Update(order);
 
-        if (newStatus == OrderStatus.Shipped || newStatus == OrderStatus.Delivered)
+        if (newStatus == OrderStatus.Cancelled)
+        {
+            var items = await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId);
+            foreach (var item in items)
+            {
+                var prod = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                if (prod != null && prod.ProductType == ProductType.InStock)
+                {
+                    prod.Stock += item.Quantity;
+                    _unitOfWork.Products.Update(prod);
+                }
+
+                var gift = await _unitOfWork.Gifts.GetByOrderItemIdAsync(item.Id);
+                if (gift != null)
+                {
+                    var tag = await _unitOfWork.NfcTags.GetByIdAsync(gift.NfcTagId);
+                    if (tag != null && tag.Status == NfcStatus.Reserved)
+                    {
+                        tag.Status = NfcStatus.Available;
+                        tag.UpdatedAt = DateTime.UtcNow;
+                        _unitOfWork.NfcTags.Update(tag);
+                    }
+                }
+            }
+        }
+        else if (newStatus == OrderStatus.Shipped || newStatus == OrderStatus.Delivered)
         {
             var items = await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId);
             foreach (var item in items)

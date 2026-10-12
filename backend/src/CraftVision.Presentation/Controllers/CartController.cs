@@ -55,4 +55,11 @@ public class CartController : ControllerBase
         var cart = await _cartService.RemoveItemAsync(GetUserId(), id);
         return Ok(cart);
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> ClearCart()
+    {
+        await _cartService.ClearCartAsync(GetUserId());
+        return NoContent();
+    }
 }

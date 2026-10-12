@@ -1,7 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/AppShell";
-import { ArrowLeft, CheckCircle2, Copy, RefreshCcw } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Copy, ExternalLink, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -14,12 +14,17 @@ export default function PaymentTransferPage() {
   const router = useRouter();
   const [orderId, setOrderId] = useState<string>("");
   const [total, setTotal] = useState<string>("");
+  const [checkoutUrl, setCheckoutUrl] = useState<string>("");
   const [orderInfo, setOrderInfo] = useState<any>(null);
   
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const oid = params.get("orderId");
+      const urlParam = params.get("checkoutUrl");
+      if (urlParam) {
+        setCheckoutUrl(decodeURIComponent(urlParam));
+      }
       if (oid) {
         setOrderId(oid);
         setTotal(params.get("total") || "0");
@@ -27,6 +32,7 @@ export default function PaymentTransferPage() {
           .then(res => {
             setOrderInfo(res.data);
             if (res.data.totalAmount) setTotal(res.data.totalAmount.toString());
+            if (res.data.checkoutUrl) setCheckoutUrl(res.data.checkoutUrl);
           })
           .catch(err => console.error("Lỗi khi tải thông tin đơn hàng:", err));
       } else {
@@ -80,10 +86,15 @@ export default function PaymentTransferPage() {
   const transferContent = orderInfo?.payOsDescription || `CV3D ${orderId.slice(-6).toUpperCase()}`;
 
   const qrUrl = orderInfo?.qrCode
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(orderInfo.qrCode)}`
+    ? (orderInfo.qrCode.startsWith("http")
+        ? orderInfo.qrCode
+        : `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(orderInfo.qrCode)}`)
     : (orderInfo?.payOsBin && orderInfo?.payOsAccountNumber
       ? `https://img.vietqr.io/image/${orderInfo.payOsBin}-${orderInfo.payOsAccountNumber}-qr_only.png?amount=${payAmount}&addInfo=${encodeURIComponent(transferContent)}`
       : `https://img.vietqr.io/image/970422-0382343939-qr_only.png?amount=${payAmount}&addInfo=${encodeURIComponent(transferContent)}`);
+
+  const rawCheckoutUrl = orderInfo?.checkoutUrl || checkoutUrl;
+  const payUrl = rawCheckoutUrl || qrUrl;
 
   const handleSimulateSuccess = async () => {
     try {
@@ -132,22 +143,66 @@ export default function PaymentTransferPage() {
           <div className="glass-card p-8 rounded-3xl flex flex-col items-center justify-center text-center space-y-6">
             <h2 className="text-xl font-bold">Quét mã QR qua ứng dụng ngân hàng</h2>
             
-            <div className="bg-gradient-to-br from-primary/10 to-[#FF37C0]/10 p-4 rounded-3xl border border-primary/20 relative group">
+            <a
+              href={payUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gradient-to-br from-primary/10 to-[#FF37C0]/10 p-4 rounded-3xl border border-primary/20 relative group block cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md"
+              title="Nhấn để mở liên kết thanh toán"
+            >
               <div className="absolute inset-0 bg-white/20 blur-xl rounded-3xl -z-10 group-hover:bg-primary/20 transition-colors duration-500"></div>
               <img 
                 src={qrUrl} 
                 alt="PayOS QR" 
                 className="w-56 h-56 rounded-2xl mix-blend-multiply dark:mix-blend-normal bg-white shadow-sm" 
               />
-            </div>
+              <div className="absolute inset-0 rounded-3xl bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 text-white p-4">
+                <ExternalLink className="w-8 h-8 text-white drop-shadow-md animate-bounce" />
+                <span className="text-xs font-semibold px-3 py-1 bg-white/20 rounded-full backdrop-blur-md">
+                  Nhấn để mở liên kết
+                </span>
+              </div>
+            </a>
 
             <div className="space-y-2">
               <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Số tiền cần thanh toán</div>
               <div className="text-3xl font-extrabold text-primary">{formatPrice(total)}</div>
             </div>
 
+            {rawCheckoutUrl ? (
+              <div className="w-full space-y-2 pt-1">
+                <a
+                  href={rawCheckoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-primary to-[#FF37C0] text-white font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-95 hover:shadow-xl transition-all"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Mở cổng thanh toán PayOS</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(rawCheckoutUrl, "link thanh toán")}
+                  className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 w-full"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Sao chép link thanh toán</span>
+                </button>
+              </div>
+            ) : (
+              <a
+                href={payUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl border border-border bg-card/80 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Mở ảnh mã QR thanh toán</span>
+              </a>
+            )}
+
             <p className="text-sm text-muted-foreground italic max-w-xs">
-              Sử dụng App ngân hàng hoặc Ví điện tử để quét mã và thanh toán an toàn qua cổng PayOS.
+              Sử dụng App ngân hàng hoặc Ví điện tử để quét mã, hoặc nhấn vào mã QR / nút bên trên để chuyển đến cổng thanh toán.
             </p>
           </div>
 

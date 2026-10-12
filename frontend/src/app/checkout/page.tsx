@@ -236,7 +236,8 @@ export default function CheckoutPage() {
       const res = await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
       if (paymentMethod === "BANK_TRANSFER") {
-        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}`);
+        const checkoutUrlParam = res.data?.checkoutUrl ? `&checkoutUrl=${encodeURIComponent(res.data.checkoutUrl)}` : "";
+        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}${checkoutUrlParam}`);
         return;
       }
 

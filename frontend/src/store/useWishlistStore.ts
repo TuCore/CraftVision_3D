@@ -1,6 +1,31 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product } from '@/lib/product.types';
+import api from '@/lib/api';
+
+const syncItemToBackend = (productId: string, quantity: number, selectedOptions?: any) => {
+  if (typeof window === 'undefined') return;
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const cleanId = (productId || '').replace(/-3d$/, '');
+  const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+  if (!isGuid) return;
+  api.post('/api/cart/items', {
+    productId: cleanId,
+    quantity,
+    selectedOptions: selectedOptions ? JSON.stringify(selectedOptions) : ''
+  }).catch((e) => console.warn('Could not sync cart item to backend:', e));
+};
+
+const removeItemFromBackend = (cartItemIdOrProductId: string) => {
+  if (typeof window === 'undefined') return;
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const match = (cartItemIdOrProductId || '').match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  if (!match) return;
+  const cleanId = match[0];
+  api.delete(`/api/cart/items/${cleanId}`).catch((e) => console.warn('Could not remove cart item from backend:', e));
+};
 
 export interface CartItem extends Product {
   cartItemId: string;
@@ -173,6 +198,7 @@ export const useWishlistStore = create<WishlistStore>()(
             selectedTemplate: finalSelectedTemplate !== undefined ? finalSelectedTemplate : currentItem.selectedTemplate,
             stock: effectiveStock
           };
+          syncItemToBackend(product.id, newQty, { hasGreeting, selectedTemplate: finalSelectedTemplate });
           return { items: newItems };
         }
 
@@ -180,6 +206,8 @@ export const useWishlistStore = create<WishlistStore>()(
         if (maxStock !== undefined && maxStock > 0) {
           initialQty = Math.min(initialQty, maxStock);
         }
+
+        syncItemToBackend(product.id, initialQty, { hasGreeting, selectedTemplate: finalSelectedTemplate });
 
         return { 
           items: [
@@ -212,21 +240,37 @@ export const useWishlistStore = create<WishlistStore>()(
           return item;
         }),
       })),
-      removeFromCart: (id) => set((state) => ({
-        items: state.items.filter(item => (item.cartItemId || item.id) !== id)
-      })),
-      updateQuantity: (id, quantity) => set((state) => ({
-        items: state.items.map(item => {
-          if ((item.cartItemId || item.id) === id) {
-            let finalQty = Math.max(1, quantity);
-            if (item.stock !== undefined && item.stock > 0) {
-              finalQty = Math.min(finalQty, item.stock);
+      removeFromCart: (id) => {
+        const itemToRemove = get().items.find(item => (item.cartItemId || item.id) === id || item.id === id || item.cartItemId === id);
+        if (itemToRemove) {
+          const deleteKey = itemToRemove.id || itemToRemove.cartItemId || id;
+          removeItemFromBackend(deleteKey);
+        } else {
+          removeItemFromBackend(id);
+        }
+        set((state) => ({
+          items: state.items.filter(item => (item.cartItemId || item.id) !== id && item.id !== id && item.cartItemId !== id)
+        }));
+      },
+      updateQuantity: (id, quantity) => {
+        if (quantity <= 0) {
+          get().removeFromCart(id);
+          return;
+        }
+        set((state) => ({
+          items: state.items.map(item => {
+            if ((item.cartItemId || item.id) === id || item.id === id || item.cartItemId === id) {
+              let finalQty = Math.max(1, quantity);
+              if (item.stock !== undefined && item.stock > 0) {
+                finalQty = Math.min(finalQty, item.stock);
+              }
+              syncItemToBackend(item.id, finalQty, { hasGreeting: item.hasGreeting, selectedTemplate: item.selectedTemplate });
+              return { ...item, quantity: finalQty };
             }
-            return { ...item, quantity: finalQty };
-          }
-          return item;
-        })
-      })),
+            return item;
+          })
+        }));
+      },
       updateGreeting: (id, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate) => set((state) => ({
         items: state.items.map(item => 
           (item.cartItemId || item.id) === id ? { 
@@ -244,18 +288,19 @@ export const useWishlistStore = create<WishlistStore>()(
         if (!statuses || statuses.length === 0) return state;
         const statusMap = new Map(statuses.map(s => [s.productId.toLowerCase(), s]));
         const updatedItems = state.items.map((item) => {
-          const rawId = item.id ? item.id.replace(/-3d$/, '').toLowerCase() : '';
+          const rawId = ((item as any).productId || item.id || '').replace(/-3d$/, '').toLowerCase();
           const status = statusMap.get(rawId) || statusMap.get(item.id?.toLowerCase());
           if (status) {
+            const isOutOfStock = status.isOutOfStock === true || status.stock <= 0;
             let itemQty = item.quantity || 1;
-            if (!status.isOutOfStock && status.stock > 0 && itemQty > status.stock) {
+            if (!isOutOfStock && status.stock > 0 && itemQty > status.stock) {
               itemQty = status.stock;
             }
             return {
               ...item,
               stock: status.stock,
               quantity: itemQty,
-              isOutOfStock: status.isOutOfStock,
+              isOutOfStock: isOutOfStock,
               price: status.price !== undefined && status.price > 0 ? status.price : item.price,
             };
           }
@@ -264,7 +309,12 @@ export const useWishlistStore = create<WishlistStore>()(
         return { items: updatedItems };
       }),
       isFavorite: (id) => get().items.some((item) => item.id === id),
-      clearWishlist: () => set({ items: [] }),
+      clearWishlist: () => {
+        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+          api.delete('/api/cart').catch(() => {});
+        }
+        set({ items: [] });
+      },
     }),
     {
       name: 'craftvision-wishlist',

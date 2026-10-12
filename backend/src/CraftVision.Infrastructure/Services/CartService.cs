@@ -35,9 +35,9 @@ public class CartService : ICartService
                 Price = i.Product.Price,
                 Quantity = i.Quantity,
                 SelectedOptions = i.SelectedOptions,
-                Stock = i.Product.Stock,
+                Stock = Math.Max(0, i.Product.Stock - i.Quantity),
                 ProductType = i.Product.ProductType.ToString(),
-                IsOutOfStock = (i.Product.ProductType == CraftVision.Domain.Enums.ProductType.InStock && i.Product.Stock <= 0) || !i.Product.IsActive
+                IsOutOfStock = (i.Product.ProductType == CraftVision.Domain.Enums.ProductType.InStock && i.Product.Stock - i.Quantity <= 0) || !i.Product.IsActive
             }).ToList()
         };
     }
@@ -79,10 +79,17 @@ public class CartService : ICartService
         var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId && i.SelectedOptions == dto.SelectedOptions);
         if (existingItem != null)
         {
-            existingItem.Quantity += dto.Quantity;
-            existingItem.UpdatedAt = DateTime.UtcNow;
+            if (dto.Quantity <= 0)
+            {
+                cart.Items.Remove(existingItem);
+            }
+            else
+            {
+                existingItem.Quantity = dto.Quantity;
+                existingItem.UpdatedAt = DateTime.UtcNow;
+            }
         }
-        else
+        else if (dto.Quantity > 0)
         {
             cart.Items.Add(new CartItem
             {
@@ -149,10 +156,13 @@ public class CartService : ICartService
 
         if (cart == null) throw new Exception("Cart not found");
 
-        var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
-        if (item != null)
+        var itemsToRemove = cart.Items.Where(i => i.Id == cartItemId || i.ProductId == cartItemId).ToList();
+        if (itemsToRemove.Any())
         {
-            cart.Items.Remove(item);
+            foreach (var item in itemsToRemove)
+            {
+                cart.Items.Remove(item);
+            }
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }

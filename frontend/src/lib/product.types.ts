@@ -13,6 +13,8 @@ export interface Product {
   images?: string[];
   isComingSoon?: boolean;
   stock?: number;
+  availableStock?: number;
+  reservedStock?: number;
 }
 
 
