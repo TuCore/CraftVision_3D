@@ -49,22 +49,16 @@ export function TemplateProductsSection() {
       isDigital: true,
     } as any;
 
-    toggleFavorite(
-      productItem,
-      true,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      {
+    toggleFavorite(productItem, {
+      hasGreeting: true,
+      selectedTemplate: {
         id: card.id,
         title: card.title,
         image: `/cards/previews/${card.slug}.webp`,
         price: price,
       },
-      false,
-      1
-    );
+      customQuantity: 1,
+    });
 
     toast.success(
       language === "vi" ? `Đã thêm "${card.title}" vào giỏ hàng!` : `Added "${card.title}" to cart!`,

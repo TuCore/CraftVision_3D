@@ -394,17 +394,15 @@ function GreetingDesignContent() {
     }
 
     // Chế độ thêm mới hoặc từ trang chi tiết:
-    toggleFavorite(
-      cartProduct,
-      true,
-      message,
-      greetingImage || undefined,
-      store.senderName,
-      store.receiverName,
-      templateData,
-      false, // allow applying custom quantity
-      quantity
-    );
+    toggleFavorite(cartProduct, {
+      hasGreeting: true,
+      greetingMessage: message,
+      greetingImage: greetingImage || undefined,
+      senderName: store.senderName,
+      receiverName: store.receiverName,
+      selectedTemplate: templateData,
+      customQuantity: quantity,
+    });
 
     toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!", {
       action: {

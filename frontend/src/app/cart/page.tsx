@@ -156,16 +156,37 @@ export default function CartPage() {
 
         if (payloadItems.length === 0) return;
 
-        const res = await api.post('/api/products/check-stock', { items: payloadItems });
-        if (Array.isArray(res.data)) {
-          syncStock(res.data);
-          // Check if any item in cart exceeds newly fetched stock
-          res.data.forEach((status: any) => {
+        let stockStatuses: any[] = [];
+        try {
+          const res = await api.post('/api/products/check-stock', { items: payloadItems });
+          if (Array.isArray(res.data)) {
+            stockStatuses = res.data;
+          }
+        } catch (apiErr) {
+          console.warn("POST /api/products/check-stock failed, falling back to GET /api/products", apiErr);
+          try {
+            const fallbackRes = await api.get('/api/products?page=1&pageSize=100');
+            if (fallbackRes.data && Array.isArray(fallbackRes.data.items)) {
+              stockStatuses = fallbackRes.data.items.map((p: any) => ({
+                productId: p.id,
+                name: p.name,
+                stock: p.stock ?? 0,
+                isOutOfStock: (p.stock ?? 0) <= 0,
+                price: p.price,
+              }));
+            }
+          } catch (fbErr) {
+            console.error("Stock fallback also failed:", fbErr);
+          }
+        }
+
+        if (stockStatuses.length > 0) {
+          syncStock(stockStatuses);
+          stockStatuses.forEach((status: any) => {
             if (!status.isOutOfStock && status.stock > 0) {
               const matched = items.find((i) => i.id.replace(/-3d$/, '').toLowerCase() === status.productId.toLowerCase());
               if (matched && (matched.quantity || 1) > status.stock) {
                 toast.warning(`Sản phẩm "${status.name}" hiện chỉ còn ${status.stock} sản phẩm trong kho. Đã tự động điều chỉnh số lượng!`);
-                updateQuantity(matched.cartItemId || matched.id, status.stock);
               }
             }
           });

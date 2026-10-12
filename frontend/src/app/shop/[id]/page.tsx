@@ -16,7 +16,7 @@ import { ReviewList } from "@/components/ReviewList";
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
-  const { toggleFavorite, items } = useWishlistStore();
+  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -78,6 +78,11 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             stock: p.stock ?? 0
           };
           setProduct(mappedProduct as any);
+          // If product is already in cart, update its stock in the store to latest warehouse stock
+          const inCart = items.find((i) => i.id === mappedProduct.id);
+          if (inCart) {
+            updateCartItem(inCart.cartItemId || inCart.id, { stock: mappedProduct.stock });
+          }
 
           const mappedRelated = all
             .filter((item: any) => item.id !== id && (item.categoryName === p.categoryName))
@@ -372,7 +377,10 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                         toast.warning(`Giỏ hàng đã có ${existingCartItem.quantity} sản phẩm. Kho chỉ còn ${maxStock} nên đã điều chỉnh về mức tối đa.`);
                       }
                     }
-                    toggleFavorite(product, false, undefined, undefined, undefined, undefined, undefined, false, quantity);
+                    toggleFavorite(product, {
+                      hasGreeting: false,
+                      customQuantity: quantity,
+                    });
                     toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`, {
                       action: {
                         label: "Xem giỏ hàng",

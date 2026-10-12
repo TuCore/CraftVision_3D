@@ -24,11 +24,23 @@ export interface CartItem extends Product {
   isOutOfStock?: boolean;
 }
 
+export interface ToggleFavoriteOptions {
+  hasGreeting?: boolean;
+  greetingMessage?: string;
+  greetingImage?: string;
+  senderName?: string;
+  receiverName?: string;
+  selectedTemplate?: CartItem['selectedTemplate'];
+  preserveQuantity?: boolean;
+  customQuantity?: number;
+  setQuantityExact?: boolean;
+}
+
 interface WishlistStore {
   items: CartItem[];
   toggleFavorite: (
     product: Product, 
-    hasGreeting?: boolean, 
+    optionsOrHasGreeting?: boolean | ToggleFavoriteOptions, 
     greetingMessage?: string, 
     greetingImage?: string, 
     senderName?: string, 
@@ -68,22 +80,80 @@ export const useWishlistStore = create<WishlistStore>()(
   persist(
     (set, get) => ({
       items: [],
-      toggleFavorite: (product, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate, preserveQuantity, customQuantity) => set((state) => {
+      toggleFavorite: (
+        product, 
+        optionsOrHasGreeting, 
+        greetingMessage, 
+        greetingImage, 
+        senderName, 
+        receiverName, 
+        selectedTemplate, 
+        preserveQuantity, 
+        customQuantity
+      ) => set((state) => {
+        let hasGreeting: boolean | undefined;
+        let finalGreetingMessage: string | undefined;
+        let finalGreetingImage: string | undefined;
+        let finalSenderName: string | undefined;
+        let finalReceiverName: string | undefined;
+        let finalSelectedTemplate: CartItem['selectedTemplate'] | undefined;
+        let finalPreserveQuantity: boolean | undefined;
+        let finalCustomQuantity: number | undefined;
+        let finalSetQuantityExact: boolean | undefined;
+
+        if (optionsOrHasGreeting && typeof optionsOrHasGreeting === 'object') {
+          const opts = optionsOrHasGreeting as ToggleFavoriteOptions;
+          hasGreeting = opts.hasGreeting;
+          finalGreetingMessage = opts.greetingMessage;
+          finalGreetingImage = opts.greetingImage;
+          finalSenderName = opts.senderName;
+          finalReceiverName = opts.receiverName;
+          finalSelectedTemplate = opts.selectedTemplate;
+          finalPreserveQuantity = opts.preserveQuantity;
+          finalCustomQuantity = opts.customQuantity;
+          finalSetQuantityExact = opts.setQuantityExact;
+        } else {
+          hasGreeting = optionsOrHasGreeting as boolean | undefined;
+          finalGreetingMessage = greetingMessage;
+          finalGreetingImage = greetingImage;
+          finalSenderName = senderName;
+          finalReceiverName = receiverName;
+          finalSelectedTemplate = selectedTemplate;
+          finalPreserveQuantity = typeof preserveQuantity === 'boolean' ? preserveQuantity : undefined;
+          
+          if (typeof preserveQuantity === 'number') {
+            finalCustomQuantity = preserveQuantity;
+            finalPreserveQuantity = false;
+          } else if (typeof customQuantity === 'number') {
+            finalCustomQuantity = customQuantity;
+          }
+        }
+
         const is3D = (product as any).is3D;
-        const templateKey = selectedTemplate?.id ? `-tpl${selectedTemplate.id}` : '';
+        const templateKey = finalSelectedTemplate?.id ? `-tpl${finalSelectedTemplate.id}` : '';
         const cartItemId = `${product.id}-${is3D ? '3d' : (hasGreeting ? 'nfc' : 'standard')}${templateKey}`;
         const existsIndex = state.items.findIndex((item) => 
-          item.cartItemId === cartItemId || (item.id === product.id && !!item.hasGreeting === !!hasGreeting && !!(item as any).is3D === !!is3D && item.selectedTemplate?.id === selectedTemplate?.id)
+          item.cartItemId === cartItemId || (item.id === product.id && !!item.hasGreeting === !!hasGreeting && !!(item as any).is3D === !!is3D && item.selectedTemplate?.id === finalSelectedTemplate?.id)
         );
         
-        const addQty = customQuantity !== undefined ? customQuantity : 1;
+        const addQty = finalCustomQuantity !== undefined && finalCustomQuantity > 0 ? finalCustomQuantity : 1;
         const maxStock = (product as any).stock;
 
         if (existsIndex >= 0) {
           const newItems = [...state.items];
           const currentItem = newItems[existsIndex];
-          const effectiveStock = maxStock ?? currentItem.stock;
-          let newQty = preserveQuantity ? currentItem.quantity : currentItem.quantity + addQty;
+          // Always prioritize current fresh product.stock over potentially stale stored item.stock
+          const effectiveStock = maxStock !== undefined ? maxStock : currentItem.stock;
+          
+          let newQty: number;
+          if (finalPreserveQuantity) {
+            newQty = currentItem.quantity;
+          } else if (finalSetQuantityExact) {
+            newQty = addQty;
+          } else {
+            newQty = currentItem.quantity + addQty;
+          }
+
           if (effectiveStock !== undefined && effectiveStock > 0) {
             newQty = Math.min(newQty, effectiveStock);
           }
@@ -96,11 +166,11 @@ export const useWishlistStore = create<WishlistStore>()(
             cardPrice: (product as any).cardPrice ?? currentItem.cardPrice,
             quantity: newQty,
             hasGreeting: hasGreeting !== undefined ? hasGreeting : currentItem.hasGreeting,
-            greetingMessage: greetingMessage !== undefined ? greetingMessage : currentItem.greetingMessage,
-            greetingImage: greetingImage !== undefined ? greetingImage : currentItem.greetingImage,
-            senderName: senderName !== undefined ? senderName : currentItem.senderName,
-            receiverName: receiverName !== undefined ? receiverName : currentItem.receiverName,
-            selectedTemplate: selectedTemplate !== undefined ? selectedTemplate : currentItem.selectedTemplate,
+            greetingMessage: finalGreetingMessage !== undefined ? finalGreetingMessage : currentItem.greetingMessage,
+            greetingImage: finalGreetingImage !== undefined ? finalGreetingImage : currentItem.greetingImage,
+            senderName: finalSenderName !== undefined ? finalSenderName : currentItem.senderName,
+            receiverName: finalReceiverName !== undefined ? finalReceiverName : currentItem.receiverName,
+            selectedTemplate: finalSelectedTemplate !== undefined ? finalSelectedTemplate : currentItem.selectedTemplate,
             stock: effectiveStock
           };
           return { items: newItems };
@@ -111,7 +181,23 @@ export const useWishlistStore = create<WishlistStore>()(
           initialQty = Math.min(initialQty, maxStock);
         }
 
-        return { items: [...state.items, { ...product, cartItemId, quantity: initialQty, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate, stock: maxStock }] };
+        return { 
+          items: [
+            ...state.items, 
+            { 
+              ...product, 
+              cartItemId, 
+              quantity: initialQty, 
+              hasGreeting, 
+              greetingMessage: finalGreetingMessage, 
+              greetingImage: finalGreetingImage, 
+              senderName: finalSenderName, 
+              receiverName: finalReceiverName, 
+              selectedTemplate: finalSelectedTemplate, 
+              stock: maxStock 
+            }
+          ] 
+        };
       }),
       updateCartItem: (cartItemIdOrId, updates) => set((state) => ({
         items: state.items.map((item) => {
@@ -161,9 +247,14 @@ export const useWishlistStore = create<WishlistStore>()(
           const rawId = item.id ? item.id.replace(/-3d$/, '').toLowerCase() : '';
           const status = statusMap.get(rawId) || statusMap.get(item.id?.toLowerCase());
           if (status) {
+            let itemQty = item.quantity || 1;
+            if (!status.isOutOfStock && status.stock > 0 && itemQty > status.stock) {
+              itemQty = status.stock;
+            }
             return {
               ...item,
               stock: status.stock,
+              quantity: itemQty,
               isOutOfStock: status.isOutOfStock,
               price: status.price !== undefined && status.price > 0 ? status.price : item.price,
             };

@@ -62,7 +62,10 @@ export default function ShopPage() {
       }
     }
 
-    addToCart(product, false, undefined, undefined, undefined, undefined, undefined, false, 1);
+    addToCart(product, {
+      hasGreeting: false,
+      customQuantity: 1,
+    });
     toast.success(
       language === "vi" 
         ? `Đã thêm "${product.name}" vào giỏ hàng!` 
