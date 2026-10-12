@@ -92,8 +92,10 @@ public class OrderService : IOrderService
 
                 if (product.ProductType == ProductType.InStock)
                 {
+                    if (product.Stock <= 0)
+                        throw new Exception($"Sản phẩm '{product.Name}' đã hết hàng.");
                     if (product.Stock < itemDto.Quantity)
-                        throw new Exception($"Product {product.Name} is out of stock.");
+                        throw new Exception($"Sản phẩm '{product.Name}' không đủ số lượng trong kho (chỉ còn {product.Stock} sản phẩm).");
                     
                     product.Stock -= itemDto.Quantity;
                     _unitOfWork.Products.Update(product);

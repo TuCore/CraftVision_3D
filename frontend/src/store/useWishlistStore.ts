@@ -20,6 +20,8 @@ export interface CartItem extends Product {
     originalPrice?: number;
     discount?: number;
   };
+  stock?: number;
+  isOutOfStock?: boolean;
 }
 
 interface WishlistStore {
@@ -48,6 +50,14 @@ interface WishlistStore {
     senderName?: string, 
     receiverName?: string,
     selectedTemplate?: CartItem['selectedTemplate']
+  ) => void;
+  syncStock: (
+    statuses: Array<{
+      productId: string;
+      stock: number;
+      isOutOfStock: boolean;
+      price?: number;
+    }>
   ) => void;
   isFavorite: (id: string) => boolean;
   clearWishlist: () => void;
@@ -119,6 +129,24 @@ export const useWishlistStore = create<WishlistStore>()(
           } : item
         )
       })),
+      syncStock: (statuses) => set((state) => {
+        if (!statuses || statuses.length === 0) return state;
+        const statusMap = new Map(statuses.map(s => [s.productId.toLowerCase(), s]));
+        const updatedItems = state.items.map((item) => {
+          const rawId = item.id ? item.id.replace(/-3d$/, '').toLowerCase() : '';
+          const status = statusMap.get(rawId) || statusMap.get(item.id?.toLowerCase());
+          if (status) {
+            return {
+              ...item,
+              stock: status.stock,
+              isOutOfStock: status.isOutOfStock,
+              price: status.price !== undefined && status.price > 0 ? status.price : item.price,
+            };
+          }
+          return item;
+        });
+        return { items: updatedItems };
+      }),
       isFavorite: (id) => get().items.some((item) => item.id === id),
       clearWishlist: () => set({ items: [] }),
     }),

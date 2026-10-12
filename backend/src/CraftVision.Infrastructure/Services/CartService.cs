@@ -34,7 +34,10 @@ public class CartService : ICartService
                 ProductImageUrl = i.Product.ProductImages.FirstOrDefault(pi => pi.IsThumbnail)?.File?.FileUrl ?? i.Product.SampleImageUrl ?? "",
                 Price = i.Product.Price,
                 Quantity = i.Quantity,
-                SelectedOptions = i.SelectedOptions
+                SelectedOptions = i.SelectedOptions,
+                Stock = i.Product.Stock,
+                ProductType = i.Product.ProductType.ToString(),
+                IsOutOfStock = (i.Product.ProductType == CraftVision.Domain.Enums.ProductType.InStock && i.Product.Stock <= 0) || !i.Product.IsActive
             }).ToList()
         };
     }

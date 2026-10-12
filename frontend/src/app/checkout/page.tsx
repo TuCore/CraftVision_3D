@@ -64,7 +64,41 @@ export default function CheckoutPage() {
     if ((!items || items.length === 0) && !isOrderPlaced) {
       toast.error("Bạn chưa chọn món quà nào!");
       router.push("/shop");
+      return;
     }
+
+    const verifyCheckoutStock = async () => {
+      try {
+        const payloadItems = items
+          .map((item) => {
+            const rawId = item.product.id ? item.product.id.replace(/-3d$/, '') : '';
+            const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
+            return {
+              productId: isGuid ? rawId : "00000000-0000-0000-0000-000000000000",
+              quantity: item.quantity || 1,
+            };
+          })
+          .filter((i) => i.productId !== "00000000-0000-0000-0000-000000000000");
+
+        if (payloadItems.length === 0) return;
+
+        const res = await api.post('/api/products/check-stock', { items: payloadItems });
+        if (Array.isArray(res.data)) {
+          const soldOut = res.data.filter((s: any) => s.isOutOfStock);
+          if (soldOut.length > 0) {
+            const soldOutNames = soldOut.map((s: any) => s.name).join(', ');
+            toast.error(`Sản phẩm [${soldOutNames}] vừa hết hàng. Đang chuyển về giỏ hàng...`, { duration: 4000 });
+            setTimeout(() => {
+              router.push("/cart");
+            }, 1500);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not verify checkout stock:", e);
+      }
+    };
+
+    verifyCheckoutStock();
   }, [items, router, isOrderPlaced]);
 
   useEffect(() => {
@@ -220,7 +254,13 @@ export default function CheckoutPage() {
       router.push("/settings?tab=orders");
     } catch (error: any) {
       setIsOrderPlaced(false);
-      toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt hàng.");
+      const errMsg = error.response?.data?.message || error.message || "Đã xảy ra lỗi khi đặt hàng.";
+      toast.error(errMsg);
+      if (errMsg.toLowerCase().includes("hết hàng") || errMsg.toLowerCase().includes("out of stock") || errMsg.toLowerCase().includes("tồn kho")) {
+        setTimeout(() => {
+          router.push("/cart");
+        }, 1800);
+      }
     } finally {
       setIsSubmitting(false);
     }

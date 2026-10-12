@@ -21,7 +21,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     setState(() {
       if (value == true) {
         for (var p in items) {
-          _selectedProductIds.add(p.productId);
+          final isOut = p.isOutOfStock == true || (p.stock != null && p.stock! <= 0);
+          if (!isOut) {
+            _selectedProductIds.add(p.productId);
+          }
         }
       } else {
         _selectedProductIds.clear();
@@ -83,7 +86,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             );
           }
 
-          final isAllSelected = cart!.items.isNotEmpty && _selectedProductIds.length == cart!.items.length;
+          final availableItems = cart!.items.where((i) => !(i.isOutOfStock == true || (i.stock != null && i.stock! <= 0))).toList();
+          final isAllSelected = availableItems.isNotEmpty && _selectedProductIds.length == availableItems.length;
           
           return Column(
             children: [
@@ -132,72 +136,112 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   Widget _buildCartItem(dynamic item) {
+    final isOut = item.isOutOfStock == true || (item.stock != null && item.stock! <= 0);
     final isSelected = _selectedProductIds.contains(item.productId);
 
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      color: AppColors.white,
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Checkbox(
-            value: isSelected,
-            onChanged: (val) => _toggleProduct(item.productId, val),
-            activeColor: AppColors.primary,
-          ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CachedNetworkImage(
-              imageUrl: item.productImageUrl,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-              errorWidget: (context, url, error) => Container(color: Colors.grey, width: 80, height: 80),
+    return Opacity(
+      opacity: isOut ? 0.65 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        color: AppColors.white,
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: isOut ? false : isSelected,
+              onChanged: isOut ? null : (val) => _toggleProduct(item.productId, val),
+              activeColor: AppColors.primary,
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.productName, style: AppTypography.bodyMedium, maxLines: 2, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
-                if (item.selectedOptions != null && item.selectedOptions!.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(item.selectedOptions!, style: AppTypography.bodySmall.copyWith(color: AppColors.neutral600)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: item.productImageUrl,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => Container(color: Colors.grey, width: 80, height: 80),
                   ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('${item.price.toStringAsFixed(0)} đ', style: AppTypography.priceText),
-                    Row(
-                      children: [
-                        _buildQtyBtn(Icons.remove, () {
-                           // implement quantity decrement
-                        }),
-                        Container(
-                          width: 40,
-                          alignment: Alignment.center,
-                          child: Text('${item.quantity}', style: AppTypography.bodyMedium),
+                  if (isOut)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black45,
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('HẾT HÀNG', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
                         ),
-                        _buildQtyBtn(Icons.add, () {
-                           // implement quantity increment
-                        }),
-                      ],
+                      ),
                     ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(item.productName, style: AppTypography.bodyMedium, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      ),
+                      if (isOut)
+                        Container(
+                          margin: const EdgeInsets.only(left: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.red.withOpacity(0.4)),
+                          ),
+                          child: const Text('Hết hàng', style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  if (item.selectedOptions != null && item.selectedOptions!.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(item.selectedOptions!, style: AppTypography.bodySmall.copyWith(color: AppColors.neutral600)),
+                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('${item.price.toStringAsFixed(0)} đ', style: AppTypography.priceText),
+                      Row(
+                        children: [
+                          _buildQtyBtn(Icons.remove, isOut ? () {} : () {
+                             // implement quantity decrement
+                          }),
+                          Container(
+                            width: 40,
+                            alignment: Alignment.center,
+                            child: Text('${item.quantity}', style: AppTypography.bodyMedium),
+                          ),
+                          _buildQtyBtn(Icons.add, isOut ? () {} : () {
+                             // implement quantity increment
+                          }),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

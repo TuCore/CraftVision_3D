@@ -43,10 +43,11 @@ import { useTranslation } from "@/components/LanguageProvider";
 export default function CartPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
-  const { items, removeFromCart, updateQuantity, clearWishlist } = useWishlistStore();
+  const { items, removeFromCart, updateQuantity, clearWishlist, syncStock } = useWishlistStore();
   const { setItems, orderNote, setOrderNote } = useOrderStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isValidatingStock, setIsValidatingStock] = useState(false);
 
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
@@ -135,15 +136,68 @@ export default function CartPage() {
     fetchOrders();
   }, [page]);
 
-  // Initialize selected items once when mounted, and filter out removed items
+  // Synchronize live stock with server to fix stale client-side cache
   useEffect(() => {
-    setSelectedItems((prev) => {
-      // If it's the first time and we have items, select all
-      if (prev.length === 0 && items.length > 0) {
-        return items.map((item) => item.cartItemId || item.id);
+    if (!items || items.length === 0) return;
+
+    const checkLiveStock = async () => {
+      setIsValidatingStock(true);
+      try {
+        const payloadItems = items
+          .map((item) => {
+            const rawId = item.id ? item.id.replace(/-3d$/, '') : '';
+            const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
+            return {
+              productId: isGuid ? rawId : "00000000-0000-0000-0000-000000000000",
+              quantity: item.quantity || 1,
+            };
+          })
+          .filter((i) => i.productId !== "00000000-0000-0000-0000-000000000000");
+
+        if (payloadItems.length === 0) return;
+
+        const res = await api.post('/api/products/check-stock', { items: payloadItems });
+        if (Array.isArray(res.data)) {
+          syncStock(res.data);
+        }
+      } catch (err) {
+        console.warn("Could not check live stock:", err);
+      } finally {
+        setIsValidatingStock(false);
       }
-      // Otherwise, just remove deleted items from the selection
-      return prev.filter((id) => items.some((item) => (item.cartItemId || item.id) === id));
+    };
+
+    checkLiveStock();
+  }, [items.length]);
+
+  // Separate items into Available vs Sold Out items
+  const { availableItems, soldOutItems } = useMemo(() => {
+    const available: typeof items = [];
+    const soldOut: typeof items = [];
+
+    items.forEach((item) => {
+      const isPreOrder = (item as any).productType === 'PreOrder';
+      const isDigital = (item as any).is3D || (item as any).isDigital || (item as any).category === 'Thiệp điện tử';
+
+      const isOutOfStock = !isPreOrder && !isDigital && (item.isOutOfStock === true || (item.stock !== undefined && item.stock <= 0));
+      if (isOutOfStock) {
+        soldOut.push(item);
+      } else {
+        available.push(item);
+      }
+    });
+
+    return { availableItems: available, soldOutItems: soldOut };
+  }, [items]);
+
+  // Initialize and synchronize selected items ONLY with available items
+  useEffect(() => {
+    const validAvailableIds = availableItems.map((item) => item.cartItemId || item.id);
+    setSelectedItems((prev) => {
+      if (prev.length === 0 && availableItems.length > 0) {
+        return validAvailableIds;
+      }
+      return prev.filter((id) => validAvailableIds.includes(id));
     });
 
     if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
@@ -152,13 +206,22 @@ export default function CartPage() {
       script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
       document.head.appendChild(script);
     }
-  }, [items]);
+  }, [availableItems]);
 
   const subtotal = useMemo(() => {
-    return items
+    return availableItems
       .filter((item) => selectedItems.includes(item.cartItemId || item.id))
       .reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
-  }, [items, selectedItems]);
+  }, [availableItems, selectedItems]);
+
+  const handleIncreaseQuantity = (item: any) => {
+    const currentQty = item.quantity || 1;
+    if (item.stock !== undefined && item.stock > 0 && currentQty >= item.stock) {
+      toast.warning(`Sản phẩm này chỉ còn tối đa ${item.stock} cái trong kho.`);
+      return;
+    }
+    updateQuantity(item.cartItemId || item.id, currentQty + 1);
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -188,7 +251,47 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Cart Items */}
             <div className="lg:col-span-8 space-y-4">
-              {items.map((item) => (
+              {/* Select All & Live Stock Bar */}
+              {availableItems.length > 0 && (
+                <div className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center justify-between shadow-xs border border-white/40 text-sm">
+                  <label className="flex items-center gap-3 cursor-pointer font-semibold select-none">
+                    <input
+                      type="checkbox"
+                      checked={availableItems.length > 0 && availableItems.every(i => selectedItems.includes(i.cartItemId || i.id))}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedItems(availableItems.map(i => i.cartItemId || i.id));
+                        } else {
+                          setSelectedItems([]);
+                        }
+                      }}
+                      className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                    />
+                    <span>Chọn tất cả ({availableItems.length} sản phẩm có sẵn)</span>
+                  </label>
+                  {isValidatingStock && (
+                    <span className="text-xs text-primary font-medium flex items-center gap-1.5 animate-pulse">
+                      <Sparkles className="w-3.5 h-3.5" /> Đang cập nhật tồn kho...
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* All Items Out of Stock Alert */}
+              {availableItems.length === 0 && soldOutItems.length > 0 && (
+                <div className="p-4 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-sm flex items-start gap-3 shadow-xs">
+                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold">Tất cả sản phẩm trong giỏ đều đã hết hàng</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Các sản phẩm trước đó trong giỏ hàng đã có khách hàng khác đặt mua hết. Vui lòng xóa các sản phẩm hết hàng hoặc quay lại cửa hàng để chọn sản phẩm khác.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Available Items List */}
+              {availableItems.map((item) => (
                 <div
                   key={item.cartItemId || item.id}
                   className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-white/40"
@@ -239,7 +342,14 @@ export default function CartPage() {
 
                   {/* Product Info */}
                   <div className="flex-1 w-full text-center sm:text-left">
-                    <h3 className="font-bold text-foreground mb-1 text-base sm:text-lg line-clamp-1">{item.name}</h3>
+                    <div className="flex flex-wrap items-center gap-2 mb-1 justify-center sm:justify-start">
+                      <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-1">{item.name}</h3>
+                      {item.stock !== undefined && item.stock > 0 && item.stock <= 5 && (
+                        <span className="text-[11px] font-semibold text-amber-700 bg-amber-100/80 dark:bg-amber-950/60 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-900/50">
+                          Chỉ còn {item.stock} cái
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs sm:text-sm text-muted-foreground mb-2">Phân loại: {item.category}</p>
 
                     {/* Greeting Indicator, Preview & Edit Buttons */}
@@ -300,7 +410,6 @@ export default function CartPage() {
                                     </div>
                                   </div>
                                 )}
-                                {/* Message card - scaled down version of scan gift page */}
                                 <article className="relative overflow-hidden rounded-[2rem] bg-white/70 p-6 shadow-soft ring-1 ring-white/80 backdrop-blur-md transition-all duration-500 hover:shadow-coral-glow group">
                                   <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-butter/40 blur-3xl" />
                                   <div className="mb-4 flex items-center gap-3">
@@ -327,7 +436,6 @@ export default function CartPage() {
                                   </div>
                                 </article>
 
-                                {/* Uploaded Image Card - Polaroid Style */}
                                 {item.greetingImage && (
                                   <article className="relative bg-white p-3 pb-10 shadow-lg ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-1 hover:rotate-0 hover:shadow-coral-glow self-center mx-auto w-[85%] max-w-[240px]">
                                     <div className="pointer-events-none absolute -right-10 -top-10 size-24 rounded-full bg-rose-200/40 blur-2xl" />
@@ -337,7 +445,6 @@ export default function CartPage() {
                                     <div className="absolute bottom-2.5 left-0 right-0 text-center">
                                       <p className="font-display text-xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
                                     </div>
-                                    {/* Pin decor */}
                                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-6 h-6 bg-black/10 rounded-full shadow-inner blur-[1px]"></div>
                                     <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-rose-300 rounded-full shadow-sm border border-rose-400"></div>
                                   </article>
@@ -375,19 +482,19 @@ export default function CartPage() {
 
                   {/* Quantity & Actions */}
                   <div className="flex flex-row sm:flex-col items-center justify-between sm:items-end w-full sm:w-auto gap-4">
-                    {/* Desktop layout vs Mobile layout */}
+                    {/* Stepper with stock validation */}
                     <div className="flex flex-col sm:flex-row items-center sm:gap-6">
                       <div className="flex items-center bg-white dark:bg-background rounded-2xl border border-primary/20 shadow-sm overflow-hidden h-9">
                         <button
                           onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) - 1)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="w-8 text-center text-sm font-semibold text-primary">{item.quantity || 1}</span>
                         <button
-                          onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) + 1)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
+                          onClick={() => handleIncreaseQuantity(item)}
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -408,7 +515,7 @@ export default function CartPage() {
                           removeFromCart(item.cartItemId || item.id);
                           toast.success("Đã xoá sản phẩm khỏi giỏ hàng");
                         }}
-                        className="text-xs font-semibold text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-colors"
+                        className="text-xs font-semibold text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3 h-3" /> Xóa
                       </button>
@@ -416,6 +523,100 @@ export default function CartPage() {
                   </div>
                 </div>
               ))}
+
+              {/* DEDICATED SECTION: SẢN PHẨM HẾT HÀNG (SOLD OUT PRODUCTS) */}
+              {soldOutItems.length > 0 && (
+                <div className="pt-8 border-t-2 border-dashed border-rose-200 dark:border-rose-900/50 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
+                        <AlertCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-rose-600 dark:text-rose-400 text-lg flex items-center gap-2">
+                          Sản phẩm hết hàng
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500 text-white font-extrabold">
+                            {soldOutItems.length}
+                          </span>
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Đã có người đặt mua trước hoặc đã hết hàng trong kho. Những sản phẩm này không thể thanh toán.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        soldOutItems.forEach((i) => removeFromCart(i.cartItemId || i.id));
+                        toast.success("Đã xóa tất cả sản phẩm hết hàng khỏi giỏ");
+                      }}
+                      className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 transition-colors self-start sm:self-auto cursor-pointer"
+                    >
+                      Xóa tất cả sản phẩm hết hàng
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {soldOutItems.map((item) => (
+                      <div
+                        key={item.cartItemId || item.id}
+                        className="bg-muted/40 dark:bg-card/30 backdrop-blur-md rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 border border-rose-200/80 dark:border-rose-900/40 relative overflow-hidden group shadow-2xs"
+                      >
+                        {/* Sold Out Badge Instead of Checkbox */}
+                        <div className="pt-2 sm:pt-0 shrink-0">
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-black bg-rose-600 text-white shadow-xs tracking-wider uppercase">
+                            HẾT HÀNG
+                          </span>
+                        </div>
+
+                        {/* Product Image with Gray overlay */}
+                        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border/50 relative">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover filter grayscale contrast-75 brightness-90"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                            <span className="text-white text-[11px] font-extrabold px-2 py-0.5 bg-rose-600/90 rounded-md shadow-xs">
+                              Hết hàng
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1 w-full text-center sm:text-left">
+                          <div className="flex flex-wrap items-center gap-2 mb-1 justify-center sm:justify-start">
+                            <h4 className="font-bold text-foreground/70 text-base line-clamp-1">{item.name}</h4>
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                              Tạm hết hàng
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Phân loại: {item.category}</p>
+                          <p className="text-xs text-rose-600 dark:text-rose-400 font-medium bg-rose-50/60 dark:bg-rose-950/30 p-2 rounded-xl inline-block border border-rose-100 dark:border-rose-900/30">
+                            Rất tiếc! Sản phẩm đã hết hàng sau khi bạn thêm vào giỏ. Vui lòng xóa để tiếp tục đặt các món khác.
+                          </p>
+                          <div className="font-bold text-muted-foreground mt-1 line-through text-sm">
+                            {formatPrice(item.price)}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-row sm:flex-col items-center justify-between sm:items-end w-full sm:w-auto gap-3">
+                          <span className="text-xs text-muted-foreground">SL đã chọn: {item.quantity || 1}</span>
+                          <button
+                            onClick={() => {
+                              removeFromCart(item.cartItemId || item.id);
+                              toast.success("Đã xoá sản phẩm khỏi giỏ hàng");
+                            }}
+                            className="btn-outline px-3.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-300 dark:border-rose-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Xóa khỏi giỏ
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Column: Order Summary */}
@@ -430,7 +631,17 @@ export default function CartPage() {
                     <span className="text-muted-foreground">{t("cart.subtotal")}:</span>
                     <span className="font-bold text-foreground">{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex flex-col gap-2 mt-6">
+
+                  {soldOutItems.length > 0 && (
+                    <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                      <span>
+                        Có <strong>{soldOutItems.length} sản phẩm hết hàng</strong> trong giỏ đã được tự động loại khỏi đơn thanh toán.
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-2 mt-4">
                     <label className="text-sm font-medium text-foreground">
                       {language === "vi" ? "Ghi chú đơn hàng" : "Order Note"}
                     </label>
@@ -460,7 +671,11 @@ export default function CartPage() {
                       router.push("/auth?redirect=/checkout");
                       return;
                     }
-                    const selectedCartItems = items.filter(i => selectedItems.includes(i.cartItemId || i.id));
+                    const selectedCartItems = availableItems.filter(i => selectedItems.includes(i.cartItemId || i.id));
+                    if (selectedCartItems.length === 0) {
+                      toast.error("Vui lòng chọn ít nhất một sản phẩm còn hàng để tiếp tục thanh toán!");
+                      return;
+                    }
                     const orderItems = selectedCartItems.map(item => {
                       const hasCard = !!(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate);
                       const cardFee = item.selectedTemplate?.price || item.cardPrice || (hasCard ? 5000 : 0);
@@ -489,14 +704,11 @@ export default function CartPage() {
                     setItems(orderItems);
                     router.push("/checkout");
                   }}
-                  disabled={selectedItems.length === 0}
-                  className="w-full btn-hero py-3.5 rounded-xl text-black font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
+                  disabled={selectedItems.length === 0 || availableItems.length === 0}
+                  className="w-full btn-hero py-3.5 rounded-xl text-black font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                 >
                   {language === "vi" ? "Thanh toán" : "Checkout"} {selectedItems.length > 0 ? `(${selectedItems.length})` : ""}
                 </button>
-                {/* <p className="text-center text-xs text-muted-foreground mt-4 font-medium">
-                  {language === "vi" ? "Thanh toán sẽ sớm ra mắt ✨" : "Checkout coming soon ✨"}
-                </p> */}
               </div>
             </div>
           </div>

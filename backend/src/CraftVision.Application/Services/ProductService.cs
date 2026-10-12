@@ -117,6 +117,81 @@ public class ProductService : IProductService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task<List<ProductStockStatusDto>> CheckStockAsync(CheckStockRequestDto dto)
+    {
+        var result = new List<ProductStockStatusDto>();
+        if (dto?.Items == null || !dto.Items.Any())
+        {
+            return result;
+        }
+
+        foreach (var item in dto.Items)
+        {
+            if (item.ProductId == Guid.Empty)
+            {
+                result.Add(new ProductStockStatusDto
+                {
+                    ProductId = item.ProductId,
+                    Name = "Mẫu thiệp số",
+                    Stock = 9999,
+                    ProductType = "Digital",
+                    IsActive = true,
+                    IsOutOfStock = false,
+                    IsSufficient = true,
+                    RequestedQuantity = item.Quantity,
+                    Message = null
+                });
+                continue;
+            }
+
+            var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+            if (product == null || !product.IsActive)
+            {
+                result.Add(new ProductStockStatusDto
+                {
+                    ProductId = item.ProductId,
+                    Name = product?.Name ?? "Sản phẩm không tồn tại",
+                    Stock = 0,
+                    ProductType = product?.ProductType.ToString() ?? "Unknown",
+                    IsActive = false,
+                    IsOutOfStock = true,
+                    IsSufficient = false,
+                    RequestedQuantity = item.Quantity,
+                    Message = "Sản phẩm không còn khả dụng hoặc đã ngừng kinh doanh."
+                });
+                continue;
+            }
+
+            bool isOutOfStock = product.ProductType == ProductType.InStock && product.Stock <= 0;
+            bool isSufficient = product.ProductType != ProductType.InStock || (product.Stock >= item.Quantity);
+            string? message = null;
+            if (isOutOfStock)
+            {
+                message = "Sản phẩm đã hết hàng.";
+            }
+            else if (!isSufficient)
+            {
+                message = $"Chỉ còn {product.Stock} sản phẩm trong kho.";
+            }
+
+            result.Add(new ProductStockStatusDto
+            {
+                ProductId = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Stock = product.Stock,
+                ProductType = product.ProductType.ToString(),
+                IsActive = product.IsActive,
+                IsOutOfStock = isOutOfStock,
+                IsSufficient = isSufficient,
+                RequestedQuantity = item.Quantity,
+                Message = message
+            });
+        }
+
+        return result;
+    }
+
     private ProductDto MapToDto(Product p)
     {
         return new ProductDto
