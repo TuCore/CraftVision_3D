@@ -3,23 +3,29 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/widgets/cv_button.dart';
 import '../../../../core/widgets/cv_input.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../controllers/auth_controller.dart';
 
-class AuthScreen extends StatefulWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
+class _AuthScreenState extends ConsumerState<AuthScreen>
     with SingleTickerProviderStateMixin {
-  bool _isLoading = false;
-  int _step = 1;
-  bool _rememberMe = true;
+  int _step = 1; // 1 = Email, 2 = Password
+  bool _isLogin = true; // Mode: Login or Register
+
+  final TextEditingController _emailCtrl = TextEditingController();
+  final TextEditingController _passwordCtrl = TextEditingController();
+  final TextEditingController _nameCtrl = TextEditingController();
 
   late AnimationController _animCtrl;
   late Animation<double> _bgScale;
@@ -105,21 +111,47 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    _nameCtrl.dispose();
     _animCtrl.dispose();
     super.dispose();
   }
 
   void _handleAuth() {
-    setState(() => _isLoading = true);
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        context.go('/home');
-      }
-    });
+    if (_isLogin) {
+      ref.read(authControllerProvider.notifier).login(
+        _emailCtrl.text.trim(),
+        _passwordCtrl.text,
+      );
+    } else {
+      ref.read(authControllerProvider.notifier).register(
+        _emailCtrl.text.trim(),
+        _passwordCtrl.text,
+        _nameCtrl.text.trim(),
+      );
+    }
+  }
+
+  void _handleGoogleLogin() {
+    ref.read(authControllerProvider.notifier).loginWithGoogle();
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    
+    // Listen for success or error
+    ref.listen<AuthState>(authControllerProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+        );
+      } else if (next.isSuccess && !(prev?.isSuccess ?? false)) {
+        context.go('/home');
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.neutral900,
       body: Stack(
@@ -262,7 +294,7 @@ class _AuthScreenState extends State<AuthScreen>
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 32),
-                                _buildFormContainer(),
+                                _buildFormContainer(authState.isLoading),
                                 const SizedBox(height: 32),
 
                                 Center(
@@ -303,7 +335,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildFormContainer() {
+  Widget _buildFormContainer(bool isLoading) {
     return Theme(
       data: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.transparent,
@@ -373,15 +405,76 @@ class _AuthScreenState extends State<AuthScreen>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (_step == 1) ...[
-                    const CvInput(
+                    // Chế độ đăng nhập / đăng ký
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _isLogin = true),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: _isLogin ? AppColors.primary : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                'Đăng nhập',
+                                textAlign: TextAlign.center,
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: _isLogin ? Colors.white : Colors.white54,
+                                  fontWeight: _isLogin ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _isLogin = false),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: !_isLogin ? AppColors.primary : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                'Đăng ký',
+                                textAlign: TextAlign.center,
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: !_isLogin ? Colors.white : Colors.white54,
+                                  fontWeight: !_isLogin ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    CvInput(
                       labelText: 'Email',
                       hintText: 'Nhập địa chỉ email của bạn',
+                      controller: _emailCtrl,
                     ),
                     const SizedBox(height: 24),
                     CvButton(
                       text: 'Tiếp tục',
-                      isLoading: _isLoading,
-                      onPressed: () => setState(() => _step = 2),
+                      isLoading: isLoading,
+                      onPressed: () {
+                        if (_emailCtrl.text.isNotEmpty) {
+                          setState(() => _step = 2);
+                        }
+                      },
                     ),
                   ] else ...[
                     Row(
@@ -407,7 +500,7 @@ class _AuthScreenState extends State<AuthScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'quynhchinguyen.010205@gmail.com',
+                                _emailCtrl.text.isEmpty ? 'Email' : _emailCtrl.text,
                                 style: AppTypography.bodyMedium.copyWith(
                                   color: Colors.white,
                                 ),
@@ -432,35 +525,46 @@ class _AuthScreenState extends State<AuthScreen>
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const CvInput(
+                    if (!_isLogin) ...[
+                      CvInput(
+                        labelText: 'Họ và tên',
+                        hintText: 'Nhập họ và tên',
+                        controller: _nameCtrl,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    CvInput(
                       labelText: 'Mật khẩu',
                       hintText: 'Nhập mật khẩu',
                       isPassword: true,
+                      controller: _passwordCtrl,
                     ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Đặt lại mật khẩu',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: Colors.white70,
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.white70,
+                    if (_isLogin) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Quên mật khẩu?',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: Colors.white70,
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.white70,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 16),
                     CvButton(
-                      text: 'Đăng nhập',
-                      isLoading: _isLoading,
+                      text: _isLogin ? 'Đăng nhập' : 'Tạo tài khoản',
+                      isLoading: isLoading,
                       onPressed: _handleAuth,
                     ),
                   ],
@@ -469,8 +573,9 @@ class _AuthScreenState extends State<AuthScreen>
                   _buildDivider(),
                   const SizedBox(height: 24),
                   _buildSocialButton(
-                    _step == 1 ? 'Tiếp tục với Google' : 'Đăng nhập với Google',
+                    _isLogin ? 'Đăng nhập với Google' : 'Tiếp tục với Google',
                     Icons.g_mobiledata,
+                    _handleGoogleLogin,
                   ),
                 ],
               ),
@@ -501,7 +606,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildSocialButton(String text, IconData iconData) {
+  Widget _buildSocialButton(String text, IconData iconData, VoidCallback onTap) {
     return Container(
       height: 48,
       decoration: BoxDecoration(
@@ -513,7 +618,7 @@ class _AuthScreenState extends State<AuthScreen>
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
-          onTap: () {},
+          onTap: onTap,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

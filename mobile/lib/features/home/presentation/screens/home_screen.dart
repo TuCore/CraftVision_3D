@@ -11,14 +11,17 @@ import '../../../../core/widgets/cv_product_card.dart';
 import '../../../../core/theme/app_motion.dart';
 import '../../../../core/widgets/pressable.dart';
 
-class HomeScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/dio_provider.dart';
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedTabIndex = 0;
 
   void _onTabChanged(int index) {
@@ -54,6 +57,52 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            
+            // Test API Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.network_ping),
+                label: const Text('Test Network Architecture'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  try {
+                    // Get Dio instance from Riverpod
+                    final dio = ref.read(dioProvider);
+                    
+                    // Show loading SnackBar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Testing API... Check Console logs.')),
+                    );
+
+                    // Call a test endpoint (JSONPlaceholder or your backend)
+                    // If backend is running on port 5000:
+                    final response = await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+                    
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('API Success! Response: ${response.data['title']}'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('API Error: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
               ),
             ),
             
