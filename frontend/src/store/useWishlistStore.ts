@@ -34,7 +34,8 @@ interface WishlistStore {
     senderName?: string, 
     receiverName?: string,
     selectedTemplate?: CartItem['selectedTemplate'],
-    preserveQuantity?: boolean
+    preserveQuantity?: boolean,
+    customQuantity?: number
   ) => void;
   updateCartItem: (
     cartItemIdOrId: string,
@@ -67,7 +68,7 @@ export const useWishlistStore = create<WishlistStore>()(
   persist(
     (set, get) => ({
       items: [],
-      toggleFavorite: (product, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate, preserveQuantity) => set((state) => {
+      toggleFavorite: (product, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate, preserveQuantity, customQuantity) => set((state) => {
         const is3D = (product as any).is3D;
         const templateKey = selectedTemplate?.id ? `-tpl${selectedTemplate.id}` : '';
         const cartItemId = `${product.id}-${is3D ? '3d' : (hasGreeting ? 'nfc' : 'standard')}${templateKey}`;
@@ -75,25 +76,42 @@ export const useWishlistStore = create<WishlistStore>()(
           item.cartItemId === cartItemId || (item.id === product.id && !!item.hasGreeting === !!hasGreeting && !!(item as any).is3D === !!is3D && item.selectedTemplate?.id === selectedTemplate?.id)
         );
         
+        const addQty = customQuantity !== undefined ? customQuantity : 1;
+        const maxStock = (product as any).stock;
+
         if (existsIndex >= 0) {
           const newItems = [...state.items];
+          const currentItem = newItems[existsIndex];
+          const effectiveStock = maxStock ?? currentItem.stock;
+          let newQty = preserveQuantity ? currentItem.quantity : currentItem.quantity + addQty;
+          if (effectiveStock !== undefined && effectiveStock > 0) {
+            newQty = Math.min(newQty, effectiveStock);
+          }
+
           newItems[existsIndex] = { 
-            ...newItems[existsIndex], 
+            ...currentItem, 
             ...product,
             price: product.price,
-            basePrice: (product as any).basePrice ?? newItems[existsIndex].basePrice,
-            cardPrice: (product as any).cardPrice ?? newItems[existsIndex].cardPrice,
-            quantity: preserveQuantity ? newItems[existsIndex].quantity : newItems[existsIndex].quantity + 1,
-            hasGreeting: hasGreeting !== undefined ? hasGreeting : newItems[existsIndex].hasGreeting,
-            greetingMessage: greetingMessage !== undefined ? greetingMessage : newItems[existsIndex].greetingMessage,
-            greetingImage: greetingImage !== undefined ? greetingImage : newItems[existsIndex].greetingImage,
-            senderName: senderName !== undefined ? senderName : newItems[existsIndex].senderName,
-            receiverName: receiverName !== undefined ? receiverName : newItems[existsIndex].receiverName,
-            selectedTemplate: selectedTemplate !== undefined ? selectedTemplate : newItems[existsIndex].selectedTemplate
+            basePrice: (product as any).basePrice ?? currentItem.basePrice,
+            cardPrice: (product as any).cardPrice ?? currentItem.cardPrice,
+            quantity: newQty,
+            hasGreeting: hasGreeting !== undefined ? hasGreeting : currentItem.hasGreeting,
+            greetingMessage: greetingMessage !== undefined ? greetingMessage : currentItem.greetingMessage,
+            greetingImage: greetingImage !== undefined ? greetingImage : currentItem.greetingImage,
+            senderName: senderName !== undefined ? senderName : currentItem.senderName,
+            receiverName: receiverName !== undefined ? receiverName : currentItem.receiverName,
+            selectedTemplate: selectedTemplate !== undefined ? selectedTemplate : currentItem.selectedTemplate,
+            stock: effectiveStock
           };
           return { items: newItems };
         }
-        return { items: [...state.items, { ...product, cartItemId, quantity: 1, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate }] };
+
+        let initialQty = addQty;
+        if (maxStock !== undefined && maxStock > 0) {
+          initialQty = Math.min(initialQty, maxStock);
+        }
+
+        return { items: [...state.items, { ...product, cartItemId, quantity: initialQty, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate, stock: maxStock }] };
       }),
       updateCartItem: (cartItemIdOrId, updates) => set((state) => ({
         items: state.items.map((item) => {
@@ -112,9 +130,16 @@ export const useWishlistStore = create<WishlistStore>()(
         items: state.items.filter(item => (item.cartItemId || item.id) !== id)
       })),
       updateQuantity: (id, quantity) => set((state) => ({
-        items: state.items.map(item => 
-          (item.cartItemId || item.id) === id ? { ...item, quantity: Math.max(1, quantity) } : item
-        )
+        items: state.items.map(item => {
+          if ((item.cartItemId || item.id) === id) {
+            let finalQty = Math.max(1, quantity);
+            if (item.stock !== undefined && item.stock > 0) {
+              finalQty = Math.min(finalQty, item.stock);
+            }
+            return { ...item, quantity: finalQty };
+          }
+          return item;
+        })
       })),
       updateGreeting: (id, hasGreeting, greetingMessage, greetingImage, senderName, receiverName, selectedTemplate) => set((state) => ({
         items: state.items.map(item => 

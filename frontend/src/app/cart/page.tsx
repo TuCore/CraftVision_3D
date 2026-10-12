@@ -159,6 +159,16 @@ export default function CartPage() {
         const res = await api.post('/api/products/check-stock', { items: payloadItems });
         if (Array.isArray(res.data)) {
           syncStock(res.data);
+          // Check if any item in cart exceeds newly fetched stock
+          res.data.forEach((status: any) => {
+            if (!status.isOutOfStock && status.stock > 0) {
+              const matched = items.find((i) => i.id.replace(/-3d$/, '').toLowerCase() === status.productId.toLowerCase());
+              if (matched && (matched.quantity || 1) > status.stock) {
+                toast.warning(`Sản phẩm "${status.name}" hiện chỉ còn ${status.stock} sản phẩm trong kho. Đã tự động điều chỉnh số lượng!`);
+                updateQuantity(matched.cartItemId || matched.id, status.stock);
+              }
+            }
+          });
         }
       } catch (err) {
         console.warn("Could not check live stock:", err);
@@ -216,11 +226,27 @@ export default function CartPage() {
 
   const handleIncreaseQuantity = (item: any) => {
     const currentQty = item.quantity || 1;
-    if (item.stock !== undefined && item.stock > 0 && currentQty >= item.stock) {
-      toast.warning(`Sản phẩm này chỉ còn tối đa ${item.stock} cái trong kho.`);
+    const maxStock = item.stock;
+    if (maxStock !== undefined && currentQty >= maxStock) {
+      toast.warning(`Đã đạt số lượng tối đa trong kho (${maxStock} sản phẩm). Không thể tăng thêm!`);
       return;
     }
     updateQuantity(item.cartItemId || item.id, currentQty + 1);
+  };
+
+  const handleQuantityInputChange = (item: any, valueStr: string) => {
+    const val = parseInt(valueStr, 10);
+    const maxStock = item.stock;
+    if (isNaN(val) || val < 1) {
+      updateQuantity(item.cartItemId || item.id, 1);
+      return;
+    }
+    if (maxStock !== undefined && val > maxStock) {
+      toast.warning(`Số lượng nhập (${val}) vượt quá số lượng còn lại trong kho (${maxStock}). Đã tự động điều chỉnh về tối đa ${maxStock}!`);
+      updateQuantity(item.cartItemId || item.id, maxStock);
+      return;
+    }
+    updateQuantity(item.cartItemId || item.id, val);
   };
 
   const formatPrice = (price: number) => {
@@ -344,13 +370,16 @@ export default function CartPage() {
                   <div className="flex-1 w-full text-center sm:text-left">
                     <div className="flex flex-wrap items-center gap-2 mb-1 justify-center sm:justify-start">
                       <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-1">{item.name}</h3>
-                      {item.stock !== undefined && item.stock > 0 && item.stock <= 5 && (
-                        <span className="text-[11px] font-semibold text-amber-700 bg-amber-100/80 dark:bg-amber-950/60 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-900/50">
-                          Chỉ còn {item.stock} cái
-                        </span>
-                      )}
                     </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">Phân loại: {item.category}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Phân loại: {item.category}</p>
+
+                    {/* Hiển thị rõ số lượng còn lại trong kho */}
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/50">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>
+                        Số lượng trong kho: <strong className="font-bold text-emerald-800 dark:text-emerald-200">{item.stock !== undefined ? `${item.stock}` : 'Có sẵn'}</strong> sản phẩm
+                      </span>
+                    </div>
 
                     {/* Greeting Indicator, Preview & Edit Buttons */}
                     <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -482,23 +511,38 @@ export default function CartPage() {
 
                   {/* Quantity & Actions */}
                   <div className="flex flex-row sm:flex-col items-center justify-between sm:items-end w-full sm:w-auto gap-4">
-                    {/* Stepper with stock validation */}
+                    {/* Stepper with stock validation & direct number input */}
                     <div className="flex flex-col sm:flex-row items-center sm:gap-6">
                       <div className="flex items-center bg-white dark:bg-background rounded-2xl border border-primary/20 shadow-sm overflow-hidden h-9">
                         <button
                           onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) - 1)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer"
+                          disabled={(item.quantity || 1) <= 1}
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="Giảm số lượng"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-8 text-center text-sm font-semibold text-primary">{item.quantity || 1}</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={item.stock ?? 999}
+                          value={item.quantity || 1}
+                          onChange={(e) => handleQuantityInputChange(item, e.target.value)}
+                          className="w-12 text-center text-sm font-bold text-primary bg-transparent focus:outline-none focus:bg-primary/5 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          title="Nhập số lượng trực tiếp"
+                        />
                         <button
                           onClick={() => handleIncreaseQuantity(item)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer"
+                          disabled={item.stock !== undefined && (item.quantity || 1) >= item.stock}
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={item.stock !== undefined && (item.quantity || 1) >= item.stock ? `Đã đạt tối đa trong kho (${item.stock} sản phẩm)` : "Tăng số lượng"}
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                      {item.stock !== undefined && (item.quantity || 1) >= item.stock && (
+                        <span className="text-[10px] text-amber-600 font-bold mt-1 sm:mt-0">Đã đạt tối đa kho</span>
+                      )}
                     </div>
 
                     <div className="flex flex-col items-end gap-1">

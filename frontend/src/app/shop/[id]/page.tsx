@@ -16,7 +16,7 @@ import { ReviewList } from "@/components/ReviewList";
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
-  const { toggleFavorite } = useWishlistStore();
+  const { toggleFavorite, items } = useWishlistStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -142,8 +142,42 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     notFound();
   }
 
+  const maxStock = (product as any)?.stock;
+
   const handleDecrease = () => setQuantity((prev) => Math.max(1, prev - 1));
-  const handleIncrease = () => setQuantity((prev) => prev + 1);
+
+  const handleIncrease = () => {
+    if (maxStock !== undefined && maxStock > 0 && quantity >= maxStock) {
+      toast.warning(`Kho chỉ còn ${maxStock} sản phẩm! Không thể tăng thêm.`);
+      return;
+    }
+    setQuantity((prev) => {
+      const next = prev + 1;
+      if (maxStock !== undefined && maxStock > 0 && next > maxStock) {
+        toast.warning(`Kho chỉ còn ${maxStock} sản phẩm!`);
+        return maxStock;
+      }
+      return next;
+    });
+  };
+
+  const handleQuantityChange = (val: string) => {
+    if (val === "") {
+      setQuantity(1);
+      return;
+    }
+    const parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      setQuantity(1);
+      return;
+    }
+    if (maxStock !== undefined && maxStock > 0 && parsed > maxStock) {
+      toast.warning(`Kho chỉ còn lại ${maxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`);
+      setQuantity(maxStock);
+      return;
+    }
+    setQuantity(parsed);
+  };
 
   return (
     <AppShell active="shop">
@@ -255,8 +289,24 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               )}
             </div>
 
-            <div className="text-4xl font-bold font-display gradient-text mb-6">
-              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <div className="text-4xl font-bold font-display gradient-text">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+              </div>
+              {(product as any).stock !== undefined && (
+                <div className={`px-3 py-1.5 rounded-full text-xs font-semibold border flex items-center gap-1.5 shadow-xs ${
+                  (product as any).stock > 0 
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" 
+                    : "bg-red-500/10 text-red-500 border-red-500/20"
+                }`}>
+                  {(product as any).stock > 0 && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
+                  {(product as any).stock > 0 ? (
+                    <span>Còn lại trong kho: <strong className="font-bold">{(product as any).stock}</strong> sản phẩm</span>
+                  ) : (
+                    <span>Tạm hết hàng</span>
+                  )}
+                </div>
+              )}
             </div>
 
             <p className="text-muted-foreground leading-relaxed mb-8">
@@ -265,19 +315,38 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
 
             <div className="border-t border-border w-full mb-8" />
 
-            <div className="flex items-center gap-4 mb-8">
-              <span className="font-medium text-sm">Số lượng:</span>
-              <div className="flex items-center glass-strong rounded-xl border border-white/40">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 p-3.5 rounded-2xl bg-white/40 dark:bg-card/40 border border-border/50">
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-sm text-foreground">Số lượng:</span>
+                {(product as any).stock !== undefined && (product as any).stock > 0 && (
+                  <span className="text-xs text-muted-foreground font-medium">
+                    (Kho: <strong className="text-foreground font-bold">{(product as any).stock}</strong>)
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center glass-strong rounded-xl border border-white/40 overflow-hidden shadow-xs">
                 <button
+                  type="button"
                   onClick={handleDecrease}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-l-xl transition-colors text-foreground"
+                  disabled={quantity <= 1 || ((product as any).stock !== undefined && (product as any).stock === 0)}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-l-xl transition-colors text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <div className="w-12 text-center font-semibold text-foreground">{quantity}</div>
+                <input
+                  type="number"
+                  min="1"
+                  max={maxStock ?? 9999}
+                  value={quantity}
+                  disabled={(product as any).stock !== undefined && (product as any).stock === 0}
+                  onChange={(e) => handleQuantityChange(e.target.value)}
+                  className="w-14 text-center font-bold text-foreground bg-transparent border-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
                 <button
+                  type="button"
                   onClick={handleIncrease}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-r-xl transition-colors text-foreground"
+                  disabled={(product as any).stock !== undefined && quantity >= (product as any).stock}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-r-xl transition-colors text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -297,8 +366,14 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       router.push("/auth");
                       return;
                     }
-                    toggleFavorite(product);
-                    toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
+                    const existingCartItem = items.find((i) => i.id === product.id && !i.hasGreeting && !(i as any).is3D);
+                    if (existingCartItem && maxStock !== undefined && maxStock > 0) {
+                      if (existingCartItem.quantity + quantity > maxStock) {
+                        toast.warning(`Giỏ hàng đã có ${existingCartItem.quantity} sản phẩm. Kho chỉ còn ${maxStock} nên đã điều chỉnh về mức tối đa.`);
+                      }
+                    }
+                    toggleFavorite(product, false, undefined, undefined, undefined, undefined, undefined, false, quantity);
+                    toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`);
                     router.push("/cart");
                   }}
                   className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] shadow-lg shadow-rose-300/40 hover:shadow-rose-400/50 border border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer"
@@ -308,7 +383,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 </button>
               )}
 
-              {!product.isComingSoon && (
+              {!product.isComingSoon && (product as any).stock !== 0 && (
                 <>
                   {/* Component 1: Thiết kế câu chúc riêng với MẪU MẶC ĐỊNH (Không chọn mẫu web) */}
                   <div

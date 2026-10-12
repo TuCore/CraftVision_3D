@@ -256,11 +256,22 @@ export default function ShopPage() {
                 <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
                   {product.name}
                 </h3>
-                <div className="flex items-center gap-1 mt-auto mb-2 text-xs text-muted-foreground">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-foreground">
-                    {product.rating > 0 ? product.rating : (language === "vi" ? "Chưa có đánh giá" : "No ratings yet")}
-                  </span>
+                <div className="flex items-center justify-between gap-1 mt-auto mb-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-foreground">
+                      {product.rating > 0 ? product.rating : (language === "vi" ? "Chưa có đánh giá" : "No ratings yet")}
+                    </span>
+                  </div>
+                  {product.stock !== undefined && !product.isComingSoon && (
+                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                      product.stock > 0 
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" 
+                        : "bg-red-500/10 text-red-500 border-red-500/20"
+                    }`}>
+                      {product.stock > 0 ? `Kho: ${product.stock}` : "Hết hàng"}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xl font-display font-bold gradient-text mb-4">
                   {new Intl.NumberFormat(language === "vi" ? 'vi-VN' : 'en-US', { style: 'currency', currency: 'VND' }).format(product.price)}
