@@ -47,3 +47,12 @@ Whenever modifying, creating, or deleting database migrations (`/backend/src/Cra
   - Before pushing migration changes, always test-run `dotnet run --project backend/src/CraftVision.Presentation` locally against a database populated with test data (NOT an empty database) to verify `db.Database.Migrate()` succeeds without constraint violations.
 - **Do Not Break Historical Migrations:**
   - If a migration has already been applied in production or merged to `main`, do NOT rewrite history or delete the migration file. Add a new forward migration (`dotnet ef migrations add ...`) instead.
+
+## 7. AI Behavior & Token Optimization Rules (MANDATORY)
+To minimize token consumption and maximize development speed:
+- **Concise & Targeted Output:** Be direct. Do not repeat the user's prompt or provide unsolicited lectures/theories. State the problem and provide the solution directly.
+- **Targeted Edits Over Full Rewrites:** Only output or modify the specific lines/methods that change. Never print or rewrite an entire 500+ line file when only 10 lines changed.
+- **Scoped Context:** Only read and edit files strictly necessary for the prompt. Never load unrelated directories into memory.
+- **3D & Memory Safety:** When writing Three.js/WebGL code, always separate 3D scene logic from UI React components, and strictly clean up resources (`renderer.dispose()`, `geometry.dispose()`, `material.dispose()`, `texture.dispose()`, `cancelAnimationFrame`) on unmount.
+- **Language:** Code, commits, comments in English. Chat responses in concise Vietnamese.
+
