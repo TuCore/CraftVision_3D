@@ -34,7 +34,7 @@ namespace CraftVision.Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "nfc_status_enum", new[] { "Active", "Available", "Disabled", "Lost", "Reserved", "Sold" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "option_level_enum", new[] { "Advanced", "Basic", "Intermediate" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "order_status_enum", new[] { "Cancelled", "Delivered", "Pending", "Processing", "Producing", "ReadyToShip", "Shipped", "WaitingProduction" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method_enum", new[] { "Cod", "None" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method_enum", new[] { "BankTransfer", "Cod", "None" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_status_enum", new[] { "Failed", "Paid", "Refunded", "Unpaid" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "product_type_enum", new[] { "InStock", "PreOrder" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "request_status_enum", new[] { "Completed", "Failed", "Pending" });
@@ -297,6 +297,84 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("ai_requests", (string)null);
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.CartItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cart_items");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_cart_items_product_id");
+
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cart_items_user_id_product_id");
+
+                    b.ToTable("cart_items", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.DevicePushToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("platform");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_device_push_tokens");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("ix_device_push_tokens_token");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_device_push_tokens_user_id");
+
+                    b.ToTable("device_push_tokens", (string)null);
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -446,6 +524,38 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDatabaseName("ix_diy_plan_tutorials_tutorial_id");
 
                     b.ToTable("diy_plan_tutorials", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Favorite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_favorites");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_favorites_product_id");
+
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_favorites_user_id_product_id");
+
+                    b.ToTable("favorites", (string)null);
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Gift", b =>
@@ -1101,10 +1211,6 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("product_id");
 
-                    b.Property<Guid?>("ProductId1")
-                        .HasColumnType("uuid")
-                        .HasColumnName("product_id1");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("integer")
                         .HasColumnName("quantity");
@@ -1126,10 +1232,48 @@ namespace CraftVision.Infrastructure.Migrations
                     b.HasIndex("ProductId")
                         .HasDatabaseName("ix_order_items_product_id");
 
-                    b.HasIndex("ProductId1")
-                        .HasDatabaseName("ix_order_items_product_id1");
-
                     b.ToTable("order_items", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_password_reset_tokens");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_password_reset_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_password_reset_tokens_user_id");
+
+                    b.ToTable("password_reset_tokens", (string)null);
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Product", b =>
@@ -1576,6 +1720,49 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("user_addresses", (string)null);
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.UserNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("body");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_read");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_notifications");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_user_notifications_user_id");
+
+                    b.ToTable("user_notifications", (string)null);
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.UserQuota", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1607,6 +1794,52 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDatabaseName("ix_user_quotas_user_id");
 
                     b.ToTable("user_quotas", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Voucher", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("numeric")
+                        .HasColumnName("discount_percent");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ends_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<decimal?>("MaximumDiscount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("maximum_discount");
+
+                    b.Property<decimal>("MinimumOrderAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("minimum_order_amount");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("starts_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vouchers");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vouchers_code");
+
+                    b.ToTable("vouchers", (string)null);
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Ai3dRequest", b =>
@@ -1694,6 +1927,39 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.CartItem", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cart_items_products_product_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_cart_items_users_user_id");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.DevicePushToken", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_device_push_tokens_users_user_id");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>
                 {
                     b.HasOne("CraftVision.Domain.Entities.AiRequest", "Request")
@@ -1755,6 +2021,27 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("DiyPlan");
 
                     b.Navigation("Tutorial");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.Favorite", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_favorites_products_product_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_favorites_users_user_id");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Gift", b =>
@@ -1878,20 +2165,27 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasConstraintName("fk_order_items_orders_order_id");
 
                     b.HasOne("CraftVision.Domain.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_order_items_products_product_id");
 
-                    b.HasOne("CraftVision.Domain.Entities.Product", null)
-                        .WithMany("OrderItems")
-                        .HasForeignKey("ProductId1")
-                        .HasConstraintName("fk_order_items_products_product_id1");
-
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_password_reset_tokens_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Product", b =>
@@ -1980,6 +2274,18 @@ namespace CraftVision.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_addresses_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.UserNotification", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_notifications_users_user_id");
 
                     b.Navigation("User");
                 });

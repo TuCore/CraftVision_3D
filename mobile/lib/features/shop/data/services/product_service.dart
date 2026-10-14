@@ -15,17 +15,22 @@ class ProductService {
     num? maxPrice,
     String? sortBy,
     String? sortDirection,
-  }) async => Map<String, dynamic>.from(await _api.get('/products', query: {
-    'page': page,
-    'pageSize': pageSize,
-    'keyword': keyword,
-    'categoryId': categoryId,
-    'type': type,
-    'minPrice': minPrice,
-    'maxPrice': maxPrice,
-    'sortBy': sortBy,
-    'sortDirection': sortDirection,
-  }));
+  }) async => Map<String, dynamic>.from(
+    await _api.get(
+      '/products',
+      query: {
+        'page': page,
+        'pageSize': pageSize,
+        'keyword': keyword,
+        'categoryId': categoryId,
+        'type': type,
+        'minPrice': minPrice,
+        'maxPrice': maxPrice,
+        'sortBy': sortBy,
+        'sortDirection': sortDirection,
+      },
+    ),
+  );
 
   Future<JsonMap> getProduct(String id) async =>
       Map<String, dynamic>.from(await _api.get('/products/$id'));

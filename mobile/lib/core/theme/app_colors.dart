@@ -7,14 +7,15 @@ class AppColors {
   static const Color primaryDark = Color(0xFFE5584A);
 
   static const Color bannerDark = Color(0xFF3A2A3F); // Dark purple for banners
-  static const Color surfaceTint = Color(0xFFFFE6DC); // Peach tint for active states
-  
+  static const Color surfaceTint = Color(
+    0xFFFFE6DC,
+  ); // Peach tint for active states
+
   static const Gradient primaryGradient = LinearGradient(
     colors: [Color(0xFFFF2A5F), Color(0xFFFF7A00)], // Vibrant Pink to Orange
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-
 
   // Neutrals & Peach Theme
   static const Color neutral100 = Color(0xFFFFF4EF); // Peach background
@@ -37,7 +38,7 @@ class AppColors {
   // Backgrounds
   static const Color backgroundLight = neutral100;
   static const Color surfaceLight = white;
-  
+
   static const Color backgroundDark = Color(0xFF121212);
   static const Color surfaceDark = Color(0xFF1E1E1E);
 }

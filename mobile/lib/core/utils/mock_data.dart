@@ -48,9 +48,16 @@ class MockData {
       imageUrl: 'https://images.unsplash.com/photo-1506744626753-1fa7673e01f5?q=80&w=400&auto=format&fit=crop',
       price: 350000,
       category: 'Sinh nhật',
-      description: 'Hộp đèn led 3D với 12 cung hoàng đạo. Quà tặng sinh nhật tuyệt vời.',
+      description:
+          'Hộp đèn led 3D với 12 cung hoàng đạo. Quà tặng sinh nhật tuyệt vời.',
     ),
   ];
 
-  static const List<String> categories = ['Tất cả', 'Móc khóa', 'Hoa kẽm nhung', 'Trang sức', 'Trang trí'];
+  static const List<String> categories = [
+    'Tất cả',
+    'Móc khóa',
+    'Hoa kẽm nhung',
+    'Trang sức',
+    'Trang trí',
+  ];
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'pressable.dart';
@@ -30,7 +31,9 @@ class CvProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Pressable(
-      onTap: onTap ?? () => context.push('/shop/product/$id', extra: heroTagPrefix),
+      onTap:
+          onTap ??
+          () => context.push('/shop/product/$id', extra: heroTagPrefix),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -49,7 +52,10 @@ class CvProductCard extends StatelessWidget {
                       placeholder: (context, url) => const CvSkeleton(),
                       errorWidget: (context, url, error) => Container(
                         color: AppColors.neutral300,
-                        child: const Icon(Icons.image_not_supported, color: AppColors.neutral600),
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: AppColors.neutral600,
+                        ),
                       ),
                     ),
                   ),
@@ -87,10 +93,7 @@ class CvProductCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           // Price
-          Text(
-            price,
-            style: AppTypography.priceText,
-          ),
+          Text(price, style: AppTypography.priceText),
         ],
       ),
     );

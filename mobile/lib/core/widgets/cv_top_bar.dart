@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -33,7 +34,10 @@ class CvTopBar extends StatelessWidget implements PreferredSizeWidget {
                   color: Colors.white,
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: Image.asset('assets/images/logoweb.jpg', fit: BoxFit.cover),
+                child: Image.asset(
+                  'assets/images/logoweb.jpg',
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
       leadingWidth: ModalRoute.of(context)?.canPop == true ? 56 : 64,
@@ -44,7 +48,10 @@ class CvTopBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
-                const Icon(Icons.shopping_cart_outlined, color: AppColors.neutral900),
+                const Icon(
+                  Icons.shopping_cart_outlined,
+                  color: AppColors.neutral900,
+                ),
                 Positioned(
                   right: -4,
                   top: -4,

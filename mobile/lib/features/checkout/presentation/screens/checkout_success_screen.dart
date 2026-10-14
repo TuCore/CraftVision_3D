@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
+
 import 'package:go_router/go_router.dart';
 
 class CheckoutSuccessScreen extends StatelessWidget {
@@ -18,7 +20,11 @@ class CheckoutSuccessScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              const Icon(Icons.check_circle, size: 100, color: AppColors.success),
+              const Icon(
+                Icons.check_circle,
+                size: 100,
+                color: AppColors.success,
+              ),
               const SizedBox(height: 32),
               Text(
                 'Đặt hàng thành công!',

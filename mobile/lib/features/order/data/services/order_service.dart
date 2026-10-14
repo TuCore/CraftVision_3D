@@ -12,16 +12,14 @@ class OrderService {
       Map<String, dynamic>.from(await _api.get('/orders/$id'));
 
   Future<JsonMap> getMyOrders({int page = 1, int size = 10}) async =>
-      Map<String, dynamic>.from(await _api.get('/orders/me', query: {
-        'page': page,
-        'size': size,
-      }));
+      Map<String, dynamic>.from(
+        await _api.get('/orders/me', query: {'page': page, 'size': size}),
+      );
 
   Future<JsonMap> getAllOrders({int page = 1, int size = 10}) async =>
-      Map<String, dynamic>.from(await _api.get('/orders', query: {
-        'page': page,
-        'size': size,
-      }));
+      Map<String, dynamic>.from(
+        await _api.get('/orders', query: {'page': page, 'size': size}),
+      );
 
   Future<void> updateStatus(String id, String status) async {
     await _api.patch('/orders/$id/status', body: {'status': status});

@@ -2,24 +2,29 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
 
 import '../../../../core/widgets/cv_button.dart';
 import '../../../../core/widgets/cv_input.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 
-class AuthScreen extends StatefulWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
+class _AuthScreenState extends ConsumerState<AuthScreen>
     with SingleTickerProviderStateMixin {
   bool _isLoading = false;
   int _step = 1;
   bool _rememberMe = true;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   late AnimationController _animCtrl;
   late Animation<double> _bgScale;
@@ -106,16 +111,37 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   void dispose() {
     _animCtrl.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void _handleAuth() {
+  Future<void> _handleAuth() async {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập email và mật khẩu.')),
+      );
+      return;
+    }
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        context.go('/home');
-      }
-    });
+    try {
+      final auth = await ref.read(authServiceProvider.future);
+      await auth.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        rememberMe: _rememberMe,
+      );
+      if (!mounted) return;
+      ref.invalidate(userProfileProvider);
+      context.go('/home');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$error')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -209,7 +235,10 @@ class _AuthScreenState extends State<AuthScreen>
                                   shape: BoxShape.circle,
                                 ),
                                 child: ClipOval(
-                                  child: Image.asset('assets/images/logoweb.jpg', fit: BoxFit.cover),
+                                  child: Image.asset(
+                                    'assets/images/logoweb.jpg',
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -373,9 +402,10 @@ class _AuthScreenState extends State<AuthScreen>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (_step == 1) ...[
-                    const CvInput(
+                    CvInput(
                       labelText: 'Email',
                       hintText: 'Nhập địa chỉ email của bạn',
+                      controller: _emailController,
                     ),
                     const SizedBox(height: 24),
                     CvButton(
@@ -407,7 +437,7 @@ class _AuthScreenState extends State<AuthScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'quynhchinguyen.010205@gmail.com',
+                                _emailController.text.trim(),
                                 style: AppTypography.bodyMedium.copyWith(
                                   color: Colors.white,
                                 ),
@@ -432,10 +462,11 @@ class _AuthScreenState extends State<AuthScreen>
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const CvInput(
+                    CvInput(
                       labelText: 'Mật khẩu',
                       hintText: 'Nhập mật khẩu',
                       isPassword: true,
+                      controller: _passwordController,
                     ),
                     const SizedBox(height: 8),
                     Align(

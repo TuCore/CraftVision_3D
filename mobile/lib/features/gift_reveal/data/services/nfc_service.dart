@@ -28,7 +28,10 @@ class NfcService {
   }
 
   Future<void> updateStatusByCode(String tagCode, String status) async {
-    await _api.patch('/nfc-tags/$tagCode/status-by-code', body: {'status': status});
+    await _api.patch(
+      '/nfc-tags/$tagCode/status-by-code',
+      body: {'status': status},
+    );
   }
 
   Future<void> simulateScan(String tagCode) async {

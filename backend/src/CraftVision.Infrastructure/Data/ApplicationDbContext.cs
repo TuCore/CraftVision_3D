@@ -40,6 +40,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<MessageTemplate> MessageTemplates { get; set; } = null!;
     public DbSet<ManifestWish> ManifestWishes { get; set; } = null!;
     public DbSet<Review> Reviews { get; set; } = null!;
+    public DbSet<CartItem> CartItems { get; set; } = null!;
+    public DbSet<Favorite> Favorites { get; set; } = null!;
+    public DbSet<Voucher> Vouchers { get; set; } = null!;
+    public DbSet<UserNotification> UserNotifications { get; set; } = null!;
+    public DbSet<DevicePushToken> DevicePushTokens { get; set; } = null!;
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -79,6 +85,12 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<MessageTemplate>().ToTable("message_templates");
         modelBuilder.Entity<ManifestWish>().ToTable("manifest_wishes");
         modelBuilder.Entity<Review>().ToTable("reviews");
+        modelBuilder.Entity<CartItem>().ToTable("cart_items");
+        modelBuilder.Entity<Favorite>().ToTable("favorites");
+        modelBuilder.Entity<Voucher>().ToTable("vouchers");
+        modelBuilder.Entity<UserNotification>().ToTable("user_notifications");
+        modelBuilder.Entity<DevicePushToken>().ToTable("device_push_tokens");
+        modelBuilder.Entity<PasswordResetToken>().ToTable("password_reset_tokens");
 
         // Soft delete global query filters
         modelBuilder.Entity<ProductCategory>().HasQueryFilter(e => e.IsActive);
@@ -95,6 +107,11 @@ public class ApplicationDbContext : DbContext
 
         // Indexes
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+        modelBuilder.Entity<CartItem>().HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
+        modelBuilder.Entity<Favorite>().HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
+        modelBuilder.Entity<Voucher>().HasIndex(x => x.Code).IsUnique();
+        modelBuilder.Entity<DevicePushToken>().HasIndex(x => x.Token).IsUnique();
+        modelBuilder.Entity<PasswordResetToken>().HasIndex(x => x.TokenHash).IsUnique();
         
         // HNSW Vector Indexes for similarity search
         modelBuilder.Entity<KnowledgeMaterial>()
@@ -211,6 +228,14 @@ public class ApplicationDbContext : DbContext
             .WithMany()
             .HasForeignKey(r => r.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CartItem>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<CartItem>().HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Favorite>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Favorite>().HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<UserNotification>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<DevicePushToken>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PasswordResetToken>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Review>()
             .HasOne(r => r.User)

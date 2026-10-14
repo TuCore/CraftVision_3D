@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using CraftVision.Infrastructure.AI.Gemini;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Moq.Protected;
 using Polly;
@@ -108,7 +109,7 @@ namespace CraftVision.Infrastructure.Tests
                     Content = new StringContent(responseJson)
                 });
 
-            var service = new GeminiEmbeddingService(_httpClient);
+            var service = new GeminiEmbeddingService(_httpClient, new ConfigurationBuilder().Build());
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<Exception>(() => service.GenerateEmbeddingAsync("text"));

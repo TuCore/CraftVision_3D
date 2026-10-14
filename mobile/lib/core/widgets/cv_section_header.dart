@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -27,7 +28,10 @@ class CvSectionHeader extends StatelessWidget {
               onTap: onExplore ?? () {},
               borderRadius: BorderRadius.circular(100),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.neutral200,
                   borderRadius: BorderRadius.circular(100),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
@@ -55,7 +56,12 @@ class ProductInfoSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text(value, style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: AppTypography.bodyMedium.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

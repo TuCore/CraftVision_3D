@@ -1,150 +1,133 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/network/api_providers.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
 import '../../../../core/widgets/cv_input.dart';
-import 'package:go_router/go_router.dart';
 
-class CheckoutScreen extends StatefulWidget {
+class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
-  int _currentStep = 0;
-  bool _isLoading = false;
+class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
+  final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _address = TextEditingController();
+  bool _loading = false;
 
-  void _onStepContinue() {
-    if (_currentStep < 3) {
-      setState(() => _currentStep += 1);
-    } else {
-      // Final step -> Submit
-      setState(() => _isLoading = true);
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          context.pushReplacement('/checkout/success');
-        }
-      });
+  @override
+  void initState() {
+    super.initState();
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    try {
+      final api = await ref.read(apiServicesProvider.future);
+      final addresses = await api.addresses.getAddresses();
+      if (addresses.isEmpty || !mounted) return;
+      final selected = addresses.cast<Map<String, dynamic>>().firstWhere(
+        (item) => item['isDefault'] == true,
+        orElse: () => addresses.first,
+      );
+      _name.text = '${selected['receiverName'] ?? ''}';
+      _phone.text = '${selected['phone'] ?? ''}';
+      _address.text = [
+        selected['address'],
+        selected['district'],
+        selected['province'],
+      ].where((value) => value != null && '$value'.isNotEmpty).join(', ');
+      setState(() {});
+    } catch (_) {
+      // The form remains editable when the account has no saved address.
     }
   }
 
-  void _onStepCancel() {
-    if (_currentStep > 0) {
-      setState(() => _currentStep -= 1);
-    } else {
-      context.pop();
+  Future<void> _submit() async {
+    if (_name.text.trim().isEmpty ||
+        _phone.text.trim().isEmpty ||
+        _address.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đủ thông tin nhận hàng.')),
+      );
+      return;
     }
+    setState(() => _loading = true);
+    try {
+      final api = await ref.read(apiServicesProvider.future);
+      final products = await ref.read(productsProvider.future);
+      if (products.isEmpty)
+        throw StateError('Không có sản phẩm để tạo đơn hàng.');
+      await api.orders.createOrder({
+        'receiverName': _name.text.trim(),
+        'receiverPhone': _phone.text.trim(),
+        'receiverAddress': _address.text.trim(),
+        'paymentMethod': 'COD',
+        'shippingFee': 0,
+        'items': [
+          {'productId': products.first.id, 'quantity': 1, 'wantNfc': false},
+        ],
+      });
+      ref.invalidate(ordersProvider);
+      if (mounted) context.pushReplacement('/checkout/success');
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$error')));
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    _address.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final products = ref.watch(productsProvider).value ?? const [];
     return Scaffold(
       appBar: AppBar(title: const Text('Thanh toán')),
-      body: Stepper(
-        type: StepperType.vertical,
-        currentStep: _currentStep,
-        onStepContinue: _onStepContinue,
-        onStepCancel: _onStepCancel,
-        onStepTapped: (step) => setState(() => _currentStep = step),
-        controlsBuilder: (context, details) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 24.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CvButton(
-                    text: _currentStep == 3 ? 'Hoàn tất thanh toán' : 'Tiếp tục',
-                    isLoading: _isLoading,
-                    onPressed: details.onStepContinue,
-                  ),
-                ),
-                if (_currentStep > 0) ...[
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CvButton(
-                      text: 'Quay lại',
-                      variant: CvButtonVariant.secondary,
-                      isDisabled: _isLoading,
-                      onPressed: details.onStepCancel,
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Text('Thông tin giao hàng', style: AppTypography.heading2),
+          const SizedBox(height: 16),
+          CvInput(labelText: 'Họ và tên', controller: _name),
+          const SizedBox(height: 12),
+          CvInput(labelText: 'Số điện thoại', controller: _phone),
+          const SizedBox(height: 12),
+          CvInput(labelText: 'Địa chỉ nhận hàng', controller: _address),
+          const SizedBox(height: 28),
+          Text('Sản phẩm', style: AppTypography.heading2),
+          const SizedBox(height: 8),
+          if (products.isNotEmpty)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: products.first.imageUrl.isEmpty
+                  ? const Icon(Icons.inventory_2_outlined)
+                  : Image.network(
+                      products.first.imageUrl,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
                     ),
-                  ),
-                ],
-              ],
+              title: Text(products.first.name),
+              subtitle: const Text('Số lượng: 1 · COD'),
+              trailing: Text('${products.first.price.toStringAsFixed(0)} đ'),
             ),
-          );
-        },
-        steps: [
-          Step(
-            title: Text('Giao hàng', style: AppTypography.heading3),
-            content: Column(
-              children: const [
-                CvInput(labelText: 'Họ và tên', hintText: 'Nguyễn Văn A'),
-                SizedBox(height: 16),
-                CvInput(labelText: 'Số điện thoại', hintText: '0901234567'),
-                SizedBox(height: 16),
-                CvInput(labelText: 'Địa chỉ nhận hàng', hintText: '123 Đường số 4, TP.HCM'),
-              ],
-            ),
-            isActive: _currentStep >= 0,
-            state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-          ),
-          Step(
-            title: Text('Quà tặng & Lời chúc', style: AppTypography.heading3),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Chọn mẫu thiệp', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                CvInput(hintText: 'Nhập lời chúc của bạn (tuỳ chọn)'),
-                SizedBox(height: 16),
-                Text('Tùy chọn gói quà: Giấy Kraft Vintage', style: TextStyle(color: AppColors.neutral600)),
-              ],
-            ),
-            isActive: _currentStep >= 1,
-            state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-          ),
-          Step(
-            title: Text('Thanh toán', style: AppTypography.heading3),
-            content: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.radio_button_checked, color: AppColors.primary),
-                  title: const Text('Thanh toán khi nhận hàng (COD)'),
-                  onTap: () {},
-                ),
-                ListTile(
-                  leading: const Icon(Icons.radio_button_unchecked, color: AppColors.neutral400),
-                  title: const Text('Thẻ tín dụng / Ghi nợ'),
-                  onTap: () {},
-                ),
-                ListTile(
-                  leading: const Icon(Icons.radio_button_unchecked, color: AppColors.neutral400),
-                  title: const Text('Ví Momo'),
-                  onTap: () {},
-                ),
-              ],
-            ),
-            isActive: _currentStep >= 2,
-            state: _currentStep > 2 ? StepState.complete : StepState.indexed,
-          ),
-          Step(
-            title: Text('Xác nhận', style: AppTypography.heading3),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Tổng tiền: 1,049,000 đ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                const SizedBox(height: 8),
-                Text('Phí vận chuyển: Miễn phí', style: AppTypography.bodyMedium),
-                const SizedBox(height: 8),
-                Text('Thời gian giao dự kiến: 2-3 ngày', style: AppTypography.bodyMedium),
-              ],
-            ),
-            isActive: _currentStep >= 3,
-            state: _currentStep == 3 ? StepState.editing : StepState.indexed,
-          ),
+          const SizedBox(height: 24),
+          CvButton(text: 'Đặt hàng', isLoading: _loading, onPressed: _submit),
         ],
       ),
     );

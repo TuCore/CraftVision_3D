@@ -1,4 +1,5 @@
 import '../../features/chat/data/services/ai_chat_service.dart';
+import '../../features/auth/data/services/auth_service.dart';
 import '../../features/gift_reveal/data/services/gift_reveal_service.dart';
 import '../../features/gift_reveal/data/services/nfc_service.dart';
 import '../../features/manifest/data/services/manifest_service.dart';
@@ -13,7 +14,8 @@ import 'upload_service.dart';
 
 class ApiServices {
   ApiServices._(this.client)
-    : products = ProductService(client),
+    : auth = AuthService(client),
+      products = ProductService(client),
       productCategories = ProductCategoryService(client),
       user = UserService(client),
       addresses = AddressService(client),
@@ -26,6 +28,7 @@ class ApiServices {
       manifest = ManifestService(client);
 
   final ApiClient client;
+  final AuthService auth;
   final ProductService products;
   final ProductCategoryService productCategories;
   final UserService user;

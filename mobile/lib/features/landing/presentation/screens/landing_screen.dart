@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/widgets/cv_button.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -14,10 +15,7 @@ class LandingScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // Background Image
-          Image.asset(
-            'assets/images/landing_bg.jpg',
-            fit: BoxFit.cover,
-          ),
+          Image.asset('assets/images/landing_bg.jpg', fit: BoxFit.cover),
           // Gradient Overlay
           Container(
             decoration: const BoxDecoration(
@@ -37,17 +35,25 @@ class LandingScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.auto_awesome, size: 64, color: AppColors.white),
+                  const Icon(
+                    Icons.auto_awesome,
+                    size: 64,
+                    color: AppColors.white,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'CraftVision 3D',
-                    style: AppTypography.heading1.copyWith(color: AppColors.white),
+                    style: AppTypography.heading1.copyWith(
+                      color: AppColors.white,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Khám phá thế giới quà tặng 3D và AI độc đáo,\ndành riêng cho người thương của bạn.',
-                    style: AppTypography.bodyLarge.copyWith(color: AppColors.white),
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: AppColors.white,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),

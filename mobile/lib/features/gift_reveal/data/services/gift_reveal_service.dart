@@ -5,7 +5,8 @@ class GiftRevealService {
 
   final ApiClient _api;
 
-  Future<JsonMap> revealGift(String secretKey) async => Map<String, dynamic>.from(
-    await _api.get('/gifts', query: {'secretKey': secretKey}),
-  );
+  Future<JsonMap> revealGift(String secretKey) async =>
+      Map<String, dynamic>.from(
+        await _api.get('/gifts', query: {'secretKey': secretKey}),
+      );
 }

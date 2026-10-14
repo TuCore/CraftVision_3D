@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
 import '../../../../core/utils/mock_data.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -180,29 +182,44 @@ class _CartScreenState extends State<CartScreen> {
                   activeColor: AppColors.primary,
                   side: const BorderSide(color: AppColors.neutral400),
                 ),
-                const Icon(Icons.storefront, size: 20, color: AppColors.neutral600),
+                const Icon(
+                  Icons.storefront,
+                  size: 20,
+                  color: AppColors.neutral600,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   shopName,
-                  style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                  style: AppTypography.bodyLarge.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const Icon(Icons.chevron_right, size: 20, color: AppColors.neutral400),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: AppColors.neutral400,
+                ),
                 const Spacer(),
                 TextButton(
                   onPressed: () {},
-                  child: Text('Sửa', style: AppTypography.bodyMedium.copyWith(color: AppColors.neutral600)),
+                  child: Text(
+                    'Sửa',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.neutral600,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          
+
           const Divider(height: 1, thickness: 0.5, color: AppColors.neutral200),
-          
+
           // Products
           ...products.map((p) => _buildProductItem(shopName, p)),
-          
+
           const Divider(height: 1, thickness: 0.5, color: AppColors.neutral200),
-          
+
           // Shop Voucher
           InkWell(
             onTap: () {},
@@ -210,11 +227,19 @@ class _CartScreenState extends State<CartScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  const Icon(Icons.local_activity_outlined, size: 20, color: AppColors.primary),
+                  const Icon(
+                    Icons.local_activity_outlined,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 8),
                   Text('Thêm Shop Voucher', style: AppTypography.bodyMedium),
                   const Spacer(),
-                  const Icon(Icons.chevron_right, size: 20, color: AppColors.neutral400),
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: AppColors.neutral400,
+                  ),
                 ],
               ),
             ),
@@ -254,15 +279,18 @@ class _CartScreenState extends State<CartScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.name, 
-                  style: AppTypography.bodyMedium, 
-                  maxLines: 2, 
-                  overflow: TextOverflow.ellipsis
+                  product.name,
+                  style: AppTypography.bodyMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
                 // Variant Dropdown (mock)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.neutral100,
                     borderRadius: BorderRadius.circular(4),
@@ -272,7 +300,11 @@ class _CartScreenState extends State<CartScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Phân loại hàng', style: AppTypography.bodySmall),
-                      const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.neutral600),
+                      const Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 14,
+                        color: AppColors.neutral600,
+                      ),
                     ],
                   ),
                 ),
@@ -283,8 +315,8 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       '${product.price.toStringAsFixed(0)} đ',
                       style: AppTypography.bodyLarge.copyWith(
-                        color: AppColors.primary, 
-                        fontWeight: FontWeight.bold
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     // Shopee-style stepper
@@ -297,12 +329,17 @@ class _CartScreenState extends State<CartScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           InkWell(
-                            onTap: () => _updateQuantity(shopName, product.id, -1),
+                            onTap: () =>
+                                _updateQuantity(shopName, product.id, -1),
                             child: Container(
                               width: 28,
                               height: 28,
                               alignment: Alignment.center,
-                              child: const Icon(Icons.remove, size: 16, color: AppColors.neutral600),
+                              child: const Icon(
+                                Icons.remove,
+                                size: 16,
+                                color: AppColors.neutral600,
+                              ),
                             ),
                           ),
                           Container(
@@ -311,18 +348,28 @@ class _CartScreenState extends State<CartScreen> {
                             alignment: Alignment.center,
                             decoration: const BoxDecoration(
                               border: Border.symmetric(
-                                vertical: BorderSide(color: AppColors.neutral300),
+                                vertical: BorderSide(
+                                  color: AppColors.neutral300,
+                                ),
                               ),
                             ),
-                            child: Text('$quantity', style: AppTypography.bodyMedium),
+                            child: Text(
+                              '$quantity',
+                              style: AppTypography.bodyMedium,
+                            ),
                           ),
                           InkWell(
-                            onTap: () => _updateQuantity(shopName, product.id, 1),
+                            onTap: () =>
+                                _updateQuantity(shopName, product.id, 1),
                             child: Container(
                               width: 28,
                               height: 28,
                               alignment: Alignment.center,
-                              child: const Icon(Icons.add, size: 16, color: AppColors.neutral600),
+                              child: const Icon(
+                                Icons.add,
+                                size: 16,
+                                color: AppColors.neutral600,
+                              ),
                             ),
                           ),
                         ],
@@ -358,20 +405,40 @@ class _CartScreenState extends State<CartScreen> {
             InkWell(
               onTap: () {},
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
-                    const Icon(Icons.local_activity_outlined, size: 20, color: AppColors.primary),
+                    const Icon(
+                      Icons.local_activity_outlined,
+                      size: 20,
+                      color: AppColors.primary,
+                    ),
                     const SizedBox(width: 8),
                     Text('Shopee Voucher', style: AppTypography.bodyMedium),
                     const Spacer(),
-                    Text('Chọn hoặc nhập mã', style: AppTypography.bodyMedium.copyWith(color: AppColors.neutral400)),
-                    const Icon(Icons.chevron_right, size: 20, color: AppColors.neutral400),
+                    Text(
+                      'Chọn hoặc nhập mã',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.neutral400,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: AppColors.neutral400,
+                    ),
                   ],
                 ),
               ),
             ),
-            const Divider(height: 1, thickness: 0.5, color: AppColors.neutral200),
+            const Divider(
+              height: 1,
+              thickness: 0.5,
+              color: AppColors.neutral200,
+            ),
             // Total Row
             Row(
               children: [
@@ -393,7 +460,10 @@ class _CartScreenState extends State<CartScreen> {
                     Text('Tổng thanh toán', style: AppTypography.bodySmall),
                     Text(
                       '${_selectedTotalPrice.toStringAsFixed(0)} đ',
-                      style: AppTypography.bodyLarge.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      style: AppTypography.bodyLarge.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -405,11 +475,16 @@ class _CartScreenState extends State<CartScreen> {
                     }
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                     color: AppColors.primary,
                     child: Text(
                       'Mua hàng (${_selectedProductIds.length})',
-                      style: AppTypography.buttonText.copyWith(color: Colors.white),
+                      style: AppTypography.buttonText.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
