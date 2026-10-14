@@ -7,6 +7,7 @@ class SecureStorageService {
 
   static const String _tokenKey = 'access_token';
   static const String _rememberMeKey = 'remember_me';
+  String? _sessionToken;
 
   SecureStorageService(this._secureStorage, this._prefs);
 
@@ -17,6 +18,7 @@ class SecureStorageService {
   }
 
   Future<void> saveToken(String token, {required bool rememberMe}) async {
+    _sessionToken = token;
     await _prefs.setBool(_rememberMeKey, rememberMe);
     if (rememberMe) {
       await _secureStorage.write(key: _tokenKey, value: token);
@@ -30,16 +32,19 @@ class SecureStorageService {
   }
 
   Future<String?> readToken() async {
+    if (_sessionToken != null) return _sessionToken;
     final rememberMe = _prefs.getBool(_rememberMeKey) ?? false;
     if (!rememberMe) {
       // App was restarted but user didn't check remember me.
       await clearToken();
       return null;
     }
-    return await _secureStorage.read(key: _tokenKey);
+    _sessionToken = await _secureStorage.read(key: _tokenKey);
+    return _sessionToken;
   }
 
   Future<void> clearToken() async {
+    _sessionToken = null;
     await _secureStorage.delete(key: _tokenKey);
     await _prefs.remove(_rememberMeKey);
   }
