@@ -272,6 +272,21 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
         if (order == null) throw new Exception("Order not found");
+
+        if (order.PaymentMethod == PaymentMethod.BankTransfer && 
+            order.PaymentStatus == PaymentStatus.Unpaid && 
+            order.OrderStatus != OrderStatus.Cancelled &&
+            (string.IsNullOrEmpty(order.PayOsCheckoutUrl) || order.PayOsCheckoutUrl.Contains("dummy-payment-url")))
+        {
+            try
+            {
+                await GeneratePayOsLinkForOrderAsync(order);
+            }
+            catch
+            {
+                // Fallback gracefully if PayOS service is temporarily unavailable
+            }
+        }
         
         return new OrderDto
         {
@@ -648,6 +663,71 @@ public class OrderService : IOrderService
 
         order.PaymentStatus = PaymentStatus.Paid;
         order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<OrderDto> GetOrRegeneratePaymentLinkAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        if (order.PaymentStatus == PaymentStatus.Paid)
+        {
+            return await GetOrderByIdAsync(orderId);
+        }
+
+        if (order.OrderStatus == OrderStatus.Cancelled)
+        {
+            throw new InvalidOperationException("Đơn hàng này đã bị huỷ.");
+        }
+
+        await GeneratePayOsLinkForOrderAsync(order);
+        return await GetOrderByIdAsync(orderId);
+    }
+
+    private async Task GeneratePayOsLinkForOrderAsync(Order order)
+    {
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
+        string returnUrl = $"{frontendUrl}/payment/success";
+        string cancelUrl = $"{frontendUrl}/payment/cancel";
+
+        if (!long.TryParse(order.OrderCode, out long orderCodeLong))
+        {
+            order.OrderCode = GenerateOrderCode();
+            orderCodeLong = long.Parse(order.OrderCode);
+        }
+
+        var paymentInfo = await _payOsService.CreatePaymentLinkAsync(
+            order.Id,
+            orderCodeLong,
+            order.TotalAmount,
+            $"Thanh toan CV3D {order.OrderCode}",
+            returnUrl,
+            cancelUrl
+        );
+
+        if (string.IsNullOrEmpty(paymentInfo.CheckoutUrl) || paymentInfo.CheckoutUrl.Contains("dummy-payment-url"))
+        {
+            order.OrderCode = GenerateOrderCode();
+            orderCodeLong = long.Parse(order.OrderCode);
+            paymentInfo = await _payOsService.CreatePaymentLinkAsync(
+                order.Id,
+                orderCodeLong,
+                order.TotalAmount,
+                $"Thanh toan CV3D {order.OrderCode}",
+                returnUrl,
+                cancelUrl
+            );
+        }
+
+        order.PayOsCheckoutUrl = paymentInfo.CheckoutUrl;
+        order.PayOsQrCode = paymentInfo.QrCode;
+        order.PayOsBin = paymentInfo.Bin;
+        order.PayOsAccountNumber = paymentInfo.AccountNumber;
+        order.PayOsAccountName = paymentInfo.AccountName;
+        order.UpdatedAt = DateTime.UtcNow;
+
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
     }

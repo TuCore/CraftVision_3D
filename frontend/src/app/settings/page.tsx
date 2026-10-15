@@ -716,7 +716,8 @@ export default function SettingsPage() {
                               {order.paymentMethod === 'BankTransfer' && order.paymentStatus !== 'Paid' && order.orderStatus !== 'Cancelled' && (
                                 <button 
                                   onClick={() => {
-                                    router.push(`/payment/transfer?orderId=${order.id}&total=${order.totalAmount}`);
+                                    const checkoutParam = order.checkoutUrl ? `&checkoutUrl=${encodeURIComponent(order.checkoutUrl)}` : '';
+                                    router.push(`/payment/transfer?orderId=${order.id}&total=${order.totalAmount}${checkoutParam}`);
                                   }}
                                   className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
                                 >

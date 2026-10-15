@@ -17,5 +17,6 @@ public interface IOrderService
     Task SimulatePaymentAsync(Guid orderId);
     Task CompleteUserOrderAsync(Guid userId, Guid orderId);
     Task CancelUserOrderAsync(Guid userId, Guid orderId);
+    Task<OrderDto> GetOrRegeneratePaymentLinkAsync(Guid orderId);
     Task DeleteOrderAsync(Guid id);
 }
