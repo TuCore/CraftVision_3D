@@ -78,6 +78,12 @@ public class OrderController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{id:guid}/payment-link")]
+    public async Task<IActionResult> RegeneratePaymentLink(Guid id)
+    {
+        return Ok(await _service.GetOrRegeneratePaymentLinkAsync(id));
+    }
+
     [HttpGet("{id:guid}/check-payment")]
     public async Task<IActionResult> CheckPaymentStatus(Guid id)
     {

@@ -16,6 +16,7 @@ export default function PaymentTransferPage() {
   const [total, setTotal] = useState<string>("");
   const [checkoutUrl, setCheckoutUrl] = useState<string>("");
   const [orderInfo, setOrderInfo] = useState<any>(null);
+  const [isRegeneratingLink, setIsRegeneratingLink] = useState(false);
   
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -34,12 +35,21 @@ export default function PaymentTransferPage() {
             if (res.data.totalAmount) setTotal(res.data.totalAmount.toString());
             if (res.data.checkoutUrl) setCheckoutUrl(res.data.checkoutUrl);
           })
-          .catch(err => console.error("Lỗi khi tải thông tin đơn hàng:", err));
+          .catch((err: any) => {
+            console.error("Lỗi khi tải thông tin đơn hàng:", err);
+            const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+            if (!token || err?.status === 401 || err?.statusCode === 401) {
+              toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem thông tin thanh toán.");
+              router.push(`/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+            } else {
+              toast.error("Không thể tải thông tin đơn hàng. Vui lòng thử lại.");
+            }
+          });
       } else {
         setOrderId(`ORD-${Date.now().toString().slice(-6)}`);
       }
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -94,7 +104,28 @@ export default function PaymentTransferPage() {
       : `https://img.vietqr.io/image/970422-0382343939-qr_only.png?amount=${payAmount}&addInfo=${encodeURIComponent(transferContent)}`);
 
   const rawCheckoutUrl = orderInfo?.checkoutUrl || checkoutUrl;
-  const payUrl = rawCheckoutUrl || qrUrl;
+  const isValidPayOsUrl = Boolean(rawCheckoutUrl && !rawCheckoutUrl.includes("dummy-payment-url") && rawCheckoutUrl.startsWith("http"));
+  const payUrl = isValidPayOsUrl ? rawCheckoutUrl : qrUrl;
+
+  const handleRegenerateLink = async () => {
+    if (!orderId || orderId.startsWith("ORD-")) return;
+    setIsRegeneratingLink(true);
+    try {
+      const res = await api.post(`/api/orders/${orderId}/payment-link`);
+      setOrderInfo(res.data);
+      if (res.data?.checkoutUrl && !res.data.checkoutUrl.includes("dummy-payment-url")) {
+        setCheckoutUrl(res.data.checkoutUrl);
+        toast.success("Đã tạo lại link thanh toán PayOS thành công!");
+      } else {
+        toast.info("Đã cập nhật thông tin thanh toán.");
+      }
+    } catch (err: any) {
+      console.error("Lỗi khi làm mới link thanh toán:", err);
+      toast.error(err?.message || "Không thể làm mới link thanh toán. Vui lòng quét mã QR chuyển khoản.");
+    } finally {
+      setIsRegeneratingLink(false);
+    }
+  };
 
   const handleSimulateSuccess = async () => {
     try {
@@ -148,7 +179,7 @@ export default function PaymentTransferPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="bg-gradient-to-br from-primary/10 to-[#FF37C0]/10 p-4 rounded-3xl border border-primary/20 relative group block cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md"
-              title="Nhấn để mở liên kết thanh toán"
+              title={isValidPayOsUrl ? "Nhấn để mở cổng thanh toán PayOS" : "Nhấn để xem ảnh mã QR"}
             >
               <div className="absolute inset-0 bg-white/20 blur-xl rounded-3xl -z-10 group-hover:bg-primary/20 transition-colors duration-500"></div>
               <img 
@@ -159,7 +190,7 @@ export default function PaymentTransferPage() {
               <div className="absolute inset-0 rounded-3xl bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 text-white p-4">
                 <ExternalLink className="w-8 h-8 text-white drop-shadow-md animate-bounce" />
                 <span className="text-xs font-semibold px-3 py-1 bg-white/20 rounded-full backdrop-blur-md">
-                  Nhấn để mở liên kết
+                  {isValidPayOsUrl ? "Mở cổng thanh toán PayOS" : "Mở ảnh mã QR"}
                 </span>
               </div>
             </a>
@@ -169,7 +200,7 @@ export default function PaymentTransferPage() {
               <div className="text-3xl font-extrabold text-primary">{formatPrice(total)}</div>
             </div>
 
-            {rawCheckoutUrl ? (
+            {isValidPayOsUrl ? (
               <div className="w-full space-y-2 pt-1">
                 <a
                   href={rawCheckoutUrl}
@@ -180,25 +211,47 @@ export default function PaymentTransferPage() {
                   <ExternalLink className="w-4 h-4" />
                   <span>Mở cổng thanh toán PayOS</span>
                 </a>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(rawCheckoutUrl, "link thanh toán")}
-                  className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 w-full"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Sao chép link thanh toán</span>
-                </button>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(rawCheckoutUrl, "link thanh toán")}
+                    className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Sao chép link</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRegenerateLink}
+                    disabled={isRegeneratingLink}
+                    className="inline-flex items-center justify-center gap-1.5 text-xs text-primary hover:underline transition-colors py-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCcw className={`w-3.5 h-3.5 ${isRegeneratingLink ? 'animate-spin' : ''}`} />
+                    <span>{isRegeneratingLink ? "Đang làm mới..." : "Làm mới mã PayOS"}</span>
+                  </button>
+                </div>
               </div>
             ) : (
-              <a
-                href={payUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl border border-border bg-card/80 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Mở ảnh mã QR thanh toán</span>
-              </a>
+              <div className="w-full space-y-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleRegenerateLink}
+                  disabled={isRegeneratingLink}
+                  className="inline-flex items-center justify-center gap-2 w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-primary to-[#FF37C0] text-white font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCcw className={`w-4 h-4 ${isRegeneratingLink ? 'animate-spin' : ''}`} />
+                  <span>{isRegeneratingLink ? "Đang tạo mã PayOS..." : "Lấy lại mã thanh toán PayOS"}</span>
+                </button>
+                <a
+                  href={payUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl border border-border bg-card/80 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Mở ảnh mã QR thanh toán</span>
+                </a>
+              </div>
             )}
 
             <p className="text-sm text-muted-foreground italic max-w-xs">
