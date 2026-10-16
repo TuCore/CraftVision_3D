@@ -7,6 +7,7 @@ class ProductTopActions extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onCart;
   final VoidCallback onFavorite;
+  final bool isFavorite;
   final int cartCount;
 
   const ProductTopActions({
@@ -14,6 +15,7 @@ class ProductTopActions extends StatefulWidget {
     required this.onBack,
     required this.onCart,
     required this.onFavorite,
+    this.isFavorite = false,
     this.cartCount = 0,
   });
 
@@ -22,11 +24,7 @@ class ProductTopActions extends StatefulWidget {
 }
 
 class _ProductTopActionsState extends State<ProductTopActions> {
-  Widget _buildGlassButton(
-    IconData icon,
-    VoidCallback onTap, {
-    int badgeCount = 0,
-  }) {
+  Widget _buildGlassButton(IconData icon, VoidCallback onTap, {int badgeCount = 0, Color? iconColor}) {
     return Pressable(
       onTap: onTap,
       child: Stack(
@@ -46,7 +44,7 @@ class _ProductTopActionsState extends State<ProductTopActions> {
                 ),
               ],
             ),
-            child: Icon(icon, size: 20, color: AppColors.neutral900),
+            child: Icon(icon, size: 20, color: iconColor ?? AppColors.neutral900),
           ),
           if (badgeCount > 0)
             Positioned(
@@ -98,7 +96,11 @@ class _ProductTopActionsState extends State<ProductTopActions> {
               children: [
                 _buildGlassButton(Icons.chat_bubble_outline, () {}),
                 const SizedBox(width: 12),
-                _buildGlassButton(Icons.favorite_border, widget.onFavorite),
+                _buildGlassButton(
+                  widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  widget.onFavorite,
+                  iconColor: widget.isFavorite ? AppColors.error : AppColors.neutral900,
+                ),
                 const SizedBox(width: 12),
                 _buildGlassButton(
                   Icons.shopping_cart_outlined,

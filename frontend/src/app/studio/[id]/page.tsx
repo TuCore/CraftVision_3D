@@ -227,7 +227,7 @@ export default function StudioPage({ params }: { params: Promise<{ id: string }>
                   <button 
                     key={s}
                     onClick={() => setStyle(s)}
-                    className={style === s ? "rounded-xl py-2.5 text-sm font-semibold text-white shadow-md btn-hero" : "rounded-xl py-2.5 text-sm font-medium bg-white border border-border hover:border-primary/30 hover:text-primary transition-all"}
+                    className={style === s ? "rounded-xl py-2.5 text-sm font-semibold text-black shadow-md btn-hero" : "rounded-xl py-2.5 text-sm font-medium bg-white border border-border hover:border-primary/30 hover:text-primary transition-all"}
                   >{s}</button>
                 ))}
               </div>
@@ -257,7 +257,7 @@ export default function StudioPage({ params }: { params: Promise<{ id: string }>
                 <div className="flex flex-col gap-2">
                   <button 
                     onClick={handleMockGenerate}
-                    className="rounded-2xl py-3.5 text-base font-bold text-white shadow-coral-glow btn-hero w-full"
+                    className="rounded-2xl py-3.5 text-base font-bold text-black shadow-coral-glow btn-hero w-full"
                   >
                     Tạo mô hình 3D (Demo)
                   </button>
@@ -301,7 +301,7 @@ export default function StudioPage({ params }: { params: Promise<{ id: string }>
                 <div className="w-px bg-border my-2"></div>
                 <button 
                   onClick={handleSaveModel}
-                  className="rounded-xl px-6 py-2.5 text-sm text-white font-bold shadow-coral-glow btn-hero flex items-center gap-2 hover:scale-105 transition-transform"
+                  className="rounded-xl px-6 py-2.5 text-sm text-black font-bold shadow-coral-glow btn-hero flex items-center gap-2 hover:scale-105 transition-transform"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 7"/></svg>
                   Lưu & Đặt hàng

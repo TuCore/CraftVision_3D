@@ -20,4 +20,5 @@ public class CreateProductDto
     public string ProductType { get; set; } = string.Empty;
     public bool SupportsNfc { get; set; }
     public int? EstimatedProductionDays { get; set; }
+    public bool IsComingSoon { get; set; }
 }

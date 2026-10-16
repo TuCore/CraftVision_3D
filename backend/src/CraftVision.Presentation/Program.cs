@@ -1,4 +1,6 @@
 using System.Text;
+using CraftVision.CardSharing;
+using CraftVision.Music;
 using CraftVision.Presentation.HostedServices;
 using CraftVision.Presentation.Middlewares;
 using CraftVision.Application;
@@ -176,6 +178,10 @@ builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddApplication();
+builder.Services.AddCardSharing(builder.Configuration);
+builder.Services.AddMusic(builder.Configuration);
+builder.Services.AddScoped<CraftVision.Gateway.MusicErrorFilter>();
+builder.Services.AddScoped<CraftVision.Gateway.CardErrorFilter>();
 builder.Services.AddInfrastructure(builder.Configuration);
 // AI & Knowledge Base DI
 builder.Services.AddHttpClient<IEmbeddingProvider, GeminiEmbeddingProvider>();
@@ -193,6 +199,22 @@ builder.Services.AddSignalR();
 builder.Services.AddHostedService<MemoryMonitorService>();
 
 var app = builder.Build();
+
+using (var musicScope = app.Services.CreateScope())
+{
+    var music = musicScope.ServiceProvider.GetService<MusicDatabase>();
+    if (music is not null)
+    {
+        try { await music.InitializeAsync(); }
+        catch (Exception ex) { app.Logger.LogError(ex, "Music database initialization failed; music API will report unavailable."); }
+    }
+}
+
+using (var cardScope = app.Services.CreateScope())
+{
+    var cards = cardScope.ServiceProvider.GetService<CardDatabase>();
+    if (cards is not null) await cards.InitializeAsync();
+}
 
 app.UseMiddleware<ApiProfilerMiddleware>();
 

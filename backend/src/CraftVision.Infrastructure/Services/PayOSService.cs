@@ -59,7 +59,7 @@ public class PayOSService : IPayOSService
         return !string.IsNullOrWhiteSpace(value) && !value.StartsWith("REPLACE_");
     }
 
-    public async Task<string> CreatePaymentLinkAsync(Guid orderId, long orderCode, decimal amount, string description, string returnUrl, string cancelUrl)
+    public async Task<(string CheckoutUrl, string QrCode, string Bin, string AccountNumber, string AccountName, int Amount, string Description)> CreatePaymentLinkAsync(Guid orderId, long orderCode, decimal amount, string description, string returnUrl, string cancelUrl)
     {
         _logger.LogInformation("Creating PayOS payment link for Order {OrderId}, Code {OrderCode}", orderId, orderCode);
         
@@ -74,16 +74,15 @@ public class PayOSService : IPayOSService
                 Description = "Thanh toan CV3D",
                 ReturnUrl = returnUrl,
                 CancelUrl = cancelUrl
-                // You can map items here if needed, but not strictly required by the new simplified signature
             };
 
             var paymentLink = await _payOs.PaymentRequests.CreateAsync(paymentRequest);
-            return paymentLink.CheckoutUrl;
+            return (paymentLink.CheckoutUrl, paymentLink.QrCode, paymentLink.Bin, paymentLink.AccountNumber, paymentLink.AccountName, (int)paymentLink.Amount, paymentLink.Description);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create PayOS payment link");
-            return "https://pay.payos.vn/dummy-payment-url"; // Fallback in case of error
+            return ("https://pay.payos.vn/dummy-payment-url", "", "", "", "", 0, ""); // Fallback in case of error
         }
     }
 
@@ -118,6 +117,24 @@ public class PayOSService : IPayOSService
     {
         _logger.LogInformation("Cancelling PayOS payment link for OrderCode {OrderCode}", orderCode);
         return Task.FromResult(true);
+    }
+
+    public async Task<bool> CheckPaymentStatusAsync(long orderCode)
+    {
+        try
+        {
+            var paymentLinkInfo = await _payOs.PaymentRequests.GetAsync(orderCode);
+            if (paymentLinkInfo != null && paymentLinkInfo.Status.ToString().ToUpper().Trim() == "PAID")
+            {
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check payment status for OrderCode {OrderCode}", orderCode);
+            return false;
+        }
     }
 
     public Task<bool> RefundTransactionAsync(long orderCode, decimal amount, string reason)

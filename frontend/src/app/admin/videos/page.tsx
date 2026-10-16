@@ -172,7 +172,7 @@ export default function AdminVideosPage() {
         </div>
         <button
           onClick={() => handleOpenAdd()}
-          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-white cursor-pointer w-fit"
+          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-black cursor-pointer w-fit"
         >
           <Plus className="w-5 h-5" /> Thêm / Cập Nhật Video
         </button>
@@ -450,15 +450,15 @@ export default function AdminVideosPage() {
                 Đường dẫn Video (MP4 / WebM / Cloudinary / YouTube) *
               </label>
               <input
-                type="url"
+                type="text"
                 required
-                placeholder="https://.../video.mp4 hoặc https://youtube.com/watch?v=..."
+                placeholder="/videos/payment-tutorial.mp4 hoặc https://.../video.mp4"
                 value={formData.videoUrl}
                 onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-muted/50 border border-border text-sm outline-none focus:ring-2 focus:ring-primary/30 font-mono text-xs"
               />
               <p className="text-[11px] text-muted-foreground mt-1">
-                Hỗ trợ link video MP4 trực tiếp, video từ Cloudinary, hoặc link video YouTube.
+                Hỗ trợ đường dẫn nội bộ /videos/..., link MP4 trực tiếp, Cloudinary hoặc YouTube.
               </p>
             </div>
 
@@ -504,7 +504,7 @@ export default function AdminVideosPage() {
               <textarea
                 rows={2}
                 required
-                placeholder="Ví dụ: Video hướng dẫn chi tiết cách thực hiện thanh toán an toàn với QR Banking và ZaloPay"
+                placeholder="Ví dụ: Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận."
                 value={formData.captionDesc}
                 onChange={(e) => setFormData({ ...formData, captionDesc: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-muted/50 border border-border text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"
@@ -535,7 +535,7 @@ export default function AdminVideosPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="btn-hero rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all shadow-coral-glow disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-2"
+                className="btn-hero rounded-xl px-6 py-2.5 text-sm font-bold text-black transition-all shadow-coral-glow disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-2"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 Lưu Thay Đổi

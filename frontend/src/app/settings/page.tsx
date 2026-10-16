@@ -195,6 +195,18 @@ export default function SettingsPage() {
     }
   };
 
+  const getEstimatedDelivery = (dateStr?: string) => {
+    if (!dateStr) return "3 - 5 ngày làm việc";
+    try {
+      const d = new Date(dateStr);
+      const from = new Date(d.getTime() + 3 * 24 * 3600000);
+      const to = new Date(d.getTime() + 5 * 24 * 3600000);
+      return `${from.toLocaleDateString("vi-VN")} - ${to.toLocaleDateString("vi-VN")}`;
+    } catch {
+      return "3 - 5 ngày làm việc";
+    }
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -352,7 +364,7 @@ export default function SettingsPage() {
                 ) : (
                   <>
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="relative h-16 w-16 rounded-2xl overflow-hidden btn-hero grid place-items-center text-2xl font-bold text-white shrink-0 group">
+                      <div className="relative h-16 w-16 rounded-2xl overflow-hidden btn-hero grid place-items-center text-2xl font-bold text-black shrink-0 group">
                         {avatarUrl ? (
                           <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
@@ -399,7 +411,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div className="flex gap-3 pt-2">
-                      <button onClick={handleSave} className="btn-hero rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
+                      <button onClick={handleSave} className="btn-hero text-black rounded-xl px-5 py-2.5 text-sm font-semibold">Lưu thay đổi</button>
                       <button className="rounded-xl bg-card/70 hover:bg-card px-5 py-2.5 text-sm font-medium">Huỷ</button>
                     </div>
                   </>
@@ -503,7 +515,7 @@ export default function SettingsPage() {
                           } catch (error: any) {
                             import("sonner").then(({ toast }) => toast.error(error.message || "Lỗi khi lưu địa chỉ"));
                           }
-                        }} className="btn-hero rounded-xl px-6 py-2.5 text-sm font-semibold shadow-coral-glow">Lưu địa chỉ</button>
+                        }} className="btn-hero text-black rounded-xl px-6 py-2.5 text-sm font-semibold shadow-coral-glow">Lưu địa chỉ</button>
                         <button onClick={() => { setEditingAddressId(null); setNewAddress({}); }} className="rounded-xl bg-card/70 hover:bg-card border border-border px-6 py-2.5 text-sm font-medium transition-colors">Huỷ</button>
                       </div>
                     </div>
@@ -602,7 +614,7 @@ export default function SettingsPage() {
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground bg-card/40 rounded-2xl border border-dashed border-border/60">
                       <Package className="w-16 h-16 mb-4 opacity-25 text-primary" />
                       <p className="text-sm font-medium">Chưa có đơn hàng nào trong mục này</p>
-                      <Link href="/shop" className="mt-3 btn-hero px-4 py-2 rounded-xl text-xs font-semibold text-white">
+                      <Link href="/shop" className="mt-3 btn-hero px-4 py-2 rounded-xl text-xs font-semibold text-black">
                         Khám phá sản phẩm
                       </Link>
                     </div>
@@ -630,23 +642,35 @@ export default function SettingsPage() {
 
                           {/* Items */}
                           <div className="p-4 flex flex-col gap-3">
-                            {order.items?.map((item: any) => {
+                            {order.items?.slice(0, 1).map((item: any) => {
                               const imageUrl = item.productImageUrl || item.image || "/dreamy-hero-bg.jpg";
                               const hasGift = !!item.gift?.secretKey;
-                              const giftUrl = hasGift ? `/gift/scan/${item.gift.secretKey}` : `/gift/scan/sample`;
+                              const giftUrl = hasGift ? `/gift/scan/${item.gift.secretKey}` : null;
 
                               return (
                                 <div key={item.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between pb-3 border-b border-border/20 last:border-b-0 last:pb-0">
                                   <div className="flex gap-3 items-center min-w-0">
-                                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border/50 bg-muted">
-                                      <img src={imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border/50 bg-muted/60 flex items-center justify-center relative">
+                                      <img
+                                        src={imageUrl}
+                                        alt={item.productName || "Sản phẩm"}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = "none";
+                                          const fallback = e.currentTarget.nextElementSibling;
+                                          if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                        }}
+                                      />
+                                      <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                                        <Package className="w-6 h-6" />
+                                      </div>
                                     </div>
                                     <div className="min-w-0">
                                       <Link href={`/shop/${item.productId}`} className="font-bold text-sm text-foreground hover:text-primary transition-colors line-clamp-1">
                                         {item.productName}
                                       </Link>
                                       <p className="text-xs text-muted-foreground mt-0.5">Phân loại: Tùy chỉnh (x{item.quantity})</p>
-                                      {item.gift && (
+                                      {hasGift && giftUrl && (
                                         <Link 
                                           href={giftUrl} 
                                           target="_blank"
@@ -663,6 +687,14 @@ export default function SettingsPage() {
                                 </div>
                               );
                             })}
+                            
+                            {order.items && order.items.length > 1 && (
+                              <div className="pt-2 text-center">
+                                <span className="text-xs text-muted-foreground font-medium italic">
+                                  Và {order.items.length - 1} sản phẩm khác (Bấm Chi tiết để xem)
+                                </span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Footer / Total & Actions */}
@@ -672,7 +704,6 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-                              {/* Xem chi tiết button */}
                               <button
                                 onClick={() => handleOpenOrderDetail(order)}
                                 className="px-3 py-1.5 rounded-xl border border-border hover:bg-muted text-xs font-semibold text-foreground transition-colors flex items-center gap-1 cursor-pointer"
@@ -680,6 +711,19 @@ export default function SettingsPage() {
                                 <Eye className="w-3.5 h-3.5 text-primary" />
                                 Chi tiết
                               </button>
+
+                              {/* Thanh toán ngay */}
+                              {order.paymentMethod === 'BankTransfer' && order.paymentStatus !== 'Paid' && order.orderStatus !== 'Cancelled' && (
+                                <button 
+                                  onClick={() => {
+                                    const checkoutParam = order.checkoutUrl ? `&checkoutUrl=${encodeURIComponent(order.checkoutUrl)}` : '';
+                                    router.push(`/payment/transfer?orderId=${order.id}&total=${order.totalAmount}${checkoutParam}`);
+                                  }}
+                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
+                                >
+                                  Thanh toán ngay
+                                </button>
+                              )}
 
                               {/* Hủy đơn hàng */}
                               {["Pending", "Processing"].includes(order.orderStatus) && (
@@ -695,7 +739,7 @@ export default function SettingsPage() {
                               {["ReadyToShip", "Shipped"].includes(order.orderStatus) && (
                                 <button 
                                   onClick={() => handleReceiveOrder(order.id)}
-                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-white shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
+                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
                                 >
                                   Đã nhận được hàng
                                 </button>
@@ -707,7 +751,7 @@ export default function SettingsPage() {
                                   onClick={() => {
                                     router.push(`/shop/${order.items[0].productId}`);
                                   }}
-                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-white shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
+                                  className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
                                 >
                                   Mua lại
                                 </button>
@@ -879,61 +923,31 @@ export default function SettingsPage() {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {/* Thời gian đặt hàng */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                     <span className="text-muted-foreground font-medium">Thời gian đặt hàng:</span>
-                    <p className="font-semibold text-foreground">
+                    <p className="font-semibold text-foreground text-sm">
                       {formatDateTime(selectedOrderDetail.createdAt) || "29/09/2026 14:30:00"}
                     </p>
                     <span className="text-[10px] text-emerald-600 font-semibold block">✓ Dữ liệu thật từ hệ thống</span>
                   </div>
 
-                  {/* Thời gian thanh toán */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                  {/* Thời gian dự kiến nhận hàng */}
+                  <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Thời gian thanh toán:</span>
-                      <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                      <span className="text-muted-foreground font-medium">Thời gian dự kiến nhận hàng:</span>
+                      <span className="text-[10px] text-primary font-semibold">3 - 5 ngày</span>
                     </div>
-                    <p className="font-semibold text-foreground">
-                      {selectedOrderDetail.paymentStatus === 'Paid'
-                        ? formatDateTime(selectedOrderDetail.createdAt ? new Date(new Date(selectedOrderDetail.createdAt).getTime() + 15 * 60000).toISOString() : undefined)
-                        : "Chưa thanh toán (hoặc COD khi nhận hàng)"}
-                    </p>
-                    <span className="text-[10px] text-amber-600/90 italic block">
-                      (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                    </span>
-                  </div>
-
-                  {/* Thời gian đơn vị vận chuyển lấy hàng */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Thời gian ĐVVC lấy hàng:</span>
-                      <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                    </div>
-                    <p className="font-semibold text-foreground">
+                    <p className="font-semibold text-foreground text-sm">
                       {selectedOrderDetail.orderStatus === 'Cancelled'
                         ? "Đơn hàng đã hủy"
-                        : formatDateTime(selectedOrderDetail.createdAt ? new Date(new Date(selectedOrderDetail.createdAt).getTime() + 4 * 3600000).toISOString() : undefined)}
+                        : selectedOrderDetail.orderStatus === 'Completed' || selectedOrderDetail.orderStatus === 'Delivered'
+                        ? `Đã nhận hàng (${formatDateTime(selectedOrderDetail.updatedAt || selectedOrderDetail.createdAt)})`
+                        : getEstimatedDelivery(selectedOrderDetail.createdAt)}
                     </p>
-                    <span className="text-[10px] text-amber-600/90 italic block">
-                      (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                    </span>
-                  </div>
-
-                  {/* Thời gian hoàn thành đơn hàng */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Thời gian hoàn thành:</span>
-                      <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                    </div>
-                    <p className="font-semibold text-foreground">
-                      {selectedOrderDetail.orderStatus === 'Completed' || selectedOrderDetail.orderStatus === 'Delivered'
-                        ? formatDateTime(selectedOrderDetail.updatedAt || (selectedOrderDetail.createdAt ? new Date(new Date(selectedOrderDetail.createdAt).getTime() + 48 * 3600000).toISOString() : undefined))
-                        : selectedOrderDetail.orderStatus === 'Cancelled'
-                        ? "Đơn hàng đã hủy"
-                        : "Đang vận chuyển / Chưa hoàn thành"}
-                    </p>
-                    <span className="text-[10px] text-amber-600/90 italic block">
-                      (Chưa có từ hệ thống - dữ liệu mô phỏng)
+                    <span className="text-[10px] text-muted-foreground italic block">
+                      {selectedOrderDetail.orderStatus === 'Cancelled'
+                        ? "Đơn hàng không tiếp tục giao"
+                        : "Thời gian giao hàng tiêu chuẩn qua đơn vị vận chuyển"}
                     </span>
                   </div>
                 </div>
@@ -1044,7 +1058,9 @@ export default function SettingsPage() {
                     <Package className="w-4 h-4 text-primary" />
                     Sản phẩm đã mua ({selectedOrderDetail.items?.length || 1})
                   </span>
-                  <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                  {selectedOrderDetail.items?.some((it: any) => !!it.gift?.secretKey) && (
+                    <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                  )}
                 </h4>
 
                 <div className="space-y-3">
@@ -1052,19 +1068,24 @@ export default function SettingsPage() {
                     { productName: "Sản phẩm CraftVision", quantity: 1, unitPrice: selectedOrderDetail.totalAmount || 0, subTotal: selectedOrderDetail.totalAmount || 0 }
                   ]).map((item: any, idx: number) => {
                     const hasRealGift = !!item.gift?.secretKey;
-                    const giftUrl = hasRealGift
-                      ? `/gift/scan/${item.gift.secretKey}`
-                      : `/gift/scan/sample`;
 
                     return (
                       <div key={idx} className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-xs space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/40">
+                          <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/60 shrink-0 border border-border/40 flex items-center justify-center relative">
                             <img 
                               src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"} 
-                              alt={item.productName || item.name} 
+                              alt={item.productName || item.name || "Sản phẩm"} 
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const fallback = e.currentTarget.nextElementSibling;
+                                if (fallback) (fallback as HTMLElement).style.display = "flex";
+                              }}
                             />
+                            <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                              <Package className="w-6 h-6" />
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <h5 className="font-bold text-sm text-foreground truncate">
@@ -1082,41 +1103,34 @@ export default function SettingsPage() {
                           </div>
                         </div>
 
-                        {/* Khối link thiệp đã thiết kế */}
-                        <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Gift className="w-4 h-4 text-rose-500 shrink-0" />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-foreground truncate">
-                                  {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
-                                </span>
-                                {hasRealGift ? (
+                        {/* Khối link thiệp đã thiết kế - Chỉ hiển thị khi có thiệp thật */}
+                        {hasRealGift && (
+                          <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Gift className="w-4 h-4 text-rose-500 shrink-0" />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-foreground truncate">
+                                    {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
+                                  </span>
                                   <span className="text-[10px] text-emerald-600 font-bold">✓ Thiệp thật</span>
-                                ) : (
-                                  <span className="text-[10px] text-amber-600 font-bold">(Mô phỏng)</span>
-                                )}
+                                </div>
+                                <p className="text-[11px] text-muted-foreground truncate">
+                                  {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
+                                </p>
                               </div>
-                              <p className="text-[11px] text-muted-foreground truncate">
-                                {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
-                              </p>
                             </div>
-                          </div>
 
-                          <Link
-                            href={giftUrl}
-                            target="_blank"
-                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>Xem thiệp đã thiết kế</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </Link>
-                        </div>
-                        {!hasRealGift && (
-                          <p className="text-[10px] text-amber-600 italic">
-                            * Đơn hàng này được tạo khi chưa liên kết thiệp NFC hoặc backend chưa trả secretKey (Chưa có từ hệ thống - dữ liệu thiệp mô phỏng).
-                          </p>
+                            <Link
+                              href={`/gift/scan/${item.gift.secretKey}`}
+                              target="_blank"
+                              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>Xem thiệp đã thiết kế</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          </div>
                         )}
                       </div>
                     );

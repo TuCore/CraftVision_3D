@@ -3,8 +3,16 @@
 import { AppShell } from "@/components/AppShell";
 import { CheckCircle2, ArrowRight, Package } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function PaymentSuccessPage() {
+  useEffect(() => {
+    // If the page is loaded inside an iframe (like the PayOS checkout modal), break out of it.
+    if (window !== window.top) {
+      window.top!.location.href = window.location.href;
+    }
+  }, []);
+
   return (
     <AppShell active="shop">
       <div className="mx-auto max-w-3xl py-24 px-4 flex flex-col items-center justify-center text-center">
@@ -40,7 +48,7 @@ export default function PaymentSuccessPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-          <Link href="/cart" className="flex-1 btn-hero py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-coral-glow">
+          <Link href="/cart" className="flex-1 btn-hero text-black py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-coral-glow">
             <Package className="w-5 h-5" /> Xem đơn hàng
           </Link>
           <Link href="/shop" className="flex-1 bg-card hover:bg-muted border border-border py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">

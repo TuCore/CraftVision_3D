@@ -11,4 +11,5 @@ public interface IGiftRepository
     Task<Gift?> GetByOrderItemIdAsync(Guid orderItemId);
     void Add(Gift gift);
     void Update(Gift gift);
+    void Remove(Gift gift);
 }

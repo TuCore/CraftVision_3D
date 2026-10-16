@@ -46,6 +46,11 @@ public class NfcTagRepository : INfcTagRepository
         _context.Set<NfcTag>().Update(tag);
     }
 
+    public void Remove(NfcTag tag)
+    {
+        _context.Set<NfcTag>().Remove(tag);
+    }
+
     public async Task<System.Collections.Generic.IEnumerable<NfcTag>> GetAllWithDetailsAsync()
     {
         return await _context.Set<NfcTag>()

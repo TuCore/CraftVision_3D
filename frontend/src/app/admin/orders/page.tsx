@@ -1,9 +1,11 @@
 'use client';
 
-import { useOrders } from '@/hooks/useOrders';
+import { useOrders, useDeleteOrder } from '@/hooks/useOrders';
 import Link from 'next/link';
-import { Package, Search, ChevronRight, Calendar, User, DollarSign, Clock, Truck, CheckCircle2, XCircle, Hammer, ChevronLeft } from 'lucide-react';
+import { Package, Search, ChevronRight, Calendar, User, DollarSign, Clock, Truck, CheckCircle2, XCircle, Hammer, ChevronLeft, Trash2, Gift } from 'lucide-react';
 import { useState } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from 'sonner';
 
 export const getOrderStatusConfig = (status: string) => {
   switch (status) {
@@ -19,9 +21,31 @@ export const getOrderStatusConfig = (status: string) => {
   }
 };
 
+export const getPaymentStatusConfig = (method: string, status: string) => {
+  if (method === 'Cod') return { label: 'COD (Chưa TT)', color: 'bg-slate-100 text-slate-800 border-slate-200' };
+  if (status === 'Paid') return { label: 'Đã thanh toán (QR)', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+  return { label: 'Chưa thanh toán (QR)', color: 'bg-rose-100 text-rose-800 border-rose-200' };
+};
+
 export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading, error } = useOrders(page, 5);
+  const deleteMutation = useDeleteOrder();
+  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+
+  const confirmDelete = async () => {
+    if (!deleteOrderId) return;
+    await deleteMutation.mutateAsync(deleteOrderId, {
+      onSuccess: () => {
+        toast.success('Đã xóa đơn hàng thành công!');
+        setDeleteOrderId(null);
+      },
+      onError: () => {
+        toast.error('Có lỗi xảy ra khi xóa đơn hàng.');
+        setDeleteOrderId(null);
+      }
+    });
+  };
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -55,17 +79,30 @@ export default function AdminOrdersPage() {
         <div className="md:hidden space-y-4">
           {data?.items.map((order) => {
             const statusConfig = getOrderStatusConfig(order.orderStatus);
+            const payConfig = getPaymentStatusConfig(order.paymentMethod, order.paymentStatus);
             const StatusIcon = statusConfig.icon;
             return (
               <div key={order.id} className="bg-white rounded-2xl p-4 shadow-sm border border-border">
                 <div className="flex justify-between items-start mb-3">
-                  <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
-                    {order.orderCode}
-                  </span>
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${statusConfig.color}`}>
-                    <StatusIcon className="w-3 h-3" />
-                    {statusConfig.label}
-                  </span>
+                  <div className="flex flex-col gap-1.5 items-start">
+                    <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
+                      {order.orderCode}
+                    </span>
+                    {order.items?.some((i: any) => i.gift) && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
+                        <Gift className="w-3 h-3" /> Có thiệp 3D
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5 items-end">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${statusConfig.color}`}>
+                      <StatusIcon className="w-3 h-3" />
+                      {statusConfig.label}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${payConfig.color}`}>
+                      {payConfig.label}
+                    </span>
+                  </div>
                 </div>
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-2 text-sm">
@@ -108,13 +145,21 @@ export default function AdminOrdersPage() {
             <tbody className="divide-y divide-border/30">
               {data?.items.map((order) => {
                 const statusConfig = getOrderStatusConfig(order.orderStatus);
+                const payConfig = getPaymentStatusConfig(order.paymentMethod, order.paymentStatus);
                 const StatusIcon = statusConfig.icon;
                 return (
                   <tr key={order.id} className="hover:bg-white/60 transition-colors group">
                     <td className="px-6 py-5">
-                      <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
-                        {order.orderCode}
-                      </span>
+                      <div className="flex flex-col gap-2 items-start">
+                        <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
+                          {order.orderCode}
+                        </span>
+                        {order.items?.some((i: any) => i.gift) && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
+                            <Gift className="w-3 h-3" /> Có thiệp 3D
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
@@ -131,10 +176,15 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm border ${statusConfig.color}`}>
-                        <StatusIcon className="w-3.5 h-3.5" />
-                        {statusConfig.label}
-                      </span>
+                      <div className="flex flex-col gap-2 items-start">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm border ${statusConfig.color}`}>
+                          <StatusIcon className="w-3.5 h-3.5" />
+                          {statusConfig.label}
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border ${payConfig.color}`}>
+                          {payConfig.label}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-1.5 font-extrabold text-[color:var(--coral)]">
@@ -142,12 +192,21 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <Link 
-                        href={`/admin/orders/${order.id}`} 
-                        className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-muted-foreground hover:text-primary group-hover:bg-primary/5"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link 
+                          href={`/admin/orders/${order.id}`} 
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-muted-foreground hover:text-primary group-hover:bg-primary/5"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </Link>
+                        <button
+                          onClick={() => setDeleteOrderId(order.id)}
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-red-500/30 transition-all text-muted-foreground hover:text-red-500 hover:bg-red-50"
+                          title="Xóa vĩnh viễn đơn hàng"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -192,6 +251,34 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteOrderId} onOpenChange={(open) => !open && setDeleteOrderId(null)}>
+        <AlertDialogContent className="rounded-3xl p-6 sm:p-8 max-w-md">
+          <AlertDialogHeader className="space-y-4">
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-bold font-display text-center text-gray-800">
+              Xóa vĩnh viễn
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-gray-500 font-medium text-base">
+              Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng này? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex gap-3 sm:gap-3 flex-col sm:flex-row">
+            <AlertDialogCancel className="w-full sm:w-1/2 rounded-xl py-3 border border-gray-200 font-bold hover:bg-gray-50 m-0">
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              disabled={deleteMutation.isPending}
+              className="w-full sm:w-1/2 rounded-xl py-3 bg-red-600 hover:bg-red-700 text-white font-bold border-none m-0 flex justify-center items-center gap-2"
+            >
+              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa ngay'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

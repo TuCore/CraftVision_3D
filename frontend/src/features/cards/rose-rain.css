@@ -1,0 +1,77 @@
+.rose-rain { position: relative; height: 100dvh; min-height: 320px; overflow: hidden; background: #000; color: #fff; font-family: Arial, sans-serif; }
+.rose-rain-canvas { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+.rose-rain-canvas:active { cursor: grabbing; }
+.rose-rain-canvas canvas { display: block; width: 100%; height: 100%; }
+.rose-rain-intro { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse at center, #420408 0%, #180000 38%, #000 78%); }
+.rose-rain-start { display: flex; flex-direction: column; align-items: center; gap: 20px; cursor: pointer; border: 0; background: transparent; color: white; }
+.rose-rain-start > span { color: #ff124d; font-size: 110px; line-height: 1; filter: drop-shadow(0 0 28px #ff003b99); animation: rose-heartbeat 1.5s ease-in-out infinite; }
+.rose-rain-start small { font-size: 13px; font-weight: 400; opacity: .9; }
+.rose-rain-controls { position: absolute; z-index: 3; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+.rose-rain-controls :is(a, button) { border: 1px solid #ffffff26; background: #0008; border-radius: 24px; padding: 8px 12px; color: #ddd; font-size: 11px; cursor: pointer; backdrop-filter: blur(10px); }
+.rose-rain-actions { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: 16px; right: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; pointer-events: none; }
+.rose-rain-actions p { font-size: 11px; color: #ccc; text-shadow: 0 2px 8px black; }
+.rose-rain-envelope { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 30px; background: #190712df; border: 1px solid #fd799e66; box-shadow: 0 0 24px #ff245524; color: #ffe1ed; font-size: 12px; cursor: pointer; max-width: 100%; }
+.rose-rain-envelope span { font-size: 25px; }
+.rose-rain-letter { margin: auto; width: min(540px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; border: 1px solid #f1b3c8; border-radius: 20px; background: #fff8f4; color: #563142; padding: 40px 28px; box-shadow: 0 0 80px #ff286a33; }
+.rose-rain-letter::backdrop { background: #000a; backdrop-filter: blur(8px); }
+.rose-letter-close { position: absolute; top: 10px; right: 14px; font-size: 28px; cursor: pointer; }
+.rose-letter-to { font-size: 10px; letter-spacing: 2px; padding-right: 20px; }
+.rose-rain-letter h1 { font: italic 28px/1.4 Georgia, serif; color: #a02b59; margin: 16px 0 24px; }
+.rose-letter-message { white-space: pre-wrap; overflow-wrap: anywhere; font: 17px/1.9 Georgia, serif; margin-bottom: 24px; }
+.rose-letter-photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 20px 0; }
+.rose-letter-photos img { width: 100%; border-radius: 10px; }
+.rose-letter-return { display: block; margin: 24px auto 0; color: #a02b59; cursor: pointer; }
+.rose-rain-fallback { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 30px; color: #ffa0ba; }
+.rose-rain :is(button, a, [tabindex]):focus-visible { outline: 2px solid #f58db7; outline-offset: 4px; }
+@keyframes rose-heartbeat { 50% { transform: scale(1.12); } }
+.heart-key-experience { background: radial-gradient(circle at 50% 42%, #48142f 0%, #210a24 38%, #08040d 82%); }
+.heart-key-experience::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(circle at 50% 45%, #ff4f8720, transparent 38%), linear-gradient(180deg, transparent 65%, #120610aa); }
+.heart-key-intro { background: radial-gradient(circle at 50% 44%, #6b1639 0%, #2b0b29 42%, #08040d 82%); }
+.heart-key-start { gap: 26px; }
+.heart-key-symbol { position: relative; display: grid; place-items: center; width: 180px; height: 150px; filter: drop-shadow(0 0 34px #ff376c77); animation: rose-heartbeat 1.5s ease-in-out infinite; }
+.rose-rain-start > .heart-key-symbol { font-size: inherit; line-height: normal; }
+.heart-key-symbol i { color: #ff5f8b; font: normal 140px/1 Arial, sans-serif; }
+.heart-key-symbol b { position: absolute; right: -4px; bottom: 20px; color: #ffd060; font: 700 76px/1 Georgia, serif; transform: rotate(-38deg); text-shadow: 0 0 20px #ffbd37aa; }
+.heart-key-start small { font-size: 14px; letter-spacing: .08em; color: #ffe1eb; }
+.flower-love-experience { background: radial-gradient(circle at 50% 48%, #281019 0%, #13070d 56%, #090307 100%); }
+.flower-gift-intro { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 28px; background: #fff; color: #ff3e78; }
+.flower-gift-intro h1 { margin: 0; text-align: center; font: italic clamp(32px, 4vw, 58px)/1.2 Georgia, serif; text-shadow: 0 8px 28px #ff7ca244; }
+.flower-gift-card { display: grid; place-items: center; width: min(540px, 78vw); aspect-ratio: 1; overflow: hidden; border: 2px solid #ffd1df; border-radius: 30px; background: #fff; box-shadow: 0 15px 55px #ff84aa40; cursor: pointer; }
+.flower-gift-card img { width: 100%; height: 100%; object-fit: cover; }
+.flower-gift-card span { font-size: clamp(110px, 19vw, 230px); filter: drop-shadow(0 12px 16px #e78ca455); animation: rose-heartbeat 1.6s ease-in-out infinite; }
+.flower-gift-intro p { margin: 0; font: italic 22px/1.4 Georgia, serif; }
+.flower-love-heading { position: absolute; z-index: 2; top: 8%; left: 14%; right: 14%; text-align: center; pointer-events: none; }
+.flower-love-heading h1 { margin: 0; color: #ff5b9d; font: 700 clamp(38px, 4.7vw, 72px)/1.1 Georgia, cursive; font-style: italic; text-shadow: 0 0 13px #ff4f9c, 0 0 34px #ff4f9c77; }
+.flower-love-heading p { margin: 30px 0 0; color: #fff; font-size: clamp(20px, 2.2vw, 38px); text-shadow: 0 0 10px #fff9; }
+.flower-love-heading p i { display: inline-block; width: 2px; height: 1em; margin-left: 4px; vertical-align: -.12em; background: currentColor; animation: flower-caret .8s steps(1) infinite; }
+.flower-love-controls { max-width: 58%; }
+.flower-love-controls :is(a, button) { background: #180b10c9; border-color: #ff8cb951; color: #ffe8f0; }
+.flower-letter-trigger { position: absolute; z-index: 2; left: 50%; bottom: 15%; transform: translateX(-50%); border: 0; background: transparent; color: #ff739e; font: italic clamp(14px, 1.5vw, 22px)/1.4 Georgia, serif; text-shadow: 0 0 16px #ff4d8aaa; cursor: pointer; }
+.flower-photo-gallery { position: absolute; z-index: 2; inset: 28% 0 0; display: flex; align-items: flex-end; justify-content: space-around; gap: 2vw; padding: 0 3vw 2vh; overflow: hidden; pointer-events: none; }
+.flower-photo-gallery img { width: clamp(135px, 17vw, 290px); height: clamp(190px, 31vh, 390px); flex: 0 0 auto; object-fit: cover; border: 2px solid #ffd8e5aa; border-radius: 18px; box-shadow: 0 0 24px #ff77a86e; opacity: 0; animation: flower-photo-rise 1.25s cubic-bezier(.18,.8,.28,1) forwards; }
+.flower-photo-gallery img:nth-child(3n + 1) { transform: rotate(-7deg) translateY(-3vh); }
+.flower-photo-gallery img:nth-child(3n + 2) { transform: rotate(5deg) translateY(4vh); }
+.flower-photo-gallery img:nth-child(3n) { transform: rotate(-3deg) translateY(-1vh); }
+.flower-love-letter { width: min(790px, calc(100vw - 36px)); background: #ffeaf1; border: 0; border-radius: 22px; padding: 38px; transform: rotate(-1.4deg); box-shadow: 0 0 80px #ff4b8d4d; }
+.flower-love-letter::after { content: ""; position: absolute; inset: 22px; border: 2px dashed #ff9bbb; border-radius: 14px; pointer-events: none; }
+.flower-love-letter .rose-letter-close { z-index: 2; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: #dc317a; color: white; line-height: 1; }
+.flower-love-letter-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(170px, .75fr) 1.5fr; gap: 30px; align-items: start; padding: 16px; }
+.flower-love-letter-photo { width: 100%; max-height: 300px; object-fit: cover; border-radius: 15px; box-shadow: 0 8px 22px #9a38532f; }
+.flower-love-letter h1 { margin: 0 0 16px; color: #dd347c; font: 700 clamp(24px, 3vw, 38px)/1.2 Arial, sans-serif; }
+.flower-love-letter .rose-letter-message { margin: 0; color: #71505c; font: italic clamp(16px, 1.7vw, 21px)/1.75 Georgia, serif; }
+.flower-love-date { color: #a04a69; font-size: 13px; }
+@keyframes flower-caret { 50% { opacity: 0; } }
+@keyframes flower-photo-rise { from { opacity: 0; translate: 0 55vh; } to { opacity: 1; translate: 0 0; } }
+@media (max-width: 640px) {
+  .flower-gift-intro { gap: 18px; }
+  .flower-gift-intro p { font-size: 16px; }
+  .flower-love-heading { top: 13%; left: 5%; right: 5%; }
+  .flower-love-heading p { margin-top: 16px; }
+  .flower-letter-trigger { bottom: 11%; width: 90%; }
+  .flower-photo-gallery { inset: 35% 0 0; justify-content: flex-start; overflow-x: hidden; }
+  .flower-photo-gallery img { width: 42vw; height: 34vh; }
+  .flower-love-letter { padding: 34px 18px 24px; transform: none; }
+  .flower-love-letter-grid { grid-template-columns: 1fr; gap: 18px; }
+  .flower-love-letter-photo { max-height: 34vh; }
+}
+@media (prefers-reduced-motion: reduce) { .rose-rain-start > span { animation: none; } }

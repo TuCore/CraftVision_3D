@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,9 +11,11 @@ import '../../../../core/widgets/cv_top_bar.dart';
 import '../../../../core/widgets/cv_search_bar.dart';
 import '../../../../core/widgets/cv_section_header.dart';
 import '../../../../core/widgets/cv_product_card.dart';
-
 import '../../../../core/theme/app_motion.dart';
 import '../../../../core/widgets/pressable.dart';
+import '../../../shop/presentation/providers/shop_provider.dart';
+
+import '../../../profile/presentation/providers/wishlist_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +26,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedTabIndex = 0;
+  String _selectedCategoryId = 'all';
 
   void _onTabChanged(int index) {
     if (_selectedTabIndex != index) {
@@ -34,10 +38,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productsAsync = ref.watch(productsProvider);
-    final categoriesAsync = ref.watch(productCategoriesProvider);
-    final products = productsAsync.value ?? const <ProductViewModel>[];
-    final categories = categoriesAsync.value ?? const <Map<String, dynamic>>[];
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final popularProductsAsync = ref.watch(popularProductsProvider);
+    final newArrivalsAsync = ref.watch(newArrivalsProvider);
+    
     return Scaffold(
       appBar: const CvTopBar(title: 'CraftVision'),
       body: RefreshIndicator(
@@ -74,166 +78,178 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
 
-              // Search Bar
-              const CvSearchBar(),
-              const SizedBox(height: 24),
-
-              // 4-Square Cards Carousel
-              SizedBox(
-                height: 260,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 3,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final titles = [
-                      'Recently viewed',
-                      'Our favorites',
-                      'Trending now',
-                    ];
-                    final colors = [
-                      const Color(0xFF19444B),
-                      const Color(0xFF4B3428),
-                      const Color(0xFF2E3944),
-                    ];
-                    final urls = [
-                      'https://picsum.photos/200/200?random=${index * 4 + 1}',
-                      'https://picsum.photos/200/200?random=${index * 4 + 2}',
-                      'https://picsum.photos/200/200?random=${index * 4 + 3}',
-                      'https://picsum.photos/200/200?random=${index * 4 + 4}',
-                    ];
-                    return _buildFourSquareCard(
-                      titles[index],
-                      urls,
-                      colors[index],
-                    );
-                  },
+            // Banner tĩnh (Hardcode)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.bannerDark,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Đá quý tháng 10',
+                              style: AppTypography.heading3.copyWith(color: AppColors.white),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Lấp lánh và rạng rỡ',
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.neutral300),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(12),
+                          bottomRight: Radius.circular(12),
+                        ),
+                        child: Image.network(
+                          'https://images.unsplash.com/photo-1579208030886-b937da0925dc?q=80&w=400&auto=format&fit=crop', // Temporary hardcoded banner image until API provides it
+                          fit: BoxFit.cover,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 32),
-
-              // Categories
-              const CvSectionHeader(
-                title: 'Mua theo danh mục',
-                exploreText: 'Xem thêm',
-              ),
-              SizedBox(
-                height: 100,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: categories.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 16),
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
+            ),
+            const SizedBox(height: 32),
+            
+            // Categories
+            const CvSectionHeader(title: 'Mua theo danh mục', exploreText: 'Xem thêm'),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 44,
+              child: categoriesAsync.when(
+                data: (categories) {
+                  final allCats = [
+                    _CategoryWrapper(id: 'all', name: 'Tất cả'),
+                    ...categories.map((c) => _CategoryWrapper(id: c.id, name: c.name))
+                  ];
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: allCats.length,
+                    separatorBuilder: (context, index) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final cat = allCats[index];
+                      final isSelected = cat.id == _selectedCategoryId;
+                      
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedCategoryId = cat.id;
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceLight,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                            color: isSelected ? null : const Color(0xFFFDF7F4),
+                            gradient: isSelected 
+                                ? const LinearGradient(
+                                    colors: [Color(0xFFFFD4DF), Color(0xFFFFB2B2)],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  )
+                                : null,
+                            borderRadius: BorderRadius.circular(24),
+                            border: isSelected ? null : Border.all(
+                              color: AppColors.neutral300,
+                              width: 1.5,
+                            ),
                           ),
-                          child: Icon(
-                            _getCategoryIcon(index),
-                            color: AppColors.primary,
-                            size: 28,
+                          child: Text(
+                            cat.name,
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.neutral900,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${categories[index]['name'] ?? ''}',
-                          style: AppTypography.labelText.copyWith(
-                            color: AppColors.neutral900,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, s) => Center(child: Text('Lỗi: $e')),
+              )
+            ),
+            const SizedBox(height: 32),
 
               // Featured Products
               const CvSectionHeader(title: 'Sản phẩm nổi bật'),
 
-              // Tab-like selection
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    _buildTab(0, 'Dành cho bạn'),
-                    const SizedBox(width: 24),
-                    _buildTab(1, 'Mới về'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Masonry Grid (Mocked with 2 columns)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: AnimatedSwitcher(
-                  duration: AppMotion.normal,
-                  switchInCurve: AppMotion.standard,
-                  switchOutCurve: AppMotion.standard,
-                  child: Row(
-                    key: ValueKey(_selectedTabIndex),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: _buildProductList(
-                            _selectedTabIndex == 0
-                                ? [
-                                    for (var i = 0; i < products.length; i += 2)
-                                      products[i],
-                                  ]
-                                : [
-                                    for (
-                                      var i = products.length - 1;
-                                      i >= 0;
-                                      i -= 2
-                                    )
-                                      products[i],
-                                  ],
-                            context,
-                          ),
-                        ),
+            // Masonry Grid
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: AnimatedSwitcher(
+                duration: AppMotion.normal,
+                switchInCurve: AppMotion.standard,
+                switchOutCurve: AppMotion.standard,
+                child: Builder(
+                  key: ValueKey(_selectedTabIndex),
+                  builder: (context) {
+                    final asyncValue = _selectedTabIndex == 0 ? popularProductsAsync : newArrivalsAsync;
+                    return asyncValue.when(
+                      data: (products) {
+                         if (products.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: Center(child: Text('Chưa có sản phẩm nào.')),
+                            );
+                         }
+                         return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: _buildProductList(
+                                  [for (var i = 0; i < products.length; i += 2) products[i]],
+                                  context,
+                                  ref,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                children: _buildProductList(
+                                  [for (var i = 1; i < products.length; i += 2) products[i]],
+                                  context,
+                                  ref,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(child: CircularProgressIndicator()),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          children: _buildProductList(
-                            _selectedTabIndex == 0
-                                ? [
-                                    for (var i = 1; i < products.length; i += 2)
-                                      products[i],
-                                  ]
-                                : [
-                                    for (
-                                      var i = products.length - 2;
-                                      i >= 0;
-                                      i -= 2
-                                    )
-                                      products[i],
-                                  ],
-                            context,
-                          ),
-                        ),
+                      error: (e, s) => Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Center(child: Text('Lỗi: $e')),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 100), // spacing for bottom nav
@@ -269,116 +285,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  List<Widget> _buildProductList(
-    List<ProductViewModel> products,
-    BuildContext context,
-  ) {
+  List<Widget> _buildProductList(List products, BuildContext context, WidgetRef ref) {
     return products.map((product) {
+      final isFavorite = ref.watch(wishlistProvider.notifier).isFavorite(product.id);
       return Padding(
         padding: const EdgeInsets.only(bottom: 16.0),
         child: CvProductCard(
           id: product.id,
-          imageUrl: product.imageUrl,
+          imageUrl: product.primaryImageUrl,
           name: product.name,
           price: '${product.price.toStringAsFixed(0)} đ',
           heroTagPrefix: 'home_',
-          onTap: () =>
-              context.push('/home/product/${product.id}', extra: 'home_'),
+          isFavorite: isFavorite,
+          onFavorite: () {
+            ref.read(wishlistProvider.notifier).toggleFavorite(product.id);
+          },
+          onTap: () => context.push('/home/product/${product.id}', extra: 'home_'),
         ),
       );
     }).toList();
   }
+}
 
-  IconData _getCategoryIcon(int index) {
-    final icons = [
-      Icons.card_giftcard,
-      Icons.home_outlined,
-      Icons.favorite_border,
-      Icons.watch_outlined,
-      Icons.auto_awesome,
-    ];
-    return icons[index % icons.length];
-  }
-
-  Widget _buildFourSquareCard(
-    String title,
-    List<String> imageUrls,
-    Color bgColor,
-  ) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.65,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(child: _buildSquareImage(imageUrls[0])),
-                      const SizedBox(width: 6),
-                      Expanded(child: _buildSquareImage(imageUrls[1])),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(child: _buildSquareImage(imageUrls[2])),
-                      const SizedBox(width: 6),
-                      Expanded(child: _buildSquareImage(imageUrls[3])),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.arrow_forward,
-                  color: Colors.white,
-                  size: 14,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSquareImage(String url) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        url,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-      ),
-    );
-  }
+class _CategoryWrapper {
+  final String id;
+  final String name;
+  _CategoryWrapper({required this.id, required this.name});
 }

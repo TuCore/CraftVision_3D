@@ -32,4 +32,9 @@ public class OrderItemRepository : IOrderItemRepository
     {
         _context.Set<OrderItem>().AddRange(items);
     }
+
+    public void Remove(OrderItem item)
+    {
+        _context.Set<OrderItem>().Remove(item);
+    }
 }

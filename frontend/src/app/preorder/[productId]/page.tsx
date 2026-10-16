@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { Sparkles, Wand2, Box, Truck, ShoppingCart, CreditCard, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -256,20 +257,43 @@ export default function PreOrderCheckoutPage({ params }: { params: Promise<{ pro
                 </label>
               </div>
 
-              <label className="flex items-start gap-2 cursor-pointer mt-4">
+              <div className="flex items-start gap-2 mt-4">
                 <input 
                   type="checkbox" 
+                  id="agreed-terms-preorder"
                   checked={agreedTerms}
                   onChange={e => setAgreedTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                 />
-                <span className="text-sm text-muted-foreground">Tôi đồng ý với <a href="#" className="text-primary hover:underline">Điều khoản dịch vụ</a> và <a href="#" className="text-primary hover:underline">Chính sách bảo mật</a>.</span>
-              </label>
+                <div className="text-sm text-muted-foreground">
+                  <label htmlFor="agreed-terms-preorder" className="cursor-pointer">
+                    Tôi đồng ý với{" "}
+                  </label>
+                  <Link 
+                    href="/terms" 
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Điều khoản dịch vụ
+                  </Link>{" "}
+                  <label htmlFor="agreed-terms-preorder" className="cursor-pointer">
+                    và{" "}
+                  </label>
+                  <Link 
+                    href="/privacy" 
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Chính sách bảo mật
+                  </Link>
+                  <label htmlFor="agreed-terms-preorder" className="cursor-pointer">
+                    .
+                  </label>
+                </div>
+              </div>
 
               <button 
                 onClick={handlePlaceOrder}
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl btn-hero font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all"
+                className="w-full py-4 rounded-2xl btn-hero text-black font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all"
               >
                 {isSubmitting ? "Đang xử lý..." : "Đặt hàng Pre-order"}
               </button>

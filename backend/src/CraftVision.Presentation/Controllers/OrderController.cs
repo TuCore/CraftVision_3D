@@ -63,6 +63,34 @@ public class OrderController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/payment-status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] CraftVision.Application.DTOs.Common.UpdateStatusDto dto)
+    {
+        await _service.UpdatePaymentStatusAsync(id, dto.Status);
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/simulate-payment")]
+    public async Task<IActionResult> SimulatePayment(Guid id)
+    {
+        await _service.SimulatePaymentAsync(id);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/payment-link")]
+    public async Task<IActionResult> RegeneratePaymentLink(Guid id)
+    {
+        return Ok(await _service.GetOrRegeneratePaymentLinkAsync(id));
+    }
+
+    [HttpGet("{id:guid}/check-payment")]
+    public async Task<IActionResult> CheckPaymentStatus(Guid id)
+    {
+        var isPaid = await _service.CheckAndUpdatePaymentStatusAsync(id);
+        return Ok(new { isPaid });
+    }
+
     [HttpPatch("{id:guid}/receive")]
     public async Task<IActionResult> ReceiveOrder(Guid id)
     {
@@ -80,6 +108,14 @@ public class OrderController : ControllerBase
         if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
 
         await _service.CancelUserOrderAsync(userId, id);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteOrder(Guid id)
+    {
+        await _service.DeleteOrderAsync(id);
         return NoContent();
     }
 }

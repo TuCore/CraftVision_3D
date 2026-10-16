@@ -61,7 +61,7 @@ export default function AdminProductsPage() {
         </div>
         <button 
           onClick={() => { setSelectedProduct(null); setModalOpen(true); }}
-          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-white"
+          className="btn-hero px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-black"
         >
           <Plus className="w-5 h-5" /> Tạo Sản phẩm Mới
         </button>
@@ -80,7 +80,7 @@ export default function AdminProductsPage() {
                 <h3 className="font-bold text-foreground truncate">{product.name}</h3>
                 <p className="text-sm text-muted-foreground mb-1">{product.productType}</p>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="font-extrabold text-[color:var(--coral)]">{product.price.toLocaleString('vi-VN')} đ</span>
+                  <span className="font-extrabold text-[color:var(--coral)]">{product.price.toLocaleString('vi-VN')} VNĐ</span>
                   <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-700 rounded-md">Kho: {product.stock}</span>
                 </div>
                 <div className="flex gap-2 mt-3">
@@ -120,11 +120,18 @@ export default function AdminProductsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-5 font-medium text-muted-foreground">{product.productType}</td>
-                  <td className="px-6 py-5 font-extrabold text-[color:var(--coral)]">{product.price.toLocaleString('vi-VN')} đ</td>
+                  <td className="px-6 py-5 font-extrabold text-[color:var(--coral)]">{product.price.toLocaleString('vi-VN')} VNĐ</td>
                   <td className="px-6 py-5">
-                    <span className="px-3 py-1 bg-green-100 text-green-700 font-bold rounded-lg text-sm border border-green-200">
-                      {product.stock}
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className="px-3 py-1 bg-green-100 text-green-700 font-bold rounded-lg text-sm border border-green-200">
+                        {product.stock}
+                      </span>
+                      {Boolean(product.reservedStock && product.reservedStock > 0) && (
+                        <span className="text-[11px] text-amber-600 font-medium">
+                          (Đang trong giỏ: {product.reservedStock} • Tổng kho: {product.originalStock ?? (product.stock + (product.reservedStock || 0))})
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">

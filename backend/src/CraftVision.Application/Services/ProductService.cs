@@ -23,22 +23,70 @@ public class ProductService : IProductService
     {
         var p = await _unitOfWork.Products.GetByIdAsync(id);
         if (p == null || !p.IsActive) throw new Exception("Product not found");
-        return MapToDto(p);
+        var inCart = await _unitOfWork.Products.GetQuantityInCartsAsync(p.Id);
+        var dto = MapToDto(p);
+        dto.OriginalStock = p.Stock;
+        dto.ReservedStock = inCart;
+        if (p.ProductType == ProductType.InStock)
+        {
+            dto.Stock = Math.Max(0, p.Stock - inCart);
+            dto.AvailableStock = dto.Stock;
+        }
+        else
+        {
+            dto.Stock = p.Stock;
+            dto.AvailableStock = p.Stock;
+        }
+        return dto;
     }
 
     public async Task<ProductDto> GetBySkuAsync(string sku)
     {
         var p = await _unitOfWork.Products.GetBySkuAsync(sku);
         if (p == null || !p.IsActive) throw new Exception("Product not found");
-        return MapToDto(p);
+        var inCart = await _unitOfWork.Products.GetQuantityInCartsAsync(p.Id);
+        var dto = MapToDto(p);
+        dto.OriginalStock = p.Stock;
+        dto.ReservedStock = inCart;
+        if (p.ProductType == ProductType.InStock)
+        {
+            dto.Stock = Math.Max(0, p.Stock - inCart);
+            dto.AvailableStock = dto.Stock;
+        }
+        else
+        {
+            dto.Stock = p.Stock;
+            dto.AvailableStock = p.Stock;
+        }
+        return dto;
     }
 
     public async Task<PagedResult<ProductDto>> GetAllAsync(ProductFilterDto filter)
     {
         var (items, total) = await _unitOfWork.Products.SearchAndFilterAsync(filter);
+        var pList = items.ToList();
+        var inCarts = await _unitOfWork.Products.GetQuantitiesInCartsAsync(pList.Select(x => x.Id));
+
         return new PagedResult<ProductDto>
         {
-            Items = items.Select(MapToDto).ToList(),
+            Items = pList.Select(p =>
+            {
+                var dto = MapToDto(p);
+                dto.OriginalStock = p.Stock;
+                if (p.ProductType == ProductType.InStock)
+                {
+                    inCarts.TryGetValue(p.Id, out int reserved);
+                    dto.ReservedStock = reserved;
+                    dto.Stock = Math.Max(0, p.Stock - reserved);
+                    dto.AvailableStock = dto.Stock;
+                }
+                else
+                {
+                    dto.Stock = p.Stock;
+                    dto.AvailableStock = p.Stock;
+                }
+                return dto;
+            }).ToList(),
             TotalItems = total,
             Page = filter.Page,
             PageSize = filter.PageSize
@@ -59,6 +107,7 @@ public class ProductService : IProductService
             ProductType = Enum.Parse<ProductType>(dto.ProductType),
             SupportsNfc = dto.SupportsNfc,
             EstimatedProductionDays = dto.EstimatedProductionDays,
+            IsComingSoon = dto.IsComingSoon,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -100,6 +149,7 @@ public class ProductService : IProductService
         product.SampleImageUrl = dto.SampleImageUrl;
         product.SupportsNfc = dto.SupportsNfc;
         product.EstimatedProductionDays = dto.EstimatedProductionDays;
+        product.IsComingSoon = dto.IsComingSoon;
         product.UpdatedAt = DateTime.UtcNow;
         
         _unitOfWork.Products.Update(product);
@@ -115,6 +165,84 @@ public class ProductService : IProductService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task<List<ProductStockStatusDto>> CheckStockAsync(CheckStockRequestDto dto)
+    {
+        var result = new List<ProductStockStatusDto>();
+        if (dto?.Items == null || !dto.Items.Any())
+        {
+            return result;
+        }
+
+        foreach (var item in dto.Items)
+        {
+            if (item.ProductId == Guid.Empty)
+            {
+                result.Add(new ProductStockStatusDto
+                {
+                    ProductId = item.ProductId,
+                    Name = "Mẫu thiệp số",
+                    Stock = 9999,
+                    ProductType = "Digital",
+                    IsActive = true,
+                    IsOutOfStock = false,
+                    IsSufficient = true,
+                    RequestedQuantity = item.Quantity,
+                    Message = null
+                });
+                continue;
+            }
+
+            var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+            if (product == null || !product.IsActive)
+            {
+                result.Add(new ProductStockStatusDto
+                {
+                    ProductId = item.ProductId,
+                    Name = product?.Name ?? "Sản phẩm không tồn tại",
+                    Stock = 0,
+                    ProductType = product?.ProductType.ToString() ?? "Unknown",
+                    IsActive = false,
+                    IsOutOfStock = true,
+                    IsSufficient = false,
+                    RequestedQuantity = item.Quantity,
+                    Message = "Sản phẩm không còn khả dụng hoặc đã ngừng kinh doanh."
+                });
+                continue;
+            }
+
+            int inCart = await _unitOfWork.Products.GetQuantityInCartsAsync(product.Id);
+            int remainingStock = Math.Max(0, product.Stock - inCart);
+
+            bool isOutOfStock = product.ProductType == ProductType.InStock && (remainingStock <= 0 || product.Stock < item.Quantity);
+            bool isSufficient = product.ProductType != ProductType.InStock || (remainingStock >= 0);
+            string? message = null;
+            if (isOutOfStock)
+            {
+                message = "Sản phẩm đã hết hàng.";
+            }
+            else if (remainingStock < 0)
+            {
+                message = $"Chỉ còn {remainingStock} sản phẩm khả dụng trong kho.";
+            }
+
+            result.Add(new ProductStockStatusDto
+            {
+                ProductId = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Stock = remainingStock,
+                ProductType = product.ProductType.ToString(),
+                IsActive = product.IsActive,
+                IsOutOfStock = isOutOfStock,
+                IsSufficient = isSufficient,
+                RequestedQuantity = item.Quantity,
+                Message = message
+            });
+        }
+
+        return result;
+    }
+
     private ProductDto MapToDto(Product p)
     {
         return new ProductDto
@@ -125,11 +253,14 @@ public class ProductService : IProductService
             Description = p.Description,
             Price = p.Price,
             Stock = p.Stock,
+            AvailableStock = p.Stock,
+            ReservedStock = 0,
             SampleImageUrl = p.SampleImageUrl,
             ProductType = p.ProductType.ToString(),
             SupportsNfc = p.SupportsNfc,
             EstimatedProductionDays = p.EstimatedProductionDays,
             CategoryName = p.ProductCategory?.Name,
+            IsComingSoon = p.IsComingSoon,
             ThumbnailUrl = p.ProductImages?.OrderBy(pi => pi.DisplayOrder).FirstOrDefault(pi => pi.IsThumbnail)?.File?.FileUrl,
             Images = p.ProductImages?.OrderBy(pi => pi.DisplayOrder).Select(pi => pi.File?.FileUrl ?? "").Where(url => !string.IsNullOrEmpty(url)).ToList() ?? new List<string>()
         };

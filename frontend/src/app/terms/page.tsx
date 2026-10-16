@@ -1,21 +1,32 @@
 "use client";
 
 import { AppShell } from "@/components/AppShell";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FileText, CheckCircle2, AlertOctagon, Scale, ShieldAlert, ArrowLeft, Mail, Phone } from "lucide-react";
 
 export default function TermsPage() {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
+
   return (
     <AppShell active="">
       <div className="max-w-4xl mx-auto py-6 md:py-10 space-y-8">
         {/* Header Breadcrumb */}
         <div>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4 cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" /> Quay lại trang chủ
-          </Link>
+            <ArrowLeft className="w-4 h-4" /> Quay lại
+          </button>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <FileText className="w-6 h-6" />

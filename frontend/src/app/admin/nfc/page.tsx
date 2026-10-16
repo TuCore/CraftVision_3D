@@ -225,7 +225,7 @@ export default function NfcManagementPage() {
           <button onClick={() => setIsGenerateModalOpen(true)} className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 bg-[color:var(--coral)] text-white hover:opacity-90 transition-opacity shadow-sm">
             <CheckCircle2 className="w-4 h-4" /> Tạo NFC mới
           </button>
-          <button onClick={fetchTags} className="btn-hero px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
+          <button onClick={fetchTags} className="btn-hero text-black px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
             <RefreshCcw className="w-4 h-4" /> Làm mới
           </button>
         </div>

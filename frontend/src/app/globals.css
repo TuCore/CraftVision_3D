@@ -124,16 +124,18 @@
 
 @utility btn-hero {
   background: linear-gradient(to right, #fecdd3, #ffd0d7, #fda4af);
-  color: #4c0519;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 14px rgba(253, 164, 175, 0.35);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
     transform: translateY(-6px);
     background: linear-gradient(to right, #ffe4e6, #fecdd3);
     box-shadow: 0 8px 20px rgba(253, 164, 175, 0.5);
+    color: #000000 !important;
   }
   & svg {
+    color: #000000 !important;
     transition: transform 0.3s ease;
   }
   &:hover svg {
@@ -350,5 +352,38 @@ header.scrolled {
 .dark header.scrolled {
   background-color: rgba(25, 20, 25, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- TOAST CUSTOM STYLING (SWEET EMERALD GREEN) ---------- */
+[data-sonner-toast] {
+  border-radius: 20px !important;
+}
+
+[data-sonner-toast] [data-button] {
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #0d9488 100%) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 6px 14px !important;
+  height: auto !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  letter-spacing: 0.01em !important;
+}
+
+[data-sonner-toast] [data-button]:hover {
+  transform: translateY(-1.5px) scale(1.05) !important;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45) !important;
+  filter: brightness(1.06) !important;
+}
+
+[data-sonner-toast] [data-button]:active {
+  transform: translateY(0) scale(0.96) !important;
 }
 

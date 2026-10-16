@@ -3,18 +3,18 @@
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { AppShell } from "@/components/AppShell";
-import { 
-  ShoppingCart, 
-  Trash2, 
-  Minus, 
-  Plus, 
-  Package, 
-  Calendar, 
-  CheckCircle2, 
-  Truck, 
-  ChevronLeft, 
-  ChevronRight, 
-  Pencil, 
+import {
+  ShoppingCart,
+  Trash2,
+  Minus,
+  Plus,
+  Package,
+  Calendar,
+  CheckCircle2,
+  Truck,
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
   Sparkles,
   Eye,
   MapPin,
@@ -43,15 +43,16 @@ import { useTranslation } from "@/components/LanguageProvider";
 export default function CartPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
-  const { items, removeFromCart, updateQuantity, clearWishlist } = useWishlistStore();
-  const { setItems } = useOrderStore();
+  const { items, removeFromCart, updateQuantity, updateCartItem, clearWishlist, syncStock } = useWishlistStore();
+  const { setItems, orderNote, setOrderNote } = useOrderStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isValidatingStock, setIsValidatingStock] = useState(false);
 
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(3);
+  const pageSize = 3;
   const [totalPages, setTotalPages] = useState(1);
 
   // Order Details Modal State
@@ -71,6 +72,18 @@ export default function CartPage() {
       });
     } catch {
       return dateStr;
+    }
+  };
+
+  const getEstimatedDelivery = (dateStr?: string) => {
+    if (!dateStr) return "3 - 5 ngày làm việc";
+    try {
+      const d = new Date(dateStr);
+      const from = new Date(d.getTime() + 3 * 24 * 3600000);
+      const to = new Date(d.getTime() + 5 * 24 * 3600000);
+      return `${from.toLocaleDateString("vi-VN")} - ${to.toLocaleDateString("vi-VN")}`;
+    } catch {
+      return "3 - 5 ngày làm việc";
     }
   };
 
@@ -121,17 +134,127 @@ export default function CartPage() {
       }
     };
     fetchOrders();
-  }, [page, pageSize]);
+  }, [page]);
 
-  // Initialize selected items once when mounted, and filter out removed items
-  useEffect(() => {
-    setSelectedItems((prev) => {
-      // If it's the first time and we have items, select all
-      if (prev.length === 0 && items.length > 0) {
-        return items.map((item) => item.cartItemId || item.id);
+  // Synchronize live stock with server to fix stale client-side cache
+  const checkLiveStock = async () => {
+    const currentItems = useWishlistStore.getState().items;
+    if (!currentItems || currentItems.length === 0) return;
+
+    setIsValidatingStock(true);
+    try {
+      const payloadItems = currentItems
+        .map((item) => {
+          const rawId = ((item as any).productId || item.id || '').replace(/-3d$/, '');
+          const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
+          return {
+            productId: isGuid ? rawId : "00000000-0000-0000-0000-000000000000",
+            quantity: item.quantity || 1,
+          };
+        })
+        .filter((i) => i.productId !== "00000000-0000-0000-0000-000000000000");
+
+      if (payloadItems.length === 0) return;
+
+      if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+        payloadItems.forEach((pi) => {
+          api.post('/api/cart/items', { productId: pi.productId, quantity: pi.quantity }).catch(() => {});
+        });
       }
-      // Otherwise, just remove deleted items from the selection
-      return prev.filter((id) => items.some((item) => (item.cartItemId || item.id) === id));
+
+      let stockStatuses: any[] = [];
+      try {
+        const res = await api.post('/api/products/check-stock', { items: payloadItems }, {
+          params: { _t: Date.now() },
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+        if (Array.isArray(res.data)) {
+          stockStatuses = res.data;
+        }
+      } catch (apiErr) {
+        console.warn("POST /api/products/check-stock failed, falling back to GET /api/products", apiErr);
+        try {
+          const fallbackRes = await api.get('/api/products?page=1&pageSize=100', {
+            params: { _t: Date.now() },
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          });
+          if (fallbackRes.data && Array.isArray(fallbackRes.data.items)) {
+            stockStatuses = fallbackRes.data.items.map((p: any) => ({
+              productId: p.id,
+              name: p.name,
+              stock: p.stock ?? 0,
+              isOutOfStock: (p.stock ?? 0) <= 0,
+              price: p.price,
+            }));
+          }
+        } catch (fbErr) {
+          console.error("Stock fallback also failed:", fbErr);
+        }
+      }
+
+      if (stockStatuses.length > 0) {
+        syncStock(stockStatuses);
+        stockStatuses.forEach((status: any) => {
+          const rawStatusId = (status.productId || '').toLowerCase();
+          const matched = currentItems.find((i) => ((i as any).productId || i.id || '').replace(/-3d$/, '').toLowerCase() === rawStatusId);
+          if (status.isOutOfStock || status.stock <= 0) {
+            if (matched && !matched.isOutOfStock) {
+              toast.error(`Sản phẩm "${status.name}" trong giỏ hàng hiện đã hết hàng trong kho!`);
+            }
+          } else if (status.stock > 0 && matched && (matched.quantity || 1) > status.stock) {
+            toast.warning(`Sản phẩm "${status.name}" hiện chỉ còn ${status.stock} sản phẩm trong kho. Đã tự động điều chỉnh số lượng!`);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Could not check live stock:", err);
+    } finally {
+      setIsValidatingStock(false);
+    }
+  };
+
+  useEffect(() => {
+    checkLiveStock();
+    const handleFocus = () => checkLiveStock();
+    window.addEventListener("focus", handleFocus);
+    // Poll every 10 seconds while viewing cart so warehouse updates reflect immediately
+    const interval = setInterval(() => {
+      checkLiveStock();
+    }, 10000);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(interval);
+    };
+  }, [items.length]);
+
+  // Separate items into Available vs Sold Out items
+  const { availableItems, soldOutItems } = useMemo(() => {
+    const available: typeof items = [];
+    const soldOut: typeof items = [];
+
+    items.forEach((item) => {
+      const isPreOrder = (item as any).productType === 'PreOrder';
+      const isDigital = (item as any).is3D || (item as any).isDigital || (item as any).category === 'Thiệp điện tử';
+
+      const isOutOfStock = !isPreOrder && !isDigital && (item.isOutOfStock === true || (item.stock !== undefined && item.stock <= 0));
+      if (isOutOfStock) {
+        soldOut.push(item);
+      } else {
+        available.push(item);
+      }
+    });
+
+    return { availableItems: available, soldOutItems: soldOut };
+  }, [items]);
+
+  // Initialize and synchronize selected items ONLY with available items
+  useEffect(() => {
+    const validAvailableIds = availableItems.map((item) => item.cartItemId || item.id);
+    setSelectedItems((prev) => {
+      if (prev.length === 0 && availableItems.length > 0) {
+        return validAvailableIds;
+      }
+      return prev.filter((id) => validAvailableIds.includes(id));
     });
 
     if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
@@ -140,13 +263,49 @@ export default function CartPage() {
       script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
       document.head.appendChild(script);
     }
-  }, [items]);
+  }, [availableItems]);
 
   const subtotal = useMemo(() => {
-    return items
+    return availableItems
       .filter((item) => selectedItems.includes(item.cartItemId || item.id))
       .reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
-  }, [items, selectedItems]);
+  }, [availableItems, selectedItems]);
+
+  const handleIncreaseQuantity = (item: any) => {
+    const currentQty = item.quantity || 1;
+    const maxStock = item.stock;
+    if (maxStock !== undefined && (currentQty >= maxStock || maxStock <= 0)) {
+      toast.warning(`Đã đạt số lượng tối đa trong kho (${maxStock} sản phẩm). Không thể tăng thêm!`);
+      return;
+    }
+    updateQuantity(item.cartItemId || item.id, currentQty + 1);
+    setTimeout(() => checkLiveStock(), 200);
+  };
+
+  const handleDecreaseQuantity = (item: any) => {
+    const currentQty = item.quantity || 1;
+    if (currentQty <= 1) return;
+    updateQuantity(item.cartItemId || item.id, currentQty - 1);
+    setTimeout(() => checkLiveStock(), 200);
+  };
+
+  const handleQuantityInputChange = (item: any, valueStr: string) => {
+    const val = parseInt(valueStr, 10);
+    const maxStock = item.stock;
+    if (isNaN(val) || val < 1) {
+      updateQuantity(item.cartItemId || item.id, 1);
+      setTimeout(() => checkLiveStock(), 200);
+      return;
+    }
+    if (maxStock !== undefined && val > maxStock) {
+      toast.warning(`Số lượng nhập (${val}) vượt quá số lượng tối đa trong kho (${maxStock}). Đã tự động điều chỉnh về tối đa ${maxStock}!`);
+      updateQuantity(item.cartItemId || item.id, maxStock);
+      setTimeout(() => checkLiveStock(), 200);
+      return;
+    }
+    updateQuantity(item.cartItemId || item.id, val);
+    setTimeout(() => checkLiveStock(), 200);
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -168,7 +327,7 @@ export default function CartPage() {
             <p className="text-muted-foreground max-w-md mx-auto">
               {t("cart.empty_desc")}
             </p>
-            <Link href="/shop" className="btn-hero px-8 py-3 rounded-xl font-bold inline-block mt-4 text-white">
+            <Link href="/shop" className="btn-hero px-8 py-3 rounded-xl font-bold inline-block mt-4 text-black">
               {t("cart.continue_shopping")}
             </Link>
           </div>
@@ -176,15 +335,55 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Cart Items */}
             <div className="lg:col-span-8 space-y-4">
-              {items.map((item) => (
-                <div 
-                  key={item.cartItemId || item.id} 
+              {/* Select All & Live Stock Bar */}
+              {availableItems.length > 0 && (
+                <div className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center justify-between shadow-xs border border-white/40 text-sm">
+                  <label className="flex items-center gap-3 cursor-pointer font-semibold select-none">
+                    <input
+                      type="checkbox"
+                      checked={availableItems.length > 0 && availableItems.every(i => selectedItems.includes(i.cartItemId || i.id))}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedItems(availableItems.map(i => i.cartItemId || i.id));
+                        } else {
+                          setSelectedItems([]);
+                        }
+                      }}
+                      className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                    />
+                    <span>Chọn tất cả ({availableItems.length} sản phẩm có sẵn)</span>
+                  </label>
+                  {isValidatingStock && (
+                    <span className="text-xs text-primary font-medium flex items-center gap-1.5 animate-pulse">
+                      <Sparkles className="w-3.5 h-3.5" /> Đang cập nhật tồn kho...
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* All Items Out of Stock Alert */}
+              {availableItems.length === 0 && soldOutItems.length > 0 && (
+                <div className="p-4 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-sm flex items-start gap-3 shadow-xs">
+                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold">Tất cả sản phẩm trong giỏ đều đã hết hàng</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Các sản phẩm trước đó trong giỏ hàng đã có khách hàng khác đặt mua hết. Vui lòng xóa các sản phẩm hết hàng hoặc quay lại cửa hàng để chọn sản phẩm khác.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Available Items List */}
+              {availableItems.map((item) => (
+                <div
+                  key={item.cartItemId || item.id}
                   className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-white/40"
                 >
                   {/* Custom Checkbox */}
                   <label className="flex items-center self-start sm:self-auto pt-2 sm:pt-0 cursor-pointer relative group">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="peer sr-only"
                       checked={selectedItems.includes(item.cartItemId || item.id)}
                       onChange={(e) => {
@@ -217,19 +416,39 @@ export default function CartPage() {
                         ></model-viewer>
                       </div>
                     ) : (
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover"
-                      />
+                      <div className="w-full h-full relative flex items-center justify-center bg-muted/50">
+                        <img
+                          src={item.image || "/dreamy-hero-bg.jpg"}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget.nextElementSibling;
+                            if (fallback) (fallback as HTMLElement).style.display = "flex";
+                          }}
+                        />
+                        <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                          <Package className="w-8 h-8" />
+                        </div>
+                      </div>
                     )}
                   </div>
 
                   {/* Product Info */}
                   <div className="flex-1 w-full text-center sm:text-left">
-                    <h3 className="font-bold text-foreground mb-1 text-base sm:text-lg line-clamp-1">{item.name}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">Phân loại: {item.category}</p>
-                    
+                    <div className="flex flex-wrap items-center gap-2 mb-1 justify-center sm:justify-start">
+                      <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-1">{item.name}</h3>
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Phân loại: {item.category}</p>
+
+                    {/* Hiển thị rõ số lượng còn lại trong kho */}
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/50">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>
+                        Số lượng trong kho: <strong className="font-bold text-emerald-800 dark:text-emerald-200">{item.stock !== undefined ? `${item.stock}` : 'Có sẵn'}</strong> sản phẩm
+                      </span>
+                    </div>
+
                     {/* Greeting Indicator, Preview & Edit Buttons */}
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       {(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate) && (
@@ -237,12 +456,21 @@ export default function CartPage() {
                           <span className="flex items-center gap-1.5">
                             <span className="text-sm">🎁</span> Đã kèm thiệp
                           </span>
-                          {item.selectedTemplate && (
+                          {item.selectedTemplate ? (
                             <>
                               <span className="text-primary/40">•</span>
                               <span className="font-semibold text-primary max-w-[150px] truncate" title={item.selectedTemplate.title}>
                                 {item.selectedTemplate.title}
                               </span>
+                              <span className="text-[11px] text-rose-600 font-bold">
+                                (+{formatPrice(item.selectedTemplate.price || 5000)})
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-primary/40">•</span>
+                              <span className="font-semibold text-primary">Mẫu mặc định</span>
+                              <span className="text-[11px] text-rose-600 font-bold">(+5.000 đ)</span>
                             </>
                           )}
                           <div className="w-px h-3 bg-primary/30 mx-0.5"></div>
@@ -279,7 +507,6 @@ export default function CartPage() {
                                     </div>
                                   </div>
                                 )}
-                                {/* Message card - scaled down version of scan gift page */}
                                 <article className="relative overflow-hidden rounded-[2rem] bg-white/70 p-6 shadow-soft ring-1 ring-white/80 backdrop-blur-md transition-all duration-500 hover:shadow-coral-glow group">
                                   <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-butter/40 blur-3xl" />
                                   <div className="mb-4 flex items-center gap-3">
@@ -306,7 +533,6 @@ export default function CartPage() {
                                   </div>
                                 </article>
 
-                                {/* Uploaded Image Card - Polaroid Style */}
                                 {item.greetingImage && (
                                   <article className="relative bg-white p-3 pb-10 shadow-lg ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-1 hover:rotate-0 hover:shadow-coral-glow self-center mx-auto w-[85%] max-w-[240px]">
                                     <div className="pointer-events-none absolute -right-10 -top-10 size-24 rounded-full bg-rose-200/40 blur-2xl" />
@@ -316,16 +542,15 @@ export default function CartPage() {
                                     <div className="absolute bottom-2.5 left-0 right-0 text-center">
                                       <p className="font-display text-xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
                                     </div>
-                                    {/* Pin decor */}
                                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-6 h-6 bg-black/10 rounded-full shadow-inner blur-[1px]"></div>
                                     <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-rose-300 rounded-full shadow-sm border border-rose-400"></div>
                                   </article>
                                 )}
                               </div>
                               <div className="flex justify-end gap-3">
-                                <button 
+                                <button
                                   onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting?editCartItemId=${encodeURIComponent(item.cartItemId || item.id)}${(item as any).is3D ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
-                                  className="w-full btn-hero px-6 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
+                                  className="w-full btn-hero px-6 py-3 rounded-xl text-black font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
                                 >
                                   <Pencil className="w-4 h-4" />
                                   Chỉnh sửa thiệp này
@@ -346,7 +571,7 @@ export default function CartPage() {
                         <span>Chỉnh sửa thiệp</span>
                       </button>
                     </div>
-                    
+
                     <div className="font-bold text-primary mt-1">
                       {formatPrice(item.price)}
                     </div>
@@ -354,35 +579,55 @@ export default function CartPage() {
 
                   {/* Quantity & Actions */}
                   <div className="flex flex-row sm:flex-col items-center justify-between sm:items-end w-full sm:w-auto gap-4">
-                    {/* Desktop layout vs Mobile layout */}
+                    {/* Stepper with stock validation & direct number input */}
                     <div className="flex flex-col sm:flex-row items-center sm:gap-6">
                       <div className="flex items-center bg-white dark:bg-background rounded-2xl border border-primary/20 shadow-sm overflow-hidden h-9">
-                        <button 
-                          onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) - 1)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
+                        <button
+                          onClick={() => handleDecreaseQuantity(item)}
+                          disabled={(item.quantity || 1) <= 1}
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="Giảm số lượng"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-8 text-center text-sm font-semibold text-primary">{item.quantity || 1}</span>
-                        <button 
-                          onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) + 1)}
-                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors"
+                        <input
+                          type="number"
+                          min={1}
+                          max={item.stock ?? 999}
+                          value={item.quantity || 1}
+                          onChange={(e) => handleQuantityInputChange(item, e.target.value)}
+                          className="w-12 text-center text-sm font-bold text-primary bg-transparent focus:outline-none focus:bg-primary/5 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          title="Nhập số lượng trực tiếp"
+                        />
+                        <button
+                          onClick={() => handleIncreaseQuantity(item)}
+                          disabled={item.stock !== undefined && ((item.quantity || 1) >= item.stock || item.stock <= 0)}
+                          className="w-9 h-full flex items-center justify-center hover:bg-primary/10 text-primary transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={item.stock !== undefined && ((item.quantity || 1) >= item.stock || item.stock <= 0) ? `Đã đạt tối đa trong kho (${item.stock} sản phẩm)` : "Tăng số lượng"}
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                      {item.stock !== undefined && ((item.quantity || 1) >= item.stock || item.stock <= 0) && (
+                        <span className="text-[10px] text-amber-600 font-bold mt-1 sm:mt-0">Đã đạt tối đa kho</span>
+                      )}
                     </div>
-                    
+
                     <div className="flex flex-col items-end gap-1">
                       <div className="font-bold text-base text-foreground">
                         {formatPrice(item.price * (item.quantity || 1))}
                       </div>
-                      <button 
+                      {(item.quantity || 1) > 1 && (
+                        <div className="text-[11px] text-muted-foreground text-right">
+                          {formatPrice(item.price)} / cái
+                        </div>
+                      )}
+                      <button
                         onClick={() => {
                           removeFromCart(item.cartItemId || item.id);
                           toast.success("Đã xoá sản phẩm khỏi giỏ hàng");
                         }}
-                        className="text-xs font-semibold text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-colors"
+                        className="text-xs font-semibold text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3 h-3" /> Xóa
                       </button>
@@ -390,6 +635,100 @@ export default function CartPage() {
                   </div>
                 </div>
               ))}
+
+              {/* DEDICATED SECTION: SẢN PHẨM HẾT HÀNG (SOLD OUT PRODUCTS) */}
+              {soldOutItems.length > 0 && (
+                <div className="pt-8 border-t-2 border-dashed border-rose-200 dark:border-rose-900/50 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
+                        <AlertCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-rose-600 dark:text-rose-400 text-lg flex items-center gap-2">
+                          Sản phẩm hết hàng
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500 text-white font-extrabold">
+                            {soldOutItems.length}
+                          </span>
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Đã có người đặt mua trước hoặc đã hết hàng trong kho. Những sản phẩm này không thể thanh toán.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        soldOutItems.forEach((i) => removeFromCart(i.cartItemId || i.id));
+                        toast.success("Đã xóa tất cả sản phẩm hết hàng khỏi giỏ");
+                      }}
+                      className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 transition-colors self-start sm:self-auto cursor-pointer"
+                    >
+                      Xóa tất cả sản phẩm hết hàng
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {soldOutItems.map((item) => (
+                      <div
+                        key={item.cartItemId || item.id}
+                        className="bg-muted/40 dark:bg-card/30 backdrop-blur-md rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 border border-rose-200/80 dark:border-rose-900/40 relative overflow-hidden group shadow-2xs"
+                      >
+                        {/* Sold Out Badge Instead of Checkbox */}
+                        <div className="pt-2 sm:pt-0 shrink-0">
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-black bg-rose-600 text-white shadow-xs tracking-wider uppercase">
+                            HẾT HÀNG
+                          </span>
+                        </div>
+
+                        {/* Product Image with Gray overlay */}
+                        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border/50 relative">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover filter grayscale contrast-75 brightness-90"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                            <span className="text-white text-[11px] font-extrabold px-2 py-0.5 bg-rose-600/90 rounded-md shadow-xs">
+                              Hết hàng
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1 w-full text-center sm:text-left">
+                          <div className="flex flex-wrap items-center gap-2 mb-1 justify-center sm:justify-start">
+                            <h4 className="font-bold text-foreground/70 text-base line-clamp-1">{item.name}</h4>
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                              Tạm hết hàng
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1.5">Phân loại: {item.category}</p>
+                          <p className="text-xs text-rose-600 dark:text-rose-400 font-medium bg-rose-50/60 dark:bg-rose-950/30 p-2 rounded-xl inline-block border border-rose-100 dark:border-rose-900/30">
+                            Rất tiếc! Sản phẩm đã hết hàng sau khi bạn thêm vào giỏ. Vui lòng xóa để tiếp tục đặt các món khác.
+                          </p>
+                          <div className="font-bold text-muted-foreground mt-1 line-through text-sm">
+                            {formatPrice(item.price)}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-row sm:flex-col items-center justify-between sm:items-end w-full sm:w-auto gap-3">
+                          <span className="text-xs text-muted-foreground">SL đã chọn: {item.quantity || 1}</span>
+                          <button
+                            onClick={() => {
+                              removeFromCart(item.cartItemId || item.id);
+                              toast.success("Đã xoá sản phẩm khỏi giỏ hàng");
+                            }}
+                            className="btn-outline px-3.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-300 dark:border-rose-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Xóa khỏi giỏ
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Column: Order Summary */}
@@ -398,19 +737,32 @@ export default function CartPage() {
                 <h2 className="text-xl font-bold font-display text-foreground mb-6">
                   {language === "vi" ? "Tóm tắt đơn hàng" : "Order Summary"}
                 </h2>
-                
+
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("cart.subtotal")}:</span>
                     <span className="font-bold text-foreground">{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">{language === "vi" ? "Phí vận chuyển:" : "Shipping:"}</span>
-                    <span className="font-bold text-emerald-500">
-                      {subtotal === 0 || subtotal >= 500000 
-                        ? (language === "vi" ? "Miễn phí" : "Free") 
-                        : (language === "vi" ? "Từ 20.000 đ (nội thành HCM)" : "From 20,000 VND (HCM local)")}
-                    </span>
+
+                  {soldOutItems.length > 0 && (
+                    <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                      <span>
+                        Có <strong>{soldOutItems.length} sản phẩm hết hàng</strong> trong giỏ đã được tự động loại khỏi đơn thanh toán.
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-2 mt-4">
+                    <label className="text-sm font-medium text-foreground">
+                      {language === "vi" ? "Ghi chú đơn hàng" : "Order Note"}
+                    </label>
+                    <textarea
+                      value={orderNote || ""}
+                      onChange={(e) => setOrderNote(e.target.value)}
+                      placeholder={language === "vi" ? "Ghi chú về đơn hàng của bạn..." : "Notes about your order..."}
+                      className="w-full bg-white dark:bg-background border border-primary/20 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none h-20 placeholder:text-muted-foreground/60 shadow-inner-sm transition-all"
+                    />
                   </div>
                 </div>
 
@@ -418,44 +770,57 @@ export default function CartPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-foreground font-semibold">{t("cart.total")}:</span>
                     <span className="text-2xl font-bold text-primary">
-                      {formatPrice(subtotal + (subtotal >= 500000 || subtotal === 0 ? 0 : 20000))}
+                      {formatPrice(subtotal)}
                     </span>
                   </div>
-                  {subtotal > 0 && subtotal < 500000 && (
-                    <p className="text-[11px] text-muted-foreground mt-1 text-right italic">
-                      {language === "vi" ? "(Đã gồm phí ship nội thành HCM 20.000đ)" : "(Includes HCM local shipping 20,000 VND)"}
-                    </p>
-                  )}
                 </div>
 
-                <button 
+                <button
                   onClick={() => {
-                    const selectedCartItems = items.filter(i => selectedItems.includes(i.cartItemId || i.id));
-                    const orderItems = selectedCartItems.map(item => ({
-                      product: item,
-                      quantity: item.quantity || 1,
-                      cartItemId: item.cartItemId || item.id,
-                      gift: (item.hasGreeting || item.greetingMessage || item.greetingImage) ? {
-                        giftTitle: `Quà tặng kèm`,
-                        senderName: item.senderName || undefined,
-                        receiverName: item.receiverName || undefined,
-                        message: item.greetingMessage || "",
-                        previewImageUrl: item.greetingImage || null,
-                        theme: "sincere",
-                        messageSource: "Manual"
-                      } : null
-                    }));
+                    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                    if (!token) {
+                      toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
+                      router.push("/auth?redirect=/checkout");
+                      return;
+                    }
+                    const selectedCartItems = availableItems.filter(i => selectedItems.includes(i.cartItemId || i.id));
+                    if (selectedCartItems.length === 0) {
+                      toast.error("Vui lòng chọn ít nhất một sản phẩm còn hàng để tiếp tục thanh toán!");
+                      return;
+                    }
+                    const orderItems = selectedCartItems.map(item => {
+                      const hasCard = !!(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate);
+                      const cardFee = item.selectedTemplate?.price || item.cardPrice || (hasCard ? 5000 : 0);
+                      return {
+                        product: {
+                          ...item,
+                          price: item.price,
+                          basePrice: item.basePrice,
+                          cardPrice: cardFee,
+                        },
+                        quantity: item.quantity || 1,
+                        cartItemId: item.cartItemId || item.id,
+                        gift: hasCard ? {
+                          giftTitle: item.selectedTemplate?.title || `Thiệp thông điệp`,
+                          templateTitle: item.selectedTemplate?.title || "Mẫu mặc định",
+                          cardPrice: cardFee,
+                          senderName: item.senderName || undefined,
+                          receiverName: item.receiverName || undefined,
+                          message: item.greetingMessage || "",
+                          previewImageUrl: item.greetingImage || item.selectedTemplate?.image || null,
+                          theme: "sincere",
+                          messageSource: "Manual"
+                        } : null
+                      };
+                    });
                     setItems(orderItems);
                     router.push("/checkout");
                   }}
-                  disabled={selectedItems.length === 0}
-                  className="w-full btn-hero py-3.5 rounded-xl text-white font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none"
+                  disabled={selectedItems.length === 0 || availableItems.length === 0}
+                  className="w-full btn-hero py-3.5 rounded-xl text-black font-bold text-base flex items-center justify-center shadow-coral-glow transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                 >
                   {language === "vi" ? "Thanh toán" : "Checkout"} {selectedItems.length > 0 ? `(${selectedItems.length})` : ""}
                 </button>
-                <p className="text-center text-xs text-muted-foreground mt-4 font-medium">
-                  {language === "vi" ? "Thanh toán sẽ sớm ra mắt ✨" : "Checkout coming soon ✨"}
-                </p>
               </div>
             </div>
           </div>
@@ -466,7 +831,7 @@ export default function CartPage() {
           <h2 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
             <Package className="w-6 h-6 text-primary" /> {t("cart.order_history")}
           </h2>
-          
+
           <div className="grid gap-4">
             {isLoadingOrders ? (
               <div className="text-center text-muted-foreground p-4">
@@ -486,21 +851,20 @@ export default function CartPage() {
                 : "Chi thúi (x1)";
 
               return (
-                <div 
-                  key={order.id || orderCode} 
+                <div
+                  key={order.id || orderCode}
                   onClick={() => handleOpenOrderDetail(order)}
                   className="bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white/40 flex flex-col md:flex-row gap-4 justify-between md:items-center transition-transform hover:-translate-y-1 hover:shadow-md cursor-pointer"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-lg text-foreground">{orderCode}</span>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
-                        status === 'Completed' || status === 'Đã giao thành công'
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${status === 'Completed' || status === 'Đã giao thành công'
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : status === 'Cancelled'
-                          ? 'bg-rose-500/10 text-rose-600'
-                          : 'bg-amber-500/10 text-amber-600'
-                      }`}>
+                            ? 'bg-rose-500/10 text-rose-600'
+                            : 'bg-amber-500/10 text-amber-600'
+                        }`}>
                         {status === 'Completed' || status === 'Đã giao thành công' ? (
                           <CheckCircle2 className="w-3 h-3" />
                         ) : (
@@ -519,7 +883,7 @@ export default function CartPage() {
                   <div className="flex flex-col md:items-end gap-1 border-t md:border-t-0 pt-3 md:pt-0 border-border/50">
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tổng đơn</span>
                     <span className="font-bold text-xl text-primary">{formatPrice(total)}</span>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOpenOrderDetail(order);
@@ -545,19 +909,18 @@ export default function CartPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Chi tiết đơn hàng</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
                             ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                             : selectedOrder.orderStatus === 'Cancelled'
-                            ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                        }`}>
+                              ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                              : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                          }`}>
                           {selectedOrder.orderStatus || 'Processing'}
                         </span>
                       </div>
                       <h2 className="text-xl sm:text-2xl font-extrabold font-display text-foreground mt-1 flex items-center gap-2">
                         <span>{selectedOrder.orderCode || selectedOrder.id}</span>
-                        <button 
+                        <button
                           onClick={() => {
                             navigator.clipboard.writeText(selectedOrder.orderCode || selectedOrder.id);
                             toast.success("Đã sao chép mã đơn hàng!");
@@ -585,61 +948,31 @@ export default function CartPage() {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       {/* Thời gian đặt hàng */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                         <span className="text-muted-foreground font-medium">Thời gian đặt hàng:</span>
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-foreground text-sm">
                           {formatDateTime(selectedOrder.createdAt) || "29/09/2026 14:30:00"}
                         </p>
                         <span className="text-[10px] text-emerald-600 font-semibold block">✓ Dữ liệu thật từ hệ thống</span>
                       </div>
 
-                      {/* Thời gian thanh toán */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
+                      {/* Thời gian dự kiến nhận hàng */}
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground font-medium">Thời gian thanh toán:</span>
-                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
+                          <span className="text-muted-foreground font-medium">Thời gian dự kiến nhận hàng:</span>
+                          <span className="text-[10px] text-primary font-semibold">3 - 5 ngày</span>
                         </div>
-                        <p className="font-semibold text-foreground">
-                          {selectedOrder.paymentStatus === 'Paid'
-                            ? formatDateTime(selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 15 * 60000).toISOString() : undefined)
-                            : "Chưa thanh toán (hoặc COD khi nhận hàng)"}
-                        </p>
-                        <span className="text-[10px] text-amber-600/90 italic block">
-                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                        </span>
-                      </div>
-
-                      {/* Thời gian đơn vị vận chuyển lấy hàng */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground font-medium">Thời gian ĐVVC lấy hàng:</span>
-                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                        </div>
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-foreground text-sm">
                           {selectedOrder.orderStatus === 'Cancelled'
                             ? "Đơn hàng đã hủy"
-                            : formatDateTime(selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 4 * 3600000).toISOString() : undefined)}
+                            : selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
+                              ? `Đã nhận hàng (${formatDateTime(selectedOrder.updatedAt || selectedOrder.createdAt)})`
+                              : getEstimatedDelivery(selectedOrder.createdAt)}
                         </p>
-                        <span className="text-[10px] text-amber-600/90 italic block">
-                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
-                        </span>
-                      </div>
-
-                      {/* Thời gian hoàn thành đơn hàng */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-card border border-border/40 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground font-medium">Thời gian hoàn thành:</span>
-                          <span className="text-[10px] text-amber-600 font-semibold">(Mô phỏng)</span>
-                        </div>
-                        <p className="font-semibold text-foreground">
-                          {selectedOrder.orderStatus === 'Completed' || selectedOrder.orderStatus === 'Đã giao thành công'
-                            ? formatDateTime(selectedOrder.updatedAt || (selectedOrder.createdAt ? new Date(new Date(selectedOrder.createdAt).getTime() + 48 * 3600000).toISOString() : undefined))
-                            : selectedOrder.orderStatus === 'Cancelled'
-                            ? "Đơn hàng đã hủy"
-                            : "Đang vận chuyển / Chưa hoàn thành"}
-                        </p>
-                        <span className="text-[10px] text-amber-600/90 italic block">
-                          (Chưa có từ hệ thống - dữ liệu mô phỏng)
+                        <span className="text-[10px] text-muted-foreground italic block">
+                          {selectedOrder.orderStatus === 'Cancelled'
+                            ? "Đơn hàng không tiếp tục giao"
+                            : "Thời gian giao hàng tiêu chuẩn qua đơn vị vận chuyển"}
                         </span>
                       </div>
                     </div>
@@ -726,18 +1059,17 @@ export default function CartPage() {
                           {selectedOrder.paymentMethod === 'BankTransfer'
                             ? 'Chuyển khoản QR Banking (PayOS)'
                             : selectedOrder.paymentMethod === 'Cod'
-                            ? 'Thanh toán khi nhận hàng (COD)'
-                            : selectedOrder.paymentMethod || 'Thanh toán khi nhận hàng (COD)'}
+                              ? 'Thanh toán khi nhận hàng (COD)'
+                              : selectedOrder.paymentMethod || 'Thanh toán khi nhận hàng (COD)'}
                         </span>
                       </div>
                     </div>
                     <div className="sm:text-right">
                       <span className="text-muted-foreground font-medium block">Trạng thái thanh toán:</span>
-                      <span className={`font-bold inline-block px-2.5 py-0.5 rounded-full text-xs ${
-                        selectedOrder.paymentStatus === 'Paid'
+                      <span className={`font-bold inline-block px-2.5 py-0.5 rounded-full text-xs ${selectedOrder.paymentStatus === 'Paid'
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : 'bg-amber-500/10 text-amber-600'
-                      }`}>
+                        }`}>
                         {selectedOrder.paymentStatus === 'Paid' ? '✓ Đã thanh toán' : 'Chưa thanh toán'}
                       </span>
                     </div>
@@ -750,27 +1082,34 @@ export default function CartPage() {
                         <Package className="w-4 h-4 text-primary" />
                         Sản phẩm đã mua ({selectedOrder.items?.length || 1})
                       </span>
-                      <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                      {selectedOrder.items?.some((it: any) => !!it.gift?.secretKey) && (
+                        <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                      )}
                     </h4>
 
                     <div className="space-y-3">
                       {(selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items : [
-                        { productName: "Chi thúi", quantity: 1, unitPrice: 120000, subTotal: 120000 }
+                        { productName: "Sản phẩm", quantity: 1, unitPrice: 120000, subTotal: 120000 }
                       ]).map((item: any, idx: number) => {
                         const hasRealGift = !!item.gift?.secretKey;
-                        const giftUrl = hasRealGift
-                          ? `/gift/scan/${item.gift.secretKey}`
-                          : `/gift/scan/sample`;
 
                         return (
                           <div key={idx} className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-xs space-y-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/40">
-                                <img 
-                                  src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"} 
-                                  alt={item.productName || item.name} 
+                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/60 shrink-0 border border-border/40 flex items-center justify-center relative">
+                                <img
+                                  src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"}
+                                  alt={item.productName || item.name || "Sản phẩm"}
                                   className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                    const fallback = e.currentTarget.nextElementSibling;
+                                    if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                  }}
                                 />
+                                <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                                  <Package className="w-6 h-6" />
+                                </div>
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h5 className="font-bold text-sm text-foreground truncate">
@@ -788,41 +1127,34 @@ export default function CartPage() {
                               </div>
                             </div>
 
-                            {/* Khối link thiệp đã thiết kế */}
-                            <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <Gift className="w-4 h-4 text-rose-500 shrink-0" />
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-foreground truncate">
-                                      {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
-                                    </span>
-                                    {hasRealGift ? (
+                            {/* Khối link thiệp đã thiết kế - Chỉ hiển thị khi có thiệp thật */}
+                            {hasRealGift && (
+                              <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Gift className="w-4 h-4 text-rose-500 shrink-0" />
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-foreground truncate">
+                                        {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
+                                      </span>
                                       <span className="text-[10px] text-emerald-600 font-bold">✓ Thiệp thật</span>
-                                    ) : (
-                                      <span className="text-[10px] text-amber-600 font-bold">(Mô phỏng)</span>
-                                    )}
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground truncate">
+                                      {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
+                                    </p>
                                   </div>
-                                  <p className="text-[11px] text-muted-foreground truncate">
-                                    {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
-                                  </p>
                                 </div>
-                              </div>
 
-                              <Link
-                                href={giftUrl}
-                                target="_blank"
-                                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
-                              >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span>Xem thiệp đã thiết kế</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </Link>
-                            </div>
-                            {!hasRealGift && (
-                              <p className="text-[10px] text-amber-600 italic">
-                                * Đơn hàng này được tạo khi chưa liên kết thiệp NFC hoặc backend chưa trả secretKey (Chưa có từ hệ thống - dữ liệu thiệp mô phỏng).
-                              </p>
+                                <Link
+                                  href={`/gift/scan/${item.gift.secretKey}`}
+                                  target="_blank"
+                                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span>Xem thiệp đã thiết kế</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </Link>
+                              </div>
                             )}
                           </div>
                         );
@@ -846,44 +1178,24 @@ export default function CartPage() {
 
           {/* Pagination Controls */}
           {orderHistory.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 bg-white/40 dark:bg-card/40 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
-                <span>Hiển thị</span>
-                <select 
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                  className="bg-background border border-border rounded-lg px-2 py-1 text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer"
-                >
-                  <option value={3}>3</option>
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
-                <span>đơn hàng</span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1 || isLoadingOrders}
-                  className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <span className="text-sm font-bold w-24 text-center">
-                  Trang {page} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages || isLoadingOrders}
-                  className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
+            <div className="flex items-center justify-center gap-3 mt-6 bg-white/40 dark:bg-card/40 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1 || isLoadingOrders}
+                className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm font-bold min-w-24 text-center">
+                Trang {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages || isLoadingOrders}
+                className="p-2 rounded-xl bg-background border border-border hover:bg-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           )}
         </div>

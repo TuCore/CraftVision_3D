@@ -16,6 +16,7 @@ class CvProductCard extends StatelessWidget {
   final String heroTagPrefix;
   final VoidCallback? onFavorite;
   final VoidCallback? onTap;
+  final bool isFavorite;
 
   const CvProductCard({
     super.key,
@@ -26,6 +27,7 @@ class CvProductCard extends StatelessWidget {
     this.heroTagPrefix = '',
     this.onFavorite,
     this.onTap,
+    this.isFavorite = false,
   });
 
   @override
@@ -46,11 +48,10 @@ class CvProductCard extends StatelessWidget {
                   aspectRatio: 1, // You can customize or remove for masonry
                   child: Hero(
                     tag: '${heroTagPrefix}product_$id',
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
+                    child: Image.network(
+                      imageUrl,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => const CvSkeleton(),
-                      errorWidget: (context, url, error) => Container(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         color: AppColors.neutral300,
                         child: const Icon(
                           Icons.image_not_supported,
@@ -72,10 +73,10 @@ class CvProductCard extends StatelessWidget {
                         color: AppColors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.favorite_border,
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
                         size: 16,
-                        color: AppColors.neutral900,
+                        color: isFavorite ? AppColors.error : AppColors.neutral900,
                       ),
                     ),
                   ),
@@ -93,7 +94,12 @@ class CvProductCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           // Price
-          Text(price, style: AppTypography.priceText),
+          Text(
+            price,
+            style: AppTypography.priceText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

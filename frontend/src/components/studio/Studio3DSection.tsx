@@ -222,7 +222,7 @@ export function Studio3DSection({ id = "studio-3d", className = "", rightColumnH
                     onClick={() => setStyle(s)}
                     className={`rounded-xl py-2 px-3 text-sm font-medium transition-all ${
                       style === s
-                        ? "btn-hero text-white shadow-sm"
+                        ? "btn-hero text-black font-bold shadow-sm"
                         : "chip-btn rounded-xl py-2 text-sm hover:bg-muted/80 text-foreground transition-colors"
                     }`}
                   >
@@ -292,7 +292,7 @@ export function Studio3DSection({ id = "studio-3d", className = "", rightColumnH
                   <button
                     type="button"
                     onClick={handleMockGenerate}
-                    className="rounded-2xl py-3 text-sm font-bold text-white shadow-coral-glow btn-hero w-full hover:scale-[1.01] active:scale-[0.99] transition-all"
+                    className="rounded-2xl py-3 text-sm font-bold text-black shadow-coral-glow btn-hero w-full hover:scale-[1.01] active:scale-[0.99] transition-all"
                   >
                     Tạo mô hình 3D (Demo)
                   </button>
@@ -365,7 +365,7 @@ export function Studio3DSection({ id = "studio-3d", className = "", rightColumnH
               <button
                 type="button"
                 onClick={() => setIsNamePopupOpen(true)}
-                className="rounded-full px-5 py-2 text-xs sm:text-sm text-white font-semibold shadow-coral-glow btn-hero flex items-center gap-1.5 hover:scale-105 transition-transform"
+                className="rounded-full px-5 py-2 text-xs sm:text-sm text-black font-bold shadow-coral-glow btn-hero flex items-center gap-1.5 hover:scale-105 transition-transform"
               >
                 <Download className="h-4 w-4" />
                 Tạo website
@@ -413,7 +413,7 @@ export function Studio3DSection({ id = "studio-3d", className = "", rightColumnH
                     )}&customName=${encodeURIComponent(customName || "Sản phẩm 3D của tôi")}`
                   );
                 }}
-                className="px-5 py-2 rounded-xl text-sm font-medium btn-hero text-white shadow-md hover:scale-105 transition-transform"
+                className="px-5 py-2 rounded-xl text-sm font-bold btn-hero text-black shadow-md hover:scale-105 transition-transform"
               >
                 Xác nhận
               </button>

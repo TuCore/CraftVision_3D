@@ -43,4 +43,9 @@ public class GiftRepository : IGiftRepository
     {
         _context.Set<Gift>().Update(gift);
     }
+
+    public void Remove(Gift gift)
+    {
+        _context.Set<Gift>().Remove(gift);
+    }
 }

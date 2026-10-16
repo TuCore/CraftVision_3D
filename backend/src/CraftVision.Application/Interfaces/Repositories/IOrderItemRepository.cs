@@ -10,4 +10,5 @@ public interface IOrderItemRepository
     Task<IEnumerable<OrderItem>> GetByOrderIdAsync(Guid orderId);
     void Add(OrderItem item);
     void AddRange(IEnumerable<OrderItem> items);
+    void Remove(OrderItem item);
 }

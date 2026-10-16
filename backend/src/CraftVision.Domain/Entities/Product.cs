@@ -22,6 +22,7 @@ public class Product
     public bool SupportsNfc { get; set; }
     public int? EstimatedProductionDays { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsComingSoon { get; set; } = false;
     
     [Timestamp]
     public byte[] RowVersion { get; set; } = null!;

@@ -4,9 +4,17 @@ import { AppShell } from "@/components/AppShell";
 import { XCircle, ArrowLeft, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function PaymentCancelPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    // If the page is loaded inside an iframe (like the PayOS checkout modal), break out of it.
+    if (window !== window.top) {
+      window.top!.location.href = window.location.href;
+    }
+  }, []);
 
   return (
     <AppShell active="shop">
@@ -39,7 +47,7 @@ export default function PaymentCancelPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-          <button onClick={() => router.push('/checkout')} className="flex-1 btn-hero bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 shadow-rose-500/30 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all">
+          <button onClick={() => router.push('/checkout')} className="flex-1 btn-hero text-black py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-coral-glow transition-all">
             <RotateCcw className="w-5 h-5" /> Thử thanh toán lại
           </button>
           <Link href="/cart" className="flex-1 bg-card hover:bg-muted border border-border py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">
