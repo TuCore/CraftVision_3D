@@ -2,15 +2,6 @@ using CraftVision.Application.DTOs.Mobile;
 
 namespace CraftVision.Application.Interfaces.Services;
 
-public interface ICartService
-{
-    Task<CartDto> GetAsync(Guid userId);
-    Task<CartDto> AddAsync(Guid userId, CartItemRequest request);
-    Task<CartDto> UpdateAsync(Guid userId, Guid itemId, int quantity);
-    Task RemoveAsync(Guid userId, Guid itemId);
-    Task ClearAsync(Guid userId);
-}
-
 public interface IFavoriteService
 {
     Task<IReadOnlyList<FavoriteDto>> GetAsync(Guid userId);

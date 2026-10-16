@@ -13,16 +13,6 @@ public abstract class CurrentUserController : ControllerBase
         ? id : throw new UnauthorizedAccessException("User must be logged in.");
 }
 
-[ApiController, Route("api/cart")]
-public class CartController(ICartService service) : CurrentUserController
-{
-    [HttpGet] public async Task<IActionResult> Get() => Ok(await service.GetAsync(UserId));
-    [HttpPost("items")] public async Task<IActionResult> Add(CartItemRequest request) => Ok(await service.AddAsync(UserId, request));
-    [HttpPut("items/{itemId:guid}")] public async Task<IActionResult> Update(Guid itemId, UpdateCartItemRequest request) => Ok(await service.UpdateAsync(UserId, itemId, request.Quantity));
-    [HttpDelete("items/{itemId:guid}")] public async Task<IActionResult> Remove(Guid itemId) { await service.RemoveAsync(UserId, itemId); return NoContent(); }
-    [HttpDelete] public async Task<IActionResult> Clear() { await service.ClearAsync(UserId); return NoContent(); }
-}
-
 [ApiController, Route("api/favorites")]
 public class FavoritesController(IFavoriteService service) : CurrentUserController
 {
