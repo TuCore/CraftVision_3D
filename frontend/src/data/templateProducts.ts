@@ -31,7 +31,7 @@ export const DEFAULT_TUTORIAL_VIDEO: Omit<TemplateVideo, "id" | "templateId"> = 
 export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
   {
     id: 17,
-    image: "/dreamy-hero-bg.jpg",
+    image: "/cards/previews/starlight-birthday.webp",
     title: "Điều ước sinh nhật dệt từ ánh sao",
     sold: 188,
     originalPrice: 89999,
