@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
 
-class ProductReviewsSection extends StatelessWidget {
-  const ProductReviewsSection({super.key});
+class ProductReviewsSection extends ConsumerWidget {
+  const ProductReviewsSection({super.key, required this.productId});
+
+  final String productId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reviewsAsync = ref.watch(reviewsProvider(productId));
+    final reviews = reviewsAsync.value ?? const <Map<String, dynamic>>[];
+    final average = reviews.isEmpty
+        ? 0.0
+        : reviews.fold<num>(
+                0,
+                (sum, item) => sum + ((item['rating'] as num?) ?? 0),
+              ) /
+              reviews.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

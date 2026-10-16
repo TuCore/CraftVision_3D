@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_top_bar.dart';
@@ -65,7 +68,11 @@ class ProfileScreen extends ConsumerWidget {
                 crossAxisSpacing: 16,
                 childAspectRatio: 2.5,
                 children: [
-                  _buildGridCard(Icons.receipt_long, 'Đơn mua', () => context.push('/order')),
+                  _buildGridCard(
+                    Icons.receipt_long,
+                    'Đơn mua',
+                    () => context.push('/order'),
+                  ),
                   _buildGridCard(Icons.star_border, 'Đánh giá', () {}),
                   _buildGridCard(Icons.favorite_border, 'Sản phẩm yêu thích', () => context.push('/wishlist')),
                   _buildGridCard(Icons.location_on_outlined, 'Địa chỉ', () => context.push('/address')),
@@ -82,18 +89,25 @@ class ProfileScreen extends ConsumerWidget {
             const Divider(color: AppColors.neutral300, height: 1),
             _buildListTile(Icons.help_outline, 'Trợ giúp', () => context.push('/help')),
             const Divider(color: AppColors.neutral300, height: 1),
-            
+
             const SizedBox(height: 32),
             // Logout
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: OutlinedButton(
-                onPressed: () => context.go('/auth'),
+                onPressed: () async {
+                  final auth = await ref.read(authServiceProvider.future);
+                  await auth.logout();
+                  ref.invalidate(userProfileProvider);
+                  if (context.mounted) context.go('/auth');
+                },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
                   side: const BorderSide(color: AppColors.error),
                   minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                 ),
                 child: Text('Đăng xuất', style: AppTypography.buttonText),
               ),
@@ -103,6 +117,46 @@ class ProfileScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showAddresses(BuildContext context, WidgetRef ref) async {
+    try {
+      final services = await ref.read(apiServicesProvider.future);
+      final addresses = await services.addresses.getAddresses();
+      if (!context.mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text('Địa chỉ của tôi', style: AppTypography.heading2),
+            const SizedBox(height: 12),
+            if (addresses.isEmpty) const Text('Chưa có địa chỉ.'),
+            for (final address in addresses)
+              ListTile(
+                leading: Icon(
+                  address['isDefault'] == true
+                      ? Icons.home
+                      : Icons.location_on_outlined,
+                  color: AppColors.primary,
+                ),
+                title: Text(
+                  '${address['receiverName'] ?? ''} · ${address['phone'] ?? ''}',
+                ),
+                subtitle: Text(
+                  '${address['address'] ?? ''}, ${address['district'] ?? ''}, ${address['province'] ?? ''}',
+                ),
+              ),
+          ],
+        ),
+      );
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
   }
 
   Widget _buildGridCard(IconData icon, String label, VoidCallback onTap) {
@@ -121,7 +175,12 @@ class ProfileScreen extends ConsumerWidget {
             Icon(icon, color: AppColors.neutral900, size: 24),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(label, style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+              child: Text(
+                label,
+                style: AppTypography.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -129,7 +188,12 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildListTile(IconData icon, String title, VoidCallback onTap, {bool hasBadge = false}) {
+  Widget _buildListTile(
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool hasBadge = false,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -139,9 +203,7 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             Icon(icon, color: AppColors.neutral900, size: 24),
             const SizedBox(width: 16),
-            Expanded(
-              child: Text(title, style: AppTypography.bodyLarge),
-            ),
+            Expanded(child: Text(title, style: AppTypography.bodyLarge)),
             if (hasBadge)
               Container(
                 margin: const EdgeInsets.only(right: 12),

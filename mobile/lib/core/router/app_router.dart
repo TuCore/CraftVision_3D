@@ -82,8 +82,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/gift-reveal',
-      pageBuilder: (context, state) =>
-          fadePage(state, const GiftRevealScreen()),
+      pageBuilder: (context, state) => fadePage(
+        state,
+        GiftRevealScreen(secretKey: state.extra as String? ?? ''),
+      ),
     ),
     GoRoute(
       path: '/cart',
@@ -98,6 +100,11 @@ final appRouter = GoRouter(
       path: '/checkout/success',
       pageBuilder: (context, state) =>
           fadePage(state, const CheckoutSuccessScreen()),
+    ),
+    GoRoute(
+      path: '/manifest',
+      pageBuilder: (context, state) =>
+          slideFadePage(state, const ManifestScreen()),
     ),
 
     GoRoute(
@@ -120,7 +127,10 @@ final appRouter = GoRouter(
     // https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/stateful_shell_route.dart
     StatefulShellRoute(
       navigatorContainerBuilder: (context, navigationShell, children) {
-        return AppShellScaffold(navigationShell: navigationShell, children: children);
+        return AppShellScaffold(
+          navigationShell: navigationShell,
+          children: children,
+        );
       },
       builder: (context, state, navigationShell) => navigationShell,
       branches: [
@@ -137,7 +147,10 @@ final appRouter = GoRouter(
                   pageBuilder: (context, state) {
                     final id = state.pathParameters['id']!;
                     final prefix = state.extra as String? ?? '';
-                    return heroPage(state, ProductDetailScreen(productId: id, heroTagPrefix: prefix));
+                    return heroPage(
+                      state,
+                      ProductDetailScreen(productId: id, heroTagPrefix: prefix),
+                    );
                   },
                 ),
               ],
@@ -167,7 +180,10 @@ final appRouter = GoRouter(
                   pageBuilder: (context, state) {
                     final id = state.pathParameters['id']!;
                     final prefix = state.extra as String? ?? '';
-                    return heroPage(state, ProductDetailScreen(productId: id, heroTagPrefix: prefix));
+                    return heroPage(
+                      state,
+                      ProductDetailScreen(productId: id, heroTagPrefix: prefix),
+                    );
                   },
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
@@ -37,18 +38,18 @@ class _ProductActionPanelState extends State<ProductActionPanel> {
   void _handleAddToCart() async {
     if (_isAdding || _isAdded) return;
     setState(() => _isAdding = true);
-    
+
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 600));
-    
+
     if (!mounted) return;
     setState(() {
       _isAdding = false;
       _isAdded = true;
     });
-    
+
     widget.onAddToCart();
-    
+
     // Reset after a while
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
@@ -63,7 +64,12 @@ class _ProductActionPanelState extends State<ProductActionPanel> {
         // Quantity Stepper
         Row(
           children: [
-            Text('Số lượng:', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              'Số lượng:',
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             const SizedBox(width: 16),
             Container(
               decoration: BoxDecoration(
@@ -78,14 +84,19 @@ class _ProductActionPanelState extends State<ProductActionPanel> {
                     onPressed: _decrease,
                     color: AppColors.neutral900,
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                   ),
                   SizedBox(
                     width: 32,
                     child: Text(
                       '$quantity',
                       textAlign: TextAlign.center,
-                      style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTypography.bodyLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -93,7 +104,10 @@ class _ProductActionPanelState extends State<ProductActionPanel> {
                     onPressed: _increase,
                     color: AppColors.neutral900,
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                   ),
                 ],
               ),
@@ -108,22 +122,20 @@ class _ProductActionPanelState extends State<ProductActionPanel> {
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) => ScaleTransition(
-                  scale: animation,
-                  child: child,
-                ),
-                child: _isAdded 
-                  ? CvButton(
-                      key: const ValueKey('added'),
-                      text: '✓ Đã thêm',
-                      onPressed: () {},
-                      customBackgroundColor: Colors.green.shade600,
-                    )
-                  : CvButton(
-                      key: const ValueKey('add'),
-                      text: _isAdding ? '...' : 'Thêm vào giỏ',
-                      onPressed: _handleAddToCart,
-                    ),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
+                child: _isAdded
+                    ? CvButton(
+                        key: const ValueKey('added'),
+                        text: '✓ Đã thêm',
+                        onPressed: () {},
+                        customBackgroundColor: Colors.green.shade600,
+                      )
+                    : CvButton(
+                        key: const ValueKey('add'),
+                        text: _isAdding ? '...' : 'Thêm vào giỏ',
+                        onPressed: _handleAddToCart,
+                      ),
               ),
             ),
             const SizedBox(width: 16),

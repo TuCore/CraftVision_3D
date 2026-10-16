@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_ai_bubble.dart';
@@ -32,7 +33,8 @@ class _GiftAiScreenState extends State<GiftAiScreen> {
           _isTyping = false;
           _messages.insert(0, {
             'isUser': false,
-            'text': 'Đây là một số gợi ý quà 3D cho "$text":\n1. Hộp pha lê khắc 3D hoa hồng tinh xảo.\n2. Hộp đèn cung hoàng đạo để bàn.\nBạn thích gợi ý nào hơn?',
+            'text':
+                'Đây là một số gợi ý quà 3D cho "$text":\n1. Hộp pha lê khắc 3D hoa hồng tinh xảo.\n2. Hộp đèn cung hoàng đạo để bàn.\nBạn thích gợi ý nào hơn?',
           });
         });
       }
@@ -57,17 +59,20 @@ class _GiftAiScreenState extends State<GiftAiScreen> {
                     child: CvAiBubble(state: CvAiBubbleState.thinking),
                   );
                 }
-                
+
                 final msgIndex = _isTyping ? index - 1 : index;
                 final msg = _messages[msgIndex];
                 final isUser = msg['isUser'] as bool;
-                
+
                 if (isUser) {
                   return Align(
                     alignment: Alignment.centerRight,
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 16, left: 48),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.neutral200,
                         borderRadius: const BorderRadius.only(
@@ -76,22 +81,29 @@ class _GiftAiScreenState extends State<GiftAiScreen> {
                           bottomLeft: Radius.circular(16),
                         ),
                       ),
-                      child: Text(msg['text'] as String, style: AppTypography.bodyMedium),
+                      child: Text(
+                        msg['text'] as String,
+                        style: AppTypography.bodyMedium,
+                      ),
                     ),
                   );
                 } else {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: CvAiBubble(state: CvAiBubbleState.response, text: msg['text'] as String),
+                    child: CvAiBubble(
+                      state: CvAiBubbleState.response,
+                      text: msg['text'] as String,
+                    ),
                   );
                 }
               },
             ),
           ),
-          
+
           // Input Area
           Container(
-            padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
+            padding: const EdgeInsets.all(16)
+                .copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               boxShadow: [
@@ -99,7 +111,7 @@ class _GiftAiScreenState extends State<GiftAiScreen> {
                   color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
-                )
+                ),
               ],
             ),
             child: Row(
@@ -108,15 +120,21 @@ class _GiftAiScreenState extends State<GiftAiScreen> {
                   child: TextField(
                     controller: _promptController,
                     decoration: InputDecoration(
-                      hintText: 'Mô tả người nhận (VD: Bạn gái 20 tuổi thích chó)...',
-                      hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.neutral400),
+                      hintText:
+                          'Mô tả người nhận (VD: Bạn gái 20 tuổi thích chó)...',
+                      hintStyle: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.neutral400,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
                       fillColor: AppColors.neutral200,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
                     onSubmitted: (_) => _sendMessage(),
                   ),
@@ -125,10 +143,14 @@ class _GiftAiScreenState extends State<GiftAiScreen> {
                 CircleAvatar(
                   backgroundColor: AppColors.primary,
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: AppColors.white, size: 20),
+                    icon: const Icon(
+                      Icons.send,
+                      color: AppColors.white,
+                      size: 20,
+                    ),
                     onPressed: _sendMessage,
                   ),
-                )
+                ),
               ],
             ),
           ),

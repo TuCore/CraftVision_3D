@@ -103,6 +103,11 @@ public class ApplicationDbContext : DbContext
 
         // Indexes
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+        modelBuilder.Entity<CartItem>().HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
+        modelBuilder.Entity<Favorite>().HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
+        modelBuilder.Entity<Voucher>().HasIndex(x => x.Code).IsUnique();
+        modelBuilder.Entity<DevicePushToken>().HasIndex(x => x.Token).IsUnique();
+        modelBuilder.Entity<PasswordResetToken>().HasIndex(x => x.TokenHash).IsUnique();
         
         // HNSW Vector Indexes for similarity search
         modelBuilder.Entity<KnowledgeMaterial>()
@@ -219,6 +224,14 @@ public class ApplicationDbContext : DbContext
             .WithMany()
             .HasForeignKey(r => r.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CartItem>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<CartItem>().HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Favorite>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Favorite>().HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<UserNotification>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<DevicePushToken>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PasswordResetToken>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Review>()
             .HasOne(r => r.User)

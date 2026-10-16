@@ -70,9 +70,32 @@ class OrderListScreen extends ConsumerWidget {
           }
           return Center(child: Text('Lỗi tải dữ liệu: $e'));
         },
+        child: orders.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => ListView(
+            children: [
+              const SizedBox(height: 160),
+              Center(child: Text('Không thể tải đơn hàng: $error')),
+            ],
+          ),
+          data: (items) => items.isEmpty
+              ? ListView(
+                  children: const [
+                    SizedBox(height: 160),
+                    Center(child: Text('Bạn chưa có đơn hàng.')),
+                  ],
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (_, index) => _OrderCard(order: items[index]),
+                ),
+        ),
       ),
     );
   }
+}
 
   Widget _buildOrderCard(dynamic order, BuildContext context) {
     final statusColor = order.status == 'pending' ? AppColors.warning : AppColors.primary;

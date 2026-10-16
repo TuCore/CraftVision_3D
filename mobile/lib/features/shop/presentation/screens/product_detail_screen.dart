@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
+import '../../data/models/product_view_model.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_motion.dart';
@@ -22,7 +26,7 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
   final String heroTagPrefix;
 
   const ProductDetailScreen({
-    super.key, 
+    super.key,
     required this.productId,
     this.heroTagPrefix = '',
   });
@@ -53,11 +57,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
-    
+
     // Show sticky CTA after scrolling past the main action panel
     // The image takes ~55% of height, so 400 is a safe threshold
     final shouldShow = _scrollController.offset > 400;
-    
+
     if (shouldShow != _showStickyCta) {
       setState(() {
         _showStickyCta = shouldShow;

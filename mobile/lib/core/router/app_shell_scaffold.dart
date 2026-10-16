@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../widgets/cv_bottom_nav.dart';
 
 class AppShellScaffold extends StatelessWidget {
@@ -55,17 +56,14 @@ class _AnimatedBranchContainer extends StatelessWidget {
         final index = entry.key;
         final child = entry.value;
         final isActive = index == currentIndex;
-        
+
         return IgnorePointer(
           ignoring: !isActive,
           child: AnimatedOpacity(
             opacity: isActive ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            child: TickerMode(
-              enabled: isActive,
-              child: child,
-            ),
+            child: TickerMode(enabled: isActive, child: child),
           ),
         );
       }).toList(),

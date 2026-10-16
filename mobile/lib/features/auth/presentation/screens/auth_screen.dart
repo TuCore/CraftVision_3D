@@ -2,6 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/cv_button.dart';
@@ -289,7 +292,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                                   shape: BoxShape.circle,
                                 ),
                                 child: ClipOval(
-                                  child: Image.asset('assets/images/logoweb.jpg', fit: BoxFit.cover),
+                                  child: Image.asset(
+                                    'assets/images/logoweb.jpg',
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),

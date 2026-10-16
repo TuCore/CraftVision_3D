@@ -55,12 +55,16 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                           children: [
                             Text(
                               'Đá quý tháng 10',
-                              style: AppTypography.heading3.copyWith(color: AppColors.white),
+                              style: AppTypography.heading3.copyWith(
+                                color: AppColors.white,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Lấp lánh và rạng rỡ',
-                              style: AppTypography.bodySmall.copyWith(color: AppColors.neutral300),
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.neutral300,
+                              ),
                             ),
                           ],
                         ),
@@ -93,7 +97,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               child: Text('Mua theo danh mục', style: AppTypography.heading2),
             ),
             const SizedBox(height: 16),
-            
+
             // Mua theo danh mục (Chips)
             SizedBox(
               height: 44,

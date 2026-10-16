@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/pressable.dart';
@@ -43,7 +44,9 @@ class GreetingOptionCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                        style: AppTypography.bodyMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -59,7 +62,9 @@ class GreetingOptionCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.neutral600),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.neutral600,
+                    ),
                   ),
                 ],
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_product_card.dart';
 import '../providers/shop_provider.dart';
@@ -12,7 +13,7 @@ class ProductRelatedSection extends ConsumerWidget {
   final String heroTagPrefix;
 
   const ProductRelatedSection({
-    super.key, 
+    super.key,
     required this.category,
     required this.currentProductId,
     this.heroTagPrefix = '',

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
+import '../../../shop/data/models/product_view_model.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_top_bar.dart';
@@ -40,33 +44,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     
     return Scaffold(
       appBar: const CvTopBar(title: 'CraftVision'),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Greeting
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Chào bạn,', style: AppTypography.labelText),
-                  const SizedBox(height: 4),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Hôm nay bạn muốn mua gì?',
-                      style: AppTypography.heading1,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(productsProvider);
+          ref.invalidate(productCategoriesProvider);
+          await ref.read(productsProvider.future);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 8.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Chào bạn,', style: AppTypography.labelText),
+                    const SizedBox(height: 4),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Hôm nay bạn muốn mua gì?',
+                        style: AppTypography.heading1,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            
-            // Search Bar
-            const CvSearchBar(),
-            const SizedBox(height: 24),
 
             // Banner tĩnh (Hardcode)
             Padding(
@@ -183,21 +193,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Featured Products
-            const CvSectionHeader(title: 'Sản phẩm nổi bật'),
-            
-            // Tab-like selection
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: [
-                  _buildTab(0, 'Dành cho bạn'),
-                  const SizedBox(width: 24),
-                  _buildTab(1, 'Mới về'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+              // Featured Products
+              const CvSectionHeader(title: 'Sản phẩm nổi bật'),
 
             // Masonry Grid
             Padding(
@@ -255,9 +252,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   },
                 ),
               ),
-            ),
-            const SizedBox(height: 100), // spacing for bottom nav
-          ],
+              const SizedBox(height: 100), // spacing for bottom nav
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'app_colors.dart';
 import 'app_typography.dart';
 
@@ -52,7 +53,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.neutral200,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -69,7 +73,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        hintStyle: AppTypography.bodyLarge.copyWith(color: AppColors.neutral400),
+        hintStyle: AppTypography.bodyLarge.copyWith(
+          color: AppColors.neutral400,
+        ),
       ),
     );
   }
@@ -95,10 +101,16 @@ class AppTheme {
         displayMedium: AppTypography.heading2.copyWith(color: AppColors.white),
         displaySmall: AppTypography.heading3.copyWith(color: AppColors.white),
         bodyLarge: AppTypography.bodyLarge.copyWith(color: AppColors.white),
-        bodyMedium: AppTypography.bodyMedium.copyWith(color: AppColors.neutral300),
-        bodySmall: AppTypography.bodySmall.copyWith(color: AppColors.neutral400),
+        bodyMedium: AppTypography.bodyMedium.copyWith(
+          color: AppColors.neutral300,
+        ),
+        bodySmall: AppTypography.bodySmall.copyWith(
+          color: AppColors.neutral400,
+        ),
         labelLarge: AppTypography.buttonText.copyWith(color: AppColors.white),
-        labelMedium: AppTypography.labelText.copyWith(color: AppColors.neutral400),
+        labelMedium: AppTypography.labelText.copyWith(
+          color: AppColors.neutral400,
+        ),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.surfaceDark,
@@ -122,7 +134,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.neutral800,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -139,7 +154,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        hintStyle: AppTypography.bodyLarge.copyWith(color: AppColors.neutral400),
+        hintStyle: AppTypography.bodyLarge.copyWith(
+          color: AppColors.neutral400,
+        ),
       ),
     );
   }

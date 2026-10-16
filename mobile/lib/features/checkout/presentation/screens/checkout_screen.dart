@@ -61,44 +61,79 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
-  void _onStepCancel() {
-    if (_currentStep > 0) {
-      setState(() => _currentStep -= 1);
-    } else {
-      context.pop();
+  Future<void> _submit() async {
+    if (_name.text.trim().isEmpty ||
+        _phone.text.trim().isEmpty ||
+        _address.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đủ thông tin nhận hàng.')),
+      );
+      return;
+    }
+    setState(() => _loading = true);
+    try {
+      final api = await ref.read(apiServicesProvider.future);
+      final products = await ref.read(productsProvider.future);
+      if (products.isEmpty)
+        throw StateError('Không có sản phẩm để tạo đơn hàng.');
+      await api.orders.createOrder({
+        'receiverName': _name.text.trim(),
+        'receiverPhone': _phone.text.trim(),
+        'receiverAddress': _address.text.trim(),
+        'paymentMethod': 'COD',
+        'shippingFee': 0,
+        'items': [
+          {'productId': products.first.id, 'quantity': 1, 'wantNfc': false},
+        ],
+      });
+      ref.invalidate(ordersProvider);
+      if (mounted) context.pushReplacement('/checkout/success');
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$error')));
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    _address.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final products = ref.watch(productsProvider).value ?? const [];
     return Scaffold(
       appBar: AppBar(title: const Text('Thanh toán')),
-      body: Stepper(
-        type: StepperType.vertical,
-        currentStep: _currentStep,
-        onStepContinue: _onStepContinue,
-        onStepCancel: _onStepCancel,
-        onStepTapped: (step) => setState(() => _currentStep = step),
-        controlsBuilder: (context, details) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 24.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CvButton(
-                    text: _currentStep == 3 ? 'Hoàn tất thanh toán' : 'Tiếp tục',
-                    isLoading: _isLoading,
-                    onPressed: details.onStepContinue,
-                  ),
-                ),
-                if (_currentStep > 0) ...[
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CvButton(
-                      text: 'Quay lại',
-                      variant: CvButtonVariant.secondary,
-                      isDisabled: _isLoading,
-                      onPressed: details.onStepCancel,
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Text('Thông tin giao hàng', style: AppTypography.heading2),
+          const SizedBox(height: 16),
+          CvInput(labelText: 'Họ và tên', controller: _name),
+          const SizedBox(height: 12),
+          CvInput(labelText: 'Số điện thoại', controller: _phone),
+          const SizedBox(height: 12),
+          CvInput(labelText: 'Địa chỉ nhận hàng', controller: _address),
+          const SizedBox(height: 28),
+          Text('Sản phẩm', style: AppTypography.heading2),
+          const SizedBox(height: 8),
+          if (products.isNotEmpty)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: products.first.imageUrl.isEmpty
+                  ? const Icon(Icons.inventory_2_outlined)
+                  : Image.network(
+                      products.first.imageUrl,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ],
@@ -187,9 +222,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 Text('Phương thức thanh toán: $_paymentMethod', style: AppTypography.bodyMedium),
               ],
             ),
-            isActive: _currentStep >= 3,
-            state: _currentStep == 3 ? StepState.editing : StepState.indexed,
-          ),
+          const SizedBox(height: 24),
+          CvButton(text: 'Đặt hàng', isLoading: _loading, onPressed: _submit),
         ],
       ),
     );

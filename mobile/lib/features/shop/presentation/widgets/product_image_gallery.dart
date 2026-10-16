@@ -51,10 +51,7 @@ class _ProductImageGalleryState extends State<ProductImageGallery> {
               );
               // Only apply Hero to the first image
               if (index == 0) {
-                return Hero(
-                  tag: widget.heroTag,
-                  child: child,
-                );
+                return Hero(tag: widget.heroTag, child: child);
               }
               return child;
             },
@@ -74,8 +71,8 @@ class _ProductImageGalleryState extends State<ProductImageGallery> {
                   width: _currentIndex == index ? 24 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _currentIndex == index 
-                        ? Colors.white 
+                    color: _currentIndex == index
+                        ? Colors.white
                         : Colors.white.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(4),
                     boxShadow: const [

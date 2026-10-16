@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_ai_bubble.dart';
@@ -16,7 +17,7 @@ class _GreetingAiScreenState extends State<GreetingAiScreen> {
     {
       'isUser': false,
       'text': 'Chào bạn, mình có thể giúp bạn viết thiệp. Bạn muốn giọng văn lãng mạn, hài hước hay trang trọng?',
-    }
+    },
   ];
   bool _isTyping = false;
 
@@ -61,17 +62,20 @@ class _GreetingAiScreenState extends State<GreetingAiScreen> {
                     child: CvAiBubble(state: CvAiBubbleState.thinking),
                   );
                 }
-                
+
                 final msgIndex = _isTyping ? index - 1 : index;
                 final msg = _messages[msgIndex];
                 final isUser = msg['isUser'] as bool;
-                
+
                 if (isUser) {
                   return Align(
                     alignment: Alignment.centerRight,
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 16, left: 48),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.neutral200,
                         borderRadius: const BorderRadius.only(
@@ -80,21 +84,28 @@ class _GreetingAiScreenState extends State<GreetingAiScreen> {
                           bottomLeft: Radius.circular(16),
                         ),
                       ),
-                      child: Text(msg['text'] as String, style: AppTypography.bodyMedium),
+                      child: Text(
+                        msg['text'] as String,
+                        style: AppTypography.bodyMedium,
+                      ),
                     ),
                   );
                 } else {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: CvAiBubble(state: CvAiBubbleState.response, text: msg['text'] as String),
+                    child: CvAiBubble(
+                      state: CvAiBubbleState.response,
+                      text: msg['text'] as String,
+                    ),
                   );
                 }
               },
             ),
           ),
-          
+
           Container(
-            padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
+            padding: const EdgeInsets.all(16)
+                .copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               boxShadow: [
@@ -102,7 +113,7 @@ class _GreetingAiScreenState extends State<GreetingAiScreen> {
                   color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
-                )
+                ),
               ],
             ),
             child: Row(
@@ -112,14 +123,19 @@ class _GreetingAiScreenState extends State<GreetingAiScreen> {
                     controller: _promptController,
                     decoration: InputDecoration(
                       hintText: 'Nhập yêu cầu viết thiệp...',
-                      hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.neutral400),
+                      hintStyle: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.neutral400,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
                       fillColor: AppColors.neutral200,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
                     onSubmitted: (_) => _sendMessage(),
                   ),
@@ -128,10 +144,14 @@ class _GreetingAiScreenState extends State<GreetingAiScreen> {
                 CircleAvatar(
                   backgroundColor: AppColors.surfaceTint,
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: AppColors.neutral900, size: 20),
+                    icon: const Icon(
+                      Icons.send,
+                      color: AppColors.neutral900,
+                      size: 20,
+                    ),
                     onPressed: _sendMessage,
                   ),
-                )
+                ),
               ],
             ),
           ),

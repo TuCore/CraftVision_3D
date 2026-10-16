@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
@@ -17,7 +18,11 @@ class ProductShippingSection extends StatelessWidget {
         const SizedBox(height: 12),
         _buildRow(Icons.local_shipping, 'Giao hàng toàn quốc', ''),
         const SizedBox(height: 12),
-        _buildRow(Icons.published_with_changes, 'Đổi trả miễn phí trong 7 ngày', ''),
+        _buildRow(
+          Icons.published_with_changes,
+          'Đổi trả miễn phí trong 7 ngày',
+          '',
+        ),
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
@@ -39,7 +44,9 @@ class ProductShippingSection extends StatelessWidget {
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: AppTypography.bodyMedium.copyWith(color: AppColors.neutral900),
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.neutral900,
+              ),
               children: [
                 TextSpan(text: '$title '),
                 if (boldText.isNotEmpty)
