@@ -3,11 +3,12 @@
 import Image from "next/image";
 import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, CreditCard, Heart, MessageSquare, Sparkles, Wind, X } from "lucide-react";
+import { ArrowLeft, CreditCard, Heart, MessageSquare, QrCode, Sparkles, Wind, X } from "lucide-react";
 import { toast } from "sonner";
 import { AudioPlayer, AudioPlayerHandle } from "@/components/greeting-card/AudioPlayer";
 import { EnvelopeUnfold } from "@/components/greeting-card/EnvelopeUnfold";
 import { SceneContainer } from "@/components/greeting-card/scene/SceneContainer";
+import { CardQRShareHub } from "@/features/cards/CardQRShareHub";
 import { Product } from "@/lib/product.types";
 import { useOrderStore } from "@/store/useOrderStore";
 
@@ -51,6 +52,8 @@ function GreetingCardContent() {
   const [isInteractive, setIsInteractive] = useState(false);
   const [candleBlownOut, setCandleBlownOut] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showShareHub, setShowShareHub] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
   const [data, setData] = useState<GreetingData>(DEFAULT_GREETING);
 
   useEffect(() => {
@@ -71,6 +74,10 @@ function GreetingCardContent() {
       price: saved?.price || DEFAULT_GREETING.price,
       templateId: saved?.templateId || DEFAULT_GREETING.templateId,
     });
+  }, [searchParams]);
+
+  useEffect(() => {
+    setShareUrl(window.location.href);
   }, [searchParams]);
 
   useEffect(() => () => {
@@ -161,6 +168,14 @@ function GreetingCardContent() {
             >
               <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" /> Xem lời chúc
             </button>
+            <button
+              type="button"
+              onClick={() => setShowShareHub(true)}
+              disabled={!shareUrl}
+              className="flex min-h-11 items-center gap-1.5 rounded-full border border-violet-300/30 bg-violet-500/15 px-4 py-2 text-xs font-semibold text-violet-100 backdrop-blur-md transition hover:bg-violet-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 disabled:opacity-50"
+            >
+              <QrCode className="h-3.5 w-3.5" aria-hidden="true" /> Mã QR
+            </button>
           </nav>
 
           <div className="absolute right-20 top-5 z-30 hidden sm:block">
@@ -195,6 +210,21 @@ function GreetingCardContent() {
             </div>
           )}
         </>
+      )}
+
+      {showShareHub && shareUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Chia sẻ thiệp bằng mã QR"
+          className="absolute inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/65 p-3 backdrop-blur-md sm:items-center sm:p-6"
+          onClick={() => setShowShareHub(false)}
+        >
+          <div className="relative w-full max-w-xl" onClick={event => event.stopPropagation()}>
+            <button type="button" onClick={() => setShowShareHub(false)} aria-label="Đóng mã QR" className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-black/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300"><X className="h-5 w-5" /></button>
+            <CardQRShareHub shareUrl={shareUrl} cardTitle={data.title} recipientName={data.receiverName} />
+          </div>
+        </div>
       )}
 
       {showMessageModal && (

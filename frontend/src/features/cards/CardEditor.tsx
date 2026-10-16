@@ -9,6 +9,7 @@ import { commonFields, defaultDraft, fieldsFor, validateDraft, type CardField, t
 import { importPhoto, importAudio, parseDraft, readDraft, saveDraft } from "./storage";
 import { cardRequest, downloadDraft, uploadDraft, type ServerCard, type CardPayment } from "./server";
 import { getCardCommerce, formatCardPrice } from "./commerce";
+import { CardQRShareHub } from "./CardQRShareHub";
 import "./cards.css";
 
 export default function CardEditor({ template }: { template: CardTemplate }) {
@@ -162,7 +163,7 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
         {serverCard?.sharePath && <button disabled={busy} onClick={() => void revoke()}>Thu hồi link</button>}
       </div>}
       {busy && <p role="status">Đang xử lý, vui lòng đợi…</p>}
-      {shareUrl && <div className="share-link"><label htmlFor="public-card-link">Link chia sẻ công khai</label><input id="public-card-link" value={shareUrl} readOnly onFocus={event => event.target.select()} /><button onClick={async () => { try { await navigator.clipboard.writeText(shareUrl); setNotice("Đã sao chép link chia sẻ."); } catch { setNotice("Hãy chọn và sao chép link trong ô bên trên."); } }}>Sao chép link</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở thiệp ↗</a>{shareUrl.startsWith("http://localhost") && <p>Đây là link thử trên máy của bạn. Để gửi cho người khác, hãy mở website đã deploy và xuất bản tại đó.</p>}</div>}
+      {shareUrl && <><CardQRShareHub shareUrl={shareUrl} cardTitle={template.title} recipientName={String(draft.values.recipient || "")} />{shareUrl.startsWith("http://localhost") && <p>Đây là link thử trên máy của bạn. Để gửi cho người khác, hãy mở website đã deploy và xuất bản tại đó.</p>}</>}
       {loadFailed && <p role="alert">Không tải được thiệp trên server. <Link href="/cards/mine">Quay lại Thiệp của tôi</Link> hoặc tải lại trang để thử lại.</p>}
       <p className="editor-notice" role="status">{notice}</p>
     </section>
