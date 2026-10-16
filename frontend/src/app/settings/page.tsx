@@ -59,6 +59,7 @@ import { useTheme } from "next-themes";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Language } from "@/lib/dictionaries";
 import { useRouter } from "next/navigation";
+import { clearAuthSession, logout, setAuthItem } from "@/lib/authSession";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -264,9 +265,8 @@ export default function SettingsPage() {
           avatarUrl
         })
       });
-      // Vẫn lưu name lên local storage để Navbar có thể hiển thị nếu cần thiết
-      localStorage.setItem("fullName", fullName);
-      if (avatarUrl) localStorage.setItem("avatarUrl", avatarUrl);
+      setAuthItem("fullName", fullName);
+      if (avatarUrl) setAuthItem("avatarUrl", avatarUrl);
       import("sonner").then(({ toast }) => toast.success("Đã lưu thay đổi thành công!"));
     } catch (error: any) {
       import("sonner").then(({ toast }) => toast.error(error.message || "Không thể lưu hồ sơ"));
@@ -283,13 +283,7 @@ export default function SettingsPage() {
       const { toast } = await import("sonner");
       toast.success(language === "vi" ? "Tài khoản của bạn đã được xoá thành công." : "Your account has been deleted.");
       
-      // Clear all stored credentials
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("email");
-      localStorage.removeItem("fullName");
-      localStorage.removeItem("createdAt");
-      localStorage.removeItem("avatarUrl");
+      clearAuthSession();
 
       setIsDeleteDialogOpen(false);
       router.replace("/auth");
@@ -341,13 +335,7 @@ export default function SettingsPage() {
             <div className="border-t border-border my-2" />
             <button 
               onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("email");
-                localStorage.removeItem("fullName");
-                localStorage.removeItem("createdAt");
-                localStorage.removeItem("avatarUrl");
-                router.replace("/auth");
+                logout();
               }}
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10"
             >

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Truck, ShoppingCart, CreditCard, ArrowLeft, Wand2, Box, Clock, Sparkles, CheckCircle2 } from "lucide-react";
 import api from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getAccessToken } from "@/lib/authSession";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function CheckoutPage() {
   );
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) {
       toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
       router.replace("/auth?redirect=/checkout");

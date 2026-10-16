@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAccessToken, logout } from '@/lib/authSession';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5192',
@@ -10,8 +11,7 @@ const api = axios.create({
 // Request interceptor to attach JWT token
 api.interceptors.request.use(
   (config) => {
-    // In a real app, you'd get the token from cookies or localStorage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,6 +24,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) logout('unauthorized');
     if (error.response && error.response.data) {
       // Standardize the error from backend { success, message, errors }
       return Promise.reject(error.response.data);

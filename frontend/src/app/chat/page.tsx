@@ -7,6 +7,7 @@ import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package,
 import { fetchApi } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getAccessToken, getAuthItem } from "@/lib/authSession";
 
 type Message = {
   role: "user" | "ai";
@@ -39,7 +40,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      const token = getAccessToken();
       const isDemo = new URLSearchParams(window.location.search).get("demo") === "true";
       if (!token && !isDemo) {
         toast.info("Vui lòng đăng nhập hoặc đăng ký để sử dụng Trợ lý AI & Vision Plus!");
@@ -137,7 +138,7 @@ export default function ChatPage() {
       }
       
       const payload = {
-        userId: localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000000",
+        userId: getAuthItem("userId") || "00000000-0000-0000-0000-000000000000",
         prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý quà tặng",
         imageUrl: finalImageUrl || "",
         maxCost: maxCost,

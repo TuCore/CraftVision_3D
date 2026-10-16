@@ -2,6 +2,7 @@
 
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
+import { getAccessToken } from "@/lib/authSession";
 import { AppShell } from "@/components/AppShell";
 import {
   ShoppingCart,
@@ -156,7 +157,7 @@ export default function CartPage() {
 
       if (payloadItems.length === 0) return;
 
-      if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+      if (getAccessToken()) {
         payloadItems.forEach((pi) => {
           api.post('/api/cart/items', { productId: pi.productId, quantity: pi.quantity }).catch(() => {});
         });
@@ -777,7 +778,7 @@ export default function CartPage() {
 
                 <button
                   onClick={() => {
-                    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                    const token = getAccessToken();
                     if (!token) {
                       toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
                       router.push("/auth?redirect=/checkout");

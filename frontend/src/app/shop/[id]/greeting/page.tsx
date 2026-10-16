@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { AIGiftWidget } from "@/components/AIGiftWidget";
 import { Product } from "@/lib/product.types";
+import { getAccessToken } from "@/lib/authSession";
 import {
   ArrowLeft,
   CheckCircle,
@@ -332,7 +333,7 @@ function GreetingDesignContent() {
   const handleConfirm = () => {
     if (!product) return;
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) {
       toast.info("Vui lòng đăng nhập hoặc đăng ký để thêm vào giỏ hàng!");
       router.push("/auth");
@@ -439,7 +440,7 @@ function GreetingDesignContent() {
       return;
     }
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) {
       toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
       router.push("/auth?redirect=/checkout");

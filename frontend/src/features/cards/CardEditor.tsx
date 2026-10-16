@@ -10,6 +10,7 @@ import { importPhoto, importAudio, parseDraft, readDraft, saveDraft } from "./st
 import { cardRequest, downloadDraft, uploadDraft, type ServerCard, type CardPayment } from "./server";
 import { getCardCommerce, formatCardPrice } from "./commerce";
 import { CardQRShareHub } from "./CardQRShareHub";
+import { getAccessToken } from "@/lib/authSession";
 import "./cards.css";
 
 export default function CardEditor({ template }: { template: CardTemplate }) {
@@ -32,7 +33,7 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      setSignedIn(Boolean(localStorage.getItem("token")));
+      setSignedIn(Boolean(getAccessToken()));
       setLoginPath(window.location.pathname + window.location.search);
       const id = new URLSearchParams(window.location.search).get("card");
       try {

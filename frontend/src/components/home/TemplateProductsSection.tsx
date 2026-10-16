@@ -15,6 +15,7 @@ import { getCardCommerce } from "@/features/cards/commerce";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { Product } from "@/lib/product.types";
 import { toast } from "sonner";
+import { getAccessToken } from "@/lib/authSession";
 
 const STARLIGHT_TEMPLATE = INITIAL_TEMPLATE_PRODUCTS[0];
 const STARLIGHT_DEMO_URL = `/greeting-card?title=${encodeURIComponent(STARLIGHT_TEMPLATE.title)}`;
@@ -34,7 +35,7 @@ export function TemplateProductsSection() {
   const personalizeLabel = language === "vi" ? "Cá nhân hóa" : "Personalize";
 
   const handleAddToCart = (card: CardTemplate) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) {
       toast.info(language === "vi" ? "Vui lòng đăng nhập để thêm vào giỏ hàng!" : "Please login to add to cart!");
       router.push("/auth");
@@ -79,7 +80,7 @@ export function TemplateProductsSection() {
   };
 
   const handleAddStarlightToCart = () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token = getAccessToken();
     if (!token) {
       toast.info(language === "vi" ? "Vui lòng đăng nhập để thêm vào giỏ hàng!" : "Please login to add to cart!");
       router.push("/auth");

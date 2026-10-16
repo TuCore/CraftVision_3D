@@ -2,10 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product } from '@/lib/product.types';
 import api from '@/lib/api';
+import { getAccessToken } from '@/lib/authSession';
 
 const syncItemToBackend = (productId: string, quantity: number, selectedOptions?: any) => {
   if (typeof window === 'undefined') return;
-  const token = localStorage.getItem('token');
+  const token = getAccessToken();
   if (!token) return;
   const cleanId = (productId || '').replace(/-3d$/, '');
   const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
@@ -19,7 +20,7 @@ const syncItemToBackend = (productId: string, quantity: number, selectedOptions?
 
 const removeItemFromBackend = (cartItemIdOrProductId: string) => {
   if (typeof window === 'undefined') return;
-  const token = localStorage.getItem('token');
+  const token = getAccessToken();
   if (!token) return;
   const match = (cartItemIdOrProductId || '').match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
   if (!match) return;
@@ -310,7 +311,7 @@ export const useWishlistStore = create<WishlistStore>()(
       }),
       isFavorite: (id) => get().items.some((item) => item.id === id),
       clearWishlist: () => {
-        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+        if (getAccessToken()) {
           api.delete('/api/cart').catch(() => {});
         }
         set({ items: [] });

@@ -11,6 +11,7 @@ import { useFavoriteStore } from "@/store/useFavoriteStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useProductCategories } from "@/hooks/useProductCategories";
 import api from "@/lib/api";
+import { getAccessToken } from "@/lib/authSession";
 
 import { TiltCard } from "@/components/TiltCard";
 import {
@@ -52,7 +53,7 @@ export default function ShopPage() {
   };
 
   const handleAddToCart = (product: Product) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) {
       toast.info(language === "vi" ? "Vui lòng đăng nhập để thêm vào giỏ hàng!" : "Please login to add to cart!");
       router.push("/auth");

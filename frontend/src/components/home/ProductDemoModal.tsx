@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useTranslation } from "@/components/LanguageProvider";
 import Link from "next/link";
 import { legacyCardSlug, legacyCardPath } from "@/features/cards/legacy";
+import { getAccessToken } from "@/lib/authSession";
 
 interface Product {
   id: number;
@@ -148,7 +149,7 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
               <button 
                 onClick={() => {
                   onClose();
-                  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                  const token = getAccessToken();
                   if (!token) {
                     toast.info("Vui lòng đăng nhập hoặc đăng ký để mua sản phẩm!");
                     router.push(`/auth?redirect=/shop/template-${product.id}/greeting`);

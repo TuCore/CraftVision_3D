@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
+import { getAccessToken } from "@/lib/authSession";
 
 export default function PaymentTransferPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function PaymentTransferPage() {
           })
           .catch((err: any) => {
             console.error("Lỗi khi tải thông tin đơn hàng:", err);
-            const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+            const token = getAccessToken();
             if (!token || err?.status === 401 || err?.statusCode === 401) {
               toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem thông tin thanh toán.");
               router.push(`/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);

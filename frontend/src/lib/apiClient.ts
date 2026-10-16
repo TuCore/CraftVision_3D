@@ -1,12 +1,14 @@
 // src/lib/apiClient.ts
 
+import { getAccessToken, logout } from "@/lib/authSession";
+
 // Cấu hình URL cho API: 
 // 1. Nếu chạy trên trình duyệt (client-side), để chuỗi rỗng "" để Next.js tự động proxy request qua rewrites.
 // 2. Nếu chạy trên Server (SSR), dùng localhost:5192
 const API_BASE_URL = typeof window !== 'undefined' ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5192");
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+  const token = getAccessToken();
   
   const headers = new Headers(options.headers);
   if (token) {
@@ -27,6 +29,8 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     ...options,
     headers,
   });
+
+  if (response.status === 401) logout("unauthorized");
 
   if (!response.ok) {
     let errorData;

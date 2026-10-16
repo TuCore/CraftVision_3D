@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useProductReviews } from "@/hooks/useReviews";
 import React from "react";
 import { ReviewList } from "@/components/ReviewList";
+import { getAccessToken } from "@/lib/authSession";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsGuest(!localStorage.getItem("token"));
+      setIsGuest(!getAccessToken());
     }
   }, []);
   // Fetch reviews for rating
