@@ -12,6 +12,12 @@ export interface CardCommerce {
 export const cardCommerce: Record<string, CardCommerce> = Object.fromEntries(
   cardTemplates.map(({ slug }) => [slug, { salePrice: (cardPrices as Record<string, number>)[slug] }]),
 );
+cardCommerce["birthday-wish"] = {
+  ...cardCommerce["birthday-wish"],
+  sold: 188,
+  originalPrice: 89_999,
+  salePrice: 49_999,
+};
 export const sharedCardCommerce: CardCommerce = {
   videoUrl: "/videos/payment-tutorial.mp4",
 };

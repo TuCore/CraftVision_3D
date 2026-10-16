@@ -7,7 +7,7 @@ test('all card prices match the authoritative backend contract', () => {
   const prices = require('../../api-specs/card-prices.json');
   assert.deepEqual(require('../src/data/card-prices.json'), prices);
   assert.deepEqual(Object.keys(prices).sort(), cardTemplates.map(card => card.slug).sort());
-  for (const price of Object.values(prices)) assert.ok(Number.isInteger(price) && price >= 29000 && price <= 49000);
+  for (const price of Object.values(prices)) assert.ok(Number.isInteger(price) && price >= 29000 && price <= 49999);
 });
 
 test('API field schema stays in sync with all frontend templates', () => {

@@ -32,13 +32,13 @@ interface StoredGreeting {
 }
 
 const DEFAULT_GREETING: GreetingData = {
-  title: "A Birthday Wish Made of Starlight",
+  title: "Điều ước sinh nhật dệt từ ánh sao",
   receiverName: "Bạn thân mến",
   senderName: "Người thương",
   message: "Chúc bạn một tuổi mới rực rỡ, bình an và luôn được bao quanh bởi thật nhiều yêu thương. Hãy ước một điều thật đẹp nhé!",
   photoUrl: "",
   price: 49_999,
-  templateId: 1,
+  templateId: 17,
 };
 
 function GreetingCardContent() {
@@ -79,13 +79,13 @@ function GreetingCardContent() {
 
   const handlePayNow = () => {
     const product: Product & { is3D: boolean; isDigital: boolean } = {
-      id: `template-${data.templateId || 1}`,
-      name: data.title,
+      id: `template-${data.templateId || DEFAULT_GREETING.templateId}`,
+      name: DEFAULT_GREETING.title,
       price: data.price || DEFAULT_GREETING.price,
       category: "Thiệp điện tử",
       image: data.photoUrl || "/dreamy-hero-bg.jpg",
       rating: 5,
-      description: "Mẫu thiệp sinh nhật điện tử 3D",
+      description: "Điều ước sinh nhật dệt từ ánh sao - thiệp sinh nhật điện tử 3D",
       matchScore: 100,
       is3D: true,
       isDigital: true,

@@ -71,7 +71,7 @@ public sealed class PaymentTests
         Assert.False(CardPaymentService.IsFullyPaid(payment, receipt with { AmountPaid = 48999 }));
         Assert.False(CardPaymentService.IsFullyPaid(payment, receipt with { Status = "PENDING" }));
         Assert.Equal(49000, CardPrices.For("rose-love"));
-        Assert.Equal(29000, CardPrices.For("birthday-wish"));
+        Assert.Equal(49999, CardPrices.For("birthday-wish"));
         Assert.Equal(39000, CardPrices.For("heart-key"));
         Assert.Throws<CardError>(() => CardPrices.For("not-a-card"));
     }

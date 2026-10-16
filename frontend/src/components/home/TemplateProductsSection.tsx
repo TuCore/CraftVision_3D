@@ -103,7 +103,7 @@ export function TemplateProductsSection() {
                 <div className="mt-auto"><CardSaleDetails slug={card.slug} /></div>
                 <div className="grid grid-cols-2 gap-2">
                   <Link href={`/cards/${card.slug}/edit`} className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"><Sparkles className="h-4 w-4" /> {personalizeLabel}</Link>
-                  <button onClick={() => setPreview(card)} className="flex items-center justify-center gap-1.5 hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"><Eye className="h-4 w-4" /> {t("template.view_demo")}</button>
+                  <button onClick={() => card.slug === "birthday-wish" ? router.push(`/greeting-card?title=${encodeURIComponent("Điều ước sinh nhật dệt từ ánh sao")}`) : setPreview(card)} className="flex items-center justify-center gap-1.5 hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"><Eye className="h-4 w-4" /> {t("template.view_demo")}</button>
                 </div>
                 <button
                   type="button"
@@ -144,7 +144,7 @@ export function TemplateProductsSection() {
               <div className="flex flex-col gap-4">
                 <p className="text-sm text-muted-foreground">{preview.reveal}</p>
                 <Link href={`/cards/${preview.slug}/edit`} className="rounded-xl bg-blue-500 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-blue-600">{personalizeLabel} →</Link>
-                <Link href={`/love-gift/${preview.slug}`} className="text-center text-sm font-semibold text-primary">{t("demo.live_view")} ↗</Link>
+                <Link href={preview.slug === "birthday-wish" ? `/greeting-card?title=${encodeURIComponent("Điều ước sinh nhật dệt từ ánh sao")}` : `/love-gift/${preview.slug}`} className="text-center text-sm font-semibold text-primary">{t("demo.live_view")} ↗</Link>
               </div>
             </div>
           </>}
