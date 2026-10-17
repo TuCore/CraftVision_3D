@@ -36,7 +36,7 @@ export default function CheckoutPage() {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [paymentMethod, setPaymentMethod] = useState("BANK_TRANSFER");
   const [showBankInfo, setShowBankInfo] = useState(false);
   const [success3DUrl, setSuccess3DUrl] = useState<string | null>(null);
 
@@ -46,6 +46,11 @@ export default function CheckoutPage() {
       !(item.product as any).isDigital &&
       (item.product as any).category !== "Thiệp điện tử"
   );
+  const effectivePaymentMethod = hasPhysicalItems ? paymentMethod : "BANK_TRANSFER";
+
+  useEffect(() => {
+    setPaymentMethod(hasPhysicalItems ? "COD" : "BANK_TRANSFER");
+  }, [hasPhysicalItems]);
 
   const hasAddressLocation = Boolean(shippingInfo.province && shippingInfo.province.trim().length > 0);
   const hasEnteredAddressInfo = Boolean(
@@ -206,8 +211,8 @@ export default function CheckoutPage() {
         receiverName: hasPhysicalItems ? shippingInfo.receiverName : "Khách hàng 3D",
         receiverPhone: hasPhysicalItems ? shippingInfo.phone : "0999999999",
         receiverAddress: hasPhysicalItems ? fullAddress : "Online",
-        paymentMethod: paymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
-        shippingFee: shipping,
+        paymentMethod: effectivePaymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
+        shippingFee: hasPhysicalItems ? shipping : 0,
         items: items.map(item => {
           const cardPrice = item.gift?.cardPrice ?? (item.product as any).cardPrice ?? (item.gift ? 5000 : 0);
           const rawId = item.product.id || "";
@@ -236,9 +241,8 @@ export default function CheckoutPage() {
 
       const res = await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
-      if (paymentMethod === "BANK_TRANSFER") {
-        const checkoutUrlParam = res.data?.checkoutUrl ? `&checkoutUrl=${encodeURIComponent(res.data.checkoutUrl)}` : "";
-        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}${checkoutUrlParam}`);
+      if (effectivePaymentMethod === "BANK_TRANSFER") {
+        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}&checkoutUrl=${encodeURIComponent(res.data.checkoutUrl || "")}`);
         return;
       }
 
@@ -491,10 +495,12 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-bold flex items-center gap-2"><CreditCard className="w-5 h-5 text-primary" /> Thanh toán</h2>
 
             <div className="space-y-3">
-              <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'COD' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
-                <input type="radio" name="payment" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} className="w-4 h-4 text-primary" />
-                <span className="font-medium">Thanh toán khi nhận hàng (COD)</span>
-              </label>
+              {hasPhysicalItems && (
+                <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'COD' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
+                  <input type="radio" name="payment" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} className="w-4 h-4 text-primary" />
+                  <span className="font-medium">Thanh toán khi nhận hàng (COD)</span>
+                </label>
+              )}
               <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'BANK_TRANSFER' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
                 <input type="radio" name="payment" checked={paymentMethod === 'BANK_TRANSFER'} onChange={() => setPaymentMethod('BANK_TRANSFER')} className="w-4 h-4 text-primary" />
                 <span className="font-medium">Chuyển khoản ngân hàng (QR PayOS)</span>

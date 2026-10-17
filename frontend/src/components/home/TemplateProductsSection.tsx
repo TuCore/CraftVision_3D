@@ -45,7 +45,7 @@ export function TemplateProductsSection() {
     const commerce = getCardCommerce(card.slug);
     const price = commerce.salePrice || 49999;
     const productItem: Product = {
-      id: `template-${card.id}`,
+      id: `card-${card.slug}`,
       name: card.title,
       price: price,
       category: "Thiệp điện tử",
@@ -55,15 +55,20 @@ export function TemplateProductsSection() {
       matchScore: 100,
       is3D: true,
       isDigital: true,
+      cardSlug: card.slug,
+      isCardTemplate: true,
     } as any;
 
     toggleFavorite(productItem, {
       hasGreeting: true,
+      cardSlug: card.slug,
       selectedTemplate: {
         id: card.id,
+        slug: card.slug,
         title: card.title,
         image: `/cards/previews/${card.slug}.webp`,
         price: price,
+        is3D: true,
       },
       customQuantity: 1,
     });

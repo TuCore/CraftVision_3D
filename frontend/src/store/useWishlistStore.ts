@@ -38,11 +38,16 @@ export interface CartItem extends Product {
   greetingImage?: string;
   senderName?: string;
   receiverName?: string;
+  cardSlug?: string;
+  isCardTemplate?: boolean;
+  draftValues?: Record<string, import('@/features/cards/catalog').CardValue>;
   selectedTemplate?: {
     id: number;
+    slug?: string;
     title: string;
     image: string;
     price: number;
+    is3D?: boolean;
     originalPrice?: number;
     discount?: number;
   };
@@ -56,6 +61,7 @@ export interface ToggleFavoriteOptions {
   greetingImage?: string;
   senderName?: string;
   receiverName?: string;
+  cardSlug?: string;
   selectedTemplate?: CartItem['selectedTemplate'];
   preserveQuantity?: boolean;
   customQuantity?: number;
@@ -122,6 +128,7 @@ export const useWishlistStore = create<WishlistStore>()(
         let finalGreetingImage: string | undefined;
         let finalSenderName: string | undefined;
         let finalReceiverName: string | undefined;
+        let finalCardSlug: string | undefined;
         let finalSelectedTemplate: CartItem['selectedTemplate'] | undefined;
         let finalPreserveQuantity: boolean | undefined;
         let finalCustomQuantity: number | undefined;
@@ -134,6 +141,7 @@ export const useWishlistStore = create<WishlistStore>()(
           finalGreetingImage = opts.greetingImage;
           finalSenderName = opts.senderName;
           finalReceiverName = opts.receiverName;
+          finalCardSlug = opts.cardSlug;
           finalSelectedTemplate = opts.selectedTemplate;
           finalPreserveQuantity = opts.preserveQuantity;
           finalCustomQuantity = opts.customQuantity;
@@ -196,6 +204,7 @@ export const useWishlistStore = create<WishlistStore>()(
             greetingImage: finalGreetingImage !== undefined ? finalGreetingImage : currentItem.greetingImage,
             senderName: finalSenderName !== undefined ? finalSenderName : currentItem.senderName,
             receiverName: finalReceiverName !== undefined ? finalReceiverName : currentItem.receiverName,
+            cardSlug: finalCardSlug !== undefined ? finalCardSlug : currentItem.cardSlug,
             selectedTemplate: finalSelectedTemplate !== undefined ? finalSelectedTemplate : currentItem.selectedTemplate,
             stock: effectiveStock
           };
@@ -222,6 +231,7 @@ export const useWishlistStore = create<WishlistStore>()(
               greetingImage: finalGreetingImage, 
               senderName: finalSenderName, 
               receiverName: finalReceiverName, 
+              cardSlug: finalCardSlug,
               selectedTemplate: finalSelectedTemplate, 
               stock: maxStock 
             }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useWishlistStore } from "@/store/useWishlistStore";
+import { useWishlistStore, type CartItem } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { getAccessToken } from "@/lib/authSession";
 import { AppShell } from "@/components/AppShell";
@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { useMemo, useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useTranslation } from "@/components/LanguageProvider";
+import { cardTemplates } from "@/features/cards/catalog";
 
 export default function CartPage() {
   const router = useRouter();
@@ -59,6 +60,31 @@ export default function CartPage() {
   // Order Details Modal State
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleEditCard = (item: CartItem) => {
+    const isCatalogCard = item.isCardTemplate || item.isDigital || item.category === "Thiệp điện tử";
+    const catalogTemplate = cardTemplates.find((template) =>
+      template.slug === item.cardSlug ||
+      template.slug === item.selectedTemplate?.slug ||
+      (isCatalogCard && (
+        item.id === template.slug ||
+        item.id === `card-${template.slug}` ||
+        item.id === `template-${template.id}` ||
+        item.selectedTemplate?.id === template.id
+      ))
+    );
+    const editCartItemId = encodeURIComponent(item.cartItemId || item.id);
+
+    if (catalogTemplate) {
+      router.push(`/cards/${catalogTemplate.slug}/edit?editCartItemId=${editCartItemId}`);
+      return;
+    }
+
+    const threeDParams = item.is3D
+      ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || "")}&customName=${encodeURIComponent(item.name)}`
+      : "";
+    router.push(`/shop/${item.id.replace("-3d", "")}/greeting?editCartItemId=${editCartItemId}${threeDParams}`);
+  };
 
   const formatDateTime = (dateStr?: string) => {
     if (!dateStr) return "";
@@ -550,7 +576,7 @@ export default function CartPage() {
                               </div>
                               <div className="flex justify-end gap-3">
                                 <button
-                                  onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting?editCartItemId=${encodeURIComponent(item.cartItemId || item.id)}${(item as any).is3D ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
+                                  onClick={() => handleEditCard(item)}
                                   className="w-full btn-hero px-6 py-3 rounded-xl text-black font-semibold flex items-center justify-center gap-2 shadow-coral-glow cursor-pointer"
                                 >
                                   <Pencil className="w-4 h-4" />
@@ -564,7 +590,7 @@ export default function CartPage() {
 
                       {/* Direct Edit Button on Product Component */}
                       <button
-                        onClick={() => router.push(`/shop/${item.id.replace('-3d', '')}/greeting?editCartItemId=${encodeURIComponent(item.cartItemId || item.id)}${(item as any).is3D ? `&from=3d&modelUrl=${encodeURIComponent((item as any).modelUrl || '')}&customName=${encodeURIComponent(item.name)}` : ''}`)}
+                        onClick={() => handleEditCard(item)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/80 dark:bg-card/80 hover:bg-primary/10 hover:text-primary text-foreground border border-border hover:border-primary/40 shadow-xs transition-all cursor-pointer"
                         title="Chỉnh sửa thiệp & đơn hàng"
                       >
