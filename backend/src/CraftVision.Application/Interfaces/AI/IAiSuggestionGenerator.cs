@@ -2,7 +2,7 @@ using CraftVision.Domain.Entities;
 
 namespace CraftVision.Application.Interfaces.AI
 {
-    public record AiSuggestionResponse(List<GiftSuggestion> Suggestions, string FinishReason);
+    public record AiSuggestionResponse(string Reply, List<GiftSuggestion> Suggestions, string FinishReason);
 
     public interface IAiSuggestionGenerator
     {

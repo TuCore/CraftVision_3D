@@ -24,7 +24,7 @@ function makeFallbackTexture(index: number) {
     context.fillStyle = gradient;
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "rgba(255,255,255,.82)";
-    context.font = "italic 28px Georgia";
+    context.font = "italic 28px 'Playfair Display', 'Times New Roman', Times, serif";
     context.textAlign = "center";
     context.fillText("A beautiful memory", canvas.width / 2, canvas.height / 2);
   }

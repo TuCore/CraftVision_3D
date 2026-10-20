@@ -84,8 +84,8 @@ export function createGiftScene(host: HTMLDivElement, sources: string[], reduced
         const gradient = c.createLinearGradient(0, 0, 192, 224);
         gradient.addColorStop(0, "#361530"); gradient.addColorStop(1, "#bd6b87");
         c.fillStyle = gradient; c.fillRect(4, 4, 184, 216);
-        c.fillStyle = "#ffd8df"; c.textAlign = "center"; c.font = "54px Georgia"; c.fillText("♥", 96, 124);
-        c.font = "italic 15px Georgia"; c.fillText("Mãi bên em", 96, 162);
+        c.fillStyle = "#ffd8df"; c.textAlign = "center"; c.font = "54px 'Times New Roman', serif"; c.fillText("♥", 96, 124);
+        c.font = "italic 15px 'Times New Roman', serif"; c.fillText("Mãi bên em", 96, 162);
       }
       const texture = new THREE.CanvasTexture(tile);
       texture.colorSpace = THREE.SRGBColorSpace;

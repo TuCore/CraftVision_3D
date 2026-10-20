@@ -21,12 +21,27 @@ namespace CraftVision.Domain.Entities
         
         [NotMapped]
         public string? SearchKeyword { get; set; }
+
+        [NotMapped]
+        public string? YoutubeSearchQuery { get; set; }
         
         [NotMapped]
         public string? VideoUrl { get; set; }
         
         [NotMapped]
         public string? MaterialsJson { get; set; } // JSON string array of materials
+
+        [NotMapped]
+        public Guid? MatchedProductId { get; set; }
+
+        [NotMapped]
+        public string? MatchedProductName { get; set; }
+
+        [NotMapped]
+        public decimal? MatchedProductPrice { get; set; }
+
+        [NotMapped]
+        public bool? MatchedProductSupportsNfc { get; set; }
         
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

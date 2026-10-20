@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { AppShell } from "@/components/AppShell";
-import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History, MessageSquare, Box } from "lucide-react";
+import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History, MessageSquare, Box, Trash2, Loader2 } from "lucide-react";
 import { fetchApi } from "@/lib/apiClient";
+import { ChatSessionSummary, deleteChatSession, getChatSessions, getSessionMessages } from "@/lib/chatSessionApi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getAccessToken, getAuthItem } from "@/lib/authSession";
@@ -16,17 +17,29 @@ type Message = {
   suggestions?: any[];
 };
 
+const defaultWelcomeMsg: Message = {
+  role: "ai",
+  content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
+};
+
 const modes = [
   {id:"vision", title:"Vision Plus", subtitle:"Chat & phân tích hình ảnh", badge:"Free", icon: MessageSquare},
   {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản", badge:"Pro", icon: Box},
 ];
 
-const mockHistory = [
-  { id: 1, title: "Làm lồng đèn trung thu", date: "Hôm qua", time: "14:30" },
-  { id: 2, title: "Quà sinh nhật cho bạn gái", date: "Hôm qua", time: "09:15" },
-  { id: 3, title: "Mô hình nhà gỗ", date: "3 ngày trước", time: "20:00" },
-  { id: 4, title: "Đan len cơ bản", date: "Tuần trước", time: "16:45" },
-];
+const historyGroups = ["Hôm nay", "Hôm qua", "7 ngày trước", "Cũ hơn"] as const;
+
+function getHistoryGroup(dateValue: string): typeof historyGroups[number] {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const date = new Date(dateValue);
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const days = Math.floor((today.getTime() - target.getTime()) / 86_400_000);
+  if (days <= 0) return "Hôm nay";
+  if (days === 1) return "Hôm qua";
+  if (days <= 7) return "7 ngày trước";
+  return "Cũ hơn";
+}
 
 export default function ChatPage() {
   const router = useRouter();
@@ -67,28 +80,98 @@ export default function ChatPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "ai",
-      content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([defaultWelcomeMsg]);
+  const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
+    let cancelled = false;
+
+    const initializeChatHistory = async () => {
+      setHistoryLoading(true);
+      const loadedSessions = await getChatSessions();
+      if (cancelled) return;
+      setSessions(loadedSessions);
+      setHistoryLoading(false);
+
+      const sessionId = new URLSearchParams(window.location.search).get("session");
+      if (!sessionId || !getAccessToken()) return;
+
+      setMessagesLoading(true);
+      try {
+        const detail = await getSessionMessages(sessionId);
+        if (!cancelled) {
+          setCurrentSessionId(detail.id);
+          setMessages(detail.messages.length > 0 ? detail.messages : [defaultWelcomeMsg]);
+        }
+      } catch (error) {
+        if (!cancelled) toast.error(error instanceof Error ? error.message : "Không thể tải cuộc trò chuyện.");
+      } finally {
+        if (!cancelled) setMessagesLoading(false);
+      }
+    };
+
+    void initializeChatHistory();
+    return () => { cancelled = true; };
+  }, []);
+
+  const updateSessionUrl = (sessionId: string | null) => {
+    const url = new URL(window.location.href);
+    if (sessionId) url.searchParams.set("session", sessionId);
+    else url.searchParams.delete("session");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const refreshSessions = async () => {
+    setHistoryLoading(true);
+    setSessions(await getChatSessions());
+    setHistoryLoading(false);
+  };
+
+  const loadSession = async (sessionId: string) => {
+    setMessagesLoading(true);
+    try {
+      const detail = await getSessionMessages(sessionId);
+      setCurrentSessionId(detail.id);
+      setMessages(detail.messages.length > 0 ? detail.messages : [defaultWelcomeMsg]);
+      updateSessionUrl(detail.id);
+      setIsHistoryOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể tải cuộc trò chuyện.");
+    } finally {
+      setMessagesLoading(false);
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!window.confirm("Bạn có chắc muốn xóa cuộc trò chuyện này?")) return;
+
+    try {
+      await deleteChatSession(sessionId);
+      if (currentSessionId === sessionId) handleResetChat();
+      await refreshSessions();
+      toast.success("Đã xóa cuộc trò chuyện.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể xóa cuộc trò chuyện.");
+    }
+  };
+
+  const handleResetChat = () => {
+    setCurrentSessionId(null);
+    setMessages([defaultWelcomeMsg]);
+    setPrompt("");
+    setIsHistoryOpen(false);
+    updateSessionUrl(null);
+  };
   
   // Settings for the request
-  const [maxCost, setMaxCost] = useState(150000);
-  const [occasion, setOccasion] = useState("Birthday");
-  const [difficulty, setDifficulty] = useState("Easy");
+  const [maxCost] = useState<number | null>(null);
+  const [occasion] = useState("Birthday");
+  const [difficulty] = useState("Easy");
   
   // Image Upload State
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -125,21 +208,38 @@ export default function ChatPage() {
     if (!prompt.trim() && !imageFile) return;
 
     let finalImageUrl = "";
+    const currentFile = imageFile;
+    const currentPreview = imagePreviewUrl;
     
     // Optimistic UI Update
-    const userMsg: Message = { role: "user", content: prompt, imageUrl: imagePreviewUrl || undefined };
+    const userMsg: Message = { role: "user", content: prompt, imageUrl: currentPreview || undefined };
     setMessages(prev => [...prev, userMsg]);
     setPrompt("");
+    removeImage();
     setLoading(true);
 
     try {
-      if (imageFile) {
-        finalImageUrl = await uploadImage(imageFile);
+      if (currentFile) {
+        finalImageUrl = await uploadImage(currentFile);
+        // Cập nhật URL ảnh thật (Cloudinary/Base64) thay cho blob URL tạm để khi bấm Back từ trang Shop không bị mất ảnh
+        if (finalImageUrl) {
+          setMessages(prev => {
+            const updated = [...prev];
+            for (let i = updated.length - 1; i >= 0; i--) {
+              if (updated[i].role === "user" && updated[i].imageUrl === currentPreview) {
+                updated[i] = { ...updated[i], imageUrl: finalImageUrl };
+                break;
+              }
+            }
+            return updated;
+          });
+        }
       }
       
       const payload = {
         userId: getAuthItem("userId") || "00000000-0000-0000-0000-000000000000",
-        prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý quà tặng",
+        sessionId: currentSessionId,
+        prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý cách tự làm kèm sản phẩm tương tự trên shop",
         imageUrl: finalImageUrl || "",
         maxCost: maxCost,
         occasion: occasion,
@@ -168,6 +268,12 @@ export default function ChatPage() {
         suggestions: aiSuggestions
       }]);
 
+      if (res.sessionId) {
+        setCurrentSessionId(res.sessionId);
+        updateSessionUrl(res.sessionId);
+        await refreshSessions();
+      }
+
     } catch (err: any) {
       setMessages(prev => [...prev, {
         role: "ai",
@@ -175,7 +281,6 @@ export default function ChatPage() {
       }]);
     } finally {
       setLoading(false);
-      removeImage();
     }
   };
 
@@ -190,7 +295,16 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative flex items-center gap-2">
+            {messages.length > 1 && (
+              <button
+                onClick={handleResetChat}
+                className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors border border-border/50"
+                title="Bắt đầu cuộc trò chuyện mới"
+              >
+                <span>+ Chat mới</span>
+              </button>
+            )}
             <button 
               ref={historyBtnRef}
               onClick={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -206,17 +320,40 @@ export default function ChatPage() {
                   Lịch sử gần đây
                 </div>
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                  {mockHistory.map(h => (
-                    <button key={h.id} className="w-full text-left p-3 hover:bg-muted rounded-xl transition-colors mb-1 group">
-                      <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{h.title}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{h.date} • {h.time}</div>
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-1 border-t border-border/50 pt-1">
-                  <button className="w-full text-center text-xs text-primary font-medium p-2 hover:bg-muted rounded-xl transition-colors">
-                    Xem tất cả
-                  </button>
+                  {historyLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Đang tải lịch sử...
+                    </div>
+                  ) : sessions.length === 0 ? (
+                    <div className="px-3 py-8 text-center text-sm text-muted-foreground">Chưa có cuộc trò chuyện nào.</div>
+                  ) : historyGroups.map(group => {
+                    const groupedSessions = sessions.filter(session => getHistoryGroup(session.lastActiveAt) === group);
+                    if (groupedSessions.length === 0) return null;
+
+                    return (
+                      <div key={group} className="mb-2">
+                        <div className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{group}</div>
+                        {groupedSessions.map(session => (
+                          <div key={session.id} className={`mb-1 flex items-center rounded-xl transition-colors hover:bg-muted ${currentSessionId === session.id ? "bg-muted" : ""}`}>
+                            <button onClick={() => void loadSession(session.id)} className="min-w-0 flex-1 p-3 text-left">
+                              <div className="truncate text-sm font-medium text-foreground">{session.title}</div>
+                              <div className="mt-0.5 text-xs text-muted-foreground">
+                                {new Date(session.lastActiveAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                                {typeof session.messageCount === "number" ? ` • ${session.messageCount} tin nhắn` : ""}
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => void handleDeleteSession(session.id)}
+                              className="mr-2 rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                              aria-label={`Xóa ${session.title}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -228,7 +365,11 @@ export default function ChatPage() {
 
         {/* Messages Scroll Area */}
         <div className="glass-card rounded-none p-6 md:p-8 space-y-6 flex-1 min-h-0 overflow-y-auto scroll-smooth">
-          {messages.map((m, idx) => (
+          {messagesLoading ? (
+            <div className="flex h-full min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" /> Đang tải cuộc trò chuyện...
+            </div>
+          ) : messages.map((m, idx) => (
             <MessageRow key={idx} role={m.role}>
               {m.imageUrl && (
                  <img src={m.imageUrl} alt="Uploaded" className="w-48 h-48 object-cover rounded-xl mb-3 border border-white/40 shadow-sm" />
@@ -274,11 +415,82 @@ export default function ChatPage() {
                                 <tfoot><tr><td colSpan={3}>Tổng chi phí</td><td className="num">{s.totalCost || "Chưa rõ"}</td></tr></tfoot>
                               </table>
                               <div className="links-row">
-                                {materials.filter((m: any) => !!m.purchaseUrl).map((mat: any, j: number) => (
-                                  <a key={j} className="link-chip" href={mat.purchaseUrl} target="_blank" rel="noreferrer">🛒 Mua {mat.name}</a>
-                                ))}
-                                {s.searchKeyword && <a className="link-chip keyword" href={`https://shopee.vn/search?keyword=${encodeURIComponent(s.searchKeyword)}`} target="_blank" rel="noreferrer">🔎 "{s.searchKeyword}"</a>}
-                                {s.videoUrl && <a className="link-chip video" href={s.videoUrl} target="_blank" rel="noreferrer">▶ Video hướng dẫn</a>}
+                                {materials.map((mat: any, j: number) => {
+                                  const rawUrl = (mat.purchaseUrl || "").trim();
+                                  const isGenericShopee =
+                                    !rawUrl ||
+                                    rawUrl === "https://shopee.vn" ||
+                                    rawUrl === "https://shopee.vn/";
+                                  const shopeeHref = isGenericShopee
+                                    ? `https://shopee.vn/search?keyword=${encodeURIComponent(
+                                        mat.shopeeKeyword || mat.name
+                                      )}`
+                                    : rawUrl;
+                                  return (
+                                    <a
+                                      key={j}
+                                      className="link-chip"
+                                      href={shopeeHref}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      🛒 Mua {mat.name}
+                                    </a>
+                                  );
+                                })}
+                                {s.searchKeyword && (
+                                  <a
+                                    className="link-chip keyword"
+                                    href={`https://shopee.vn/search?keyword=${encodeURIComponent(
+                                      s.searchKeyword
+                                    )}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    🔎 &quot;{s.searchKeyword}&quot;
+                                  </a>
+                                )}
+                                <a
+                                  className="link-chip video"
+                                  href={
+                                    s.youtubeSearchQuery
+                                      ? `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                          s.youtubeSearchQuery
+                                        )}`
+                                      : s.videoUrl &&
+                                        s.videoUrl.includes("youtube.com/results")
+                                      ? s.videoUrl
+                                      : `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                          `${s.name || "đồ handmade"} hướng dẫn cách làm`
+                                        )}`
+                                  }
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  ▶ Video hướng dẫn (YouTube)
+                                </a>
+                                {s.matchedProductId && (
+                                  <>
+                                    <a
+                                      className="link-chip keyword"
+                                      href={`/shop/${s.matchedProductId}/greeting`}
+                                    >
+                                      🎁 Mua sẵn &amp; Gắn thiệp NFC:{" "}
+                                      {s.matchedProductName || "Sản phẩm Web"}
+                                      {s.matchedProductPrice
+                                        ? ` (${Number(
+                                            s.matchedProductPrice
+                                          ).toLocaleString("vi-VN")}đ)`
+                                        : ""}
+                                    </a>
+                                    <a
+                                      className="link-chip"
+                                      href={`/shop/${s.matchedProductId}`}
+                                    >
+                                      🛍️ Xem SP trên Web
+                                    </a>
+                                  </>
+                                )}
                               </div>
                             </div>
                           )}
@@ -299,7 +511,6 @@ export default function ChatPage() {
                </div>
              </MessageRow>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Composer */}

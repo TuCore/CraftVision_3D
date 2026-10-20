@@ -12,7 +12,12 @@ namespace CraftVision.Application.GiftSuggestions.Dtos
         public string? Description { get; set; }
         public string? TotalCost { get; set; }
         public string? SearchKeyword { get; set; }
+        public string? YoutubeSearchQuery { get; set; }
         public string? VideoUrl { get; set; }
         public string? MaterialsJson { get; set; }
+        public Guid? MatchedProductId { get; set; }
+        public string? MatchedProductName { get; set; }
+        public decimal? MatchedProductPrice { get; set; }
+        public bool? MatchedProductSupportsNfc { get; set; }
     }
 }

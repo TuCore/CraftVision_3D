@@ -37,42 +37,59 @@ namespace CraftVision.Infrastructure.AI.Gemini
                 },
                 GenerationConfig = new GeminiGenerationConfig
                 {
+                    Temperature = 0.3f,
+                    MaxOutputTokens = 8192,
+                    ThinkingConfig = new GeminiThinkingConfig { ThinkingBudget = 0 },
                     ResponseMimeType = "application/json",
                     ResponseSchema = new
                     {
-                        type = "array",
-                        items = new
+                        type = "object",
+                        properties = new
                         {
-                            type = "object",
-                            properties = new
+                            reply = new { type = "string" },
+                            suggestions = new
                             {
-                                name = new { type = "string" },
-                                difficulty = new { type = "string", @enum = new[] { "Easy", "Medium", "Hard" } },
-                                estimatedCostRange = new { type = "string" },
-                                estimatedTime = new { type = "string" },
-                                description = new { type = "string" },
-                                totalCost = new { type = "string" },
-                                searchKeyword = new { type = "string" },
-                                videoUrl = new { type = "string" },
-                                materials = new
+                                type = "array",
+                                items = new
                                 {
-                                    type = "array",
-                                    items = new
+                                    type = "object",
+                                    properties = new
                                     {
-                                        type = "object",
-                                        properties = new
+                                        name = new { type = "string" },
+                                        difficulty = new { type = "string", @enum = new[] { "Easy", "Medium", "Hard" } },
+                                        estimatedCostRange = new { type = "string" },
+                                        estimatedTime = new { type = "string" },
+                                        description = new { type = "string" },
+                                        totalCost = new { type = "string" },
+                                        searchKeyword = new { type = "string" },
+                                        youtubeSearchQuery = new { type = "string" },
+                                        videoUrl = new { type = "string" },
+                                        matchedProductId = new { type = "string" },
+                                        matchedProductName = new { type = "string" },
+                                        materials = new
                                         {
-                                            name = new { type = "string" },
-                                            quantity = new { type = "string" },
-                                            price = new { type = "string" },
-                                            total = new { type = "string" },
-                                            purchaseUrl = new { type = "string" }
+                                            type = "array",
+                                            items = new
+                                            {
+                                                type = "object",
+                                                properties = new
+                                                {
+                                                    name = new { type = "string" },
+                                                    quantity = new { type = "string" },
+                                                    price = new { type = "string" },
+                                                    total = new { type = "string" },
+                                                    shopeeKeyword = new { type = "string" },
+                                                    purchaseUrl = new { type = "string" }
+                                                },
+                                                required = new[] { "name", "quantity", "price", "total", "shopeeKeyword", "purchaseUrl" }
+                                            }
                                         }
-                                    }
+                                    },
+                                    required = new[] { "name", "difficulty", "description", "youtubeSearchQuery", "materials" }
                                 }
-                            },
-                            required = new[] { "name", "difficulty", "description", "materials" }
-                        }
+                            }
+                        },
+                        required = new[] { "reply", "suggestions" }
                     }
                 }
             };
@@ -103,26 +120,75 @@ namespace CraftVision.Infrastructure.AI.Gemini
                 throw new Exception("Gemini returned empty text content.");
             }
 
+            jsonText = jsonText.Trim();
+            if (jsonText.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+            {
+                jsonText = jsonText.Substring(7);
+            }
+            else if (jsonText.StartsWith("```"))
+            {
+                jsonText = jsonText.Substring(3);
+            }
+            if (jsonText.EndsWith("```"))
+            {
+                jsonText = jsonText.Substring(0, jsonText.Length - 3);
+            }
+            jsonText = jsonText.Trim();
+
             try
             {
-                var dtos = JsonSerializer.Deserialize<List<GeminiSuggestionResponseDto>>(jsonText);
-                if (dtos == null) return new AiSuggestionResponse(new List<GiftSuggestion>(), candidate.FinishReason ?? "UNKNOWN");
-
-                var list = dtos.Select(dto => new GiftSuggestion
+                var envelope = JsonSerializer.Deserialize<GeminiChatEnvelopeDto>(jsonText);
+                if (envelope == null || envelope.Suggestions == null)
                 {
-                    Id = Guid.NewGuid(),
-                    Name = dto.Name,
-                    Difficulty = Enum.TryParse<Difficulty>(dto.Difficulty, true, out var parsedDiff) ? parsedDiff : Difficulty.Medium,
-                    EstimatedCostRange = dto.EstimatedCostRange,
-                    EstimatedTime = dto.EstimatedTime,
-                    Description = dto.Description,
-                    TotalCost = dto.TotalCost,
-                    SearchKeyword = dto.SearchKeyword,
-                    VideoUrl = dto.VideoUrl,
-                    MaterialsJson = dto.Materials != null ? JsonSerializer.Serialize(dto.Materials) : null
+                    return new AiSuggestionResponse(string.Empty, new List<GiftSuggestion>(), candidate.FinishReason ?? "UNKNOWN");
+                }
+
+                var list = envelope.Suggestions.Select(dto =>
+                {
+                    if (dto.Materials != null)
+                    {
+                        foreach (var mat in dto.Materials)
+                        {
+                            var keyword = !string.IsNullOrWhiteSpace(mat.ShopeeKeyword) ? mat.ShopeeKeyword : mat.Name;
+                            if (string.IsNullOrWhiteSpace(mat.PurchaseUrl) ||
+                                mat.PurchaseUrl.Trim().Equals("https://shopee.vn", StringComparison.OrdinalIgnoreCase) ||
+                                mat.PurchaseUrl.Trim().Equals("https://shopee.vn/", StringComparison.OrdinalIgnoreCase))
+                            {
+                                mat.PurchaseUrl = $"https://shopee.vn/search?keyword={Uri.EscapeDataString(keyword)}";
+                            }
+                        }
+                    }
+
+                    var ytQuery = !string.IsNullOrWhiteSpace(dto.YoutubeSearchQuery)
+                        ? dto.YoutubeSearchQuery
+                        : $"hướng dẫn cách làm {dto.Name} handmade";
+                    var youtubeSearchUrl = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(ytQuery)}";
+
+                    Guid? parsedProductId = null;
+                    if (Guid.TryParse(dto.MatchedProductId, out var pid))
+                    {
+                        parsedProductId = pid;
+                    }
+
+                    return new GiftSuggestion
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = dto.Name,
+                        Difficulty = Enum.TryParse<Difficulty>(dto.Difficulty, true, out var parsedDiff) ? parsedDiff : Difficulty.Medium,
+                        EstimatedCostRange = dto.EstimatedCostRange,
+                        EstimatedTime = dto.EstimatedTime,
+                        Description = dto.Description,
+                        TotalCost = dto.TotalCost,
+                        SearchKeyword = dto.SearchKeyword,
+                        YoutubeSearchQuery = ytQuery,
+                        VideoUrl = youtubeSearchUrl,
+                        MatchedProductId = parsedProductId,
+                        MatchedProductName = dto.MatchedProductName,
+                        MaterialsJson = dto.Materials != null ? JsonSerializer.Serialize(dto.Materials) : null
+                    };
                 }).ToList();
 
-                return new AiSuggestionResponse(list, candidate.FinishReason ?? "UNKNOWN");
+                return new AiSuggestionResponse(envelope.Reply, list, candidate.FinishReason ?? "UNKNOWN");
             }
             catch (JsonException ex)
             {

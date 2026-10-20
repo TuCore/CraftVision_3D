@@ -61,7 +61,7 @@ export function ExperienceLoadingScreen() {
           style={{
             color: '#fde68a',
             textShadow: '0 0 20px rgba(253,230,138,0.5)',
-            fontFamily: 'Georgia, serif',
+            fontFamily: 'var(--font-serif), "Playfair Display", "Times New Roman", Times, serif',
           }}
         >
           CraftVision 3D

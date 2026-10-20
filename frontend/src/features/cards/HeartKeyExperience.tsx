@@ -18,7 +18,7 @@ export default function HeartKeyExperience({ draft, embedded = false }: { draft:
   const [typed, setTyped] = useState("");
   const dialog = useRef<HTMLDialogElement>(null);
   const audio = useRef<HTMLAudioElement>(null);
-  const text = useCallback((key: string, fallback = "") => typeof draft.values[key] === "string" ? String(draft.values[key] || fallback) : fallback, [draft.values]);
+  const text = useCallback((key: string, fallback = "") => (typeof draft.values[key] === "string" ? String(draft.values[key] || fallback) : fallback).normalize("NFC"), [draft.values]);
   const photo = text("photo");
   const photos = useMemo(() => [photo, ...(Array.isArray(draft.values.album) ? draft.values.album.filter((value): value is string => typeof value === "string" && Boolean(value)) : [])].filter(Boolean), [draft.values.album, photo]);
   const recipient = text("recipient", "người anh yêu");
@@ -30,11 +30,12 @@ export default function HeartKeyExperience({ draft, embedded = false }: { draft:
   useEffect(() => {
     if (!started || paused || opened) return;
     setTyped("");
+    const chars = Array.from(typingText);
     let index = 0;
     const timer = window.setInterval(() => {
       index += 1;
-      setTyped(typingText.slice(0, index));
-      if (index >= typingText.length) window.clearInterval(timer);
+      setTyped(chars.slice(0, index).join(""));
+      if (index >= chars.length) window.clearInterval(timer);
     }, 55);
     return () => window.clearInterval(timer);
   }, [started, paused, opened, typingText]);

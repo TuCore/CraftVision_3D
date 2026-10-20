@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     'www.tucore.io.vn',
     '*.tucore.io.vn'
   ],
+  experimental: {
+    proxyTimeout: 120000,
+  },
   async rewrites() {
     return [
       {
