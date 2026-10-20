@@ -69,6 +69,16 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
         [JsonPropertyName("maxOutputTokens")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? MaxOutputTokens { get; set; }
+
+        [JsonPropertyName("thinkingConfig")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public GeminiThinkingConfig? ThinkingConfig { get; set; }
+    }
+
+    public class GeminiThinkingConfig
+    {
+        [JsonPropertyName("thinkingBudget")]
+        public int ThinkingBudget { get; set; } = 0;
     }
 
     // Embeddings Requests
@@ -114,6 +124,15 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
     }
 
     // Internal Domain DTOs
+    public class GeminiChatEnvelopeDto
+    {
+        [JsonPropertyName("reply")]
+        public string Reply { get; set; } = string.Empty;
+
+        [JsonPropertyName("suggestions")]
+        public List<GeminiSuggestionResponseDto> Suggestions { get; set; } = new();
+    }
+
     public class GeminiSuggestionResponseDto
     {
         [JsonPropertyName("name")]
@@ -137,8 +156,17 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
         [JsonPropertyName("searchKeyword")]
         public string? SearchKeyword { get; set; }
 
+        [JsonPropertyName("youtubeSearchQuery")]
+        public string? YoutubeSearchQuery { get; set; }
+
         [JsonPropertyName("videoUrl")]
         public string? VideoUrl { get; set; }
+
+        [JsonPropertyName("matchedProductId")]
+        public string? MatchedProductId { get; set; }
+
+        [JsonPropertyName("matchedProductName")]
+        public string? MatchedProductName { get; set; }
 
         [JsonPropertyName("materials")]
         public List<GeminiSuggestionMaterialDto>? Materials { get; set; }
@@ -157,6 +185,9 @@ namespace CraftVision.Infrastructure.AI.Gemini.Models
         
         [JsonPropertyName("total")]
         public string Total { get; set; } = string.Empty;
+
+        [JsonPropertyName("shopeeKeyword")]
+        public string? ShopeeKeyword { get; set; }
         
         [JsonPropertyName("purchaseUrl")]
         public string? PurchaseUrl { get; set; }

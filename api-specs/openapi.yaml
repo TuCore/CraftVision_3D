@@ -197,6 +197,25 @@ paths:
       parameters: [{ in: path, name: orderId, required: true, schema: { type: string, format: uuid } }]
       responses: { '200': { description: Trạng thái thanh toán } }
 
+  /api/gift-chat/suggestions:
+    post:
+      tags: [GiftChat]
+      summary: Tư vấn quà tặng DIY & gợi ý sản phẩm gắn thiệp NFC từ Database
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateSuggestionsRequest'
+      responses:
+        '200':
+          description: Trả về câu trả lời tư vấn của AI kèm danh sách ý tưởng DIY và sản phẩm khớp trong Database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftChatResponse'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -265,3 +284,41 @@ components:
       properties:
         productId: { type: string, format: uuid }
         quantity: { type: integer, minimum: 1, maximum: 99 }
+
+    GenerateSuggestionsRequest:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        prompt: { type: string, example: "Tư vấn quà sinh nhật cho bạn nữ tầm 50k" }
+        imageUrl: { type: string, nullable: true }
+        maxCost: { type: number, nullable: true, example: 150000 }
+        occasion: { type: string, nullable: true, example: "Birthday" }
+        difficulty: { type: string, enum: [Easy, Medium, Hard], nullable: true }
+
+    GiftChatResponse:
+      type: object
+      properties:
+        reply: { type: string }
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/GiftSuggestionItem'
+
+    GiftSuggestionItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        difficulty: { type: string, enum: [Easy, Medium, Hard] }
+        estimatedCostRange: { type: string }
+        estimatedTime: { type: string }
+        description: { type: string }
+        totalCost: { type: string }
+        searchKeyword: { type: string }
+        youtubeSearchQuery: { type: string }
+        videoUrl: { type: string }
+        materialsJson: { type: string }
+        matchedProductId: { type: string, format: uuid, nullable: true }
+        matchedProductName: { type: string, nullable: true }
+        matchedProductPrice: { type: number, nullable: true }
+        matchedProductSupportsNfc: { type: boolean, nullable: true }
