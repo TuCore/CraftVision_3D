@@ -38,7 +38,10 @@ CustomTransitionPage<void> fadePage(GoRouterState state, Widget child) {
     transitionDuration: AppMotion.fast,
     transitionsBuilder: (context, animation, secondaryAnimation, child) =>
         FadeTransition(
-          opacity: CurvedAnimation(parent: animation, curve: AppMotion.standard),
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: AppMotion.standard,
+          ),
           child: child,
         ),
   );

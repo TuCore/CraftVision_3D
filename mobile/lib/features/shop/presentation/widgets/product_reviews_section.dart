@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_button.dart';
 
-class ProductReviewsSection extends StatelessWidget {
-  const ProductReviewsSection({super.key});
+class ProductReviewsSection extends ConsumerWidget {
+  const ProductReviewsSection({super.key, required this.productId});
+
+  final String productId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reviewsAsync = ref.watch(reviewsProvider(productId));
+    final reviews = reviewsAsync.value ?? const <Map<String, dynamic>>[];
+    final average = reviews.isEmpty
+        ? 0.0
+        : reviews.fold<num>(
+                0,
+                (sum, item) => sum + ((item['rating'] as num?) ?? 0),
+              ) /
+              reviews.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -19,7 +33,7 @@ class ProductReviewsSection extends StatelessWidget {
               children: [
                 const Icon(Icons.star, color: Colors.amber, size: 24),
                 const SizedBox(width: 4),
-                Text('4.9', style: AppTypography.heading2),
+                Text(average.toStringAsFixed(1), style: AppTypography.heading2),
               ],
             ),
           ],
@@ -29,9 +43,11 @@ class ProductReviewsSection extends StatelessWidget {
           height: 120,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: 3,
+            itemCount: reviews.length,
             separatorBuilder: (_, __) => const SizedBox(width: 16),
             itemBuilder: (context, index) {
+              final review = reviews[index];
+              final rating = (review['rating'] as num?)?.toInt() ?? 0;
               return Container(
                 width: 280,
                 padding: const EdgeInsets.only(right: 24),
@@ -44,21 +60,25 @@ class ProductReviewsSection extends StatelessWidget {
                         (i) => Icon(
                           Icons.star,
                           size: 14,
-                          color: i < 5 ? Colors.amber : AppColors.neutral300,
+                          color: i < rating
+                              ? Colors.amber
+                              : AppColors.neutral300,
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Sản phẩm đẹp tuyệt vời, đóng gói rất cẩn thận!',
+                      '${review['comment'] ?? ''}',
                       style: AppTypography.bodySmall,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
                     Text(
-                      'Marie · Hôm nay',
-                      style: AppTypography.labelText.copyWith(color: AppColors.neutral600),
+                      '${review['userName'] ?? 'Khách hàng'}',
+                      style: AppTypography.labelText.copyWith(
+                        color: AppColors.neutral600,
+                      ),
                     ),
                   ],
                 ),
@@ -70,7 +90,7 @@ class ProductReviewsSection extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: CvButton(
-            text: 'Xem tất cả đánh giá (265)',
+            text: 'Tất cả đánh giá (${reviews.length})',
             variant: CvButtonVariant.ghost,
             onPressed: () {},
           ),

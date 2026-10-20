@@ -18,40 +18,53 @@ namespace CraftVision.Infrastructure.AI.Gemini
 
         public async Task<string> AnalyzeImageAsync(string imageUrl, string prompt)
         {
-            // 1. SSRF and Domain validation
-            if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+            string base64Image;
+            string mimeType = "image/jpeg";
+
+            if (imageUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
             {
-                throw new ArgumentException("Invalid image URL. Must be HTTP/HTTPS.");
+                var commaIdx = imageUrl.IndexOf(',');
+                if (commaIdx <= 0)
+                {
+                    throw new ArgumentException("Invalid base64 image data URL.");
+                }
+                var header = imageUrl.Substring(5, commaIdx - 5); // e.g. "image/png;base64"
+                var semiIdx = header.IndexOf(';');
+                if (semiIdx > 0)
+                {
+                    mimeType = header.Substring(0, semiIdx);
+                }
+                base64Image = imageUrl.Substring(commaIdx + 1);
             }
-
-            // SSRF validation - commented out for local development
-            // if (uri.IsLoopback || uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || 
-            //     uri.Host.StartsWith("127.") || uri.Host.StartsWith("169.254.") || 
-            //     uri.Host.StartsWith("10.") || uri.Host.StartsWith("192.168."))
-            // {
-            //     throw new ArgumentException("Local or internal URLs are not allowed.");
-            // }
-
-            // 2. Download Image safely
-            var downloader = _httpClientFactory.CreateClient("ImageDownloader");
-            using var response = await downloader.GetAsync(imageUrl, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
-
-            // Enforce 5MB limit
-            var contentLength = response.Content.Headers.ContentLength;
-            if (contentLength.HasValue && contentLength.Value > 5 * 1024 * 1024)
+            else
             {
-                throw new InvalidOperationException("Image size exceeds the 5MB limit.");
-            }
+                // 1. SSRF and Domain validation
+                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+                {
+                    throw new ArgumentException("Invalid image URL. Must be HTTP/HTTPS or data URL.");
+                }
 
-            var imageBytes = await response.Content.ReadAsByteArrayAsync();
-            if (imageBytes.Length > 5 * 1024 * 1024)
-            {
-                throw new InvalidOperationException("Image size exceeds the 5MB limit after downloading.");
-            }
+                // 2. Download Image safely
+                var downloader = _httpClientFactory.CreateClient("ImageDownloader");
+                using var response = await downloader.GetAsync(imageUrl, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
 
-            var base64Image = Convert.ToBase64String(imageBytes);
-            var mimeType = response.Content.Headers.ContentType?.MediaType ?? "image/jpeg";
+                // Enforce 5MB limit
+                var contentLength = response.Content.Headers.ContentLength;
+                if (contentLength.HasValue && contentLength.Value > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Image size exceeds the 5MB limit.");
+                }
+
+                var imageBytes = await response.Content.ReadAsByteArrayAsync();
+                if (imageBytes.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Image size exceeds the 5MB limit after downloading.");
+                }
+
+                base64Image = Convert.ToBase64String(imageBytes);
+                mimeType = response.Content.Headers.ContentType?.MediaType ?? "image/jpeg";
+            }
 
             // 3. Construct Gemini Request
             var requestPayload = new GeminiGenerateContentRequest
@@ -73,11 +86,22 @@ namespace CraftVision.Infrastructure.AI.Gemini
                             }
                         }
                     }
+                },
+                GenerationConfig = new GeminiGenerationConfig
+                {
+                    Temperature = 0.2f,
+                    MaxOutputTokens = 1024,
+                    ThinkingConfig = new GeminiThinkingConfig { ThinkingBudget = 0 }
                 }
             };
 
-            // 4. Send to Gemini 3.5 Flash
-            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-2.5-flash:generateContent", requestPayload);
+            var jsonOptions = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            };
+
+            // 4. Send to Gemini 2.5 Flash
+            var apiResponse = await _geminiClient.PostAsJsonAsync("models/gemini-2.5-flash:generateContent", requestPayload, jsonOptions);
             apiResponse.EnsureSuccessStatusCode();
 
             var responseData = await apiResponse.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'cv_surface.dart';
@@ -28,7 +29,11 @@ class CvAiBubble extends StatelessWidget {
             color: AppColors.primaryLight,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.auto_awesome, color: AppColors.white, size: 16),
+          child: const Icon(
+            Icons.auto_awesome,
+            color: AppColors.white,
+            size: 16,
+          ),
         ),
         const SizedBox(width: 12),
         // Bubble Content
@@ -59,10 +64,18 @@ class CvAiBubble extends StatelessWidget {
             const SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(width: 8),
-            Text('Đang suy nghĩ...', style: AppTypography.bodyMedium.copyWith(color: AppColors.neutral600)),
+            Text(
+              'Đang suy nghĩ...',
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.neutral600,
+              ),
+            ),
           ],
         );
       case CvAiBubbleState.error:
@@ -74,16 +87,15 @@ class CvAiBubble extends StatelessWidget {
             Expanded(
               child: Text(
                 text.isNotEmpty ? text : 'Đã có lỗi xảy ra. Vui lòng thử lại.',
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.error),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.error,
+                ),
               ),
             ),
           ],
         );
       case CvAiBubbleState.response:
-        return Text(
-          text,
-          style: AppTypography.bodyMedium,
-        );
+        return Text(text, style: AppTypography.bodyMedium);
     }
   }
 }

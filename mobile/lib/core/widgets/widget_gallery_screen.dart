@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_typography.dart';
 import 'cv_button.dart';
 import 'cv_surface.dart';
@@ -19,7 +20,9 @@ class _WidgetGalleryScreenState extends State<WidgetGalleryScreen> {
   Widget build(BuildContext context) {
     // A little hack to force dark mode locally for the gallery
     return Theme(
-      data: _isDark ? Theme.of(context).copyWith(brightness: Brightness.dark) : Theme.of(context),
+      data: _isDark
+          ? Theme.of(context).copyWith(brightness: Brightness.dark)
+          : Theme.of(context),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('UI Components'),
@@ -38,10 +41,19 @@ class _WidgetGalleryScreenState extends State<WidgetGalleryScreen> {
             Text('Heading 2', style: AppTypography.heading2),
             Text('Heading 3', style: AppTypography.heading3),
             const SizedBox(height: 8),
-            Text('Body Large - The quick brown fox jumps over the lazy dog.', style: AppTypography.bodyLarge),
-            Text('Body Medium - The quick brown fox jumps over the lazy dog.', style: AppTypography.bodyMedium),
-            Text('Body Small - The quick brown fox jumps over the lazy dog.', style: AppTypography.bodySmall),
-            
+            Text(
+              'Body Large - The quick brown fox jumps over the lazy dog.',
+              style: AppTypography.bodyLarge,
+            ),
+            Text(
+              'Body Medium - The quick brown fox jumps over the lazy dog.',
+              style: AppTypography.bodyMedium,
+            ),
+            Text(
+              'Body Small - The quick brown fox jumps over the lazy dog.',
+              style: AppTypography.bodySmall,
+            ),
+
             _buildDivider(),
             _buildSectionTitle('CvButton - Primary'),
             const CvButton(text: 'Default Primary'),
@@ -51,13 +63,19 @@ class _WidgetGalleryScreenState extends State<WidgetGalleryScreen> {
             const CvButton(text: 'Loading Primary', isLoading: true),
             const SizedBox(height: 8),
             const CvButton(text: 'Disabled Primary', isDisabled: true),
-            
+
             const SizedBox(height: 16),
             _buildSectionTitle('CvButton - Secondary & Ghost'),
-            const CvButton(text: 'Secondary Button', variant: CvButtonVariant.secondary),
+            const CvButton(
+              text: 'Secondary Button',
+              variant: CvButtonVariant.secondary,
+            ),
             const SizedBox(height: 8),
-            const CvButton(text: 'Ghost Button', variant: CvButtonVariant.ghost),
-            
+            const CvButton(
+              text: 'Ghost Button',
+              variant: CvButtonVariant.ghost,
+            ),
+
             _buildDivider(),
             _buildSectionTitle('CvSurface (Cards)'),
             const CvSurface(
@@ -105,9 +123,7 @@ class _WidgetGalleryScreenState extends State<WidgetGalleryScreen> {
 
             _buildDivider(),
             _buildSectionTitle('CvAiBubble'),
-            const CvAiBubble(
-              state: CvAiBubbleState.thinking,
-            ),
+            const CvAiBubble(state: CvAiBubbleState.thinking),
             const SizedBox(height: 16),
             const CvAiBubble(
               state: CvAiBubbleState.response,

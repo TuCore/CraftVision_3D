@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/cv_surface.dart';
+
 import 'package:go_router/go_router.dart';
 
 class CreateHubScreen extends StatelessWidget {
@@ -10,19 +12,23 @@ class CreateHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create & AI Hub'),
-      ),
+      appBar: AppBar(title: const Text('Create & AI Hub')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Bạn muốn sáng tạo gì hôm nay?', style: AppTypography.heading2),
+            Text(
+              'Bạn muốn sáng tạo gì hôm nay?',
+              style: AppTypography.heading2,
+            ),
             const SizedBox(height: 8),
-            Text('Khám phá sức mạnh của AI để tạo ra món quà độc nhất.', style: AppTypography.bodyMedium),
+            Text(
+              'Khám phá sức mạnh của AI để tạo ra món quà độc nhất.',
+              style: AppTypography.bodyMedium,
+            ),
             const SizedBox(height: 32),
-            
+
             _buildAiCard(
               context,
               title: 'Gift AI',
@@ -35,7 +41,8 @@ class CreateHubScreen extends StatelessWidget {
             _buildAiCard(
               context,
               title: 'Greeting AI',
-              subtitle: 'Viết thiệp chúc mừng đầy cảm xúc với đa dạng giọng văn.',
+              subtitle:
+                  'Viết thiệp chúc mừng đầy cảm xúc với đa dạng giọng văn.',
               icon: Icons.edit_note,
               color: AppColors.surfaceTint,
               route: '/create/greeting-ai',
@@ -44,7 +51,8 @@ class CreateHubScreen extends StatelessWidget {
             _buildAiCard(
               context,
               title: '3D Studio',
-              subtitle: 'Tuỳ chỉnh, xem trước và tương tác với mô hình 3D của bạn.',
+              subtitle:
+                  'Tuỳ chỉnh, xem trước và tương tác với mô hình 3D của bạn.',
               icon: Icons.view_in_ar,
               color: AppColors.neutral400,
               route: '/create/studio',
@@ -55,7 +63,8 @@ class CreateHubScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAiCard(BuildContext context, {
+  Widget _buildAiCard(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,

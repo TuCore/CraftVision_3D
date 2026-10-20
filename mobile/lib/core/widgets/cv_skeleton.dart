@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
 class CvSkeleton extends StatefulWidget {
@@ -19,7 +20,8 @@ class CvSkeleton extends StatefulWidget {
   State<CvSkeleton> createState() => _CvSkeletonState();
 }
 
-class _CvSkeletonState extends State<CvSkeleton> with SingleTickerProviderStateMixin {
+class _CvSkeletonState extends State<CvSkeleton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -47,9 +49,16 @@ class _CvSkeletonState extends State<CvSkeleton> with SingleTickerProviderStateM
           height: widget.height,
           decoration: BoxDecoration(
             color: AppColors.neutral200.withOpacity(
-              0.5 + 0.5 * (0.5 * (1 + (1 - 2 * _controller.value).abs() * -1)), // simple pulse
+              0.5 +
+                  0.5 *
+                      (0.5 *
+                          (1 +
+                              (1 - 2 * _controller.value).abs() *
+                                  -1)), // simple pulse
             ),
-            borderRadius: widget.shape == BoxShape.circle ? null : (widget.borderRadius ?? BorderRadius.circular(8)),
+            borderRadius: widget.shape == BoxShape.circle
+                ? null
+                : (widget.borderRadius ?? BorderRadius.circular(8)),
             shape: widget.shape,
           ),
         );

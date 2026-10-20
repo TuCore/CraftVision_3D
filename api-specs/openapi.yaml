@@ -83,6 +83,139 @@ paths:
         '404':
           description: Không tìm thấy tài khoản
 
+  /api/cart:
+    get:
+      tags: [Cart]
+      summary: Lấy giỏ hàng hiện tại
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: Giỏ hàng } }
+    delete:
+      tags: [Cart]
+      summary: Xóa toàn bộ giỏ hàng
+      security: [{ bearerAuth: [] }]
+      responses: { '204': { description: Đã xóa } }
+  /api/cart/items:
+    post:
+      tags: [Cart]
+      summary: Thêm sản phẩm vào giỏ hàng
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CartItemRequest' } } } }
+      responses: { '200': { description: Giỏ hàng sau cập nhật } }
+  /api/cart/items/{itemId}:
+    put:
+      tags: [Cart]
+      summary: Cập nhật số lượng
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: itemId, required: true, schema: { type: string, format: uuid } }]
+      responses: { '200': { description: Giỏ hàng sau cập nhật } }
+    delete:
+      tags: [Cart]
+      summary: Xóa sản phẩm khỏi giỏ
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: itemId, required: true, schema: { type: string, format: uuid } }]
+      responses: { '204': { description: Đã xóa } }
+  /api/favorites:
+    get:
+      tags: [Favorites]
+      summary: Danh sách yêu thích
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: Danh sách yêu thích } }
+  /api/favorites/{productId}:
+    post:
+      tags: [Favorites]
+      summary: Thêm yêu thích
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string, format: uuid } }]
+      responses: { '200': { description: Đã thêm } }
+    delete:
+      tags: [Favorites]
+      summary: Xóa yêu thích
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string, format: uuid } }]
+      responses: { '204': { description: Đã xóa } }
+  /api/vouchers/validate:
+    post:
+      tags: [Vouchers]
+      summary: Kiểm tra voucher và tính giảm giá
+      responses: { '200': { description: Kết quả áp dụng voucher } }
+  /api/shipping/methods:
+    get:
+      tags: [Shipping]
+      summary: Lấy phương thức giao hàng
+      responses: { '200': { description: Danh sách phương thức } }
+  /api/shipping/quote:
+    post:
+      tags: [Shipping]
+      summary: Tính phí giao hàng
+      responses: { '200': { description: Phí và thời gian dự kiến } }
+  /api/notifications:
+    get:
+      tags: [Notifications]
+      summary: Lấy thông báo người dùng
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: Danh sách thông báo } }
+  /api/notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      summary: Đánh dấu đã đọc
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { '204': { description: Đã cập nhật } }
+  /api/notifications/read-all:
+    patch:
+      tags: [Notifications]
+      summary: Đánh dấu tất cả đã đọc
+      security: [{ bearerAuth: [] }]
+      responses: { '204': { description: Đã cập nhật } }
+  /api/notifications/devices:
+    post:
+      tags: [Notifications]
+      summary: Đăng ký push token thiết bị
+      security: [{ bearerAuth: [] }]
+      responses: { '204': { description: Đã đăng ký } }
+  /api/auth/forgot-password:
+    post:
+      tags: [Authentication]
+      summary: Yêu cầu mã đặt lại mật khẩu
+      responses: { '200': { description: Luôn trả thông báo trung lập } }
+  /api/auth/reset-password:
+    post:
+      tags: [Authentication]
+      summary: Đặt lại mật khẩu bằng mã một lần
+      responses: { '200': { description: Mật khẩu đã cập nhật } }
+  /api/payments:
+    post:
+      tags: [Payments]
+      summary: Tạo PayOS checkout link cho đơn hàng
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: Checkout URL } }
+  /api/payments/orders/{orderId}:
+    get:
+      tags: [Payments]
+      summary: Kiểm tra trạng thái thanh toán đơn hàng
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: orderId, required: true, schema: { type: string, format: uuid } }]
+      responses: { '200': { description: Trạng thái thanh toán } }
+
+  /api/gift-chat/suggestions:
+    post:
+      tags: [GiftChat]
+      summary: Tư vấn quà tặng DIY & gợi ý sản phẩm gắn thiệp NFC từ Database
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateSuggestionsRequest'
+      responses:
+        '200':
+          description: Trả về câu trả lời tư vấn của AI kèm danh sách ý tưởng DIY và sản phẩm khớp trong Database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftChatResponse'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -144,3 +277,48 @@ components:
         message:
           type: string
           example: "Sai thông tin đăng nhập, vui lòng thử lại!"
+
+    CartItemRequest:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: string, format: uuid }
+        quantity: { type: integer, minimum: 1, maximum: 99 }
+
+    GenerateSuggestionsRequest:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        prompt: { type: string, example: "Tư vấn quà sinh nhật cho bạn nữ tầm 50k" }
+        imageUrl: { type: string, nullable: true }
+        maxCost: { type: number, nullable: true, example: 150000 }
+        occasion: { type: string, nullable: true, example: "Birthday" }
+        difficulty: { type: string, enum: [Easy, Medium, Hard], nullable: true }
+
+    GiftChatResponse:
+      type: object
+      properties:
+        reply: { type: string }
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/GiftSuggestionItem'
+
+    GiftSuggestionItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        difficulty: { type: string, enum: [Easy, Medium, Hard] }
+        estimatedCostRange: { type: string }
+        estimatedTime: { type: string }
+        description: { type: string }
+        totalCost: { type: string }
+        searchKeyword: { type: string }
+        youtubeSearchQuery: { type: string }
+        videoUrl: { type: string }
+        materialsJson: { type: string }
+        matchedProductId: { type: string, format: uuid, nullable: true }
+        matchedProductName: { type: string, nullable: true }
+        matchedProductPrice: { type: number, nullable: true }
+        matchedProductSupportsNfc: { type: boolean, nullable: true }

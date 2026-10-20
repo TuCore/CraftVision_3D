@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/mock_data.dart';
 import '../../../../core/widgets/cv_product_card.dart';
@@ -10,7 +11,7 @@ class ProductRelatedSection extends StatelessWidget {
   final String heroTagPrefix;
 
   const ProductRelatedSection({
-    super.key, 
+    super.key,
     required this.category,
     required this.currentProductId,
     this.heroTagPrefix = '',
@@ -23,7 +24,7 @@ class ProductRelatedSection extends StatelessWidget {
         .where((p) => p.category == category && p.id != currentProductId)
         .take(4)
         .toList();
-        
+
     if (related.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -53,7 +54,10 @@ class ProductRelatedSection extends StatelessWidget {
               onTap: () {
                 final basePath = heroTagPrefix == 'home_' ? '/home' : '/shop';
                 // push another product detail on the current branch
-                context.push('$basePath/product/${product.id}', extra: heroTagPrefix);
+                context.push(
+                  '$basePath/product/${product.id}',
+                  extra: heroTagPrefix,
+                );
               },
             );
           },

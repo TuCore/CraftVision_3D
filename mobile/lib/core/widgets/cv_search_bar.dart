@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -31,7 +32,9 @@ class CvSearchBar extends StatelessWidget {
             Expanded(
               child: Text(
                 hintText,
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.neutral600),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.neutral600,
+                ),
               ),
             ),
           ],

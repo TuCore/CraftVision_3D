@@ -39,6 +39,7 @@ namespace CraftVision.Infrastructure.AI.Gemini
                 {
                     ResponseMimeType = "application/json",
                     MaxOutputTokens = 8192,
+                    ThinkingConfig = new GeminiThinkingConfig { ThinkingBudget = 0 },
                     ResponseSchema = new
                     {
                         type = "object",

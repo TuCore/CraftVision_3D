@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/pressable.dart';
 
@@ -21,7 +22,11 @@ class ProductTopActions extends StatefulWidget {
 }
 
 class _ProductTopActionsState extends State<ProductTopActions> {
-  Widget _buildGlassButton(IconData icon, VoidCallback onTap, {int badgeCount = 0}) {
+  Widget _buildGlassButton(
+    IconData icon,
+    VoidCallback onTap, {
+    int badgeCount = 0,
+  }) {
     return Pressable(
       onTap: onTap,
       child: Stack(
@@ -53,10 +58,7 @@ class _ProductTopActionsState extends State<ProductTopActions> {
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.elasticOut,
                 builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: child,
-                  );
+                  return Transform.scale(scale: value, child: child);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(5),
@@ -98,7 +100,11 @@ class _ProductTopActionsState extends State<ProductTopActions> {
                 const SizedBox(width: 12),
                 _buildGlassButton(Icons.favorite_border, widget.onFavorite),
                 const SizedBox(width: 12),
-                _buildGlassButton(Icons.shopping_cart_outlined, widget.onCart, badgeCount: widget.cartCount),
+                _buildGlassButton(
+                  Icons.shopping_cart_outlined,
+                  widget.onCart,
+                  badgeCount: widget.cartCount,
+                ),
               ],
             ),
           ],

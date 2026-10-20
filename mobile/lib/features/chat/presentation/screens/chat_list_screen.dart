@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/network/api_providers.dart';
 import '../../../../core/widgets/cv_top_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/mock_data.dart';
-import '../../../../core/widgets/cv_product_card.dart';
 
-class ChatListScreen extends StatefulWidget {
+class ChatListScreen extends ConsumerStatefulWidget {
   const ChatListScreen({super.key});
 
   @override
-  State<ChatListScreen> createState() => _ChatListScreenState();
+  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class _ChatListScreenState extends ConsumerState<ChatListScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
   bool _isTyping = false;
+  String? _sessionId;
 
   final List<String> _suggestions = [
     'Gợi ý quà sinh nhật',
@@ -23,7 +25,44 @@ class _ChatListScreenState extends State<ChatListScreen> {
     'Viết lời chúc',
   ];
 
-  void _sendMessage(String text) {
+  @override
+  void initState() {
+    super.initState();
+    _loadSession();
+  }
+
+  Future<void> _loadSession() async {
+    try {
+      final api = await ref.read(apiServicesProvider.future);
+      final sessions = await api.aiChat.getSessions();
+      final session = sessions.isEmpty
+          ? await api.aiChat.createSession(title: 'CraftVision Mobile')
+          : sessions.first;
+      _sessionId = '${session['id']}';
+      final history = await api.aiChat.getMessages(_sessionId!);
+      if (!mounted) return;
+      setState(() {
+        _messages
+          ..clear()
+          ..addAll(
+            history.reversed.map((message) {
+              final role = '${message['role']}'.toLowerCase();
+              return {
+                'isUser': role == 'user' || role == '0',
+                'text': '${message['content'] ?? ''}',
+              };
+            }),
+          );
+      });
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
+  }
+
+  Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
     setState(() {
       _messages.insert(0, {'isUser': true, 'text': text});
@@ -31,28 +70,41 @@ class _ChatListScreenState extends State<ChatListScreen> {
     });
     _controller.clear();
 
-    // Mock AI Response
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      final api = await ref.read(apiServicesProvider.future);
+      _sessionId ??=
+          '${(await api.aiChat.createSession(title: 'CraftVision Mobile'))['id']}';
+      final result = await api.aiChat.sendMessage(_sessionId!, text.trim());
+      final response = result['message'] is Map
+          ? Map<String, dynamic>.from(result['message'] as Map)
+          : result;
       if (!mounted) return;
       setState(() {
         _isTyping = false;
         _messages.insert(0, {
           'isUser': false,
-          'text': 'Dưới đây là một số gợi ý quà tặng phù hợp nhé!',
-          'product': MockData.products[0], // Attached product
+          'text': '${response['content'] ?? ''}',
         });
       });
-    });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isTyping = false);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$error')));
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CvTopBar(
-        title: 'CraftVision AI',
-        showCart: false,
-      ),
+      appBar: const CvTopBar(title: 'CraftVision AI', showCart: false),
       body: Column(
         children: [
           // Suggestions (only show if few messages)
@@ -63,11 +115,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _suggestions.map((s) => _buildSuggestionChip(s)).toList(),
+                  children: _suggestions
+                      .map((s) => _buildSuggestionChip(s))
+                      .toList(),
                 ),
               ),
             ),
-          
+
           Expanded(
             child: _messages.isEmpty && !_isTyping
                 ? Center(
@@ -85,17 +139,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       if (_isTyping && index == 0) {
                         return _buildTypingIndicator();
                       }
-                      
+
                       final msgIndex = _isTyping ? index - 1 : index;
                       final msg = _messages[msgIndex];
                       return _buildMessageBubble(msg);
                     },
                   ),
           ),
-          
+
           // Input Area
           Container(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 96),
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 12,
+              bottom: 96,
+            ),
             color: Colors.white,
             child: Container(
               decoration: BoxDecoration(
@@ -150,7 +209,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.mic_none, color: AppColors.neutral900),
+                      icon: const Icon(
+                        Icons.mic_none,
+                        color: AppColors.neutral900,
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -167,8 +229,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         ),
                         child: IconButton(
                           icon: Icon(
-                            hasText ? Icons.arrow_upward : Icons.graphic_eq, 
-                            color: Colors.white
+                            hasText ? Icons.arrow_upward : Icons.graphic_eq,
+                            color: Colors.white,
                           ),
                           onPressed: () {
                             if (hasText) {
@@ -189,10 +251,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Widget _buildSuggestionChip(String text) {
-    return _GradientChip(
-      text: text,
-      onTap: () => _sendMessage(text),
-    );
+    return _GradientChip(text: text, onTap: () => _sendMessage(text));
   }
 
   Widget _buildMessageBubble(Map<String, dynamic> msg) {
@@ -203,27 +262,41 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
             const CircleAvatar(
               backgroundColor: Colors.transparent,
-              child: Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
+              child: Icon(
+                Icons.auto_awesome,
+                color: AppColors.primary,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 8),
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isUser ? AppColors.neutral900 : const Color(0xFFFFE5D9),
+                    color: isUser
+                        ? AppColors.neutral900
+                        : const Color(0xFFFFE5D9),
                     borderRadius: BorderRadius.circular(16).copyWith(
-                      bottomRight: isUser ? Radius.zero : const Radius.circular(16),
-                      bottomLeft: !isUser ? Radius.zero : const Radius.circular(16),
+                      bottomRight: isUser
+                          ? Radius.zero
+                          : const Radius.circular(16),
+                      bottomLeft: !isUser
+                          ? Radius.zero
+                          : const Radius.circular(16),
                     ),
                   ),
                   child: Text(
@@ -249,11 +322,23 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(product.imageUrl, width: double.infinity, height: 120, fit: BoxFit.cover),
+                            child: Image.network(
+                              product.imageUrl,
+                              width: double.infinity,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                           const SizedBox(height: 8),
-                          Text(product.name, style: AppTypography.bodyMedium, maxLines: 1),
-                          Text('${product.price.toStringAsFixed(0)} đ', style: AppTypography.priceText),
+                          Text(
+                            product.name,
+                            style: AppTypography.bodyMedium,
+                            maxLines: 1,
+                          ),
+                          Text(
+                            '${product.price.toStringAsFixed(0)} đ',
+                            style: AppTypography.priceText,
+                          ),
                         ],
                       ),
                     ),
@@ -283,9 +368,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFFFE5D9),
-              borderRadius: BorderRadius.circular(16).copyWith(bottomLeft: Radius.zero),
+              borderRadius: BorderRadius.circular(16)
+                  .copyWith(bottomLeft: Radius.zero),
             ),
-            child: const Text('...', style: TextStyle(color: AppColors.neutral600, fontSize: 24, letterSpacing: 2)),
+            child: const Text(
+              '...',
+              style: TextStyle(
+                color: AppColors.neutral600,
+                fontSize: 24,
+                letterSpacing: 2,
+              ),
+            ),
           ),
         ],
       ),
@@ -324,7 +417,9 @@ class _GradientChipState extends State<_GradientChip> {
             color: _isPressed ? null : Colors.white,
             gradient: _isPressed ? AppColors.primaryGradient : null,
             borderRadius: BorderRadius.circular(100),
-            border: _isPressed ? null : Border.all(color: AppColors.primary, width: 1.5),
+            border: _isPressed
+                ? null
+                : Border.all(color: AppColors.primary, width: 1.5),
           ),
           child: Text(
             widget.text,

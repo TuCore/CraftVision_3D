@@ -66,15 +66,51 @@ export default function ChatPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "ai",
-      content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
-    }
-  ]);
+  const defaultWelcomeMsg: Message = {
+    role: "ai",
+    content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
+  };
+
+  const [messages, setMessages] = useState<Message[]>([defaultWelcomeMsg]);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Khôi phục lịch sử hội thoại từ sessionStorage khi quay lại trang (ví dụ bấm Xem SP rồi bấm Back)
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("craftvision_chat_messages_v1");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to restore chat session", e);
+    } finally {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  // Tự động lưu hội thoại vào sessionStorage mỗi khi có tin nhắn mới
+  useEffect(() => {
+    if (!isHydrated) return;
+    try {
+      sessionStorage.setItem("craftvision_chat_messages_v1", JSON.stringify(messages));
+    } catch (e) {
+      console.error("Failed to save chat session", e);
+    }
+  }, [messages, isHydrated]);
+
+  const handleResetChat = () => {
+    const initial = [defaultWelcomeMsg];
+    setMessages(initial);
+    try {
+      sessionStorage.removeItem("craftvision_chat_messages_v1");
+    } catch {}
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,9 +121,9 @@ export default function ChatPage() {
   }, [messages, loading]);
   
   // Settings for the request
-  const [maxCost, setMaxCost] = useState(150000);
-  const [occasion, setOccasion] = useState("Birthday");
-  const [difficulty, setDifficulty] = useState("Easy");
+  const [maxCost] = useState<number | null>(null);
+  const [occasion] = useState("Birthday");
+  const [difficulty] = useState("Easy");
   
   // Image Upload State
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -124,21 +160,37 @@ export default function ChatPage() {
     if (!prompt.trim() && !imageFile) return;
 
     let finalImageUrl = "";
+    const currentFile = imageFile;
+    const currentPreview = imagePreviewUrl;
     
     // Optimistic UI Update
-    const userMsg: Message = { role: "user", content: prompt, imageUrl: imagePreviewUrl || undefined };
+    const userMsg: Message = { role: "user", content: prompt, imageUrl: currentPreview || undefined };
     setMessages(prev => [...prev, userMsg]);
     setPrompt("");
+    removeImage();
     setLoading(true);
 
     try {
-      if (imageFile) {
-        finalImageUrl = await uploadImage(imageFile);
+      if (currentFile) {
+        finalImageUrl = await uploadImage(currentFile);
+        // Cập nhật URL ảnh thật (Cloudinary/Base64) thay cho blob URL tạm để khi bấm Back từ trang Shop không bị mất ảnh
+        if (finalImageUrl) {
+          setMessages(prev => {
+            const updated = [...prev];
+            for (let i = updated.length - 1; i >= 0; i--) {
+              if (updated[i].role === "user" && updated[i].imageUrl === currentPreview) {
+                updated[i] = { ...updated[i], imageUrl: finalImageUrl };
+                break;
+              }
+            }
+            return updated;
+          });
+        }
       }
       
       const payload = {
         userId: localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000000",
-        prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý quà tặng",
+        prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý cách tự làm kèm sản phẩm tương tự trên shop",
         imageUrl: finalImageUrl || "",
         maxCost: maxCost,
         occasion: occasion,
@@ -174,7 +226,6 @@ export default function ChatPage() {
       }]);
     } finally {
       setLoading(false);
-      removeImage();
     }
   };
 
@@ -189,7 +240,16 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative flex items-center gap-2">
+            {messages.length > 1 && (
+              <button
+                onClick={handleResetChat}
+                className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors border border-border/50"
+                title="Bắt đầu cuộc trò chuyện mới"
+              >
+                <span>+ Chat mới</span>
+              </button>
+            )}
             <button 
               ref={historyBtnRef}
               onClick={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -273,11 +333,82 @@ export default function ChatPage() {
                                 <tfoot><tr><td colSpan={3}>Tổng chi phí</td><td className="num">{s.totalCost || "Chưa rõ"}</td></tr></tfoot>
                               </table>
                               <div className="links-row">
-                                {materials.filter((m: any) => !!m.purchaseUrl).map((mat: any, j: number) => (
-                                  <a key={j} className="link-chip" href={mat.purchaseUrl} target="_blank" rel="noreferrer">🛒 Mua {mat.name}</a>
-                                ))}
-                                {s.searchKeyword && <a className="link-chip keyword" href={`https://shopee.vn/search?keyword=${encodeURIComponent(s.searchKeyword)}`} target="_blank" rel="noreferrer">🔎 "{s.searchKeyword}"</a>}
-                                {s.videoUrl && <a className="link-chip video" href={s.videoUrl} target="_blank" rel="noreferrer">▶ Video hướng dẫn</a>}
+                                {materials.map((mat: any, j: number) => {
+                                  const rawUrl = (mat.purchaseUrl || "").trim();
+                                  const isGenericShopee =
+                                    !rawUrl ||
+                                    rawUrl === "https://shopee.vn" ||
+                                    rawUrl === "https://shopee.vn/";
+                                  const shopeeHref = isGenericShopee
+                                    ? `https://shopee.vn/search?keyword=${encodeURIComponent(
+                                        mat.shopeeKeyword || mat.name
+                                      )}`
+                                    : rawUrl;
+                                  return (
+                                    <a
+                                      key={j}
+                                      className="link-chip"
+                                      href={shopeeHref}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      🛒 Mua {mat.name}
+                                    </a>
+                                  );
+                                })}
+                                {s.searchKeyword && (
+                                  <a
+                                    className="link-chip keyword"
+                                    href={`https://shopee.vn/search?keyword=${encodeURIComponent(
+                                      s.searchKeyword
+                                    )}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    🔎 &quot;{s.searchKeyword}&quot;
+                                  </a>
+                                )}
+                                <a
+                                  className="link-chip video"
+                                  href={
+                                    s.youtubeSearchQuery
+                                      ? `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                          s.youtubeSearchQuery
+                                        )}`
+                                      : s.videoUrl &&
+                                        s.videoUrl.includes("youtube.com/results")
+                                      ? s.videoUrl
+                                      : `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                          `${s.name || "đồ handmade"} hướng dẫn cách làm`
+                                        )}`
+                                  }
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  ▶ Video hướng dẫn (YouTube)
+                                </a>
+                                {s.matchedProductId && (
+                                  <>
+                                    <a
+                                      className="link-chip keyword"
+                                      href={`/shop/${s.matchedProductId}/greeting`}
+                                    >
+                                      🎁 Mua sẵn &amp; Gắn thiệp NFC:{" "}
+                                      {s.matchedProductName || "Sản phẩm Web"}
+                                      {s.matchedProductPrice
+                                        ? ` (${Number(
+                                            s.matchedProductPrice
+                                          ).toLocaleString("vi-VN")}đ)`
+                                        : ""}
+                                    </a>
+                                    <a
+                                      className="link-chip"
+                                      href={`/shop/${s.matchedProductId}`}
+                                    >
+                                      🛍️ Xem SP trên Web
+                                    </a>
+                                  </>
+                                )}
                               </div>
                             </div>
                           )}

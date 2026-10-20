@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'app_colors.dart';
 
 class AppTypography {
@@ -48,7 +49,7 @@ class AppTypography {
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
   );
-  
+
   static final TextStyle labelText = GoogleFonts.plusJakartaSans(
     fontSize: 14,
     fontWeight: FontWeight.w500,

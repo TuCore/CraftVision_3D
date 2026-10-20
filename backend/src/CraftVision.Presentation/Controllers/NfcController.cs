@@ -34,6 +34,7 @@ public class NfcController : ControllerBase
     }
 
     [HttpGet("{tagCode}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetTag(string tagCode)
     {
         return Ok(await _service.GetTagByCodeAsync(tagCode));

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_typography.dart';
 
 class CvInput extends StatelessWidget {
@@ -32,10 +33,7 @@ class CvInput extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (labelText != null) ...[
-          Text(
-            labelText!,
-            style: AppTypography.labelText,
-          ),
+          Text(labelText!, style: AppTypography.labelText),
           const SizedBox(height: 4),
         ],
         TextFormField(

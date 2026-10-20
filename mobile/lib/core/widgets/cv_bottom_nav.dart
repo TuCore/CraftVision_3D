@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import 'pressable.dart';
@@ -53,10 +54,31 @@ class CvBottomNav extends StatelessWidget {
               Row(
                 children: [
                   _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
-                  _buildNavItem(1, Icons.chat_bubble_outline, Icons.chat_bubble, 'Chat'),
-                  _buildNavItem(2, Icons.storefront_outlined, Icons.storefront, 'Shop'),
-                  _buildNavItem(3, Icons.receipt_long_outlined, Icons.receipt_long, 'Order'),
-                  _buildNavItem(4, Icons.person_outline, Icons.person, 'Profile', badgeCount: 3),
+                  _buildNavItem(
+                    1,
+                    Icons.chat_bubble_outline,
+                    Icons.chat_bubble,
+                    'Chat',
+                  ),
+                  _buildNavItem(
+                    2,
+                    Icons.storefront_outlined,
+                    Icons.storefront,
+                    'Shop',
+                  ),
+                  _buildNavItem(
+                    3,
+                    Icons.receipt_long_outlined,
+                    Icons.receipt_long,
+                    'Order',
+                  ),
+                  _buildNavItem(
+                    4,
+                    Icons.person_outline,
+                    Icons.person,
+                    'Profile',
+                    badgeCount: 3,
+                  ),
                 ],
               ),
             ],
@@ -66,7 +88,13 @@ class CvBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, IconData selectedIcon, String label, {int? badgeCount}) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    IconData selectedIcon,
+    String label, {
+    int? badgeCount,
+  }) {
     final isSelected = currentIndex == index;
 
     return Expanded(
@@ -85,11 +113,14 @@ class CvBottomNav extends StatelessWidget {
                 children: [
                   AnimatedSwitcher(
                     duration: AppMotion.fast,
-                    transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+                    transitionBuilder: (child, animation) =>
+                        FadeTransition(opacity: animation, child: child),
                     child: Icon(
                       isSelected ? selectedIcon : icon,
                       key: ValueKey(isSelected),
-                      color: isSelected ? AppColors.primary : AppColors.neutral900,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.neutral900,
                       size: 24,
                     ),
                   ),
@@ -121,7 +152,7 @@ class CvBottomNav extends StatelessWidget {
                 duration: AppMotion.fast,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700, 
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
                   color: isSelected ? AppColors.primary : AppColors.neutral900,
                   height: 1,
                 ),
