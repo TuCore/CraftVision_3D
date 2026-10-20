@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using CraftVision.Application.DTOs.Cart;
 using CraftVision.Application.DTOs.Mobile;
 using CraftVision.Application.Interfaces;
 using CraftVision.Application.Interfaces.Providers;
@@ -14,27 +15,34 @@ namespace CraftVision.Infrastructure.Tests;
 public class MobileApiServiceTests
 {
     [Fact]
-    public async Task Cart_AddingSameProduct_MergesQuantityAndCalculatesTotal()
+    public async Task Cart_AddingSameProductAndOptions_UpdatesQuantity()
     {
         await using var db = CreateDb();
         var (user, product) = await SeedProductAsync(db, 125_000m);
         var service = new CartService(db);
 
-        await service.AddAsync(user.Id, new(product.Id, 2));
-        var cart = await service.AddAsync(user.Id, new(product.Id, 1));
+        await service.AddItemAsync(user.Id, new AddToCartDto { ProductId = product.Id, Quantity = 2 });
+        var cart = await service.AddItemAsync(user.Id, new AddToCartDto { ProductId = product.Id, Quantity = 1 });
 
         Assert.Single(cart.Items);
-        Assert.Equal(3, cart.TotalQuantity);
-        Assert.Equal(375_000m, cart.TotalAmount);
+        Assert.Equal(1, cart.Items[0].Quantity);
+        Assert.Equal(125_000m, cart.Items[0].Price);
     }
 
     [Fact]
-    public async Task Cart_UpdateWithInvalidQuantity_IsRejected()
+    public async Task Cart_UpdateWithZeroQuantity_RemovesItem()
     {
         await using var db = CreateDb();
+        var (user, product) = await SeedProductAsync(db, 125_000m);
         var service = new CartService(db);
+        var cart = await service.AddItemAsync(user.Id, new AddToCartDto { ProductId = product.Id, Quantity = 2 });
 
-        await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateAsync(Guid.NewGuid(), Guid.NewGuid(), 0));
+        var updatedCart = await service.UpdateItemAsync(
+            user.Id,
+            cart.Items.Single().Id,
+            new UpdateCartItemDto { Quantity = 0 });
+
+        Assert.Empty(updatedCart.Items);
     }
 
     [Fact]

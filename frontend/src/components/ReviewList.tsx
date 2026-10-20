@@ -6,6 +6,7 @@ import { vi } from 'date-fns/locale';
 import { ReviewModal } from './ReviewModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSearchParams } from 'next/navigation';
+import { getAuthItem } from '@/lib/authSession';
 
 interface ReviewListProps {
   productId: string;
@@ -22,7 +23,7 @@ export function ReviewList({ productId, productName = "Sản phẩm" }: ReviewLi
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setCurrentUserId(localStorage.getItem('userId'));
+      setCurrentUserId(getAuthItem('userId'));
     }
     if (searchParams.get('review') === 'true') {
       setIsReviewModalOpen(true);

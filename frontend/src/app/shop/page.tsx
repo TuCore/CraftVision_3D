@@ -4,12 +4,14 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import Link from "next/link";
-import { Search, Star, Sparkles, Loader2, Heart } from "lucide-react";
+import { Search, Star, Sparkles, Loader2, Heart, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { Product, Category } from "@/lib/product.types";
 import { useFavoriteStore } from "@/store/useFavoriteStore";
+import { useWishlistStore } from "@/store/useWishlistStore";
 import { useProductCategories } from "@/hooks/useProductCategories";
 import api from "@/lib/api";
+import { getAccessToken } from "@/lib/authSession";
 
 import { TiltCard } from "@/components/TiltCard";
 import {
@@ -31,15 +33,64 @@ export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isFavorite, toggleFavorite } = useFavoriteStore();
+  const { toggleFavorite: addToCart, items: cartItems } = useWishlistStore();
   const { data: categoriesData } = useProductCategories();
   const allCategoryLabel = language === "vi" ? "Tất cả" : "All";
   const dynamicCategories = [allCategoryLabel, ...(categoriesData?.map(c => c.name) || [])];
+
+  const getProductAvailableStock = (product: Product) => {
+    if (product.stock === undefined) return 0;
+    const prodId = (product.id || '').toLowerCase();
+    const inCartQty = cartItems
+      .filter((i) => {
+        const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
+        return idToCheck.includes(prodId);
+      })
+      .reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const baseStock = product.availableStock !== undefined ? product.availableStock : product.stock;
+    const localPending = Math.max(0, inCartQty - (product.reservedStock || 0));
+    return Math.max(0, baseStock - localPending);
+  };
+
+  const handleAddToCart = (product: Product) => {
+    const token = getAccessToken();
+    if (!token) {
+      toast.info(language === "vi" ? "Vui lòng đăng nhập để thêm vào giỏ hàng!" : "Please login to add to cart!");
+      router.push("/auth");
+      return;
+    }
+
+    const availableStock = getProductAvailableStock(product);
+    if (availableStock <= 0) {
+      toast.error(language === "vi" ? "Sản phẩm đã hết hàng trong kho!" : "Product is out of stock!");
+      return;
+    }
+
+    addToCart(product, {
+      hasGreeting: false,
+      customQuantity: 1,
+    });
+    toast.success(
+      language === "vi" 
+        ? `Đã thêm "${product.name}" vào giỏ hàng!` 
+        : `Added "${product.name}" to cart!`,
+      {
+        action: {
+          label: language === "vi" ? "Xem giỏ hàng" : "View cart",
+          onClick: () => router.push("/cart"),
+        },
+      }
+    );
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const { data } = await api.get('/api/products?page=1&pageSize=100');
+        const { data } = await api.get('/api/products?page=1&pageSize=100', {
+          params: { _t: Date.now() },
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
         const items = data.items || [];
         // Map backend ProductDto to frontend Product interface
         const mapped = items.map((p: any) => {
@@ -56,6 +107,8 @@ export default function ShopPage() {
             matchScore: 0,
             isComingSoon: p.isComingSoon,
             stock: p.stock ?? 0,
+            availableStock: p.availableStock ?? p.stock ?? 0,
+            reservedStock: p.reservedStock ?? 0,
           };
         });
         setProducts(mapped);
@@ -66,6 +119,10 @@ export default function ShopPage() {
       }
     };
     fetchProducts();
+
+    const handleFocus = () => fetchProducts();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -205,81 +262,114 @@ export default function ShopPage() {
 
         {/* Product Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product, index) => (
-            <TiltCard
-              key={product.id}
-              onClick={() => router.push(`/shop/${product.id}`)}
-              className="animate-fade-up glass-card rounded-2xl p-4 shadow-soft transition-all duration-300 hover:shadow-coral-glow cursor-pointer flex flex-col group"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-4">
-                <div className="absolute inset-0 bg-[color:var(--coral)] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-40 z-0" />
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className={`relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${product.isComingSoon || product.stock === 0 ? 'blur-[4px] opacity-80' : ''}`}
-                />
-                <div className="absolute top-2 left-2 z-20 glass-strong px-2 py-1 rounded-lg text-[10px] font-semibold text-foreground">
-                  {product.category}
+          {filteredProducts.map((product, index) => {
+            const availableStock = getProductAvailableStock(product);
+            const isOutOfStock = (product.stock !== undefined && product.stock === 0) || availableStock === 0;
+
+            return (
+              <TiltCard
+                key={product.id}
+                onClick={() => router.push(`/shop/${product.id}`)}
+                className="animate-fade-up glass-card rounded-2xl p-4 shadow-soft transition-all duration-300 hover:shadow-coral-glow cursor-pointer flex flex-col group"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-4">
+                  <div className="absolute inset-0 bg-[color:var(--coral)] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-40 z-0" />
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className={`relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${product.isComingSoon || isOutOfStock ? 'blur-[4px] opacity-80' : ''}`}
+                  />
+                  <div className="absolute top-2 left-2 z-20 glass-strong px-2 py-1 rounded-lg text-[10px] font-semibold text-foreground">
+                    {product.category}
+                  </div>
+                  
+                  {product.isComingSoon && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-500">
+                      <div className="px-5 py-2 rounded-xl bg-black/40 border border-white/10 text-white/90 text-xs font-medium tracking-[0.2em] shadow-xl backdrop-blur-md">
+                        COMING SOON
+                      </div>
+                    </div>
+                  )}
+                  {!product.isComingSoon && isOutOfStock && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-[2px] transition-all duration-500">
+                      <div className="px-5 py-2 rounded-xl bg-red-500/80 border border-red-500/30 text-white font-bold text-xs tracking-[0.2em] shadow-xl backdrop-blur-md uppercase">
+                        {language === "vi" ? "Hết hàng" : "Out of stock"}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Heart Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(product.id);
+                    }}
+                    className="absolute top-2 right-2 z-30 p-2 rounded-full glass-strong hover:bg-white/80 transition-colors"
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${isFavorite(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+                    />
+                  </button>
                 </div>
                 
-                {product.isComingSoon && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-500">
-                    <div className="px-5 py-2 rounded-xl bg-black/40 border border-white/10 text-white/90 text-xs font-medium tracking-[0.2em] shadow-xl backdrop-blur-md">
-                      COMING SOON
+                <div className="flex-1 flex flex-col">
+                  <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h3>
+                  <div className="flex items-center justify-between gap-1 mt-auto mb-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      <span className="font-medium text-foreground">
+                        {product.rating > 0 ? product.rating : (language === "vi" ? "Chưa có đánh giá" : "No ratings yet")}
+                      </span>
                     </div>
+                    {product.stock !== undefined && !product.isComingSoon && (
+                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                        !isOutOfStock 
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" 
+                          : "bg-red-500/10 text-red-500 border-red-500/20"
+                      }`}>
+                        {!isOutOfStock ? `Kho: ${availableStock}` : (language === "vi" ? "Hết hàng" : "Out of stock")}
+                      </span>
+                    )}
                   </div>
-                )}
-                {!product.isComingSoon && product.stock === 0 && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-500">
-                    <div className="px-5 py-2 rounded-xl bg-red-500/40 border border-red-500/20 text-white/90 text-xs font-medium tracking-[0.2em] shadow-xl backdrop-blur-md">
-                      HẾT HÀNG
-                    </div>
+                  <div className="text-xl font-display font-bold gradient-text mb-4">
+                    {new Intl.NumberFormat(language === "vi" ? 'vi-VN' : 'en-US', { style: 'currency', currency: 'VND' }).format(product.price)}
                   </div>
-                )}
-
-                {/* Heart Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(product.id);
-                  }}
-                  className="absolute top-2 right-2 z-30 p-2 rounded-full glass-strong hover:bg-white/80 transition-colors"
-                >
-                  <Heart
-                    className={`h-4 w-4 ${isFavorite(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
-                  />
-                </button>
-              </div>
-              
-              <div className="flex-1 flex flex-col">
-                <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                  {product.name}
-                </h3>
-                <div className="flex items-center gap-1 mt-auto mb-2 text-xs text-muted-foreground">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-foreground">
-                    {product.rating > 0 ? product.rating : (language === "vi" ? "Chưa có đánh giá" : "No ratings yet")}
-                  </span>
+                  <div className="grid grid-cols-2 gap-2 mt-auto">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(product);
+                      }}
+                      disabled={product.isComingSoon || isOutOfStock}
+                      className={`py-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold transition-all ${
+                        isOutOfStock || product.isComingSoon
+                          ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60 border border-border"
+                          : "bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] text-white shadow-sm shadow-rose-300/30 cursor-pointer"
+                      }`}
+                    >
+                      <ShoppingBag className="h-3.5 w-3.5" />
+                      <span>{isOutOfStock ? (language === "vi" ? "Hết hàng" : "Out of stock") : (language === "vi" ? "Thêm giỏ" : "Add cart")}</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!product.isComingSoon && !isOutOfStock) {
+                          router.push(`/shop/${product.id}`);
+                        }
+                      }}
+                      disabled={product.isComingSoon || isOutOfStock}
+                      className="py-2.5 rounded-xl btn-hero text-black text-xs font-semibold disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed transition-all"
+                    >
+                      {product.isComingSoon ? "COMING SOON" : isOutOfStock ? (language === "vi" ? "Hết hàng" : "Out of stock") : t("shop.view_details")}
+                    </button>
+                  </div>
                 </div>
-                <div className="text-xl font-display font-bold gradient-text mb-4">
-                  {new Intl.NumberFormat(language === "vi" ? 'vi-VN' : 'en-US', { style: 'currency', currency: 'VND' }).format(product.price)}
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!product.isComingSoon && product.stock !== 0) {
-                      router.push(`/shop/${product.id}`);
-                    }
-                  }}
-                  disabled={product.isComingSoon || product.stock === 0}
-                  className="w-full py-2.5 rounded-xl btn-hero text-black text-sm font-semibold mt-auto disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
-                >
-                  {product.isComingSoon ? "COMING SOON" : product.stock === 0 ? "Tạm hết hàng" : t("shop.view_details")}
-                </button>
-              </div>
-            </TiltCard>
-          ))}
+              </TiltCard>
+            );
+          })}
         </section>
 
         {filteredProducts.length === 0 && (

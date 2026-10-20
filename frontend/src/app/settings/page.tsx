@@ -59,6 +59,7 @@ import { useTheme } from "next-themes";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Language } from "@/lib/dictionaries";
 import { useRouter } from "next/navigation";
+import { clearAuthSession, logout, setAuthItem } from "@/lib/authSession";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -264,9 +265,8 @@ export default function SettingsPage() {
           avatarUrl
         })
       });
-      // Vẫn lưu name lên local storage để Navbar có thể hiển thị nếu cần thiết
-      localStorage.setItem("fullName", fullName);
-      if (avatarUrl) localStorage.setItem("avatarUrl", avatarUrl);
+      setAuthItem("fullName", fullName);
+      if (avatarUrl) setAuthItem("avatarUrl", avatarUrl);
       import("sonner").then(({ toast }) => toast.success("Đã lưu thay đổi thành công!"));
     } catch (error: any) {
       import("sonner").then(({ toast }) => toast.error(error.message || "Không thể lưu hồ sơ"));
@@ -283,13 +283,7 @@ export default function SettingsPage() {
       const { toast } = await import("sonner");
       toast.success(language === "vi" ? "Tài khoản của bạn đã được xoá thành công." : "Your account has been deleted.");
       
-      // Clear all stored credentials
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("email");
-      localStorage.removeItem("fullName");
-      localStorage.removeItem("createdAt");
-      localStorage.removeItem("avatarUrl");
+      clearAuthSession();
 
       setIsDeleteDialogOpen(false);
       router.replace("/auth");
@@ -341,13 +335,7 @@ export default function SettingsPage() {
             <div className="border-t border-border my-2" />
             <button 
               onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("email");
-                localStorage.removeItem("fullName");
-                localStorage.removeItem("createdAt");
-                localStorage.removeItem("avatarUrl");
-                router.replace("/auth");
+                logout();
               }}
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10"
             >
@@ -645,20 +633,32 @@ export default function SettingsPage() {
                             {order.items?.slice(0, 1).map((item: any) => {
                               const imageUrl = item.productImageUrl || item.image || "/dreamy-hero-bg.jpg";
                               const hasGift = !!item.gift?.secretKey;
-                              const giftUrl = hasGift ? `/gift/scan/${item.gift.secretKey}` : `/gift/scan/sample`;
+                              const giftUrl = hasGift ? `/gift/scan/${item.gift.secretKey}` : null;
 
                               return (
                                 <div key={item.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between pb-3 border-b border-border/20 last:border-b-0 last:pb-0">
                                   <div className="flex gap-3 items-center min-w-0">
-                                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border/50 bg-muted">
-                                      <img src={imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border/50 bg-muted/60 flex items-center justify-center relative">
+                                      <img
+                                        src={imageUrl}
+                                        alt={item.productName || "Sản phẩm"}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = "none";
+                                          const fallback = e.currentTarget.nextElementSibling;
+                                          if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                        }}
+                                      />
+                                      <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                                        <Package className="w-6 h-6" />
+                                      </div>
                                     </div>
                                     <div className="min-w-0">
                                       <Link href={`/shop/${item.productId}`} className="font-bold text-sm text-foreground hover:text-primary transition-colors line-clamp-1">
                                         {item.productName}
                                       </Link>
                                       <p className="text-xs text-muted-foreground mt-0.5">Phân loại: Tùy chỉnh (x{item.quantity})</p>
-                                      {item.gift && (
+                                      {hasGift && giftUrl && (
                                         <Link 
                                           href={giftUrl} 
                                           target="_blank"
@@ -704,7 +704,8 @@ export default function SettingsPage() {
                               {order.paymentMethod === 'BankTransfer' && order.paymentStatus !== 'Paid' && order.orderStatus !== 'Cancelled' && (
                                 <button 
                                   onClick={() => {
-                                    router.push(`/payment/transfer?orderId=${order.id}&total=${order.totalAmount}`);
+                                    const checkoutParam = order.checkoutUrl ? `&checkoutUrl=${encodeURIComponent(order.checkoutUrl)}` : '';
+                                    router.push(`/payment/transfer?orderId=${order.id}&total=${order.totalAmount}${checkoutParam}`);
                                   }}
                                   className="btn-hero px-4 py-1.5 rounded-xl font-bold text-xs text-black shadow-coral-glow hover:scale-105 transition-transform cursor-pointer"
                                 >
@@ -1045,7 +1046,9 @@ export default function SettingsPage() {
                     <Package className="w-4 h-4 text-primary" />
                     Sản phẩm đã mua ({selectedOrderDetail.items?.length || 1})
                   </span>
-                  <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                  {selectedOrderDetail.items?.some((it: any) => !!it.gift?.secretKey) && (
+                    <span className="text-xs text-muted-foreground">Kèm link thiệp đã thiết kế</span>
+                  )}
                 </h4>
 
                 <div className="space-y-3">
@@ -1053,19 +1056,24 @@ export default function SettingsPage() {
                     { productName: "Sản phẩm CraftVision", quantity: 1, unitPrice: selectedOrderDetail.totalAmount || 0, subTotal: selectedOrderDetail.totalAmount || 0 }
                   ]).map((item: any, idx: number) => {
                     const hasRealGift = !!item.gift?.secretKey;
-                    const giftUrl = hasRealGift
-                      ? `/gift/scan/${item.gift.secretKey}`
-                      : `/gift/scan/sample`;
 
                     return (
                       <div key={idx} className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-xs space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/40">
+                          <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/60 shrink-0 border border-border/40 flex items-center justify-center relative">
                             <img 
                               src={item.productImageUrl || item.image || "/dreamy-hero-bg.jpg"} 
-                              alt={item.productName || item.name} 
+                              alt={item.productName || item.name || "Sản phẩm"} 
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const fallback = e.currentTarget.nextElementSibling;
+                                if (fallback) (fallback as HTMLElement).style.display = "flex";
+                              }}
                             />
+                            <div className="hidden w-full h-full items-center justify-center bg-primary/10 text-primary">
+                              <Package className="w-6 h-6" />
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <h5 className="font-bold text-sm text-foreground truncate">
@@ -1083,41 +1091,34 @@ export default function SettingsPage() {
                           </div>
                         </div>
 
-                        {/* Khối link thiệp đã thiết kế */}
-                        <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Gift className="w-4 h-4 text-rose-500 shrink-0" />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-foreground truncate">
-                                  {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
-                                </span>
-                                {hasRealGift ? (
+                        {/* Khối link thiệp đã thiết kế - Chỉ hiển thị khi có thiệp thật */}
+                        {hasRealGift && (
+                          <div className="p-3 rounded-xl bg-gradient-to-r from-rose-50 to-orange-50 dark:from-rose-950/20 dark:to-orange-950/20 border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Gift className="w-4 h-4 text-rose-500 shrink-0" />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-foreground truncate">
+                                    {item.gift?.giftTitle || "Thiệp NFC thông minh kèm quà tặng"}
+                                  </span>
                                   <span className="text-[10px] text-emerald-600 font-bold">✓ Thiệp thật</span>
-                                ) : (
-                                  <span className="text-[10px] text-amber-600 font-bold">(Mô phỏng)</span>
-                                )}
+                                </div>
+                                <p className="text-[11px] text-muted-foreground truncate">
+                                  {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
+                                </p>
                               </div>
-                              <p className="text-[11px] text-muted-foreground truncate">
-                                {item.gift?.receiverName ? `Dành tặng: ${item.gift.receiverName}` : "Gửi trao yêu thương qua thiệp NFC thông minh"}
-                              </p>
                             </div>
-                          </div>
 
-                          <Link
-                            href={giftUrl}
-                            target="_blank"
-                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>Xem thiệp đã thiết kế</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </Link>
-                        </div>
-                        {!hasRealGift && (
-                          <p className="text-[10px] text-amber-600 italic">
-                            * Đơn hàng này được tạo khi chưa liên kết thiệp NFC hoặc backend chưa trả secretKey (Chưa có từ hệ thống - dữ liệu thiệp mô phỏng).
-                          </p>
+                            <Link
+                              href={`/gift/scan/${item.gift.secretKey}`}
+                              target="_blank"
+                              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>Xem thiệp đã thiết kế</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          </div>
                         )}
                       </div>
                     );

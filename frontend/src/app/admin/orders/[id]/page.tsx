@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useOrderDetails, useUpdateOrderStatus, useDeleteOrder, Order } from '@/hooks/useOrders';
+import { useOrderDetails, useUpdateOrderStatus, useDeleteOrder, useUpdatePaymentStatus, Order } from '@/hooks/useOrders';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift, ChevronDown, CheckCircle2, Clock, Truck, XCircle, Hammer, Trash2 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift, ChevronDown, CheckCircle2, Clock, Truck, XCircle, Hammer, Trash2, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -23,13 +23,25 @@ const getOrderStatusConfig = (status: string) => {
   }
 };
 
+const getPaymentStatusConfig = (status: string) => {
+  switch (status) {
+    case 'Unpaid': return { label: 'Chưa thanh toán', color: 'bg-slate-100 text-slate-800 border-slate-200', icon: Clock };
+    case 'Paid': return { label: 'Đã thanh toán', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: CheckCircle2 };
+    case 'Failed': return { label: 'Thất bại', color: 'bg-rose-100 text-rose-800 border-rose-200', icon: XCircle };
+    case 'Refunded': return { label: 'Đã hoàn tiền', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: RefreshCw };
+    default: return { label: status, color: 'bg-gray-100 text-gray-800 border-gray-200', icon: CreditCard };
+  }
+};
+
 export default function AdminOrderDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { data: order, isLoading, error } = useOrderDetails(id as string);
   const { mutate: updateStatus, isPending } = useUpdateOrderStatus();
   const deleteMutation = useDeleteOrder();
+  const { mutate: updatePaymentStatus, isPending: isPaymentPending } = useUpdatePaymentStatus();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>('');
   
   // Custom dialog state
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -87,6 +99,23 @@ export default function AdminOrderDetailPage() {
     );
   };
 
+  const handleUpdatePaymentStatus = () => {
+    const statusToUpdate = selectedPaymentStatus || order.paymentStatus;
+    if (!statusToUpdate || statusToUpdate === order.paymentStatus) return;
+    
+    updatePaymentStatus(
+      { id: order.id, status: statusToUpdate },
+      {
+        onSuccess: () => {
+          toast.success('Cập nhật trạng thái thanh toán thành công!');
+        },
+        onError: () => {
+          toast.error('Lỗi khi cập nhật trạng thái thanh toán.');
+        }
+      }
+    );
+  };
+
   const handleDeleteOrderClick = () => {
     setIsDeleteConfirmOpen(true);
   };
@@ -129,49 +158,49 @@ export default function AdminOrderDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Customer Info Card */}
-        <div className="glass-card p-6 md:p-8 rounded-3xl shadow-soft space-y-6">
-          <h2 className="text-xl font-bold font-display flex items-center gap-2 text-foreground">
+        <div className="glass-card p-5 rounded-3xl shadow-soft space-y-4 flex flex-col h-fit">
+          <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
             <User className="w-5 h-5 text-primary" /> Thông tin khách hàng
           </h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-white/60 p-3 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" /> Người nhận
               </p>
-              <p className="font-extrabold text-foreground text-lg truncate" title={order.receiverName}>{order.receiverName}</p>
+              <p className="font-extrabold text-foreground text-base truncate" title={order.receiverName}>{order.receiverName}</p>
             </div>
             
-            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <div className="bg-white/60 p-3 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> Ngày đặt
               </p>
-              <p className="font-semibold text-foreground">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+              <p className="font-semibold text-foreground text-sm">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
             </div>
           </div>
             
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center sm:col-span-2">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+            <div className="bg-white/60 p-3 rounded-2xl border border-white shadow-sm flex flex-col justify-center sm:col-span-2">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" /> Thông tin liên hệ & Địa chỉ
               </p>
-              <div className="space-y-1">
-                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-20">SĐT:</span> {order.receiverPhone || 'Chưa cung cấp'}</p>
-                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-20">Địa chỉ:</span> {order.receiverAddress || 'Chưa cung cấp'}</p>
+              <div className="space-y-0.5">
+                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-16">SĐT:</span> {order.receiverPhone || 'Chưa cung cấp'}</p>
+                <p className="font-semibold text-foreground text-sm flex gap-2"><span className="text-muted-foreground w-16">Địa chỉ:</span> {order.receiverAddress || 'Chưa cung cấp'}</p>
               </div>
             </div>
             
-            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <div className="bg-white/60 p-3 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5" /> Thanh toán
               </p>
               <div className="flex flex-col gap-1.5">
-                <p className="font-semibold text-foreground">
+                <p className="font-semibold text-foreground text-sm">
                   {order.paymentMethod === 'Cod' ? 'Thanh toán khi nhận hàng (COD)' : 
                    order.paymentMethod === 'BankTransfer' ? 'Chuyển khoản (QR)' : order.paymentMethod}
                 </p>
                 {order.paymentMethod === 'BankTransfer' && (
-                  <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border w-fit ${
+                  <span className={`inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border w-fit ${
                     order.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'
                   }`}>
                     {order.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
@@ -180,60 +209,100 @@ export default function AdminOrderDetailPage() {
               </div>
             </div>
             
-            <div className="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <div className="bg-white/60 p-3 rounded-2xl border border-white shadow-sm flex flex-col justify-center">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5" /> Tổng tiền
               </p>
-              <p className="font-extrabold text-2xl text-primary">{order.totalAmount.toLocaleString('vi-VN')} đ</p>
+              <p className="font-extrabold text-xl text-primary">{order.totalAmount.toLocaleString('vi-VN')} đ</p>
             </div>
           </div>
         </div>
 
-        {/* Status Update Card */}
-        <div className="glass-card p-6 md:p-8 rounded-3xl shadow-soft flex flex-col gap-6">
-          <h2 className="text-xl font-bold font-display flex items-center gap-2 text-foreground flex-none">
-            <RefreshCw className="w-5 h-5 text-primary" /> Cập nhật trạng thái
-          </h2>
-          
-            <div className="bg-white/80 p-5 rounded-2xl border border-white shadow-sm flex-1 flex flex-col gap-6">
-              <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-border shadow-sm flex-none">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Trạng thái hiện tại</p>
-                {(() => {
-                  const currentStatus = getOrderStatusConfig(order.orderStatus);
-                  const StatusIcon = currentStatus.icon;
-                  return (
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-extrabold border ${currentStatus.color}`}>
-                      <StatusIcon className="w-4 h-4" />
-                      {currentStatus.label}
-                    </span>
-                  );
-                })()}
-              </div>
-              
-              <div className="flex flex-col gap-3 mt-auto">
-                <div className="relative">
-                  <Select value={selectedStatus || order.orderStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger className="w-full h-14 bg-white border-2 border-border/60 hover:border-primary/40 rounded-xl px-4 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/20 shadow-sm transition-all data-[state=open]:border-primary/50">
-                      <SelectValue placeholder="Chọn trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/60 shadow-xl bg-white/95 backdrop-blur-xl z-50">
-                      <SelectItem value="Pending" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-muted focus:bg-muted transition-colors">Chờ xử lý</SelectItem>
-                      <SelectItem value="ReadyToShip" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-amber-50 focus:bg-amber-50 transition-colors">Chờ lấy hàng</SelectItem>
-                      <SelectItem value="Shipped" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-cyan-50 focus:bg-cyan-50 transition-colors">Đang giao</SelectItem>
-                      <SelectItem value="Delivered" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-emerald-50 focus:bg-emerald-50 text-emerald-700 transition-colors">Đã giao</SelectItem>
-                      <SelectItem value="Cancelled" className="rounded-lg font-bold cursor-pointer py-3 hover:bg-rose-50 focus:bg-rose-50 text-rose-600 transition-colors">Đã hủy</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <button 
-                  onClick={handleUpdateStatus}
-                  disabled={isPending || ((selectedStatus || order.orderStatus) === order.orderStatus)}
-                  className="btn-hero text-black w-full py-3.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
-                >
-                  {isPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thay Đổi'}
-                </button>
-              </div>
+        <div className="space-y-6">
+          {/* Status Update Card */}
+          <div className="glass-card p-5 rounded-3xl shadow-soft flex flex-col gap-4">
+            <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground flex-none">
+              <RefreshCw className="w-5 h-5 text-primary" /> Trạng thái đơn hàng
+            </h2>
+            
+            <div className="flex items-center justify-between bg-white/60 p-3 rounded-xl border border-white shadow-sm flex-none">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Hiện tại</p>
+              {(() => {
+                const currentStatus = getOrderStatusConfig(order.orderStatus);
+                const StatusIcon = currentStatus.icon;
+                return (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-extrabold border ${currentStatus.color}`}>
+                    <StatusIcon className="w-4 h-4" />
+                    {currentStatus.label}
+                  </span>
+                );
+              })()}
             </div>
+            
+            <div className="flex flex-col gap-3 mt-1">
+              <Select value={selectedStatus || order.orderStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full h-11 bg-white/80 border-2 border-white hover:border-primary/40 rounded-xl px-4 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/20 shadow-sm transition-all data-[state=open]:border-primary/50">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border/60 shadow-xl bg-white/95 backdrop-blur-xl z-50">
+                  <SelectItem value="Pending" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-muted focus:bg-muted transition-colors">Chờ xử lý</SelectItem>
+                  <SelectItem value="ReadyToShip" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-amber-50 focus:bg-amber-50 transition-colors">Chờ lấy hàng</SelectItem>
+                  <SelectItem value="Shipped" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-cyan-50 focus:bg-cyan-50 transition-colors">Đang giao</SelectItem>
+                  <SelectItem value="Delivered" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-emerald-50 focus:bg-emerald-50 text-emerald-700 transition-colors">Đã giao</SelectItem>
+                  <SelectItem value="Cancelled" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-rose-50 focus:bg-rose-50 text-rose-600 transition-colors">Đã hủy</SelectItem>
+                </SelectContent>
+              </Select>
+              <button 
+                onClick={handleUpdateStatus}
+                disabled={isPending || ((selectedStatus || order.orderStatus) === order.orderStatus)}
+                className="btn-hero text-black w-full py-2.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+              >
+                {isPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thay Đổi'}
+              </button>
+            </div>
+          </div>
+
+          {/* Payment Status Update Card */}
+          <div className="glass-card p-5 rounded-3xl shadow-soft flex flex-col gap-4">
+            <h2 className="text-lg font-bold font-display flex items-center gap-2 text-foreground flex-none">
+              <CreditCard className="w-5 h-5 text-primary" /> Trạng thái thanh toán
+            </h2>
+            
+            <div className="flex items-center justify-between bg-white/60 p-3 rounded-xl border border-white shadow-sm flex-none">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Hiện tại</p>
+              {(() => {
+                const currentStatus = getPaymentStatusConfig(order.paymentStatus);
+                const StatusIcon = currentStatus.icon;
+                return (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-extrabold border ${currentStatus.color}`}>
+                    <StatusIcon className="w-4 h-4" />
+                    {currentStatus.label}
+                  </span>
+                );
+              })()}
+            </div>
+            
+            <div className="flex flex-col gap-3 mt-1">
+              <Select value={selectedPaymentStatus || order.paymentStatus} onValueChange={setSelectedPaymentStatus}>
+                <SelectTrigger className="w-full h-11 bg-white/80 border-2 border-white hover:border-primary/40 rounded-xl px-4 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/20 shadow-sm transition-all data-[state=open]:border-primary/50">
+                  <SelectValue placeholder="Chọn thanh toán" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border/60 shadow-xl bg-white/95 backdrop-blur-xl z-50">
+                  <SelectItem value="Unpaid" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-muted focus:bg-muted transition-colors">Chưa thanh toán</SelectItem>
+                  <SelectItem value="Paid" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-emerald-50 focus:bg-emerald-50 transition-colors">Đã thanh toán</SelectItem>
+                  <SelectItem value="Failed" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-rose-50 focus:bg-rose-50 transition-colors">Thất bại</SelectItem>
+                  <SelectItem value="Refunded" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-indigo-50 focus:bg-indigo-50 text-indigo-700 transition-colors">Đã hoàn tiền</SelectItem>
+                </SelectContent>
+              </Select>
+              <button 
+                onClick={handleUpdatePaymentStatus}
+                disabled={isPaymentPending || ((selectedPaymentStatus || order.paymentStatus) === order.paymentStatus)}
+                className="btn-hero text-black w-full py-2.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+              >
+                {isPaymentPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thanh Toán'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

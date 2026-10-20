@@ -29,6 +29,12 @@ public class ProductController : ControllerBase
         return Ok(await _service.GetByIdAsync(id));
     }
 
+    [HttpPost("check-stock")]
+    public async Task<IActionResult> CheckStock([FromBody] CheckStockRequestDto dto)
+    {
+        return Ok(await _service.CheckStockAsync(dto));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
     {

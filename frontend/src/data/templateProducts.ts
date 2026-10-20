@@ -29,6 +29,24 @@ export const DEFAULT_TUTORIAL_VIDEO: Omit<TemplateVideo, "id" | "templateId"> = 
 };
 
 export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
+  {
+    id: 17,
+    image: "/cards/previews/starlight-birthday.webp",
+    title: "Điều ước sinh nhật dệt từ ánh sao",
+    sold: 188,
+    originalPrice: 89999,
+    price: 49999,
+    discount: 44,
+    video: {
+      id: 17,
+      templateId: 17,
+      headerTitle: "Video Xem Thử Thiệp 3D",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      captionTitle: "Điều Ước Sinh Nhật Dệt Từ Ánh Sao",
+      captionDesc: "Trải nghiệm thiệp 3D mở phong thư, bánh sinh nhật tương tác, ngọn lửa hạt bập bùng và pháo hoa ước nguyện.",
+      detailUrl: "/greeting-card"
+    }
+  },
   { 
     id: 1, 
     image: "/dreamy-hero-bg.jpg", 

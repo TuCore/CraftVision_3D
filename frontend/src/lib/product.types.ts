@@ -13,6 +13,12 @@ export interface Product {
   images?: string[];
   isComingSoon?: boolean;
   stock?: number;
+  availableStock?: number;
+  reservedStock?: number;
+  is3D?: boolean;
+  isDigital?: boolean;
+  cardSlug?: string;
+  isCardTemplate?: boolean;
 }
 
 

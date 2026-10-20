@@ -92,8 +92,10 @@ public class OrderService : IOrderService
 
                 if (product.ProductType == ProductType.InStock)
                 {
+                    if (product.Stock <= 0)
+                        throw new Exception($"Sản phẩm '{product.Name}' đã hết hàng.");
                     if (product.Stock < itemDto.Quantity)
-                        throw new Exception($"Product {product.Name} is out of stock.");
+                        throw new Exception($"Sản phẩm '{product.Name}' không đủ số lượng trong kho (chỉ còn {product.Stock} sản phẩm).");
                     
                     product.Stock -= itemDto.Quantity;
                     _unitOfWork.Products.Update(product);
@@ -235,7 +237,21 @@ public class OrderService : IOrderService
                     cancelUrl
                 );
                 
+                order.PayOsCheckoutUrl = paymentInfo.CheckoutUrl;
+                order.PayOsQrCode = paymentInfo.QrCode;
+                order.PayOsBin = paymentInfo.Bin;
+                order.PayOsAccountNumber = paymentInfo.AccountNumber;
+                order.PayOsAccountName = paymentInfo.AccountName;
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+
                 resultDto.CheckoutUrl = paymentInfo.CheckoutUrl;
+                resultDto.QrCode = paymentInfo.QrCode;
+                resultDto.PayOsBin = paymentInfo.Bin;
+                resultDto.PayOsAccountNumber = paymentInfo.AccountNumber;
+                resultDto.PayOsAccountName = paymentInfo.AccountName;
+                resultDto.PayOsAmount = (int)order.TotalAmount;
+                resultDto.PayOsDescription = $"CV3D {order.OrderCode}";
             }
 
             return resultDto;
@@ -256,6 +272,21 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
         if (order == null) throw new Exception("Order not found");
+
+        if (order.PaymentMethod == PaymentMethod.BankTransfer && 
+            order.PaymentStatus == PaymentStatus.Unpaid && 
+            order.OrderStatus != OrderStatus.Cancelled &&
+            (string.IsNullOrEmpty(order.PayOsCheckoutUrl) || order.PayOsCheckoutUrl.Contains("dummy-payment-url")))
+        {
+            try
+            {
+                await GeneratePayOsLinkForOrderAsync(order);
+            }
+            catch
+            {
+                // Fallback gracefully if PayOS service is temporarily unavailable
+            }
+        }
         
         return new OrderDto
         {
@@ -271,6 +302,13 @@ public class OrderService : IOrderService
             TotalAmount = order.TotalAmount,
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
+            CheckoutUrl = order.PayOsCheckoutUrl,
+            QrCode = order.PayOsQrCode,
+            PayOsBin = order.PayOsBin,
+            PayOsAccountNumber = order.PayOsAccountNumber,
+            PayOsAccountName = order.PayOsAccountName,
+            PayOsAmount = (int)order.TotalAmount,
+            PayOsDescription = $"CV3D {order.OrderCode}",
             Items = order.OrderItems.Select(oi => new OrderItemDto
             {
                 Id = oi.Id,
@@ -314,6 +352,13 @@ public class OrderService : IOrderService
                 TotalAmount = order.TotalAmount,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
+                CheckoutUrl = order.PayOsCheckoutUrl,
+                QrCode = order.PayOsQrCode,
+                PayOsBin = order.PayOsBin,
+                PayOsAccountNumber = order.PayOsAccountNumber,
+                PayOsAccountName = order.PayOsAccountName,
+                PayOsAmount = (int)order.TotalAmount,
+                PayOsDescription = $"CV3D {order.OrderCode}",
                 Items = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,
@@ -381,7 +426,32 @@ public class OrderService : IOrderService
         order.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Orders.Update(order);
 
-        if (newStatus == OrderStatus.Shipped || newStatus == OrderStatus.Delivered)
+        if (newStatus == OrderStatus.Cancelled)
+        {
+            var items = await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId);
+            foreach (var item in items)
+            {
+                var prod = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                if (prod != null && prod.ProductType == ProductType.InStock)
+                {
+                    prod.Stock += item.Quantity;
+                    _unitOfWork.Products.Update(prod);
+                }
+
+                var gift = await _unitOfWork.Gifts.GetByOrderItemIdAsync(item.Id);
+                if (gift != null)
+                {
+                    var tag = await _unitOfWork.NfcTags.GetByIdAsync(gift.NfcTagId);
+                    if (tag != null && tag.Status == NfcStatus.Reserved)
+                    {
+                        tag.Status = NfcStatus.Available;
+                        tag.UpdatedAt = DateTime.UtcNow;
+                        _unitOfWork.NfcTags.Update(tag);
+                    }
+                }
+            }
+        }
+        else if (newStatus == OrderStatus.Shipped || newStatus == OrderStatus.Delivered)
         {
             var items = await _unitOfWork.OrderItems.GetByOrderIdAsync(orderId);
             foreach (var item in items)
@@ -402,6 +472,24 @@ public class OrderService : IOrderService
 
         await _unitOfWork.SaveChangesAsync();
     }
+
+    public async Task UpdatePaymentStatusAsync(Guid orderId, string status)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        if (!Enum.TryParse<PaymentStatus>(status, out var newStatus))
+        {
+            throw new ArgumentException("Invalid payment status");
+        }
+
+        order.PaymentStatus = newStatus;
+        order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
 
     public async Task CompleteUserOrderAsync(Guid userId, Guid orderId)
     {
@@ -575,6 +663,71 @@ public class OrderService : IOrderService
 
         order.PaymentStatus = PaymentStatus.Paid;
         order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<OrderDto> GetOrRegeneratePaymentLinkAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+        if (order == null) throw new Exception("Order not found");
+
+        if (order.PaymentStatus == PaymentStatus.Paid)
+        {
+            return await GetOrderByIdAsync(orderId);
+        }
+
+        if (order.OrderStatus == OrderStatus.Cancelled)
+        {
+            throw new InvalidOperationException("Đơn hàng này đã bị huỷ.");
+        }
+
+        await GeneratePayOsLinkForOrderAsync(order);
+        return await GetOrderByIdAsync(orderId);
+    }
+
+    private async Task GeneratePayOsLinkForOrderAsync(Order order)
+    {
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
+        string returnUrl = $"{frontendUrl}/payment/success";
+        string cancelUrl = $"{frontendUrl}/payment/cancel";
+
+        if (!long.TryParse(order.OrderCode, out long orderCodeLong))
+        {
+            order.OrderCode = GenerateOrderCode();
+            orderCodeLong = long.Parse(order.OrderCode);
+        }
+
+        var paymentInfo = await _payOsService.CreatePaymentLinkAsync(
+            order.Id,
+            orderCodeLong,
+            order.TotalAmount,
+            $"Thanh toan CV3D {order.OrderCode}",
+            returnUrl,
+            cancelUrl
+        );
+
+        if (string.IsNullOrEmpty(paymentInfo.CheckoutUrl) || paymentInfo.CheckoutUrl.Contains("dummy-payment-url"))
+        {
+            order.OrderCode = GenerateOrderCode();
+            orderCodeLong = long.Parse(order.OrderCode);
+            paymentInfo = await _payOsService.CreatePaymentLinkAsync(
+                order.Id,
+                orderCodeLong,
+                order.TotalAmount,
+                $"Thanh toan CV3D {order.OrderCode}",
+                returnUrl,
+                cancelUrl
+            );
+        }
+
+        order.PayOsCheckoutUrl = paymentInfo.CheckoutUrl;
+        order.PayOsQrCode = paymentInfo.QrCode;
+        order.PayOsBin = paymentInfo.Bin;
+        order.PayOsAccountNumber = paymentInfo.AccountNumber;
+        order.PayOsAccountName = paymentInfo.AccountName;
+        order.UpdatedAt = DateTime.UtcNow;
+
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
     }

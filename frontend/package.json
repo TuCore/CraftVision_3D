@@ -60,6 +60,7 @@
     "next-themes": "^0.4.6",
     "pg": "^8.23.1",
     "postprocessing": "^6.39.5",
+    "qrcode": "^1.5.4",
     "react": "19.2.7",
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.7",
@@ -77,6 +78,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^26",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.185.4",

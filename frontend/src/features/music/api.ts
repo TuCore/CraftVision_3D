@@ -1,10 +1,12 @@
 import type { MusicTrack } from "./types";
+import { getAccessToken, logout } from "@/lib/authSession";
 
 export async function musicRequest<T = MusicTrack[]>(path = "/tracks", options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem("token");
+  const token = getAccessToken();
   const headers = new Headers(options.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
   const response = await fetch(`/api/music${path}`, { ...options, headers, cache: "no-store" });
+  if (response.status === 401) logout("unauthorized");
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     const message = response.status === 401 ? "Vui lòng đăng nhập để quản lý nhạc nền."

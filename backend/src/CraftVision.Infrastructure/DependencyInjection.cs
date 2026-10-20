@@ -31,6 +31,9 @@ namespace CraftVision.Infrastructure
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IMessageTemplateRepository, CraftVision.Infrastructure.Repositories.MessageTemplateRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IReviewRepository, CraftVision.Infrastructure.Repositories.ReviewRepository>();
 
+            services.AddScoped<CraftVision.Application.Interfaces.Services.ICartService, CraftVision.Infrastructure.Services.CartService>();
+            services.AddScoped<CraftVision.Application.Interfaces.Services.IWishlistService, CraftVision.Infrastructure.Services.WishlistService>();
+
             services.AddHttpContextAccessor();
             services.AddScoped<CraftVision.Application.Interfaces.Providers.IObjectStorageService, CraftVision.Infrastructure.Providers.CloudinaryObjectStorageService>();
             

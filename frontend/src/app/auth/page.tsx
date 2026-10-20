@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Mail, Lock, User, Sparkles, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
 import { StarryBackground } from "@/components/StarryBackground";
 import { motion, Variants } from "framer-motion";
+import { consumeAuthNotice, setAuthSession } from "@/lib/authSession";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -20,6 +21,17 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+
+  useEffect(() => {
+    const reason = consumeAuthNotice();
+    if (reason === "idle") toast.info("Phiên đăng nhập đã hết hạn do không hoạt động.");
+    if (reason === "unauthorized") toast.info("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  }, []);
+
+  const saveSession = (response: { token: string; userId?: string; email?: string; fullName?: string; createdAt?: string }) => {
+    setAuthSession(response, rememberMe);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,22 +45,14 @@ export default function AuthPage() {
           method: "POST",
           body: JSON.stringify({ email, password, fullName: name }),
         });
-        localStorage.setItem("token", res.token);
-        localStorage.setItem("userId", res.userId);
-        localStorage.setItem("email", res.email);
-        localStorage.setItem("fullName", res.fullName);
-        if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
+        saveSession(res);
         router.replace(email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
       } else {
         const res = await fetchApi("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
-        localStorage.setItem("token", res.token);
-        localStorage.setItem("userId", res.userId);
-        localStorage.setItem("email", res.email);
-        localStorage.setItem("fullName", res.fullName);
-        if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
+        saveSession(res);
         router.replace(email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
       }
     } catch (err: any) {
@@ -196,7 +200,11 @@ export default function AuthPage() {
               {mode === "login" ? (
                 <div className="flex items-center justify-between text-sm">
                   <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
-                    <Checkbox /> Ghi nhớ tôi
+                    <Checkbox
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(checked === true)}
+                      aria-label="Ghi nhớ đăng nhập"
+                    /> Ghi nhớ tôi
                   </label>
                   <a href="#" className="text-foreground font-medium hover:underline">Quên mật khẩu?</a>
                 </div>
@@ -247,11 +255,7 @@ export default function AuthPage() {
                             method: "POST",
                             body: JSON.stringify({ idToken: credentialResponse.credential }),
                           });
-                          localStorage.setItem("token", res.token);
-                          localStorage.setItem("userId", res.userId);
-                          localStorage.setItem("email", res.email);
-                          localStorage.setItem("fullName", res.fullName);
-                          if (res.createdAt) localStorage.setItem("createdAt", res.createdAt);
+                          saveSession(res);
                           toast.success("Đăng nhập Google thành công!");
                           router.replace(res.email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
                         } catch (err: any) {

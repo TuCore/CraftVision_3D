@@ -6,10 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_providers.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/cv_button.dart';
 import '../../../../core/widgets/cv_input.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../providers/auth_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -23,8 +26,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   bool _isLoading = false;
   int _step = 1;
   bool _rememberMe = true;
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  
+  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _emailCtrl = TextEditingController();
+  final TextEditingController _passwordCtrl = TextEditingController();
 
   late AnimationController _animCtrl;
   late Animation<double> _bgScale;
@@ -111,36 +116,88 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   @override
   void dispose() {
     _animCtrl.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _handleAuth() async {
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập email và mật khẩu.')),
+        const SnackBar(content: Text('Vui lòng nhập email và mật khẩu')),
       );
       return;
     }
+
     setState(() => _isLoading = true);
     try {
-      final auth = await ref.read(authServiceProvider.future);
-      await auth.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        rememberMe: _rememberMe,
-      );
-      if (!mounted) return;
-      ref.invalidate(userProfileProvider);
-      context.go('/home');
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('$error')));
+      final repository = ref.read(authRepositoryProvider);
+      final response = await repository.login(email, password);
+      
+      final token = response.token;
+      if (token.isNotEmpty) {
+        const storage = FlutterSecureStorage();
+        await storage.write(key: 'jwt_token', value: token);
+        if (mounted) {
+          context.go('/home');
+        }
+      } else {
+        throw Exception('Không nhận được token xác thực');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đăng nhập thất bại: $e')),
+        );
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleRegister() async {
+    final name = _nameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final repository = ref.read(authRepositoryProvider);
+      final response = await repository.register(name, email, password);
+      
+      final token = response.token;
+      if (token.isNotEmpty) {
+        const storage = FlutterSecureStorage();
+        await storage.write(key: 'jwt_token', value: token);
+        if (mounted) {
+          context.go('/home');
+        }
+      } else {
+        throw Exception('Không nhận được token xác thực');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đăng ký thất bại: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -403,9 +460,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                 children: [
                   if (_step == 1) ...[
                     CvInput(
+                      controller: _emailCtrl,
                       labelText: 'Email',
                       hintText: 'Nhập địa chỉ email của bạn',
-                      controller: _emailController,
+                      textColor: Colors.white,
                     ),
                     const SizedBox(height: 24),
                     CvButton(
@@ -413,7 +471,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                       isLoading: _isLoading,
                       onPressed: () => setState(() => _step = 2),
                     ),
-                  ] else ...[
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.center,
+                      child: TextButton(
+                        onPressed: () => setState(() => _step = 3),
+                        child: Text(
+                          'Chưa có tài khoản? Đăng ký ngay',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: Colors.white,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else if (_step == 2) ...[
                     Row(
                       children: [
                         GestureDetector(
@@ -437,7 +510,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _emailController.text.trim(),
+                                _emailCtrl.text.isNotEmpty ? _emailCtrl.text : 'email@example.com',
                                 style: AppTypography.bodyMedium.copyWith(
                                   color: Colors.white,
                                 ),
@@ -463,16 +536,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                     ),
                     const SizedBox(height: 24),
                     CvInput(
+                      controller: _passwordCtrl,
                       labelText: 'Mật khẩu',
                       hintText: 'Nhập mật khẩu',
                       isPassword: true,
-                      controller: _passwordController,
+                      textColor: Colors.white,
                     ),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () => setState(() => _step = 4),
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,
@@ -493,6 +567,102 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                       text: 'Đăng nhập',
                       isLoading: _isLoading,
                       onPressed: _handleAuth,
+                    ),
+                  ] else if (_step == 3) ...[
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => setState(() => _step = 1),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.arrow_back, color: Colors.white70, size: 20),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text('Tạo tài khoản mới', style: AppTypography.heading3.copyWith(color: Colors.white)),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    CvInput(
+                      controller: _nameCtrl,
+                      labelText: 'Họ và tên',
+                      hintText: 'Nhập họ và tên',
+                      textColor: Colors.white,
+                    ),
+                    const SizedBox(height: 16),
+                    CvInput(
+                      controller: _emailCtrl,
+                      labelText: 'Email',
+                      hintText: 'Nhập địa chỉ email',
+                      textColor: Colors.white,
+                    ),
+                    const SizedBox(height: 16),
+                    CvInput(
+                      controller: _passwordCtrl,
+                      labelText: 'Mật khẩu',
+                      hintText: 'Tạo mật khẩu',
+                      isPassword: true,
+                      textColor: Colors.white,
+                    ),
+                    const SizedBox(height: 32),
+                    CvButton(
+                      text: 'Đăng ký',
+                      isLoading: _isLoading,
+                      onPressed: _handleRegister,
+                    ),
+
+                  ] else if (_step == 4) ...[
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => setState(() => _step = 2),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.arrow_back, color: Colors.white70, size: 20),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text('Khôi phục mật khẩu', style: AppTypography.heading3.copyWith(color: Colors.white)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Vui lòng nhập địa chỉ email bạn đã dùng để đăng ký. Chúng tôi sẽ gửi hướng dẫn khôi phục mật khẩu.',
+                      style: AppTypography.bodyMedium.copyWith(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 24),
+                    CvInput(
+                      controller: _emailCtrl,
+                      labelText: 'Email',
+                      hintText: 'Nhập địa chỉ email',
+                      textColor: Colors.white,
+                    ),
+                    const SizedBox(height: 32),
+                    CvButton(
+                      text: 'Gửi yêu cầu',
+                      isLoading: _isLoading,
+                      onPressed: () async {
+                        setState(() => _isLoading = true);
+                        // Giả lập delay request API
+                        await Future.delayed(const Duration(seconds: 1));
+                        setState(() {
+                          _isLoading = false;
+                          _step = 1;
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Đã gửi liên kết khôi phục. Vui lòng kiểm tra email của bạn.')),
+                          );
+                        }
+                      },
                     ),
                   ],
                   const SizedBox(height: 24),

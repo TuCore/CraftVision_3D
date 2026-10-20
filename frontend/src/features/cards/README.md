@@ -2,7 +2,7 @@
 
 ## Các đường dẫn
 
-- `/cards`: 54 mẫu, tìm kiếm, lọc theo 9 nhóm dịp, demo trong điện thoại.
+- `/cards`: 55 mẫu hiển thị (54 mẫu schema và thiệp Starlight nổi bật), tìm kiếm, lọc theo 9 nhóm dịp, demo trong điện thoại.
 - `/cards/[slug]/edit`: input riêng theo mẫu, ảnh, album, danh sách kỷ niệm, nhạc, màu và phong thư.
 - `/love-gift/[slug]`: trải nghiệm toàn màn hình với dữ liệu mẫu.
 - `/love-gift/[slug]?draft=1`: xem bản nháp lưu trên thiết bị hiện tại.

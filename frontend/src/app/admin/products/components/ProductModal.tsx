@@ -39,7 +39,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
         name: product.name || '',
         description: product.description || '',
         price: product.price || 0,
-        stock: product.stock || 0,
+        stock: product.originalStock ?? (product.stock + (product.reservedStock || 0)),
         productType: product.productType || 'InStock',
         supportsNfc: product.supportsNfc ?? true,
         isComingSoon: product.isComingSoon ?? false,
@@ -199,11 +199,19 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-800">Giá (VNĐ) <span className="text-[#ff6b6b]">*</span></label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-gray-800">Giá bán (VNĐ) <span className="text-[#ff6b6b]">*</span></label>
+                {formData.price > 0 && (
+                  <span className="text-xs text-primary font-bold">
+                    = {formData.price.toLocaleString('vi-VN')} VNĐ
+                  </span>
+                )}
+              </div>
               <input
                 type="number"
                 min="0"
-                value={formData.price}
+                placeholder="Ví dụ: 35000"
+                value={formData.price || ''}
                 onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
                 className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all font-medium"
                 required
@@ -211,10 +219,11 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-800">Tồn kho <span className="text-[#ff6b6b]">*</span></label>
+              <label className="text-sm font-bold text-gray-800">Số lượng tồn kho thực tế <span className="text-[#ff6b6b]">*</span></label>
               <input
                 type="number"
                 min="0"
+                placeholder="Nhập số lượng thực tế trong kho"
                 value={formData.stock}
                 onChange={e => setFormData({ ...formData, stock: Number(e.target.value) })}
                 className="w-full border border-orange-200 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-orange-200 outline-none transition-all font-medium"

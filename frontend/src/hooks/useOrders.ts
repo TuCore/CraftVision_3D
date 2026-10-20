@@ -50,6 +50,21 @@ export function useUpdateOrderStatus() {
   });
 }
 
+export function useUpdatePaymentStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { data } = await api.patch(`/api/orders/${id}/payment-status`, { status });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['order'] });
+    },
+  });
+}
+
 export function useOrderDetails(id: string) {
   return useQuery({
     queryKey: ['order', id],

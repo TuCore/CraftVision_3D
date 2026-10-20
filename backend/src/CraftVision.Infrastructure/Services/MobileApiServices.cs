@@ -11,56 +11,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CraftVision.Infrastructure.Services;
 
-public class CartService(ApplicationDbContext db) : ICartService
-{
-    public async Task<CartDto> GetAsync(Guid userId) => await BuildCartAsync(userId);
-
-    public async Task<CartDto> AddAsync(Guid userId, CartItemRequest request)
-    {
-        if (request.Quantity is < 1 or > 99) throw new ArgumentException("Quantity must be between 1 and 99.");
-        if (!await db.Products.AnyAsync(x => x.Id == request.ProductId)) throw new KeyNotFoundException("Product not found.");
-        var item = await db.CartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == request.ProductId);
-        if (item == null) db.CartItems.Add(new CartItem { UserId = userId, ProductId = request.ProductId, Quantity = request.Quantity });
-        else { item.Quantity = Math.Min(99, item.Quantity + request.Quantity); item.UpdatedAt = DateTime.UtcNow; }
-        await db.SaveChangesAsync();
-        return await BuildCartAsync(userId);
-    }
-
-    public async Task<CartDto> UpdateAsync(Guid userId, Guid itemId, int quantity)
-    {
-        if (quantity is < 1 or > 99) throw new ArgumentException("Quantity must be between 1 and 99.");
-        var item = await db.CartItems.FirstOrDefaultAsync(x => x.Id == itemId && x.UserId == userId)
-            ?? throw new KeyNotFoundException("Cart item not found.");
-        item.Quantity = quantity;
-        item.UpdatedAt = DateTime.UtcNow;
-        await db.SaveChangesAsync();
-        return await BuildCartAsync(userId);
-    }
-
-    public async Task RemoveAsync(Guid userId, Guid itemId)
-    {
-        var item = await db.CartItems.FirstOrDefaultAsync(x => x.Id == itemId && x.UserId == userId)
-            ?? throw new KeyNotFoundException("Cart item not found.");
-        db.CartItems.Remove(item);
-        await db.SaveChangesAsync();
-    }
-
-    public async Task ClearAsync(Guid userId)
-    {
-        await db.CartItems.Where(x => x.UserId == userId).ExecuteDeleteAsync();
-    }
-
-    private async Task<CartDto> BuildCartAsync(Guid userId)
-    {
-        var entities = await db.CartItems.AsNoTracking().Where(x => x.UserId == userId)
-            .Include(x => x.Product).ThenInclude(x => x!.ProductImages).ThenInclude(x => x.File).ToListAsync();
-        var items = entities.Select(x => new CartItemDto(x.Id, x.ProductId, x.Product!.Name, x.Product.Price,
-            x.Quantity, x.Product.Price * x.Quantity,
-            x.Product.ProductImages.FirstOrDefault(i => i.IsThumbnail)?.File?.FileUrl ?? x.Product.SampleImageUrl)).ToList();
-        return new CartDto(items, items.Sum(x => x.Quantity), items.Sum(x => x.SubTotal));
-    }
-}
-
 public class FavoriteService(ApplicationDbContext db) : IFavoriteService
 {
     public async Task<IReadOnlyList<FavoriteDto>> GetAsync(Guid userId) => await db.Favorites.AsNoTracking()
@@ -184,10 +134,10 @@ public class PaymentService(ApplicationDbContext db, IPayOSService payOs) : IPay
             ?? throw new KeyNotFoundException("Order not found.");
         if (order.PaymentStatus == PaymentStatus.Paid) throw new InvalidOperationException("Order is already paid.");
         if (!long.TryParse(order.OrderCode, out var orderCode)) throw new InvalidOperationException("Order code is not valid for PayOS.");
-        var url = await payOs.CreatePaymentLinkAsync(order.Id, orderCode, order.TotalAmount, "CraftVision order", request.ReturnUrl, request.CancelUrl);
+        var payment = await payOs.CreatePaymentLinkAsync(order.Id, orderCode, order.TotalAmount, "CraftVision order", request.ReturnUrl, request.CancelUrl);
         order.PaymentMethod = PaymentMethod.BankTransfer;
         await db.SaveChangesAsync();
-        return new(order.Id, order.OrderCode, order.PaymentStatus.ToString(), url);
+        return new(order.Id, order.OrderCode, order.PaymentStatus.ToString(), payment.CheckoutUrl);
     }
 
     public async Task<PaymentDto> GetStatusAsync(Guid userId, Guid orderId)

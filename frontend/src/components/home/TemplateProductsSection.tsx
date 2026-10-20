@@ -1,24 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
-import { Eye, ChevronLeft, ChevronRight, Sparkles, PlayCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, ChevronLeft, ChevronRight, Sparkles, PlayCircle, Flame } from "lucide-react";
 import { cardTemplates, type CardTemplate } from "@/features/cards/catalog";
+import { INITIAL_TEMPLATE_PRODUCTS, type TemplateVideo } from "@/data/templateProducts";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CardSaleDetails } from "./CardSaleDetails";
 import { TutorialVideoModal } from "./TutorialVideoModal";
 import { getCardCommerce } from "@/features/cards/commerce";
 
+const STARLIGHT_TEMPLATE = INITIAL_TEMPLATE_PRODUCTS[0];
+const STARLIGHT_DEMO_URL = `/greeting-card?title=${encodeURIComponent(STARLIGHT_TEMPLATE.title)}`;
+
 export function TemplateProductsSection() {
+  const router = useRouter();
   const { t, language } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [preview, setPreview] = useState<CardTemplate | null>(null);
-  const [tutorial, setTutorial] = useState<CardTemplate | null>(null);
+  const [tutorial, setTutorial] = useState<{ title: string; video: TemplateVideo } | null>(null);
   const itemsPerPage = 8;
-  const totalPages = Math.ceil(cardTemplates.length / itemsPerPage);
-  const displayedCards = cardTemplates.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil((cardTemplates.length + 1) / itemsPerPage);
+  const regularStart = Math.max(0, (currentPage - 1) * itemsPerPage - 1);
+  const regularCount = currentPage === 1 ? itemsPerPage - 1 : itemsPerPage;
+  const displayedCards = cardTemplates.slice(regularStart, regularStart + regularCount);
   const personalizeLabel = language === "vi" ? "Cá nhân hóa" : "Personalize";
+
   const changePage = (page: number) => {
     setCurrentPage(page);
     document.getElementById("template-products")?.scrollIntoView({
@@ -38,6 +48,50 @@ export function TemplateProductsSection() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {currentPage === 1 && (
+            <article className="group flex flex-col bg-card rounded-3xl border border-border/50 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 motion-safe:hover:-translate-y-1">
+              <div className="relative aspect-[4/3] w-full overflow-hidden" style={{ background: "radial-gradient(ellipse at 50% 30%, #e84f7a55, #100714)" }}>
+                <Image src={STARLIGHT_TEMPLATE.image} alt={STARLIGHT_TEMPLATE.title} fill priority sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-105" />
+                <span className="absolute bottom-3 left-3 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs font-medium text-white">Sinh nhật</span>
+              </div>
+              <div className="p-5 flex flex-col flex-1">
+                <h3 className="font-bold text-foreground text-sm sm:text-base mb-3">{STARLIGHT_TEMPLATE.title}</h3>
+                <p className="text-sm text-muted-foreground mb-3">Chạm nhẹ mở phong thư và khám phá sân khấu bánh sinh nhật 3D.</p>
+                <p className="text-xs text-muted-foreground mb-5">4 {language === "vi" ? "chi tiết riêng · Phong thư lời chúc" : "personal details · Greeting envelope"}</p>
+                <div className="mt-auto mb-3 space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500"><Flame className="h-4 w-4 fill-orange-400 text-orange-500" />{t("template.sold")} {new Intl.NumberFormat("vi-VN").format(STARLIGHT_TEMPLATE.sold)}</span>
+                    <del className="text-xs text-muted-foreground">{new Intl.NumberFormat("vi-VN").format(STARLIGHT_TEMPLATE.originalPrice)} VND</del>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <strong className="text-lg font-extrabold text-rose-500">{new Intl.NumberFormat("vi-VN").format(STARLIGHT_TEMPLATE.price)} VND</strong>
+                    <span className="rounded border border-lime-300 bg-lime-50 px-1.5 py-0.5 text-xs font-medium text-lime-700">-{STARLIGHT_TEMPLATE.discount}%</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link href={`/shop/template-${STARLIGHT_TEMPLATE.id}/greeting`} className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"><Sparkles className="h-4 w-4" /> {personalizeLabel}</Link>
+                  <button onClick={() => router.push(STARLIGHT_DEMO_URL)} className="flex items-center justify-center gap-1.5 hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"><Eye className="h-4 w-4" /> {t("template.view_demo")}</button>
+                </div>
+                <button
+                  onClick={() => setTutorial({
+                    title: STARLIGHT_TEMPLATE.title,
+                    video: STARLIGHT_TEMPLATE.video || {
+                      id: STARLIGHT_TEMPLATE.id,
+                      templateId: STARLIGHT_TEMPLATE.id,
+                      headerTitle: t("video.default_header"),
+                      videoUrl: "/videos/payment-tutorial.mp4",
+                      captionTitle: STARLIGHT_TEMPLATE.title,
+                      captionDesc: t("video.default_desc"),
+                    },
+                  })}
+                  className="mt-3 inline-flex self-end items-center gap-1.5 text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline"
+                >
+                  <PlayCircle className="h-4 w-4" />
+                  {t("template.tutorial_video")}
+                </button>
+              </div>
+            </article>
+          )}
           {displayedCards.map(card => (
             <article key={card.slug} className="group flex flex-col bg-card rounded-3xl border border-border/50 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 motion-safe:hover:-translate-y-1">
               <div className="relative aspect-[4/3] w-full overflow-hidden" style={{ background: `radial-gradient(ellipse at 50% 30%, ${card.color}55, ${card.background})` }}>
@@ -53,7 +107,23 @@ export function TemplateProductsSection() {
                   <Link href={`/cards/${card.slug}/edit`} className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"><Sparkles className="h-4 w-4" /> {personalizeLabel}</Link>
                   <button onClick={() => setPreview(card)} className="flex items-center justify-center gap-1.5 hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"><Eye className="h-4 w-4" /> {t("template.view_demo")}</button>
                 </div>
-                <button onClick={() => setTutorial(card)} className="mt-4 inline-flex self-end items-center gap-1.5 text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline"><PlayCircle className="h-4 w-4" />{t("template.tutorial_video")}</button>
+                <button
+                  onClick={() => setTutorial({
+                    title: card.title,
+                    video: {
+                      id: card.id,
+                      templateId: card.id,
+                      headerTitle: t("video.default_header"),
+                      videoUrl: getCardCommerce(card.slug).videoUrl ?? "",
+                      captionTitle: t("video.default_caption"),
+                      captionDesc: t("video.default_desc"),
+                    },
+                  })}
+                  className="mt-3 inline-flex self-end items-center gap-1.5 text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline"
+                >
+                  <PlayCircle className="h-4 w-4" />
+                  {t("template.tutorial_video")}
+                </button>
               </div>
             </article>
           ))}
@@ -64,14 +134,12 @@ export function TemplateProductsSection() {
           <button aria-label={language === "vi" ? "Trang sau" : "Next page"} onClick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages} className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"><ChevronRight className="h-5 w-5" /></button>
         </nav>
       </div>
-      <TutorialVideoModal isOpen={tutorial !== null} onClose={() => setTutorial(null)} productTitle={tutorial?.title} video={tutorial ? {
-        id: tutorial.id,
-        templateId: tutorial.id,
-        headerTitle: t("video.default_header"),
-        videoUrl: getCardCommerce(tutorial.slug).videoUrl ?? "",
-        captionTitle: t("video.default_caption"),
-        captionDesc: t("video.default_desc"),
-      } : null} />
+      <TutorialVideoModal
+        isOpen={tutorial !== null}
+        onClose={() => setTutorial(null)}
+        productTitle={tutorial?.title}
+        video={tutorial?.video ?? null}
+      />
       <Dialog open={preview !== null} onOpenChange={open => { if (!open) setPreview(null); }}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
           {preview && <>

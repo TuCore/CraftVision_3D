@@ -4,15 +4,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { commonFields, defaultDraft, fieldsFor, validateDraft, type CardField, type CardTemplate, type CardValue } from "./catalog";
 import { importPhoto, importAudio, parseDraft, readDraft, saveDraft } from "./storage";
 import { cardRequest, downloadDraft, uploadDraft, type ServerCard, type CardPayment } from "./server";
 import { getCardCommerce, formatCardPrice } from "./commerce";
+import { CardQRShareHub } from "./CardQRShareHub";
+import { getAccessToken } from "@/lib/authSession";
+import { useWishlistStore } from "@/store/useWishlistStore";
+import { toast } from "sonner";
 import "./cards.css";
 
 export default function CardEditor({ template }: { template: CardTemplate }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editCartItemId = searchParams.get("editCartItemId");
+  const cardId = searchParams.get("card");
+  const { toggleFavorite, updateCartItem } = useWishlistStore();
   const [draft, setDraft] = useState(() => defaultDraft(template));
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState(0);
@@ -31,12 +39,11 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      setSignedIn(Boolean(localStorage.getItem("token")));
+      setSignedIn(Boolean(getAccessToken()));
       setLoginPath(window.location.pathname + window.location.search);
-      const id = new URLSearchParams(window.location.search).get("card");
       try {
-        if (id) {
-          const card = await cardRequest<ServerCard>(`/${encodeURIComponent(id)}`);
+        if (cardId) {
+          const card = await cardRequest<ServerCard>(`/${encodeURIComponent(cardId)}`);
           if (card.draft.template !== template.slug) throw new Error("Thiệp này thuộc một mẫu khác. Hãy mở từ Thiệp của tôi.");
           const saved = await downloadDraft(card.draft);
           if (!cancelled) { setDraft(saved); setServerCard(card); setShareUrl(card.sharePath ? window.location.origin + card.sharePath : ""); }
@@ -51,12 +58,31 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
               } else if (new URLSearchParams(window.location.search).has("payment")) setNotice("Chưa xác nhận thanh toán. Bạn có thể kiểm tra lại hoặc tiếp tục thanh toán qua PayOS.");
             }
           } catch { if (!cancelled) setNotice("Chưa kiểm tra được thanh toán. Bản nháp đã tải; nhấn Kiểm tra thanh toán để thử lại."); }
-        } else { const saved = await readDraft(template.slug); if (!cancelled && saved) setDraft(saved); }
-      } catch (error) { if (!cancelled) { setNotice(error instanceof Error ? error.message : "Không thể đọc bản nháp."); if (id) setLoadFailed(true); } }
+        } else {
+          const saved = await readDraft(template.slug);
+          const cartItem = editCartItemId
+            ? useWishlistStore.getState().items.find(item => (item.cartItemId || item.id) === editCartItemId)
+            : undefined;
+          if (!cancelled) {
+            if (cartItem) {
+              const values = { ...(saved?.values || defaultDraft(template).values), ...(cartItem.draftValues || {}) };
+              if (cartItem.greetingMessage !== undefined) values.message = cartItem.greetingMessage;
+              if (cartItem.senderName !== undefined) values.sender = cartItem.senderName;
+              if (cartItem.receiverName !== undefined) values.recipient = cartItem.receiverName;
+              if (cartItem.greetingImage !== undefined) values.photo = cartItem.greetingImage;
+              setDraft({ version: 1, template: template.slug, values });
+            } else if (saved) {
+              setDraft(saved);
+            } else if (editCartItemId) {
+              setNotice("Không tìm thấy thiệp trong giỏ hàng. Bạn vẫn có thể chỉnh sửa và thêm lại thiệp.");
+            }
+          }
+        }
+      } catch (error) { if (!cancelled) { setNotice(error instanceof Error ? error.message : "Không thể đọc bản nháp."); if (cardId) setLoadFailed(true); } }
       finally { if (!cancelled) setReady(true); }
     };
     void load(); return () => { cancelled = true; };
-  }, [template.slug]);
+  }, [cardId, editCartItemId, template]);
   const rememberServer = (card: ServerCard) => {
     setServerCard(card); setShareUrl(card.sharePath ? window.location.origin + card.sharePath : "");
     const url = new URL(window.location.href); url.searchParams.set("card", card.id); window.history.replaceState(null, "", url);
@@ -114,6 +140,63 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
     catch { setNotice("Không thể lưu bản nháp. Hãy tải tệp thiệp để giữ nội dung của bạn."); }
     finally { setBusy(false); }
   };
+  const saveToCart = async () => {
+    if (!validate()) return;
+    setBusy(true);
+    try {
+      await saveDraft(draft);
+      if (editCartItemId) {
+        updateCartItem(editCartItemId, {
+          greetingMessage: String(draft.values.message || ""),
+          senderName: String(draft.values.sender || ""),
+          receiverName: String(draft.values.recipient || ""),
+          greetingImage: typeof draft.values.photo === "string" ? draft.values.photo : undefined,
+          draftValues: draft.values,
+        });
+        toast.success("Đã cập nhật thiệp trong giỏ hàng!");
+      } else {
+        const cartPrice = getCardCommerce(template.slug).salePrice || 49999;
+        toggleFavorite({
+          id: `card-${template.slug}`,
+          name: template.title,
+          price: cartPrice,
+          category: "Thiệp điện tử",
+          image: `/cards/previews/${template.slug}.webp`,
+          rating: 5,
+          description: template.action || "Thiệp thông điệp 3D",
+          matchScore: 100,
+          is3D: true,
+          isDigital: true,
+          cardSlug: template.slug,
+          isCardTemplate: true,
+        }, {
+          hasGreeting: true,
+          greetingMessage: String(draft.values.message || ""),
+          senderName: String(draft.values.sender || ""),
+          receiverName: String(draft.values.recipient || ""),
+          greetingImage: typeof draft.values.photo === "string" ? draft.values.photo : undefined,
+          cardSlug: template.slug,
+          selectedTemplate: {
+            id: template.id,
+            slug: template.slug,
+            title: template.title,
+            image: `/cards/previews/${template.slug}.webp`,
+            price: cartPrice,
+            is3D: true,
+          },
+          customQuantity: 1,
+        });
+        const addedItem = useWishlistStore.getState().items.find(item => item.id === `card-${template.slug}`);
+        if (addedItem) updateCartItem(addedItem.cartItemId || addedItem.id, { draftValues: draft.values });
+        toast.success("Đã thêm thiệp vào giỏ hàng!");
+      }
+      router.push("/cart");
+    } catch {
+      toast.error("Không thể lưu thiệp vào giỏ hàng. Vui lòng thử lại.");
+    } finally {
+      setBusy(false);
+    }
+  };
   const exportDraft = () => {
     if (!validate()) return;
     const url = URL.createObjectURL(new Blob([JSON.stringify(draft)], { type: "application/json" }));
@@ -150,7 +233,7 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
   const designKeys = ["accent", "envelopeColor", "envelopeLabel", "seal"];
   const all = fieldsFor(template);
   const visible = tab === 0 ? commonFields.filter(field => !designKeys.includes(field.key)) : tab === 1 ? template.fields.filter(field => !commonFields.some(common => common.key === field.key)) : all.filter(field => designKeys.includes(field.key));
-  return <div className="cards-workspace"><header className="cards-top"><Link href="/cards">← Bộ sưu tập 54 thiệp</Link><Link href="/cards/mine">Thiệp của tôi ☁</Link></header>
+  return <div className="cards-workspace"><header className="cards-top"><Link href="/cards">← Bộ sưu tập 55 thiệp</Link><Link href="/cards/mine">Thiệp của tôi ☁</Link></header>
     <div className="editor-heading"><p>{template.category}</p><h1>{template.title}</h1><p>{template.action}. {template.reveal}.</p></div>
     <section className="server-card-panel" aria-label="Lưu và chia sẻ công khai"><h2>Lưu & gửi thiệp</h2><p>Bạn có thể chỉnh sửa, lưu bản nháp và xem thử miễn phí. Để tạo link gửi người nhận, hãy thanh toán thiệp qua mã QR trên PayOS. Chỉ sau khi hệ thống xác nhận đã nhận đủ tiền, bạn mới có thể xuất bản thiệp.</p>
       <p><strong>{serverCard?.paidAt ? "Đã thanh toán" : `Giá thiệp: ${price === undefined ? "Đang cập nhật" : formatCardPrice(price)}`}</strong>{!serverCard?.paidAt && " · Thanh toán một lần cho thiệp này; các lần chỉnh sửa sau không cần trả lại."}</p>
@@ -162,14 +245,14 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
         {serverCard?.sharePath && <button disabled={busy} onClick={() => void revoke()}>Thu hồi link</button>}
       </div>}
       {busy && <p role="status">Đang xử lý, vui lòng đợi…</p>}
-      {shareUrl && <div className="share-link"><label htmlFor="public-card-link">Link chia sẻ công khai</label><input id="public-card-link" value={shareUrl} readOnly onFocus={event => event.target.select()} /><button onClick={async () => { try { await navigator.clipboard.writeText(shareUrl); setNotice("Đã sao chép link chia sẻ."); } catch { setNotice("Hãy chọn và sao chép link trong ô bên trên."); } }}>Sao chép link</button><a href={shareUrl} target="_blank" rel="noreferrer">Mở thiệp ↗</a>{shareUrl.startsWith("http://localhost") && <p>Đây là link thử trên máy của bạn. Để gửi cho người khác, hãy mở website đã deploy và xuất bản tại đó.</p>}</div>}
+      {shareUrl && <><CardQRShareHub shareUrl={shareUrl} cardTitle={template.title} recipientName={String(draft.values.recipient || "")} />{shareUrl.startsWith("http://localhost") && <p>Đây là link thử trên máy của bạn. Để gửi cho người khác, hãy mở website đã deploy và xuất bản tại đó.</p>}</>}
       {loadFailed && <p role="alert">Không tải được thiệp trên server. <Link href="/cards/mine">Quay lại Thiệp của tôi</Link> hoặc tải lại trang để thử lại.</p>}
       <p className="editor-notice" role="status">{notice}</p>
     </section>
     <div className="editor-layout"><section className="editor-panel"><fieldset disabled={busy || loadFailed} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}><nav className="editor-tabs" aria-label="Các bước cá nhân hóa">{["Lời chúc & ảnh", "Nét riêng của mẫu", "Phong thư & màu", "Xem thử"].map((label, index) => <button key={label} aria-current={tab === index ? "step" : undefined} onClick={() => index === 3 ? void save(true) : setTab(index)} disabled={!ready || busy || loadFailed}>{index + 1}. {label}</button>)}</nav>
       {!ready ? <p role="status">Đang đọc bản nháp…</p> : tab === 3 ? <div className="preview-info"><h2>Bản xem thử cá nhân hóa</h2><p>Thiệp dùng nội dung bạn vừa lưu. Bản nháp hiện chỉ lưu trên thiết bị này; đường dẫn xem bản nháp không phải link chia sẻ công khai.</p><Link className="card-primary" href={`/love-gift/${template.slug}?draft=1`} target="_blank" rel="noreferrer">Mở toàn màn hình ↗</Link><button onClick={exportDraft}>Tải tệp thiệp để lưu / chuyển thiết bị</button></div> : <form onSubmit={event => { event.preventDefault(); void save(true); }}><h2>{tab === 0 ? "Viết điều bạn muốn gửi" : tab === 1 ? "Những chi tiết chỉ thiệp này có" : "Chọn màu cho món quà"}</h2><p className="editor-help">Dấu * là thông tin cần xác nhận. Bạn có thể sửa nội dung mẫu hoặc để trống các mục không cần dùng.</p>{visible.map(renderField)}<button className="card-primary" disabled={busy} type="submit">Lưu & xem thử</button></form>}
       {Object.keys(errors).length > 0 && <div role="alert" className="field-error">{Object.entries(errors).map(([key, error]) => <p key={key}>{all.find(field => field.key === key)?.label}: {error}</p>)}</div>}
-      <div className="editor-tools"><button disabled={!ready || busy || loadFailed} onClick={() => void save()}>Lưu bản nháp</button><button disabled={!ready || busy || loadFailed} onClick={exportDraft}>Tải tệp thiệp</button><button disabled={!ready || busy || loadFailed} onClick={() => fileInput.current?.click()}>Nhập tệp thiệp</button><input ref={fileInput} type="file" accept=".json,.craftcard" hidden onChange={event => { void loadFile(event.target.files?.[0]); event.target.value = ""; }} /></div>
+      <div className="editor-tools"><button className="card-primary" disabled={!ready || busy || loadFailed} onClick={() => void saveToCart()}>{editCartItemId ? "Lưu & Cập nhật giỏ hàng" : "Thêm vào giỏ hàng"}</button><button disabled={!ready || busy || loadFailed} onClick={() => void save()}>Lưu bản nháp</button><button disabled={!ready || busy || loadFailed} onClick={exportDraft}>Tải tệp thiệp</button><button disabled={!ready || busy || loadFailed} onClick={() => fileInput.current?.click()}>Nhập tệp thiệp</button><input ref={fileInput} type="file" accept=".json,.craftcard" hidden onChange={event => { void loadFile(event.target.files?.[0]); event.target.value = ""; }} /></div>
     </fieldset></section><aside className="editor-preview"><p>{previewVersion ? "NỘI DUNG ĐÃ LƯU" : "BẢN MẪU · LƯU ĐỂ XEM NỘI DUNG CỦA BẠN"}</p><div className="phone-preview"><iframe key={previewVersion} title="Xem trước thiệp trên điện thoại" src={`/love-gift/${template.slug}?preview=1${previewVersion ? "&draft=1" : ""}`} /></div><p>Có thể chạm, xoay mô hình và mở thư ngay trong màn hình này.</p></aside></div>
   </div>;
 }

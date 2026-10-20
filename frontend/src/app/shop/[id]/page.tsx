@@ -12,11 +12,12 @@ import { toast } from "sonner";
 import { useProductReviews } from "@/hooks/useReviews";
 import React from "react";
 import { ReviewList } from "@/components/ReviewList";
+import { getAccessToken } from "@/lib/authSession";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
-  const { toggleFavorite } = useWishlistStore();
+  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -28,7 +29,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsGuest(!localStorage.getItem("token"));
+      setIsGuest(!getAccessToken());
     }
   }, []);
   // Fetch reviews for rating
@@ -53,8 +54,14 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     const fetchData = async () => {
       try {
         const [prodRes, allRes] = await Promise.all([
-          fetch(`/api/products/${id}`),
-          fetch(`/api/products`)
+          fetch(`/api/products/${id}?_t=${Date.now()}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          }),
+          fetch(`/api/products?_t=${Date.now()}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          })
         ]);
 
         if (prodRes.ok && allRes.ok) {
@@ -75,9 +82,16 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             productType: p.productType,
             images: parsedImages,
             isComingSoon: p.isComingSoon,
-            stock: p.stock ?? 0
+            stock: p.stock ?? 0,
+            availableStock: p.availableStock ?? p.stock ?? 0,
+            reservedStock: p.reservedStock ?? 0
           };
           setProduct(mappedProduct as any);
+          // If product is already in cart, update its stock in the store to latest warehouse stock
+          const inCart = items.find((i) => i.id === mappedProduct.id);
+          if (inCart) {
+            updateCartItem(inCart.cartItemId || inCart.id, { stock: mappedProduct.stock });
+          }
 
           const mappedRelated = all
             .filter((item: any) => item.id !== id && (item.categoryName === p.categoryName))
@@ -106,6 +120,10 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
       }
     };
     fetchData();
+
+    const handleFocus = () => fetchData();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [id]);
 
   useEffect(() => {
@@ -142,8 +160,54 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     notFound();
   }
 
+  const inCartQty = items
+    .filter((i) => {
+      const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
+      return idToCheck.includes(id.toLowerCase());
+    })
+    .reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const baseStock = (product as any)?.availableStock !== undefined ? (product as any).availableStock : ((product as any)?.stock ?? 0);
+  const localPending = Math.max(0, inCartQty - ((product as any)?.reservedStock || 0));
+  const availableStock = Math.max(0, baseStock - localPending);
+  const isOutOfStock = (product as any)?.stock !== undefined && (baseStock === 0 || availableStock === 0);
+  const maxStock = availableStock;
+
   const handleDecrease = () => setQuantity((prev) => Math.max(1, prev - 1));
-  const handleIncrease = () => setQuantity((prev) => prev + 1);
+
+  const handleIncrease = () => {
+    if (isOutOfStock) return;
+    if (maxStock !== undefined && maxStock > 0 && quantity >= maxStock) {
+      toast.warning(`Kho chỉ còn ${maxStock} sản phẩm! Không thể tăng thêm.`);
+      return;
+    }
+    setQuantity((prev) => {
+      const next = prev + 1;
+      if (maxStock !== undefined && maxStock > 0 && next > maxStock) {
+        toast.warning(`Kho chỉ còn ${maxStock} sản phẩm!`);
+        return maxStock;
+      }
+      return next;
+    });
+  };
+
+  const handleQuantityChange = (val: string) => {
+    if (isOutOfStock) return;
+    if (val === "") {
+      setQuantity(1);
+      return;
+    }
+    const parsed = parseInt(val, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      setQuantity(1);
+      return;
+    }
+    if (maxStock !== undefined && maxStock > 0 && parsed > maxStock) {
+      toast.warning(`Kho chỉ còn lại ${maxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`);
+      setQuantity(maxStock);
+      return;
+    }
+    setQuantity(parsed);
+  };
 
   return (
     <AppShell active="shop">
@@ -169,7 +233,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <img
                   src={((product as any).images?.length > 0 ? (product as any).images[activeImageIndex] : product.image) || product.image}
                   alt={product.name}
-                  className={`w-full h-full object-cover transition-opacity duration-300 ${(product as any).isComingSoon || (product as any).stock === 0 ? 'blur-[8px] opacity-80' : ''}`}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${(product as any).isComingSoon || isOutOfStock ? 'blur-[8px] opacity-80' : ''}`}
                 />
                 
                 {(product as any).isComingSoon && (
@@ -179,7 +243,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                     </div>
                   </div>
                 )}
-                {!(product as any).isComingSoon && (product as any).stock === 0 && (
+                {!(product as any).isComingSoon && isOutOfStock && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-all duration-500">
                     <div className="px-8 py-2.5 rounded-2xl bg-red-500/40 border border-red-500/20 text-white/90 text-sm font-medium tracking-[0.25em] shadow-2xl backdrop-blur-md">
                       HẾT HÀNG
@@ -188,7 +252,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 )}
                 
                 {/* Image Navigation Arrows */}
-                {!(product as any).isComingSoon && (product as any).stock !== 0 && (product as any).images && (product as any).images.length > 1 && (
+                {!(product as any).isComingSoon && !isOutOfStock && (product as any).images && (product as any).images.length > 1 && (
                   <>
                     <button 
                       onClick={(e) => {
@@ -227,7 +291,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       onClick={() => setActiveImageIndex(idx)}
                       className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${activeImageIndex === idx ? 'border-[color:var(--coral)]' : 'border-transparent opacity-70 hover:opacity-100'}`}
                     >
-                      <img src={img} alt={`Thumbnail ${idx}`} className={`w-full h-full object-cover ${(product as any).isComingSoon || (product as any).stock === 0 ? 'blur-[4px] opacity-80' : ''}`} />
+                      <img src={img} alt={`Thumbnail ${idx}`} className={`w-full h-full object-cover ${(product as any).isComingSoon || isOutOfStock ? 'blur-[4px] opacity-80' : ''}`} />
                     </button>
                   ))}
                 </div>
@@ -255,8 +319,24 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               )}
             </div>
 
-            <div className="text-4xl font-bold font-display gradient-text mb-6">
-              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <div className="text-4xl font-bold font-display gradient-text">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+              </div>
+              {(product as any).stock !== undefined && (
+                <div className={`px-3 py-1.5 rounded-full text-xs font-semibold border flex items-center gap-1.5 shadow-xs ${
+                  !isOutOfStock 
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" 
+                    : "bg-red-500/10 text-red-500 border-red-500/20"
+                }`}>
+                  {!isOutOfStock && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
+                  {!isOutOfStock ? (
+                    <span>Còn lại trong kho: <strong className="font-bold">{availableStock}</strong> sản phẩm</span>
+                  ) : (
+                    <span>Tạm hết hàng</span>
+                  )}
+                </div>
+              )}
             </div>
 
             <p className="text-muted-foreground leading-relaxed mb-8">
@@ -265,19 +345,38 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
 
             <div className="border-t border-border w-full mb-8" />
 
-            <div className="flex items-center gap-4 mb-8">
-              <span className="font-medium text-sm">Số lượng:</span>
-              <div className="flex items-center glass-strong rounded-xl border border-white/40">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 p-3.5 rounded-2xl bg-white/40 dark:bg-card/40 border border-border/50">
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-sm text-foreground">Số lượng:</span>
+                {(product as any).stock !== undefined && (
+                  <span className="text-xs text-muted-foreground font-medium">
+                    (Kho: <strong className="text-foreground font-bold">{isOutOfStock ? 0 : availableStock}</strong>)
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center glass-strong rounded-xl border border-white/40 overflow-hidden shadow-xs">
                 <button
+                  type="button"
                   onClick={handleDecrease}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-l-xl transition-colors text-foreground"
+                  disabled={quantity <= 1 || isOutOfStock}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-l-xl transition-colors text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <div className="w-12 text-center font-semibold text-foreground">{quantity}</div>
+                <input
+                  type="number"
+                  min="1"
+                  max={maxStock ?? 9999}
+                  value={isOutOfStock ? 0 : quantity}
+                  disabled={isOutOfStock}
+                  onChange={(e) => handleQuantityChange(e.target.value)}
+                  className="w-14 text-center font-bold text-foreground bg-transparent border-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
                 <button
+                  type="button"
                   onClick={handleIncrease}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-r-xl transition-colors text-foreground"
+                  disabled={isOutOfStock || quantity >= maxStock}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white/50 rounded-r-xl transition-colors text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -285,7 +384,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             </div>
 
             <div className="flex flex-col gap-4 mt-auto">
-              {product.isComingSoon || (product as any).stock === 0 ? (
+              {product.isComingSoon || isOutOfStock ? (
                 <div className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-neutral-400 cursor-not-allowed">
                   <span className="tracking-wider">{product.isComingSoon ? "COMING SOON" : "TẠM HẾT HÀNG"}</span>
                 </div>
@@ -297,9 +396,20 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       router.push("/auth");
                       return;
                     }
-                    toggleFavorite(product);
-                    toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
-                    router.push("/cart");
+                    if (isOutOfStock) {
+                      toast.error("Sản phẩm đã hết hàng trong kho!");
+                      return;
+                    }
+                    toggleFavorite(product, {
+                      hasGreeting: false,
+                      customQuantity: quantity,
+                    });
+                    toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`, {
+                      action: {
+                        label: "Xem giỏ hàng",
+                        onClick: () => router.push("/cart"),
+                      },
+                    });
                   }}
                   className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-base text-white bg-gradient-to-r from-[#f98fa2] via-[#f77991] to-[#f56682] hover:from-[#f87e95] hover:to-[#f25273] shadow-lg shadow-rose-300/40 hover:shadow-rose-400/50 border border-white/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all cursor-pointer"
                 >
@@ -308,7 +418,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 </button>
               )}
 
-              {!product.isComingSoon && (
+              {!product.isComingSoon && !isOutOfStock && (
                 <>
                   {/* Component 1: Thiết kế câu chúc riêng với MẪU MẶC ĐỊNH (Không chọn mẫu web) */}
                   <div

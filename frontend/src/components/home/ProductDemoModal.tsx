@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useTranslation } from "@/components/LanguageProvider";
 import Link from "next/link";
 import { legacyCardSlug, legacyCardPath } from "@/features/cards/legacy";
+import { getAccessToken } from "@/lib/authSession";
 
 interface Product {
   id: number;
@@ -135,6 +136,10 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
               <button 
                 onClick={() => {
                   onClose();
+                  if (product.id === 17 || product.title.includes("Điều ước sinh nhật")) {
+                    router.push(`/greeting-card?title=${encodeURIComponent("Điều ước sinh nhật dệt từ ánh sao")}`);
+                    return;
+                  }
                   router.push(legacyCardPath(product.id));
                 }}
                 className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-colors text-sm cursor-pointer"
@@ -144,7 +149,7 @@ export function ProductDemoModal({ isOpen, onClose, product }: ProductDemoModalP
               <button 
                 onClick={() => {
                   onClose();
-                  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                  const token = getAccessToken();
                   if (!token) {
                     toast.info("Vui lòng đăng nhập hoặc đăng ký để mua sản phẩm!");
                     router.push(`/auth?redirect=/shop/template-${product.id}/greeting`);

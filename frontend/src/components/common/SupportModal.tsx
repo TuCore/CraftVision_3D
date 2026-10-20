@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Headphones, Check } from "lucide-react";
+import { X, Headphones } from "lucide-react";
 import { useTranslation } from "@/components/LanguageProvider";
 
 interface SupportModalProps {
@@ -132,26 +132,6 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
             </div>
           </a>
 
-          {/* Commitment Card */}
-          <div className="p-5 rounded-2xl bg-orange-500/10 dark:bg-orange-950/20 border border-orange-400/30 space-y-3">
-            <h4 className="text-sm font-bold text-orange-600 dark:text-orange-400 text-center tracking-wider flex items-center justify-center gap-1.5">
-              <span>⚡</span> {t("support.commitment_title")}
-            </h4>
-            <div className="space-y-1.5 text-xs sm:text-sm text-foreground/80 max-w-xs mx-auto">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>{t("support.commit_1")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>{t("support.commit_2")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>{t("support.commit_3")}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>,

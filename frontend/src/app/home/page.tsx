@@ -8,6 +8,7 @@ import { Studio3DSection } from "@/components/studio/Studio3DSection";
 import { TemplateProductsSection } from "@/components/home/TemplateProductsSection";
 import { useTranslation } from "@/components/LanguageProvider";
 import { toast } from "sonner";
+import { getAccessToken, getAuthItem } from "@/lib/authSession";
 
 export default function HomePage() {
   const router = useRouter();
@@ -18,9 +19,9 @@ export default function HomePage() {
   const [scrollOpacity, setScrollOpacity] = useState(0);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getAccessToken();
     setIsGuest(!token);
-    const storedName = localStorage.getItem("fullName");
+    const storedName = getAuthItem("fullName");
     if (storedName && token) {
       setFirstName(storedName.split(' ').pop() || "bạn");
     } else {

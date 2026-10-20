@@ -3,6 +3,7 @@ import { Star, X, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useCreateReview } from '@/hooks/useReviews';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { getAccessToken } from '@/lib/authSession';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -58,7 +59,7 @@ export function ReviewModal({ isOpen, onClose, productId, productName }: ReviewM
         
         const { default: axios } = await import('axios');
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5192';
-        const token = localStorage.getItem('token');
+        const token = getAccessToken();
         const res = await axios.post(`${apiUrl}/api/uploads`, formData, {
           headers: {
             'Authorization': `Bearer ${token}`

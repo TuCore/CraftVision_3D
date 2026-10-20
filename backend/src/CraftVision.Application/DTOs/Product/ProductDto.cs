@@ -12,6 +12,9 @@ public class ProductDto
     public string? Description { get; set; }
     public decimal Price { get; set; }
     public int Stock { get; set; }
+    public int AvailableStock { get; set; }
+    public int ReservedStock { get; set; }
+    public int OriginalStock { get; set; }
     
     public string? ThumbnailUrl { get; set; }
     public string? SampleImageUrl { get; set; }

@@ -10,6 +10,8 @@ import { Footer } from "@/components/Footer";
 import { ShopNavDropdown } from "@/components/ShopNavDropdown";
 import { LanguageSwitcher, FlagVN, FlagUK } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
+import { clearAuthSession, getAccessToken, isJwtExpired, logout } from "@/lib/authSession";
+import { useIdleTimeout } from "@/hooks/useIdleTimeout";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
   const { t, language, setLanguage } = useTranslation();
@@ -23,13 +25,18 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const [isGuest, setIsGuest] = useState(false);
   const [bumpingKey, setBumpingKey] = useState<string | null>(null);
   const prevCount = useRef(wishlistCount);
+  useIdleTimeout();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "true";
       setIsDemo(isDemoMode);
       
-      const token = localStorage.getItem("token");
+      let token = getAccessToken();
+      if (token && isJwtExpired(token)) {
+        clearAuthSession();
+        token = null;
+      }
       if (!token && !isDemoMode) {
         setIsGuest(true);
       } else {
@@ -271,12 +278,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                 </Link>
                 <button
                   onClick={() => {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("userId");
-                    localStorage.removeItem("email");
-                    localStorage.removeItem("fullName");
-                    localStorage.removeItem("createdAt");
-                    router.replace("/auth");
+                    logout();
                   }}
                   className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
                     isTransparentNav
@@ -376,12 +378,7 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      localStorage.removeItem("token");
-                      localStorage.removeItem("userId");
-                      localStorage.removeItem("email");
-                      localStorage.removeItem("fullName");
-                      localStorage.removeItem("createdAt");
-                      router.replace("/auth");
+                      logout();
                     }}
                     className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left transition-all ${
                       isTransparentNav

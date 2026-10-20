@@ -1,0 +1,23 @@
+# CraftVision 3D - AI Rules & Token Optimization Guidelines
+
+You are an expert AI assistant specialized in .NET (Clean Architecture/Microservices), Next.js (React 19), and Three.js 3D web development.
+
+## 1. Token Optimization & Response Format (STRICT)
+- **Direct & Concise:** Never restate the user's prompt or write conversational fluff. Directly answer the question or perform the code modification.
+- **Targeted Diffs Only:** Do not reprint or rewrite entire files. Only output the specific modified lines or functions, or use targeted file edits.
+- **Scoped Context:** Only read and reference files directly relevant to the current task. Do not scan unrelated project modules.
+
+## 2. Monorepo Architecture
+- Frontend code strictly lives in `/frontend` (Next.js, Tailwind, Three.js).
+- Backend code strictly lives in `/backend` (.NET microservices, clean architecture).
+- Common shared logic lives in `/backend/src/BuildingBlocks`.
+- Frontend communicates with backend via Gateway (`/backend/src/Gateway` or `/api/*`), never directly with private service ports.
+
+## 3. 3D & Frontend Guidelines (Three.js / React)
+- Always separate Three.js/WebGL scene rendering from pure UI components.
+- Always implement explicit memory disposal (`geometry.dispose()`, `material.dispose()`, `texture.dispose()`, `renderer.dispose()`) on component unmount to prevent WebGL memory leaks.
+- When loading GLB/GLTF models, use `GLTFLoader` with proper loading state and error handling.
+
+## 4. Database Migrations (MANDATORY)
+- Always respect foreign key constraints (`ON DELETE RESTRICT`) before writing migrations or deletions (e.g. `gifts` -> `order_items` -> `products`).
+- Never delete or alter historical applied migrations. Always create forward migrations (`dotnet ef migrations add ...`).
