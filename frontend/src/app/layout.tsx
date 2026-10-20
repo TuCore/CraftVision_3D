@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Plus_Jakarta_Sans } from "next/font/google";
+import { Poppins, Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -19,6 +19,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["vietnamese", "latin"],
 });
 
+const playfairDisplay = Playfair_Display({
+  variable: "--font-serif",
+  subsets: ["vietnamese", "latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "CraftVision3D — Trợ lý AI cho quà tặng thủ công",
   description: "Tạo món quà thủ công đầy ý nghĩa với AI: ý tưởng, nguyên liệu, chi phí và video hướng dẫn.",
@@ -34,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${poppins.variable} ${plusJakartaSans.variable} antialiased`}
+      className={`${poppins.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} antialiased`}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning className="min-h-screen font-sans bg-background text-foreground overflow-x-hidden">

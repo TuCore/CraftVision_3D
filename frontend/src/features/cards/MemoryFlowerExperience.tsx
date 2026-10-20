@@ -7,7 +7,7 @@ import type { CardDraft, CardTemplate } from "./catalog";
 import "./memory-flower.css";
 
 export default function MemoryFlowerExperience({ draft, embedded = false }: { draft: CardDraft; template: CardTemplate; embedded?: boolean }) {
-  const value = useCallback((key: string, fallback = "") => typeof draft.values[key] === "string" ? String(draft.values[key] || fallback) : fallback, [draft.values]);
+  const value = useCallback((key: string, fallback = "") => (typeof draft.values[key] === "string" ? String(draft.values[key] || fallback) : fallback).normalize("NFC"), [draft.values]);
   const recipient = value("recipient", "Người thương");
   const sender = value("sender", "Một người luôn yêu bạn");
   const message = value("message", "Cảm ơn em vì đã đến bên đời anh và cùng anh đi qua thật nhiều kỷ niệm.");
@@ -27,13 +27,14 @@ export default function MemoryFlowerExperience({ draft, embedded = false }: { dr
   useEffect(() => {
     if (!started || paused || opened) return;
     setTyped("");
+    const chars = Array.from(messages[line] || "");
     let index = 0;
     const typing = window.setInterval(() => {
       index += 1;
-      setTyped(messages[line].slice(0, index));
-      if (index >= messages[line].length) window.clearInterval(typing);
+      setTyped(chars.slice(0, index).join(""));
+      if (index >= chars.length) window.clearInterval(typing);
     }, 52);
-    const next = window.setTimeout(() => setLine((current) => (current + 1) % messages.length), Math.max(3500, messages[line].length * 52 + 1700));
+    const next = window.setTimeout(() => setLine((current) => (current + 1) % messages.length), Math.max(3500, chars.length * 52 + 1700));
     return () => { window.clearInterval(typing); window.clearTimeout(next); };
   }, [line, messages, opened, paused, started]);
 
