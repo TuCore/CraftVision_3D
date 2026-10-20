@@ -163,6 +163,10 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("image_file_id");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("image_url");
+
                     b.Property<Guid?>("RequestId")
                         .HasColumnType("uuid")
                         .HasColumnName("request_id");
@@ -178,6 +182,10 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<Guid>("SessionId")
                         .HasColumnType("uuid")
                         .HasColumnName("session_id");
+
+                    b.Property<string>("SuggestionsJson")
+                        .HasColumnType("text")
+                        .HasColumnName("suggestions_json");
 
                     b.Property<int?>("TokensUsed")
                         .HasColumnType("integer")

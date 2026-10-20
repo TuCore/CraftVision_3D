@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { AppShell } from "@/components/AppShell";
-import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History, MessageSquare, Box } from "lucide-react";
+import { Send, Sparkles, Bot, User, ExternalLink, Video, Clock, Wallet, Package, Copy, Bookmark, Image as ImageIcon, X, Check, History, MessageSquare, Box, Trash2, Loader2 } from "lucide-react";
 import { fetchApi } from "@/lib/apiClient";
+import { ChatSessionSummary, deleteChatSession, getChatSessions, getSessionMessages } from "@/lib/chatSessionApi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getAccessToken, getAuthItem } from "@/lib/authSession";
@@ -16,17 +17,29 @@ type Message = {
   suggestions?: any[];
 };
 
+const defaultWelcomeMsg: Message = {
+  role: "ai",
+  content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
+};
+
 const modes = [
   {id:"vision", title:"Vision Plus", subtitle:"Chat & phân tích hình ảnh", badge:"Free", icon: MessageSquare},
   {id:"three-d",title:"Studio 3D",   subtitle:"Tạo mô hình 3D từ ảnh & văn bản", badge:"Pro", icon: Box},
 ];
 
-const mockHistory = [
-  { id: 1, title: "Làm lồng đèn trung thu", date: "Hôm qua", time: "14:30" },
-  { id: 2, title: "Quà sinh nhật cho bạn gái", date: "Hôm qua", time: "09:15" },
-  { id: 3, title: "Mô hình nhà gỗ", date: "3 ngày trước", time: "20:00" },
-  { id: 4, title: "Đan len cơ bản", date: "Tuần trước", time: "16:45" },
-];
+const historyGroups = ["Hôm nay", "Hôm qua", "7 ngày trước", "Cũ hơn"] as const;
+
+function getHistoryGroup(dateValue: string): typeof historyGroups[number] {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const date = new Date(dateValue);
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const days = Math.floor((today.getTime() - target.getTime()) / 86_400_000);
+  if (days <= 0) return "Hôm nay";
+  if (days === 1) return "Hôm qua";
+  if (days <= 7) return "7 ngày trước";
+  return "Cũ hơn";
+}
 
 export default function ChatPage() {
   const router = useRouter();
@@ -67,50 +80,93 @@ export default function ChatPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const defaultWelcomeMsg: Message = {
-    role: "ai",
-    content: "Chào bạn! Mình là trợ lý AI CraftVision. Bạn đang muốn làm món quà gì, ngân sách bao nhiêu, hay cứ gửi một bức ảnh mẫu cho mình nhé!",
-  };
-
   const [messages, setMessages] = useState<Message[]>([defaultWelcomeMsg]);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Khôi phục lịch sử hội thoại từ sessionStorage khi quay lại trang (ví dụ bấm Xem SP rồi bấm Back)
   useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem("craftvision_chat_messages_v1");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed);
+    let cancelled = false;
+
+    const initializeChatHistory = async () => {
+      setHistoryLoading(true);
+      const loadedSessions = await getChatSessions();
+      if (cancelled) return;
+      setSessions(loadedSessions);
+      setHistoryLoading(false);
+
+      const sessionId = new URLSearchParams(window.location.search).get("session");
+      if (!sessionId || !getAccessToken()) return;
+
+      setMessagesLoading(true);
+      try {
+        const detail = await getSessionMessages(sessionId);
+        if (!cancelled) {
+          setCurrentSessionId(detail.id);
+          setMessages(detail.messages.length > 0 ? detail.messages : [defaultWelcomeMsg]);
         }
+      } catch (error) {
+        if (!cancelled) toast.error(error instanceof Error ? error.message : "Không thể tải cuộc trò chuyện.");
+      } finally {
+        if (!cancelled) setMessagesLoading(false);
       }
-    } catch (e) {
-      console.error("Failed to restore chat session", e);
-    } finally {
-      setIsHydrated(true);
-    }
+    };
+
+    void initializeChatHistory();
+    return () => { cancelled = true; };
   }, []);
 
-  // Tự động lưu hội thoại vào sessionStorage mỗi khi có tin nhắn mới
-  useEffect(() => {
-    if (!isHydrated) return;
+  const updateSessionUrl = (sessionId: string | null) => {
+    const url = new URL(window.location.href);
+    if (sessionId) url.searchParams.set("session", sessionId);
+    else url.searchParams.delete("session");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const refreshSessions = async () => {
+    setHistoryLoading(true);
+    setSessions(await getChatSessions());
+    setHistoryLoading(false);
+  };
+
+  const loadSession = async (sessionId: string) => {
+    setMessagesLoading(true);
     try {
-      sessionStorage.setItem("craftvision_chat_messages_v1", JSON.stringify(messages));
-    } catch (e) {
-      console.error("Failed to save chat session", e);
+      const detail = await getSessionMessages(sessionId);
+      setCurrentSessionId(detail.id);
+      setMessages(detail.messages.length > 0 ? detail.messages : [defaultWelcomeMsg]);
+      updateSessionUrl(detail.id);
+      setIsHistoryOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể tải cuộc trò chuyện.");
+    } finally {
+      setMessagesLoading(false);
     }
-  }, [messages, isHydrated]);
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!window.confirm("Bạn có chắc muốn xóa cuộc trò chuyện này?")) return;
+
+    try {
+      await deleteChatSession(sessionId);
+      if (currentSessionId === sessionId) handleResetChat();
+      await refreshSessions();
+      toast.success("Đã xóa cuộc trò chuyện.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể xóa cuộc trò chuyện.");
+    }
+  };
 
   const handleResetChat = () => {
-    const initial = [defaultWelcomeMsg];
-    setMessages(initial);
-    try {
-      sessionStorage.removeItem("craftvision_chat_messages_v1");
-    } catch {}
+    setCurrentSessionId(null);
+    setMessages([defaultWelcomeMsg]);
+    setPrompt("");
+    setIsHistoryOpen(false);
+    updateSessionUrl(null);
   };
 
   const scrollToBottom = () => {
@@ -191,6 +247,7 @@ export default function ChatPage() {
       
       const payload = {
         userId: getAuthItem("userId") || "00000000-0000-0000-0000-000000000000",
+        sessionId: currentSessionId,
         prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý cách tự làm kèm sản phẩm tương tự trên shop",
         imageUrl: finalImageUrl || "",
         maxCost: maxCost,
@@ -219,6 +276,12 @@ export default function ChatPage() {
         content: aiContent,
         suggestions: aiSuggestions
       }]);
+
+      if (res.sessionId) {
+        setCurrentSessionId(res.sessionId);
+        updateSessionUrl(res.sessionId);
+        await refreshSessions();
+      }
 
     } catch (err: any) {
       setMessages(prev => [...prev, {
@@ -266,17 +329,40 @@ export default function ChatPage() {
                   Lịch sử gần đây
                 </div>
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                  {mockHistory.map(h => (
-                    <button key={h.id} className="w-full text-left p-3 hover:bg-muted rounded-xl transition-colors mb-1 group">
-                      <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{h.title}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{h.date} • {h.time}</div>
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-1 border-t border-border/50 pt-1">
-                  <button className="w-full text-center text-xs text-primary font-medium p-2 hover:bg-muted rounded-xl transition-colors">
-                    Xem tất cả
-                  </button>
+                  {historyLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Đang tải lịch sử...
+                    </div>
+                  ) : sessions.length === 0 ? (
+                    <div className="px-3 py-8 text-center text-sm text-muted-foreground">Chưa có cuộc trò chuyện nào.</div>
+                  ) : historyGroups.map(group => {
+                    const groupedSessions = sessions.filter(session => getHistoryGroup(session.lastActiveAt) === group);
+                    if (groupedSessions.length === 0) return null;
+
+                    return (
+                      <div key={group} className="mb-2">
+                        <div className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{group}</div>
+                        {groupedSessions.map(session => (
+                          <div key={session.id} className={`mb-1 flex items-center rounded-xl transition-colors hover:bg-muted ${currentSessionId === session.id ? "bg-muted" : ""}`}>
+                            <button onClick={() => void loadSession(session.id)} className="min-w-0 flex-1 p-3 text-left">
+                              <div className="truncate text-sm font-medium text-foreground">{session.title}</div>
+                              <div className="mt-0.5 text-xs text-muted-foreground">
+                                {new Date(session.lastActiveAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                                {typeof session.messageCount === "number" ? ` • ${session.messageCount} tin nhắn` : ""}
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => void handleDeleteSession(session.id)}
+                              className="mr-2 rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                              aria-label={`Xóa ${session.title}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -288,7 +374,11 @@ export default function ChatPage() {
 
         {/* Messages Scroll Area */}
         <div className="glass-card rounded-none p-6 md:p-8 space-y-6 flex-1 min-h-0 overflow-y-auto scroll-smooth">
-          {messages.map((m, idx) => (
+          {messagesLoading ? (
+            <div className="flex h-full min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" /> Đang tải cuộc trò chuyện...
+            </div>
+          ) : messages.map((m, idx) => (
             <MessageRow key={idx} role={m.role}>
               {m.imageUrl && (
                  <img src={m.imageUrl} alt="Uploaded" className="w-48 h-48 object-cover rounded-xl mb-3 border border-white/40 shadow-sm" />

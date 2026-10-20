@@ -141,6 +141,8 @@ public class ApplicationDbContext : DbContext
 
         // JSONB Columns mapping
         modelBuilder.Entity<AiRequest>().Property(r => r.ParsedIntent).HasColumnType("jsonb");
+        modelBuilder.Entity<AiChatMessage>().Property(m => m.ImageUrl).HasColumnType("text");
+        modelBuilder.Entity<AiChatMessage>().Property(m => m.SuggestionsJson).HasColumnType("text");
         modelBuilder.Entity<DiyPlan>().Property(p => p.MaterialsJson).HasColumnType("jsonb");
         modelBuilder.Entity<DiyPlan>().Property(p => p.StepsJson).HasColumnType("jsonb");
 

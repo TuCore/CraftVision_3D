@@ -8,12 +8,14 @@ using System.Diagnostics;
 using CraftVision.Application.Common.Diagnostics;
 using CraftVision.Application.Common.Diagnostics.Models;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace CraftVision.Application.GiftSuggestions.Commands
 {
     public class GenerateSuggestionsCommand : IRequest<GiftChatResponseDto>
     {
         public Guid UserId { get; set; }
+        public Guid? SessionId { get; set; }
         public string? Prompt { get; set; }
         public string? ImageUrl { get; set; }
         
@@ -32,6 +34,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
         private readonly IAiSuggestionGenerator _suggestionGenerator;
         private readonly IAiProfiler _profiler;
         private readonly IConfiguration _configuration;
+        private readonly IUnitOfWork _unitOfWork;
 
         public GenerateSuggestionsCommandHandler(
             IGeminiVisionService visionService,
@@ -40,7 +43,8 @@ namespace CraftVision.Application.GiftSuggestions.Commands
             IProductRepository productRepository,
             IAiSuggestionGenerator suggestionGenerator,
             IAiProfiler profiler,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IUnitOfWork unitOfWork)
         {
             _visionService = visionService;
             _embeddingService = embeddingService;
@@ -49,6 +53,7 @@ namespace CraftVision.Application.GiftSuggestions.Commands
             _suggestionGenerator = suggestionGenerator;
             _profiler = profiler;
             _configuration = configuration;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<GiftChatResponseDto> Handle(GenerateSuggestionsCommand request, CancellationToken cancellationToken)
@@ -56,9 +61,49 @@ namespace CraftVision.Application.GiftSuggestions.Commands
             var totalSw = Stopwatch.StartNew();
             var stepSw = new Stopwatch();
 
+            AiChatSession session;
+            IReadOnlyList<AiChatMessage> conversationHistory = Array.Empty<AiChatMessage>();
+            if (request.SessionId.HasValue && request.SessionId.Value != Guid.Empty)
+            {
+                session = await _unitOfWork.AiChatSessions.GetByIdAsync(request.SessionId.Value)
+                    ?? throw new UnauthorizedAccessException("Chat session not found or access denied.");
+
+                if (session.UserId != request.UserId)
+                {
+                    throw new UnauthorizedAccessException("Chat session not found or access denied.");
+                }
+
+                conversationHistory = (await _unitOfWork.AiChatMessages
+                    .GetRecentMessagesBySessionIdAsync(session.Id, 10)).ToList();
+                session.LastActiveAt = DateTime.UtcNow;
+
+                if (string.IsNullOrWhiteSpace(session.Title) || session.Title == "Gift Consultation" || session.Title == "New Chat")
+                {
+                    session.Title = CreateSessionTitle(request.Prompt);
+                }
+            }
+            else
+            {
+                session = new AiChatSession
+                {
+                    UserId = request.UserId,
+                    Title = CreateSessionTitle(request.Prompt)
+                };
+                await _unitOfWork.AiChatSessions.AddAsync(session);
+            }
+
+            await _unitOfWork.AiChatMessages.AddAsync(new AiChatMessage
+            {
+                SessionId = session.Id,
+                Role = Domain.Enums.MessageRole.User,
+                Content = request.Prompt ?? string.Empty,
+                ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl
+            });
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             var profile = new AiChatProfile
             {
-                SessionId = Guid.NewGuid(),
+                SessionId = session.Id,
                 UserQuestion = request.Prompt ?? "Image Analysis",
                 UserQuestionLength = request.Prompt?.Length ?? 0,
                 ModelName = _configuration["AiSettings:Gemini:ChatVisionModel"] ?? "gemini-2.5-flash",
@@ -134,11 +179,11 @@ namespace CraftVision.Application.GiftSuggestions.Commands
                         ? $" Hiện tại trên web CraftVision 3D đang có sẵn các sản phẩm handmade tích hợp thẻ thông minh NFC như: {string.Join(", ", featuredNames)}."
                         : "";
 
-                    return new GiftChatResponseDto
+                    return await PersistResponseAsync(new GiftChatResponseDto
                     {
                         Reply = $"Chào bạn! Mình là trợ lý AI của CraftVision 3D.{productIntro} Bạn đang muốn tìm quà tặng cho dịp gì, ngân sách bao nhiêu, hay muốn tự làm đồ DIY? Hãy nhắn cho mình biết nhé — mình sẽ gợi ý cách làm kèm link nguyên liệu Shopee, video YouTube, hoặc hướng dẫn bạn chọn sản phẩm có sẵn trên web để gắn Thiệp 3D NFC và thanh toán ngay!",
                         Suggestions = new List<GiftSuggestionDto>()
-                    };
+                    }, session, cancellationToken);
                 }
 
                 bool hasImage = !string.IsNullOrEmpty(request.ImageUrl) && request.ImageUrl != "string";
@@ -146,6 +191,14 @@ namespace CraftVision.Application.GiftSuggestions.Commands
 
                 // Parse Intent (from Image or Text)
                 var intentBuilder = new StringBuilder();
+                if (conversationHistory.Count > 0)
+                {
+                    intentBuilder.AppendLine("Recent conversation context:");
+                    foreach (var message in conversationHistory)
+                    {
+                        intentBuilder.AppendLine($"{message.Role}: {message.Content}");
+                    }
+                }
                 if (!string.IsNullOrEmpty(request.Prompt))
                 {
                     intentBuilder.AppendLine($"User prompt: {request.Prompt}");
@@ -296,11 +349,11 @@ Hãy nhìn kỹ bức ảnh người dùng tải lên và trả lời chính xá
                     ? suggestionResponse.Reply
                     : "Tuyệt vời! Dưới đây là các gợi ý tự làm DIY kèm link mua nguyên liệu chuẩn trên Shopee, video hướng dẫn YouTube và sản phẩm handmade có sẵn tại CraftVision 3D để bạn có thể gắn Thiệp 3D NFC và đặt mua ngay:";
 
-                return new GiftChatResponseDto
+                return await PersistResponseAsync(new GiftChatResponseDto
                 {
                     Reply = replyText,
                     Suggestions = giftSuggestions
-                };
+                }, session, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -444,11 +497,11 @@ Hãy nhìn kỹ bức ảnh người dùng tải lên và trả lời chính xá
                     ? string.Join(", ", candidateProducts.Take(4).Select(p => $"{p.Name} ({p.Price:N0}đ)"))
                     : "Ngôi sao may mắn (15.000đ), Hoa kẽm nhung (25.000đ), Móc khóa len (30.000đ)";
 
-                return new GiftChatResponseDto
+                return await PersistResponseAsync(new GiftChatResponseDto
                 {
                     Reply = $"Dựa trên yêu cầu và ngân sách của bạn, mình gợi ý các phương án tự làm (DIY) đúng chủ đề kèm link mua nguyên liệu chuẩn trên Shopee và link tìm video hướng dẫn trên YouTube bên dưới nhé!\n\n💡 Đặc biệt, nếu bạn muốn mua quà làm sẵn đúng tầm giá và có gắn Thiệp 3D thông minh quét NFC tại CraftVision 3D (như: {dbProductSummary}), bạn chỉ cần:\n1. Bấm vào nút '🎁 Mua sẵn & Gắn thiệp NFC' ngay bên dưới mỗi gợi ý.\n2. Chọn mẫu thiệp 3D và nhờ AI viết lời chúc cá nhân hóa gắn vào chip NFC của món quà.\n3. Bấm 'Thanh toán ngay' để hoàn tất đơn hàng!",
                     Suggestions = selectedIdeas
-                };
+                }, session, cancellationToken);
             }
             finally
             {
@@ -456,6 +509,34 @@ Hãy nhìn kỹ bức ảnh người dùng tải lên và trả lời chính xá
                 profile.TotalTimeMs = totalSw.ElapsedMilliseconds;
                 _profiler.Log(profile);
             }
+        }
+
+        private async Task<GiftChatResponseDto> PersistResponseAsync(
+            GiftChatResponseDto response,
+            AiChatSession session,
+            CancellationToken cancellationToken)
+        {
+            session.LastActiveAt = DateTime.UtcNow;
+            response.SessionId = session.Id;
+            response.SessionTitle = session.Title ?? "Gift Consultation";
+
+            await _unitOfWork.AiChatMessages.AddAsync(new AiChatMessage
+            {
+                SessionId = session.Id,
+                Role = Domain.Enums.MessageRole.Assistant,
+                Content = response.Reply,
+                SuggestionsJson = response.Suggestions.Count == 0
+                    ? null
+                    : JsonSerializer.Serialize(response.Suggestions)
+            });
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return response;
+        }
+
+        private static string CreateSessionTitle(string? prompt)
+        {
+            var title = string.IsNullOrWhiteSpace(prompt) ? "Gift Consultation" : prompt.Trim();
+            return title.Length > 40 ? $"{title[..40]}..." : title;
         }
 
         private static Product? FindBestMatchingProduct(

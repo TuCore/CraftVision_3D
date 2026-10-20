@@ -215,6 +215,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GiftChatResponse'
+  /api/gift-chat/sessions:
+    get:
+      tags: [GiftChat]
+      summary: Liệt kê các phiên tư vấn quà tặng của người dùng hiện tại
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Danh sách phiên theo thời gian hoạt động gần nhất
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ChatSessionSummary' }
+  /api/gift-chat/sessions/{sessionId}/messages:
+    get:
+      tags: [GiftChat]
+      summary: Lấy toàn bộ tin nhắn của một phiên thuộc người dùng hiện tại
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Chi tiết phiên và lịch sử tin nhắn
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChatSessionDetail' }
+        '404': { description: Không tìm thấy phiên thuộc người dùng hiện tại }
+  /api/gift-chat/sessions/{sessionId}:
+    delete:
+      tags: [GiftChat]
+      summary: Xóa một phiên và toàn bộ tin nhắn liên quan
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Đã xóa phiên }
+        '404': { description: Không tìm thấy phiên thuộc người dùng hiện tại }
+  /api/gift-chat/sessions/{sessionId}/title:
+    patch:
+      tags: [GiftChat]
+      summary: Đổi tiêu đề phiên chat
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateChatSessionTitle' }
+      responses:
+        '200': { description: Đã cập nhật tiêu đề }
+        '404': { description: Không tìm thấy phiên thuộc người dùng hiện tại }
 
 components:
   securitySchemes:
@@ -289,6 +350,7 @@ components:
       type: object
       properties:
         userId: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid, nullable: true }
         prompt: { type: string, example: "Tư vấn quà sinh nhật cho bạn nữ tầm 50k" }
         imageUrl: { type: string, nullable: true }
         maxCost: { type: number, nullable: true, example: 150000 }
@@ -298,6 +360,8 @@ components:
     GiftChatResponse:
       type: object
       properties:
+        sessionId: { type: string, format: uuid }
+        sessionTitle: { type: string }
         reply: { type: string }
         suggestions:
           type: array
@@ -322,3 +386,41 @@ components:
         matchedProductName: { type: string, nullable: true }
         matchedProductPrice: { type: number, nullable: true }
         matchedProductSupportsNfc: { type: boolean, nullable: true }
+
+    ChatSessionSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        createdAt: { type: string, format: date-time }
+        lastActiveAt: { type: string, format: date-time }
+        messageCount: { type: integer }
+        lastMessagePreview: { type: string, nullable: true }
+
+    ChatSessionDetail:
+      allOf:
+        - $ref: '#/components/schemas/ChatSessionSummary'
+        - type: object
+          properties:
+            messages:
+              type: array
+              items: { $ref: '#/components/schemas/ChatMessageItem' }
+
+    ChatMessageItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        role: { type: string, enum: [user, ai] }
+        content: { type: string }
+        imageUrl: { type: string, nullable: true }
+        suggestions:
+          type: array
+          nullable: true
+          items: { $ref: '#/components/schemas/GiftSuggestionItem' }
+        createdAt: { type: string, format: date-time }
+
+    UpdateChatSessionTitle:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 100 }

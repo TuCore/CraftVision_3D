@@ -14,6 +14,8 @@ namespace CraftVision.Domain.Entities
         
         public string Content { get; set; } = string.Empty;
         public Guid? ImageFileId { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? SuggestionsJson { get; set; }
         public List<Guid>? RetrievedContextIds { get; set; }
         public int? TokensUsed { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
