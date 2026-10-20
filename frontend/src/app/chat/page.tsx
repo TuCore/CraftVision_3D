@@ -190,13 +190,8 @@ export default function ChatPage() {
       }
       
       const payload = {
-<<<<<<< HEAD
         userId: getAuthItem("userId") || "00000000-0000-0000-0000-000000000000",
-        prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý quà tặng",
-=======
-        userId: localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000000",
         prompt: userMsg.content || "Hãy phân tích hình ảnh này và gợi ý cách tự làm kèm sản phẩm tương tự trên shop",
->>>>>>> 8194e03eedab4f045b860e2551f8a5977f93c5e6
         imageUrl: finalImageUrl || "",
         maxCost: maxCost,
         occasion: occasion,
