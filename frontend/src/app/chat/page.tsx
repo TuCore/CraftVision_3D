@@ -87,7 +87,6 @@ export default function ChatPage() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -168,14 +167,6 @@ export default function ChatPage() {
     setIsHistoryOpen(false);
     updateSessionUrl(null);
   };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
   
   // Settings for the request
   const [maxCost] = useState<number | null>(null);
@@ -520,7 +511,6 @@ export default function ChatPage() {
                </div>
              </MessageRow>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Composer */}
