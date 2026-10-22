@@ -42,6 +42,11 @@ import api from "@/lib/api";
 import { useTranslation } from "@/components/LanguageProvider";
 import { cardTemplates } from "@/features/cards/catalog";
 
+const getCardSlug = (item: CartItem) => item.cardSlug || item.selectedTemplate?.slug;
+const getCardFee = (item: CartItem) =>
+  item.discountedCardPrice ?? item.cardPrice ?? item.selectedTemplate?.price ??
+  (item.hasGreeting || item.greetingMessage || item.greetingImage ? 5000 : 0);
+
 export default function CartPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
@@ -483,21 +488,27 @@ export default function CartPage() {
                           <span className="flex items-center gap-1.5">
                             <span className="text-sm">🎁</span> Đã kèm thiệp
                           </span>
-                          {item.selectedTemplate ? (
+                          {getCardSlug(item) && !item.isDigital && item.category !== "Thiệp điện tử" ? (
                             <>
                               <span className="text-primary/40">•</span>
-                              <span className="font-semibold text-primary max-w-[150px] truncate" title={item.selectedTemplate.title}>
-                                {item.selectedTemplate.title}
+                              <span className="font-semibold text-primary max-w-[180px] truncate" title={item.selectedTemplate?.title}>
+                                Thiệp 3D {item.selectedTemplate?.title}
                               </span>
                               <span className="text-[11px] text-rose-600 font-bold">
-                                (+{formatPrice(item.selectedTemplate.price || 5000)})
+                                (+{formatPrice(getCardFee(item))}, -20% từ {formatPrice(item.originalCardPrice || item.selectedTemplate?.originalPrice || 49000)})
                               </span>
+                            </>
+                          ) : getCardSlug(item) ? (
+                            <>
+                              <span className="text-primary/40">•</span>
+                              <span className="font-semibold text-primary">Thiệp 3D độc lập</span>
+                              <span className="text-[11px] text-rose-600 font-bold">({formatPrice(getCardFee(item))})</span>
                             </>
                           ) : (
                             <>
                               <span className="text-primary/40">•</span>
-                              <span className="font-semibold text-primary">Mẫu mặc định</span>
-                              <span className="text-[11px] text-rose-600 font-bold">(+5.000 đ)</span>
+                              <span className="font-semibold text-primary">Phí thiệp mặc định</span>
+                              <span className="text-[11px] text-rose-600 font-bold">(+5.000đ)</span>
                             </>
                           )}
                           <div className="w-px h-3 bg-primary/30 mx-0.5"></div>
@@ -529,7 +540,7 @@ export default function CartPage() {
                                         {item.selectedTemplate.title}
                                       </h4>
                                       <p className="text-xs text-rose-600 font-extrabold mt-0.5">
-                                        {formatPrice(item.selectedTemplate.price)}
+                                        {formatPrice(getCardFee(item))}
                                       </p>
                                     </div>
                                   </div>
@@ -817,7 +828,9 @@ export default function CartPage() {
                     }
                     const orderItems = selectedCartItems.map(item => {
                       const hasCard = !!(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate);
-                      const cardFee = item.selectedTemplate?.price || item.cardPrice || (hasCard ? 5000 : 0);
+                      const cardSlug = getCardSlug(item);
+                      const cardFee = getCardFee(item);
+                      const originalCardPrice = item.originalCardPrice || item.selectedTemplate?.originalPrice || cardFee;
                       return {
                         product: {
                           ...item,
@@ -830,12 +843,16 @@ export default function CartPage() {
                         gift: hasCard ? {
                           giftTitle: item.selectedTemplate?.title || `Thiệp thông điệp`,
                           templateTitle: item.selectedTemplate?.title || "Mẫu mặc định",
+                          cardSlug,
                           cardPrice: cardFee,
+                          originalCardPrice,
                           senderName: item.senderName || undefined,
                           receiverName: item.receiverName || undefined,
                           message: item.greetingMessage || "",
                           previewImageUrl: item.greetingImage || item.selectedTemplate?.image || null,
-                          theme: "sincere",
+                          threeDModelUrl: cardSlug ? `slug:${cardSlug}` : null,
+                          threeDModelType: "GLB",
+                          theme: cardSlug || "sincere",
                           messageSource: "Manual"
                         } : null
                       };
@@ -875,7 +892,9 @@ export default function CartPage() {
               const total = order.totalAmount ?? order.total ?? 0;
               const itemsList = Array.isArray(order.items) && order.items.length > 0
                 ? order.items.map((i: any) => `${i.productName || i.name} (x${i.quantity || i.qty || 1})`).join(", ")
-                : "Chi thúi (x1)";
+                : order.orderKind === "DigitalCard"
+                  ? `Thiệp 3D kỹ thuật số - ${order.cardTemplateSlug || "mẫu đã chọn"} (x1)`
+                  : "Sản phẩm CraftVision (x1)";
 
               return (
                 <div
@@ -1116,7 +1135,7 @@ export default function CartPage() {
 
                     <div className="space-y-3">
                       {(selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items : [
-                        { productName: "Sản phẩm", quantity: 1, unitPrice: 120000, subTotal: 120000 }
+                        { productName: selectedOrder.orderKind === "DigitalCard" ? "Thiệp 3D kỹ thuật số" : "Sản phẩm CraftVision", quantity: 1, unitPrice: selectedOrder.totalAmount || selectedOrder.total || 0, subTotal: selectedOrder.totalAmount || selectedOrder.total || 0 }
                       ]).map((item: any, idx: number) => {
                         const hasRealGift = !!item.gift?.secretKey;
 

@@ -7,6 +7,9 @@ public class OrderDto
 {
     public Guid Id { get; set; }
     public string OrderCode { get; set; } = string.Empty;
+    public string OrderKind { get; set; } = "Product";
+    public Guid? CardId { get; set; }
+    public string? CardTemplateSlug { get; set; }
     public string PaymentMethod { get; set; } = string.Empty;
     public string PaymentStatus { get; set; } = string.Empty;
     public string OrderStatus { get; set; } = string.Empty;

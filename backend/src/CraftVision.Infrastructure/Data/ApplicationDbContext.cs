@@ -189,6 +189,14 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(oi => oi.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.CardId)
+            .IsUnique();
+
+        modelBuilder.Entity<Order>()
+            .Property(o => o.OrderKind)
+            .HasDefaultValue("Product");
+
         modelBuilder.Entity<OrderItem>()
             .HasOne(oi => oi.Product)
             .WithMany(p => p.OrderItems)

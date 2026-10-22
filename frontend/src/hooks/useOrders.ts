@@ -4,6 +4,9 @@ import api from '@/lib/api';
 export interface Order {
   id: string;
   orderCode: string;
+  orderKind: 'Product' | 'DigitalCard';
+  cardId?: string;
+  cardTemplateSlug?: string;
   totalAmount: number;
   orderStatus: string;
   paymentStatus: string;

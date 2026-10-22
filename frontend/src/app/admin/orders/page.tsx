@@ -88,7 +88,7 @@ export default function AdminOrdersPage() {
                     <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
                       {order.orderCode}
                     </span>
-                    {order.items?.some((i: any) => i.gift) && (
+                    {(order.orderKind === 'DigitalCard' || order.items?.some((i: any) => i.gift)) && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
                         <Gift className="w-3 h-3" /> Có thiệp 3D
                       </span>
@@ -154,7 +154,7 @@ export default function AdminOrdersPage() {
                         <span className="font-mono font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md text-sm">
                           {order.orderCode}
                         </span>
-                        {order.items?.some((i: any) => i.gift) && (
+                        {(order.orderKind === 'DigitalCard' || order.items?.some((i: any) => i.gift)) && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
                             <Gift className="w-3 h-3" /> Có thiệp 3D
                           </span>
@@ -199,13 +199,15 @@ export default function AdminOrdersPage() {
                         >
                           <ChevronRight className="w-5 h-5" />
                         </Link>
-                        <button
-                          onClick={() => setDeleteOrderId(order.id)}
-                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-red-500/30 transition-all text-muted-foreground hover:text-red-500 hover:bg-red-50"
-                          title="Xóa vĩnh viễn đơn hàng"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        {order.orderKind !== 'DigitalCard' && (
+                          <button
+                            onClick={() => setDeleteOrderId(order.id)}
+                            className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-red-500/30 transition-all text-muted-foreground hover:text-red-500 hover:bg-red-50"
+                            title="Xóa vĩnh viễn đơn hàng"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

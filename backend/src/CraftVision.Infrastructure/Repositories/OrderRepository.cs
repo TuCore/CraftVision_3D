@@ -57,7 +57,10 @@ public class OrderRepository : IOrderRepository
     {
         var query = _context.Set<Order>()
             .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Gift);
+                .ThenInclude(oi => oi.Product)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Gift)
+                    .ThenInclude(g => g.NfcTag);
         int total = await query.CountAsync();
         var items = await query.OrderByDescending(o => o.CreatedAt).Skip((page - 1) * size).Take(size).ToListAsync();
         return (items, total);

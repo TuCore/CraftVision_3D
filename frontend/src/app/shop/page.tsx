@@ -163,6 +163,12 @@ export default function ShopPage() {
                 {cat}
               </button>
             ))}
+            <Link
+              href="/cards"
+              className="inline-flex items-center gap-2 rounded-full border border-amber-400/50 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
+            >
+              <Sparkles className="h-4 w-4" /> Thư viện Thiệp 3D (54+ mẫu)
+            </Link>
           </div>
         </section>
 

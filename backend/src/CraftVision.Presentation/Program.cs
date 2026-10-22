@@ -179,6 +179,8 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddApplication();
 builder.Services.AddCardSharing(builder.Configuration);
+builder.Services.AddScoped<CraftVision.Gateway.CardPurchaseRecorder>();
+builder.Services.AddScoped<ICardPurchaseRecorder>(services => services.GetRequiredService<CraftVision.Gateway.CardPurchaseRecorder>());
 builder.Services.AddMusic(builder.Configuration);
 builder.Services.AddScoped<CraftVision.Gateway.MusicErrorFilter>();
 builder.Services.AddScoped<CraftVision.Gateway.CardErrorFilter>();
@@ -301,21 +303,21 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        db.Database.ExecuteSqlRaw("ALTER TYPE payment_method_enum ADD VALUE IF NOT EXISTS 'BankTransfer';");
-    }
-    catch
-    {
-        // Ignore if already exists or Postgres transaction limitation
-    }
-
-    try
-    {
-        // Tự động chạy tất cả các file Migration để tạo bảng trong Database (nếu chưa có)
+        // Apply the schema before starting services that depend on it.
         db.Database.Migrate();
+
+        var cards = scope.ServiceProvider.GetService<CardDatabase>();
+        if (cards is not null)
+        {
+            var recorder = scope.ServiceProvider.GetRequiredService<CraftVision.Gateway.CardPurchaseRecorder>();
+            var reconciled = await recorder.ReconcilePaidPurchases(cards);
+            logger.LogInformation("Reconciled {Count} paid card purchases into order history.", reconciled);
+        }
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "An error occurred while executing database migrations.");
+        logger.LogCritical(ex, "Database migration failed. Application startup is aborted.");
+        throw;
     }
 }
 

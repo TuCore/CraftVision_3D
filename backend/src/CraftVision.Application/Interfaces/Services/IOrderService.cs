@@ -8,6 +8,7 @@ namespace CraftVision.Application.Interfaces;
 public interface IOrderService
 {
     Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto);
+    Task RecordPaidCardPurchaseAsync(Guid userId, Guid cardId, long orderCode, int amount, string templateSlug, DateTime paidAt);
     Task<OrderDto> GetOrderByIdAsync(Guid id);
     Task<PagedResult<OrderDto>> GetUserOrdersAsync(Guid userId, int page, int size);
     Task<PagedResult<OrderDto>> GetAllOrdersAsync(int page, int size);

@@ -146,14 +146,16 @@ export default function AdminOrderDetailPage() {
             <p className="text-primary font-mono font-semibold mt-1 bg-primary/10 px-3 py-0.5 rounded-md inline-block">{order.orderCode}</p>
           </div>
         </div>
-        <button
-          onClick={handleDeleteOrderClick}
-          disabled={deleteMutation.isPending}
-          className="flex items-center gap-2 bg-white hover:bg-red-50 text-red-500 border border-red-200 hover:border-red-300 px-4 py-2.5 rounded-xl font-bold transition-all shadow-sm disabled:opacity-50"
-        >
-          <Trash2 className="w-4 h-4" />
-          {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa đơn hàng'}
-        </button>
+        {order.orderKind !== 'DigitalCard' && (
+          <button
+            onClick={handleDeleteOrderClick}
+            disabled={deleteMutation.isPending}
+            className="flex items-center gap-2 bg-white hover:bg-red-50 text-red-500 border border-red-200 hover:border-red-300 px-4 py-2.5 rounded-xl font-bold transition-all shadow-sm disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4" />
+            {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa đơn hàng'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -240,7 +242,7 @@ export default function AdminOrderDetailPage() {
             </div>
             
             <div className="flex flex-col gap-3 mt-1">
-              <Select value={selectedStatus || order.orderStatus} onValueChange={setSelectedStatus}>
+              <Select value={selectedStatus || order.orderStatus} onValueChange={setSelectedStatus} disabled={order.orderKind === 'DigitalCard'}>
                 <SelectTrigger className="w-full h-11 bg-white/80 border-2 border-white hover:border-primary/40 rounded-xl px-4 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/20 shadow-sm transition-all data-[state=open]:border-primary/50">
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
@@ -254,10 +256,10 @@ export default function AdminOrderDetailPage() {
               </Select>
               <button 
                 onClick={handleUpdateStatus}
-                disabled={isPending || ((selectedStatus || order.orderStatus) === order.orderStatus)}
+                disabled={order.orderKind === 'DigitalCard' || isPending || ((selectedStatus || order.orderStatus) === order.orderStatus)}
                 className="btn-hero text-black w-full py-2.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
               >
-                {isPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thay Đổi'}
+                {order.orderKind === 'DigitalCard' ? 'Giao dịch thiệp số (chỉ đọc)' : isPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thay Đổi'}
               </button>
             </div>
           </div>
@@ -283,7 +285,7 @@ export default function AdminOrderDetailPage() {
             </div>
             
             <div className="flex flex-col gap-3 mt-1">
-              <Select value={selectedPaymentStatus || order.paymentStatus} onValueChange={setSelectedPaymentStatus}>
+              <Select value={selectedPaymentStatus || order.paymentStatus} onValueChange={setSelectedPaymentStatus} disabled={order.orderKind === 'DigitalCard'}>
                 <SelectTrigger className="w-full h-11 bg-white/80 border-2 border-white hover:border-primary/40 rounded-xl px-4 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/20 shadow-sm transition-all data-[state=open]:border-primary/50">
                   <SelectValue placeholder="Chọn thanh toán" />
                 </SelectTrigger>
@@ -296,10 +298,10 @@ export default function AdminOrderDetailPage() {
               </Select>
               <button 
                 onClick={handleUpdatePaymentStatus}
-                disabled={isPaymentPending || ((selectedPaymentStatus || order.paymentStatus) === order.paymentStatus)}
+                disabled={order.orderKind === 'DigitalCard' || isPaymentPending || ((selectedPaymentStatus || order.paymentStatus) === order.paymentStatus)}
                 className="btn-hero text-black w-full py-2.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
               >
-                {isPaymentPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thanh Toán'}
+                {order.orderKind === 'DigitalCard' ? 'PayOS đã xác nhận (chỉ đọc)' : isPaymentPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thanh Toán'}
               </button>
             </div>
           </div>
@@ -313,11 +315,29 @@ export default function AdminOrderDetailPage() {
             <Package className="w-6 h-6 text-primary" /> Sản phẩm trong đơn
           </h2>
           <span className="px-4 py-1.5 bg-muted rounded-full text-sm font-bold text-muted-foreground border border-border shadow-sm">
-            {order.items?.length || 0} sản phẩm
+            {order.orderKind === 'DigitalCard' ? 1 : order.items?.length || 0} sản phẩm
           </span>
         </div>
 
         <div className="space-y-5">
+          {order.orderKind === 'DigitalCard' && (
+            <div className="glass-card p-6 md:p-8 rounded-[2rem] shadow-soft border border-indigo-200/60 bg-gradient-to-br from-indigo-50/80 to-purple-50/80">
+              <div className="flex flex-col md:flex-row justify-between gap-4">
+                <div>
+                  <h3 className="font-extrabold text-xl text-indigo-950 flex items-center gap-2">
+                    <Gift className="w-5 h-5 text-indigo-600" /> Thiệp 3D kỹ thuật số
+                  </h3>
+                  <p className="mt-2 text-sm text-indigo-800">Mẫu: <strong>{order.cardTemplateSlug}</strong></p>
+                  <p className="mt-1 text-sm text-indigo-700">Giao dịch online, không cần giao hàng.</p>
+                </div>
+                {order.cardId && order.cardTemplateSlug && (
+                  <Link href={`/cards/${order.cardTemplateSlug}/edit?card=${order.cardId}`} className="inline-flex h-fit items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">
+                    Mở thiệp <ExternalLink className="w-4 h-4" />
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
           {order.items?.map((item: any) => (
             <div key={item.id} className="glass-card p-6 md:p-8 rounded-[2rem] shadow-soft hover:shadow-lg transition-shadow border border-white/50">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">

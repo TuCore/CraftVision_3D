@@ -1136,6 +1136,14 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid?>("CardId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("card_id");
+
+                    b.Property<string>("CardTemplateSlug")
+                        .HasColumnType("text")
+                        .HasColumnName("card_template_slug");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -1144,6 +1152,13 @@ namespace CraftVision.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("order_code");
+
+                    b.Property<string>("OrderKind")
+                        .ValueGeneratedOnAdd()
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Product")
+                        .HasColumnName("order_kind");
 
                     b.Property<OrderStatus>("OrderStatus")
                         .HasColumnType("order_status_enum")
@@ -1207,6 +1222,10 @@ namespace CraftVision.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_orders");
+
+                    b.HasIndex("CardId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_orders_card_id");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_orders_user_id");
