@@ -630,6 +630,25 @@ export default function SettingsPage() {
 
                           {/* Items */}
                           <div className="p-4 flex flex-col gap-3">
+                            {order.orderKind === "DigitalCard" && (
+                              <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/20">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-16 h-16 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                    <Gift className="w-7 h-7" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-sm text-foreground">Thiệp 3D kỹ thuật số</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">Mẫu: {order.cardTemplateSlug}</p>
+                                    {order.cardId && order.cardTemplateSlug && (
+                                      <Link href={`/cards/${order.cardTemplateSlug}/edit?card=${order.cardId}`} className="inline-flex items-center gap-1 text-[11px] text-primary font-semibold mt-1 hover:underline">
+                                        Mở thiệp <ExternalLink className="w-2.5 h-2.5" />
+                                      </Link>
+                                    )}
+                                  </div>
+                                </div>
+                                <span className="font-bold text-sm text-primary">{formatPrice(order.totalAmount)}</span>
+                              </div>
+                            )}
                             {order.items?.slice(0, 1).map((item: any) => {
                               const imageUrl = item.productImageUrl || item.image || "/dreamy-hero-bg.jpg";
                               const hasGift = !!item.gift?.secretKey;
@@ -1053,7 +1072,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-3">
                   {(selectedOrderDetail.items && selectedOrderDetail.items.length > 0 ? selectedOrderDetail.items : [
-                    { productName: "Sản phẩm CraftVision", quantity: 1, unitPrice: selectedOrderDetail.totalAmount || 0, subTotal: selectedOrderDetail.totalAmount || 0 }
+                    { productName: selectedOrderDetail.orderKind === "DigitalCard" ? "Thiệp 3D kỹ thuật số" : "Sản phẩm CraftVision", quantity: 1, unitPrice: selectedOrderDetail.totalAmount || 0, subTotal: selectedOrderDetail.totalAmount || 0 }
                   ]).map((item: any, idx: number) => {
                     const hasRealGift = !!item.gift?.secretKey;
 

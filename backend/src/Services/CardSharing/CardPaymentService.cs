@@ -6,6 +6,18 @@ using Microsoft.Extensions.Configuration;
 namespace CraftVision.CardSharing;
 
 public sealed record CardPaymentView(string Status, int Amount, string? CheckoutUrl);
+public interface ICardPurchaseRecorder
+{
+    Task RecordPaidPurchase(
+        Guid ownerId,
+        Guid cardId,
+        long orderCode,
+        int amount,
+        string templateSlug,
+        DateTime paidAt,
+        CancellationToken ct);
+}
+
 public static class CardPrices
 {
     private static readonly Dictionary<string, int> Prices = Load();
@@ -17,7 +29,12 @@ public static class CardPrices
     public static int For(string slug) => Prices.TryGetValue(slug, out var amount) ? amount : throw new CardError(400, "Mẫu thiệp chưa có giá thanh toán.");
 }
 
-public sealed class CardPaymentService(CardDatabase db, CardService cards, IPaymentProvider provider, IConfiguration config)
+public sealed class CardPaymentService(
+    CardDatabase db,
+    CardService cards,
+    IPaymentProvider provider,
+    IConfiguration config,
+    ICardPurchaseRecorder? purchases = null)
 {
     public static bool IsFullyPaid(CardPayment payment, PaymentReceipt receipt) =>
         receipt.OrderCode == payment.OrderCode && receipt.Amount == payment.Amount && receipt.AmountPaid >= payment.Amount &&
@@ -28,6 +45,30 @@ public sealed class CardPaymentService(CardDatabase db, CardService cards, IPaym
         card.PaidAt.HasValue ? "PAID" : payment?.Status ?? "UNPAID",
         payment?.Amount ?? CardPrices.For(JsonSerializer.Deserialize<JsonElement>(card.DraftJson).GetProperty("template").GetString()!),
         card.PaidAt.HasValue ? null : payment?.CheckoutUrl);
+
+    private async Task EnsurePurchaseRecorded(StoredCard card, CardPayment? payment, CancellationToken ct)
+    {
+        if (purchases is null || !card.PaidAt.HasValue || payment is null) return;
+
+        var templateSlug = JsonSerializer.Deserialize<JsonElement>(card.DraftJson)
+            .GetProperty("template")
+            .GetString()!;
+        try
+        {
+            await purchases.RecordPaidPurchase(
+                card.OwnerId,
+                card.Id,
+                payment.OrderCode,
+                payment.Amount,
+                templateSlug,
+                card.PaidAt.Value,
+                ct);
+        }
+        catch
+        {
+            throw new CardError(503, "Thanh toán đã xác nhận nhưng chưa đồng bộ được vào lịch sử đơn hàng. Vui lòng kiểm tra lại.");
+        }
+    }
 
     private async Task Refresh(StoredCard card, CardPayment payment, CancellationToken ct)
     {
@@ -54,13 +95,19 @@ public sealed class CardPaymentService(CardDatabase db, CardService cards, IPaym
             catch (CardError) { throw; }
             catch { throw new CardError(503, "Chưa xác minh được thanh toán với PayOS. Vui lòng thử lại."); }
         }
+        await EnsurePurchaseRecorded(card, payment, ct);
         return View(card, payment);
     }
 
     public async Task<CardPaymentView> Checkout(Guid owner, Guid id, CancellationToken ct)
     {
         var card = await cards.Find(owner, id, ct);
-        if (card.PaidAt.HasValue) return View(card, null);
+        if (card.PaidAt.HasValue)
+        {
+            var paidPayment = await db.Payments.SingleOrDefaultAsync(p => p.CardId == id, ct);
+            await EnsurePurchaseRecorded(card, paidPayment, ct);
+            return View(card, paidPayment);
+        }
         var slug = JsonSerializer.Deserialize<JsonElement>(card.DraftJson).GetProperty("template").GetString()!;
         var origin = config["FrontendUrl"]?.TrimEnd('/');
         if (!Uri.TryCreate(origin, UriKind.Absolute, out var frontend) || frontend.Scheme is not ("https" or "http"))
@@ -83,7 +130,12 @@ public sealed class CardPaymentService(CardDatabase db, CardService cards, IPaym
         var payment = await db.Payments.SingleAsync(p => p.CardId == id, ct);
         await db.Entry(payment).ReloadAsync(ct);
         await db.Entry(card).ReloadAsync(ct);
-        if (card.PaidAt.HasValue) return View(card, payment);
+        if (card.PaidAt.HasValue)
+        {
+            await tx.CommitAsync(ct);
+            await EnsurePurchaseRecorded(card, payment, ct);
+            return View(card, payment);
+        }
         try
         {
             if (payment.CheckoutUrl is not null)
@@ -112,6 +164,7 @@ public sealed class CardPaymentService(CardDatabase db, CardService cards, IPaym
                 await db.SaveChangesAsync(ct);
             }
             await tx.CommitAsync(ct);
+            await EnsurePurchaseRecorded(card, payment, ct);
             return View(card, payment);
         }
         catch (CardError) { throw; }

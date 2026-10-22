@@ -875,7 +875,9 @@ export default function CartPage() {
               const total = order.totalAmount ?? order.total ?? 0;
               const itemsList = Array.isArray(order.items) && order.items.length > 0
                 ? order.items.map((i: any) => `${i.productName || i.name} (x${i.quantity || i.qty || 1})`).join(", ")
-                : "Chi thúi (x1)";
+                : order.orderKind === "DigitalCard"
+                  ? `Thiệp 3D kỹ thuật số - ${order.cardTemplateSlug || "mẫu đã chọn"} (x1)`
+                  : "Sản phẩm CraftVision (x1)";
 
               return (
                 <div
@@ -1116,7 +1118,7 @@ export default function CartPage() {
 
                     <div className="space-y-3">
                       {(selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items : [
-                        { productName: "Sản phẩm", quantity: 1, unitPrice: 120000, subTotal: 120000 }
+                        { productName: selectedOrder.orderKind === "DigitalCard" ? "Thiệp 3D kỹ thuật số" : "Sản phẩm CraftVision", quantity: 1, unitPrice: selectedOrder.totalAmount || selectedOrder.total || 0, subTotal: selectedOrder.totalAmount || selectedOrder.total || 0 }
                       ]).map((item: any, idx: number) => {
                         const hasRealGift = !!item.gift?.secretKey;
 

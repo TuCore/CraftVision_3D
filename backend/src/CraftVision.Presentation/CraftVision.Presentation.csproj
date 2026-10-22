@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Compile Include="../Gateway/CardSharingController.cs" Link="Gateway/CardSharingController.cs" />
+    <Compile Include="../Gateway/CardPurchaseRecorder.cs" Link="Gateway/CardPurchaseRecorder.cs" />
     <Compile Include="../Gateway/MusicController.cs" Link="Gateway/MusicController.cs" />
     <ProjectReference Include="../Services/Music/Music.csproj" />
     <ProjectReference Include="../Services/CardSharing/CardSharing.csproj" />

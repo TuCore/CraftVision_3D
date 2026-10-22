@@ -10,6 +10,9 @@ public class Order
     public Guid UserId { get; set; }
     
     public string OrderCode { get; set; } = string.Empty;
+    public string OrderKind { get; set; } = "Product";
+    public Guid? CardId { get; set; }
+    public string? CardTemplateSlug { get; set; }
     
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cod;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;

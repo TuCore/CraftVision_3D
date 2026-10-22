@@ -268,6 +268,51 @@ public class OrderService : IOrderService
         }
     }
 
+    public async Task RecordPaidCardPurchaseAsync(
+        Guid userId,
+        Guid cardId,
+        long orderCode,
+        int amount,
+        string templateSlug,
+        DateTime paidAt)
+    {
+        var existing = await _unitOfWork.Orders.GetByIdWithItemsAsync(cardId);
+        if (existing != null)
+        {
+            if (existing.UserId != userId || existing.OrderKind != "DigitalCard")
+            {
+                throw new InvalidOperationException("Card purchase conflicts with an existing order.");
+            }
+
+            return;
+        }
+
+        var user = await _unitOfWork.Users.GetByIdAsync(userId)
+            ?? throw new InvalidOperationException("Card owner does not exist in the commerce database.");
+        var purchasedAt = paidAt.Kind == DateTimeKind.Utc ? paidAt : paidAt.ToUniversalTime();
+
+        _unitOfWork.Orders.Add(new Order
+        {
+            Id = cardId,
+            UserId = userId,
+            OrderCode = orderCode.ToString(),
+            OrderKind = "DigitalCard",
+            CardId = cardId,
+            CardTemplateSlug = templateSlug,
+            PaymentMethod = PaymentMethod.BankTransfer,
+            PaymentStatus = PaymentStatus.Paid,
+            OrderStatus = OrderStatus.Delivered,
+            ReceiverName = user.DisplayName ?? user.FullName ?? user.Email ?? "CraftVision customer",
+            ReceiverAddress = "Online",
+            ShippingFee = 0,
+            TotalAmount = amount,
+            CreatedAt = purchasedAt,
+            UpdatedAt = purchasedAt
+        });
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     public async Task<OrderDto> GetOrderByIdAsync(Guid id)
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
@@ -292,6 +337,9 @@ public class OrderService : IOrderService
         {
             Id = order.Id,
             OrderCode = order.OrderCode,
+            OrderKind = order.OrderKind,
+            CardId = order.CardId,
+            CardTemplateSlug = order.CardTemplateSlug,
             PaymentMethod = order.PaymentMethod.ToString(),
             PaymentStatus = order.PaymentStatus.ToString(),
             OrderStatus = order.OrderStatus.ToString(),
@@ -342,6 +390,9 @@ public class OrderService : IOrderService
             {
                 Id = order.Id,
                 OrderCode = order.OrderCode,
+                OrderKind = order.OrderKind,
+                CardId = order.CardId,
+                CardTemplateSlug = order.CardTemplateSlug,
                 PaymentMethod = order.PaymentMethod.ToString(),
                 PaymentStatus = order.PaymentStatus.ToString(),
                 OrderStatus = order.OrderStatus.ToString(),
@@ -399,12 +450,40 @@ public class OrderService : IOrderService
             {
                 Id = order.Id,
                 OrderCode = order.OrderCode,
+                OrderKind = order.OrderKind,
+                CardId = order.CardId,
+                CardTemplateSlug = order.CardTemplateSlug,
                 PaymentMethod = order.PaymentMethod.ToString(),
                 PaymentStatus = order.PaymentStatus.ToString(),
                 OrderStatus = order.OrderStatus.ToString(),
                 ReceiverName = order.ReceiverName,
+                ReceiverPhone = order.ReceiverPhone,
+                ReceiverAddress = order.ReceiverAddress,
+                ShippingFee = order.ShippingFee,
                 TotalAmount = order.TotalAmount,
-                CreatedAt = order.CreatedAt
+                CreatedAt = order.CreatedAt,
+                UpdatedAt = order.UpdatedAt,
+                Items = order.OrderItems.Select(oi => new OrderItemDto
+                {
+                    Id = oi.Id,
+                    ProductId = oi.ProductId,
+                    ProductName = oi.Product?.Name ?? "",
+                    ProductType = oi.Product?.ProductType.ToString() ?? "",
+                    Quantity = oi.Quantity,
+                    UnitPrice = oi.UnitPrice,
+                    SubTotal = oi.SubTotal,
+                    ProductImageUrl = oi.Product?.SampleImageUrl,
+                    Gift = oi.Gift != null ? new GiftSummaryDto
+                    {
+                        Id = oi.Gift.Id,
+                        GiftTitle = oi.Gift.GiftTitle,
+                        SenderName = oi.Gift.SenderName,
+                        ReceiverName = oi.Gift.ReceiverName,
+                        NfcTagCode = oi.Gift.NfcTag?.TagCode,
+                        SecretKey = oi.Gift.NfcTag?.SecretKey,
+                        Status = oi.Gift.NfcTag?.Status.ToString() ?? ""
+                    } : null
+                }).ToList()
             }).ToList(),
             TotalItems = total,
             Page = page,
@@ -416,6 +495,8 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
         if (order == null) throw new Exception("Order not found");
+        if (order.OrderKind == "DigitalCard")
+            throw new InvalidOperationException("Digital card purchase status is managed by its verified payment.");
 
         if (!Enum.TryParse<OrderStatus>(status, out var newStatus))
         {
@@ -477,6 +558,8 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
         if (order == null) throw new Exception("Order not found");
+        if (order.OrderKind == "DigitalCard")
+            throw new InvalidOperationException("Digital card payment status cannot be changed manually.");
 
         if (!Enum.TryParse<PaymentStatus>(status, out var newStatus))
         {
@@ -593,6 +676,8 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
         if (order == null) throw new Exception("Order not found");
+        if (order.OrderKind == "DigitalCard")
+            throw new InvalidOperationException("Paid digital card purchase history cannot be deleted.");
 
         var nfcTagsToDelete = new System.Collections.Generic.List<CraftVision.Domain.Entities.NfcTag>();
 
