@@ -2,11 +2,32 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product } from '@/lib/product.types';
 
+export interface OrderGift {
+  giftTitle?: string;
+  templateTitle?: string;
+  cardSlug?: string;
+  cardPrice?: number;
+  originalCardPrice?: number;
+  senderName?: string;
+  receiverName?: string;
+  message?: string;
+  messageSource?: string;
+  theme?: string;
+  threeDModelUrl?: string | null;
+  previewImageUrl?: string | null;
+  threeDModelType?: string;
+  mediaFileIds?: string[];
+  [key: string]: unknown;
+}
+
 export interface OrderItem {
   product: Product;
   quantity: number;
-  gift?: any;
+  gift?: OrderGift | null;
   cartItemId?: string;
+  cardSlug?: string;
+  cardPrice?: number;
+  hasGreeting?: boolean;
 }
 
 interface OrderStore {

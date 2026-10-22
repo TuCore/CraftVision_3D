@@ -4,17 +4,10 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 
-import { Heart, Gift, Camera, Sparkles, Smile, Star, Zap, User } from 'lucide-react';
-import React, { useEffect, useState, useMemo } from 'react';
+import { Heart, Gift, Sparkles, Smile, Star, Zap, ShieldCheck, Hammer, Leaf } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
 import confetti from 'canvas-confetti';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': any;
-    }
-  }
-}
+import { cardTemplates } from '@/features/cards/catalog';
 
 const MOTIVATION_QUOTES = [
   "Bạn tuyệt vời hơn bạn nghĩ rất nhiều! Hãy luôn tin vào bản thân mình nhé. 🌟",
@@ -74,16 +67,6 @@ export default function GiftScanPage() {
   const { secretKey } = useParams();
   const [showContent, setShowContent] = useState(false);
 
-  useEffect(() => {
-    // Load model-viewer script dynamically for the demo
-    if (typeof window !== "undefined" && !customElements.get("model-viewer")) {
-      const script = document.createElement("script");
-      script.type = "module";
-      script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
-      document.head.appendChild(script);
-    }
-  }, []);
-
   const { data: gift, isLoading, error } = useQuery({
     queryKey: ['gift-scan', secretKey],
     queryFn: async () => {
@@ -122,6 +105,30 @@ export default function GiftScanPage() {
     return baseWarm;
   }, [gift?.theme]);
 
+  const selected3dTemplate = useMemo(() => {
+    const rawValue = String(gift?.threeDModelUrl || '').trim();
+    const slug = rawValue.startsWith('slug:') ? rawValue.slice(5) : rawValue;
+    return cardTemplates.find((template) => template.slug === slug || rawValue.includes(template.slug)) || null;
+  }, [gift?.threeDModelUrl]);
+
+  const cardPreviewUrl = useMemo(() => {
+    if (!selected3dTemplate) return null;
+    const query = new URLSearchParams({
+      preview: '1',
+      recipient: gift?.receiverName || 'Người nhận',
+      sender: gift?.senderName || 'Người gửi',
+      title: gift?.giftTitle || selected3dTemplate.title,
+      message: gift?.message || selected3dTemplate.message,
+    });
+    const previewImage = String(gift?.previewImageUrl || '');
+    if (previewImage && !previewImage.startsWith('data:') && previewImage.length < 1500) {
+      query.set('photo', previewImage);
+    }
+    return `/love-gift/${selected3dTemplate.slug}?${query.toString()}`;
+  }, [gift?.giftTitle, gift?.message, gift?.previewImageUrl, gift?.receiverName, gift?.senderName, selected3dTemplate]);
+
+  const isCraftCertificate = gift?.theme === 'craft-certificate';
+
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground relative overflow-hidden">
       <div className="blob animate-pulse-glow" style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 300, height: 300, background: "oklch(0.78 0.22 35)" }} />
@@ -145,8 +152,6 @@ export default function GiftScanPage() {
     </div>
   );
 
-  const ThemeIcon = themeConfig.icon;
-
   return (
     <div className="relative min-h-screen overflow-x-clip bg-background font-sans">
       {/* Background Decor */}
@@ -166,21 +171,33 @@ export default function GiftScanPage() {
             </div>
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold font-display leading-[1.15] mb-6 drop-shadow-sm">
-            Bạn có một <span className="gradient-text pb-1">món quà</span><br />từ {gift.senderName || 'Ai đó'}!
+            {isCraftCertificate ? (
+              <>Chứng nhận <span className="gradient-text pb-1">CraftVision</span></>
+            ) : (
+              <>Bạn có một <span className="gradient-text pb-1">món quà</span><br />từ {gift.senderName || 'Ai đó'}!</>
+            )}
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-12 font-medium max-w-md mx-auto bg-white/40 backdrop-blur-sm px-6 py-2 rounded-full border border-white/50 shadow-sm">
-            Dành riêng cho <span className="font-bold text-foreground text-xl">{gift.receiverName || 'Bạn'}</span>
+            {isCraftCertificate ? 'Nguồn gốc & câu chuyện chế tác thủ công' : <>Dành riêng cho <span className="font-bold text-foreground text-xl">{gift.receiverName || 'Bạn'}</span></>}
           </p>
           <button 
             onClick={() => setShowContent(true)}
             className="btn-hero text-black px-12 py-5 rounded-full text-xl font-bold shadow-coral-glow hover:scale-105 transition-transform flex items-center gap-3 animate-bounce"
           >
-            <Sparkles className="w-6 h-6" /> Mở Quà Ngay
+            <Sparkles className="w-6 h-6" /> {isCraftCertificate ? 'Xem chứng nhận' : 'Mở Quà Ngay'}
           </button>
         </div>
       ) : (
         <main className="relative z-10 mx-auto px-6 flex flex-col min-h-screen transition-[max-width] duration-700 max-w-5xl">
-
+          {isCraftCertificate ? (
+            <CraftCertificate
+              title={gift.giftTitle}
+              message={gift.message}
+              image={gift.previewImageUrl}
+              secretKey={String(secretKey || '')}
+            />
+          ) : (
+          <>
 
           {/* Main Layout */}
           <section className="flex-1 flex flex-col md:flex-row md:items-center justify-center gap-12 lg:gap-20 animate-reveal py-12" style={{ animationDelay: "150ms" }}>
@@ -237,18 +254,29 @@ export default function GiftScanPage() {
                 </div>
               </article>
               
-              {/* 3D Model Viewer - Polaroid Style at the bottom */}
+              {/* Procedural 3D card or warm 2D default card */}
               <article className="relative bg-white p-4 pb-12 shadow-xl ring-1 ring-clay/5 rotate-2 transition-all duration-700 hover:-translate-y-2 hover:rotate-0 hover:shadow-coral-glow group self-center mt-4 w-[90%] max-w-sm">
                 <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-rose-200/40 blur-3xl transition-transform duration-700 group-hover:scale-150" />
                 <div className="aspect-square w-full overflow-hidden bg-clay/5 relative">
-                  {React.createElement('model-viewer', {
-                    src: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-                    "auto-rotate": true,
-                    "camera-controls": true,
-                    style: { width: '100%', height: '100%', outline: 'none' },
-                    "environment-image": "neutral",
-                    exposure: "1"
-                  })}
+                  {selected3dTemplate ? (
+                    <iframe
+                      src={cardPreviewUrl || `/love-gift/${selected3dTemplate.slug}?preview=1`}
+                      title={`Thiệp 3D ${selected3dTemplate.title}`}
+                      className="h-full w-full border-0"
+                      allow="autoplay"
+                    />
+                  ) : gift.previewImageUrl ? (
+                    <img
+                      src={gift.previewImageUrl}
+                      alt={gift.giftTitle || 'Ảnh kỷ niệm trên thiệp'}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-rose-50 to-amber-50 p-8 text-center">
+                      <Heart className="mb-5 h-16 w-16 fill-rose-200 text-rose-400" />
+                      <p className="font-display text-2xl italic text-clay/80">{gift.giftTitle || 'Thiệp lời chúc dành riêng cho bạn'}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="absolute bottom-4 left-0 right-0 text-center">
                   <p className="font-display text-2xl text-clay/80 italic opacity-80" style={{ fontFamily: "Caveat, cursive" }}>For You</p>
@@ -281,9 +309,66 @@ export default function GiftScanPage() {
               <img src="/image/logoweb.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover grayscale opacity-60 hover:opacity-100 transition-opacity" />
             </div>
           </footer>
+          </>
+          )}
         </main>
       )}
     </div>
+  );
+}
+
+function CraftCertificate({
+  title,
+  message,
+  image,
+  secretKey,
+}: {
+  title?: string;
+  message?: string;
+  image?: string;
+  secretKey: string;
+}) {
+  return (
+    <section className="flex flex-1 items-center py-12 animate-reveal">
+      <article className="w-full overflow-hidden rounded-[2.5rem] border border-amber-200/70 bg-white/85 shadow-2xl backdrop-blur-md">
+        <div className="grid md:grid-cols-[0.9fr_1.1fr]">
+          <div className="relative min-h-72 bg-gradient-to-br from-amber-100 via-orange-50 to-emerald-50 p-8">
+            {image ? (
+              <img src={image} alt={title || 'Sản phẩm thủ công CraftVision'} className="h-full min-h-64 w-full rounded-3xl object-cover shadow-lg" />
+            ) : (
+              <div className="flex h-full min-h-64 flex-col items-center justify-center rounded-3xl border border-white/80 bg-white/50 text-center">
+                <Hammer className="mb-4 h-16 w-16 text-amber-700" />
+                <span className="font-display text-3xl text-clay">Made by hand</span>
+              </div>
+            )}
+          </div>
+          <div className="p-8 md:p-12">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+              <ShieldCheck className="h-5 w-5" /> Chứng nhận chính hãng
+            </div>
+            <h1 className="font-display text-3xl font-bold text-clay md:text-5xl">{title || 'Chứng nhận chế tác thủ công'}</h1>
+            <p className="mt-5 text-base leading-7 text-clay/80">
+              {message || 'Sản phẩm được hoàn thiện thủ công, kiểm tra chất lượng và gắn định danh NFC bởi CraftVision 3D.'}
+            </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-amber-200/70 bg-amber-50/70 p-4">
+                <Hammer className="mb-2 h-6 w-6 text-amber-700" />
+                <strong className="block text-sm text-clay">Chế tác thủ công</strong>
+                <span className="text-xs text-clay/65">Hoàn thiện và kiểm tra từng sản phẩm.</span>
+              </div>
+              <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-4">
+                <Leaf className="mb-2 h-6 w-6 text-emerald-700" />
+                <strong className="block text-sm text-clay">Câu chuyện sản phẩm</strong>
+                <span className="text-xs text-clay/65">Tôn trọng vật liệu và dấu ấn người làm.</span>
+              </div>
+            </div>
+            <div className="mt-8 border-t border-clay/10 pt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-clay/50">
+              Mã xác thực NFC: {secretKey.slice(0, 12) || 'CRAFTVISION'}
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
   );
 }
 

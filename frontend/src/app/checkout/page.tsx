@@ -215,25 +215,38 @@ export default function CheckoutPage() {
         shippingFee: hasPhysicalItems ? shipping : 0,
         items: items.map(item => {
           const cardPrice = item.gift?.cardPrice ?? (item.product as any).cardPrice ?? (item.gift ? 5000 : 0);
+          const isPhysicalItem = !(item.product as any).is3D && !(item.product as any).isDigital && item.product.category !== "Thiệp điện tử";
+          const submittedGift = item.gift ?? (isPhysicalItem ? {
+            giftTitle: `Chứng nhận chế tác - ${item.product.name}`,
+            senderName: "CraftVision 3D",
+            receiverName: shippingInfo.receiverName || "Chủ nhân sản phẩm",
+            message: "Chứng nhận nguồn gốc và câu chuyện chế tác thủ công của sản phẩm.",
+            messageSource: "System",
+            theme: "craft-certificate",
+            threeDModelUrl: null,
+            previewImageUrl: item.product.image || null,
+            threeDModelType: "GLB",
+            mediaFileIds: []
+          } : null);
           const rawId = item.product.id || "";
           const cleanedId = rawId.replace(/-3d$/, "");
           const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanedId);
           return {
             productId: isGuid ? cleanedId : "00000000-0000-0000-0000-000000000000",
             quantity: item.quantity,
-            wantNfc: !!item.gift,
-            extraPrice: cardPrice,
-            gift: item.gift ? {
-              giftTitle: item.gift.giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`,
-              senderName: item.gift.senderName || "Người gửi",
-              receiverName: item.gift.receiverName || shippingInfo.receiverName || "Người nhận",
-              message: item.gift.message || "",
-              messageSource: item.gift.messageSource || "AI",
-              theme: item.gift.theme || "sincere",
-              threeDModelUrl: item.gift.threeDModelUrl || null,
-              previewImageUrl: item.gift.previewImageUrl || null,
-              threeDModelType: item.gift.threeDModelType || "GLB",
-              mediaFileIds: item.gift.mediaFileIds || []
+            wantNfc: isPhysicalItem || !!submittedGift,
+            extraPrice: item.gift ? cardPrice : 0,
+            gift: submittedGift ? {
+              giftTitle: submittedGift.giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`,
+              senderName: submittedGift.senderName || "Người gửi",
+              receiverName: submittedGift.receiverName || shippingInfo.receiverName || "Người nhận",
+              message: submittedGift.message || "",
+              messageSource: submittedGift.messageSource || "AI",
+              theme: submittedGift.theme || "sincere",
+              threeDModelUrl: submittedGift.threeDModelUrl || null,
+              previewImageUrl: submittedGift.previewImageUrl || null,
+              threeDModelType: submittedGift.threeDModelType || "GLB",
+              mediaFileIds: submittedGift.mediaFileIds || []
             } : null
           };
         })
@@ -410,6 +423,8 @@ export default function CheckoutPage() {
                 const cardPrice = item.gift?.cardPrice ?? (item.product as any).cardPrice ?? (item.gift ? 5000 : 0);
                 const basePrice = (item.product as any).basePrice ?? (item.gift ? Math.max(0, item.product.price - cardPrice) : item.product.price);
                 const templateTitle = (item.gift as any)?.templateTitle || (item.gift as any)?.giftTitle || "Mẫu mặc định";
+                const cardSlug = item.gift?.cardSlug || item.cardSlug;
+                const originalCardPrice = item.gift?.originalCardPrice;
 
                 return (
                   <div key={idx} className="flex justify-between items-start text-sm border-b border-border/50 pb-3">
@@ -419,9 +434,18 @@ export default function CheckoutPage() {
                         <span className="text-muted-foreground font-medium">x{item.quantity}</span>
                         {item.gift && (
                           <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                            <span>🎁 Đã kèm thiệp:</span>
-                            <span className="font-semibold">{templateTitle}</span>
-                            <span className="text-primary font-bold">(+{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)})</span>
+                            {cardSlug ? (
+                              <>
+                                <span>🎁 Thiệp 3D:</span>
+                                <span className="font-semibold">{templateTitle}</span>
+                                <span className="text-primary font-bold">(+{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)}{originalCardPrice ? `, -20% từ ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(originalCardPrice)}` : ""})</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>🎁 Phí thiệp mặc định:</span>
+                                <span className="text-primary font-bold">+{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)}</span>
+                              </>
+                            )}
                           </span>
                         )}
                       </div>
