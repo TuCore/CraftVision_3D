@@ -1004,8 +1004,12 @@ function GreetingDesignContent() {
                         <div className="grid grid-cols-2 gap-2 mb-3">
                           <button
                             onClick={() => {
-                              setSelectedTemplate(template);
-                              toast.success(`Đã chọn mẫu: "${template.title}"`);
+                              const params = new URLSearchParams({
+                                physicalProductId: id,
+                                quantity: String(quantity),
+                              });
+                              if (editCartItemId) params.set("editCartItemId", editCartItemId);
+                              router.push(`/cards/${template.slug}/edit?${params.toString()}`);
                             }}
                             className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                           >
