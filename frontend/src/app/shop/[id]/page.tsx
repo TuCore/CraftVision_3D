@@ -160,16 +160,9 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     notFound();
   }
 
-  const inCartQty = items
-    .filter((i) => {
-      const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
-      return idToCheck.includes(id.toLowerCase());
-    })
-    .reduce((sum, item) => sum + (item.quantity || 1), 0);
   const baseStock = (product as any)?.availableStock !== undefined ? (product as any).availableStock : ((product as any)?.stock ?? 0);
-  const localPending = Math.max(0, inCartQty - ((product as any)?.reservedStock || 0));
-  const availableStock = Math.max(0, baseStock - localPending);
-  const isOutOfStock = (product as any)?.stock !== undefined && (baseStock === 0 || availableStock === 0);
+  const availableStock = Math.max(0, baseStock);
+  const isOutOfStock = (product as any)?.stock !== undefined && availableStock === 0;
   const maxStock = availableStock;
 
   const handleDecrease = () => setQuantity((prev) => Math.max(1, prev - 1));
@@ -463,7 +456,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                         router.push("/auth");
                         return;
                       }
-                      router.push(`/shop/${product.id}/greeting`);
+                      router.push(`/shop/${product.id}/greeting?mode=web3d`);
                     }}
                     className="w-full cursor-pointer relative overflow-hidden rounded-2xl border border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
                   >
@@ -477,11 +470,11 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                             Chọn mẫu thiệp từ thư viện Web
                           </h3>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold shrink-0">
-                            16 mẫu 3D
+                            54+ mẫu 3D
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Lựa chọn trong kho mẫu thiệp phong phú (Trung thu, Sinh nhật, Tình yêu...).
+                          Chọn từ 54+ mẫu thiệp 3D và được giảm 20% giá thiệp khi mua kèm.
                         </p>
                       </div>
                     </div>

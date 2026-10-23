@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { AIGiftWidget } from "@/components/AIGiftWidget";
@@ -36,14 +36,38 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ProductDemoModal } from "@/components/home/ProductDemoModal";
 import { TutorialVideoModal } from "@/components/home/TutorialVideoModal";
 import {
-  INITIAL_TEMPLATE_PRODUCTS,
   TemplateProduct,
   TemplateVideo,
   DEFAULT_TUTORIAL_VIDEO,
 } from "@/data/templateProducts";
+import { cardTemplates, categories as cardCategories } from "@/features/cards/catalog";
+import { getCardCommerce } from "@/features/cards/commerce";
+
+type GreetingTemplate = TemplateProduct & {
+  slug?: string;
+  category?: string;
+  action?: string;
+  reveal?: string;
+};
+
+const WEB_CARD_TEMPLATES: GreetingTemplate[] = cardTemplates.map((template) => {
+  const retailPrice = getCardCommerce(template.slug).salePrice || 49000;
+  return {
+    id: template.id,
+    slug: template.slug,
+    category: template.category,
+    image: `/cards/previews/${template.slug}.webp`,
+    title: template.title,
+    sold: 0,
+    originalPrice: retailPrice,
+    price: retailPrice,
+    discount: 20,
+    action: template.action,
+    reveal: template.reveal,
+  };
+});
 
 function GreetingDesignContent() {
   const router = useRouter();
@@ -55,9 +79,10 @@ function GreetingDesignContent() {
   const customName = searchParams.get("customName");
   const editCartItemId = searchParams.get("editCartItemId");
   const isDefaultMode = searchParams.get("mode") === "default";
+  const isWeb3dMode = !isDefaultMode;
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateProduct | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<GreetingTemplate | null>(null);
   const [message, setMessage] = useState("");
   const [greetingImage, setGreetingImage] = useState<string | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
@@ -87,11 +112,12 @@ function GreetingDesignContent() {
     );
   }, [product]);
 
-  const getCardPrice = (template: TemplateProduct | null | undefined): number => {
+  const getCardPrice = useCallback((template: GreetingTemplate | null | undefined): number => {
     if (!template) return 5000;
-    if (template.id === 0) return 5000;
-    return template.price || 5000;
-  };
+    if (template.id === 0 || isDefaultMode) return 5000;
+    const retailPrice = template.originalPrice || template.price || 49000;
+    return isWeb3dMode ? Math.round(retailPrice * 0.8) : retailPrice;
+  }, [isDefaultMode, isWeb3dMode]);
 
   const calculatePricing = useMemo(() => {
     if (!product) return { basePrice: 0, cardPrice: 0, unitPrice: 0, totalItemPrice: 0 };
@@ -108,22 +134,13 @@ function GreetingDesignContent() {
       unitPrice,
       totalItemPrice: unitPrice * quantity,
     };
-  }, [product, isPhysical, selectedTemplate, quantity]);
-
-  const inCartQty = useMemo(() => {
-    return items
-      .filter((i) => {
-        const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
-        return idToCheck.includes(id.toLowerCase());
-      })
-      .reduce((sum, item) => sum + (item.quantity || 1), 0);
-  }, [items, id]);
+  }, [product, isPhysical, selectedTemplate, quantity, getCardPrice]);
 
   const rawStock = (product as any)?.stock ?? 0;
-  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined 
-    ? Math.max(0, rawStock - (editCartItemId ? 0 : inCartQty)) 
+  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined
+    ? Math.max(0, rawStock)
     : undefined;
-  const isGreetingOutOfStock = isPhysical && (product as any)?.stock !== undefined && (rawStock === 0 || (!editCartItemId && greetingMaxStock === 0));
+  const isGreetingOutOfStock = isPhysical && (product as any)?.stock !== undefined && rawStock === 0;
 
   const handleGreetingDecrease = () => setQuantity((q) => Math.max(1, q - 1));
 
@@ -173,7 +190,7 @@ function GreetingDesignContent() {
   const [videoMap, setVideoMap] = useState<Record<number, TemplateVideo>>({});
 
   // Modals for Demo and Tutorial
-  const [demoProduct, setDemoProduct] = useState<TemplateProduct | null>(null);
+  const [demoProduct, setDemoProduct] = useState<GreetingTemplate | null>(null);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState<TemplateVideo | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -190,7 +207,7 @@ function GreetingDesignContent() {
       : (!isNaN(Number(id)) ? parseInt(id, 10) : null);
 
     if (isTemplateRoute && parsedTemplateId) {
-      const tmpl = INITIAL_TEMPLATE_PRODUCTS.find((t) => t.id === parsedTemplateId) || INITIAL_TEMPLATE_PRODUCTS[0];
+      const tmpl = WEB_CARD_TEMPLATES.find((t) => t.id === parsedTemplateId) || WEB_CARD_TEMPLATES[0];
       setProduct({
         id: `template-${tmpl.id}`,
         name: tmpl.title,
@@ -226,7 +243,7 @@ function GreetingDesignContent() {
           });
         } else {
           // Fallback to template if product not found
-          const fallbackTmpl = INITIAL_TEMPLATE_PRODUCTS[0];
+          const fallbackTmpl = WEB_CARD_TEMPLATES[0];
           setProduct({
             id: `template-${fallbackTmpl.id}`,
             name: fallbackTmpl.title,
@@ -313,7 +330,7 @@ function GreetingDesignContent() {
     }
   }, [editCartItemId, items, product]);
 
-  const handleOpenVideo = (template: TemplateProduct) => {
+  const handleOpenVideo = (template: GreetingTemplate) => {
     const video =
       videoMap[template.id] ||
       template.video || {
@@ -357,11 +374,12 @@ function GreetingDesignContent() {
     const templateData = selectedTemplate
       ? {
           id: selectedTemplate.id,
+          slug: selectedTemplate.slug,
           title: selectedTemplate.title,
           image: selectedTemplate.image,
           price: cardPrice,
-          originalPrice: selectedTemplate.originalPrice,
-          discount: selectedTemplate.discount,
+          originalPrice: selectedTemplate.originalPrice || selectedTemplate.price,
+          discount: selectedTemplate.id === 0 ? selectedTemplate.discount : 20,
         }
       : {
           id: 0,
@@ -388,6 +406,10 @@ function GreetingDesignContent() {
         greetingImage: greetingImage || undefined,
         senderName: store.senderName,
         receiverName: store.receiverName,
+        cardSlug: selectedTemplate?.slug,
+        cardType: selectedTemplate?.slug ? "web_library_3d" : "default",
+        originalCardPrice: selectedTemplate?.slug ? (selectedTemplate.originalPrice || selectedTemplate.price) : 5000,
+        discountedCardPrice: cardPrice,
         selectedTemplate: templateData,
         quantity: quantity,
       });
@@ -414,6 +436,10 @@ function GreetingDesignContent() {
       greetingImage: greetingImage || undefined,
       senderName: store.senderName,
       receiverName: store.receiverName,
+      cardSlug: selectedTemplate?.slug,
+      cardType: selectedTemplate?.slug ? "web_library_3d" : "default",
+      originalCardPrice: selectedTemplate?.slug ? (selectedTemplate.originalPrice || selectedTemplate.price) : 5000,
+      discountedCardPrice: cardPrice,
       selectedTemplate: templateData,
       customQuantity: quantity,
     });
@@ -463,10 +489,15 @@ function GreetingDesignContent() {
         isDigital: !isPhysical,
       },
       quantity: quantity,
+      hasGreeting: true,
+      cardSlug: selectedTemplate?.slug,
+      cardPrice,
       gift: {
         giftTitle: selectedTemplate?.title || (isDefaultMode ? "Thiệp lời chúc riêng (Mẫu mặc định)" : `Thiệp thông điệp - ${product.name}`),
         templateTitle: selectedTemplate?.title || (isDefaultMode ? "Mẫu mặc định" : "Câu chúc riêng"),
         cardPrice: cardPrice,
+        originalCardPrice: selectedTemplate?.slug ? (selectedTemplate.originalPrice || selectedTemplate.price) : 5000,
+        cardSlug: selectedTemplate?.slug,
         templateId: selectedTemplate?.id ?? 0,
         senderName: store.senderName || "Người gửi",
         receiverName: store.receiverName || "Người nhận",
@@ -474,6 +505,10 @@ function GreetingDesignContent() {
         greetingMessage: message,
         greetingImage: greetingImage || undefined,
         previewImageUrl: greetingImage || selectedTemplate?.image,
+        threeDModelUrl: selectedTemplate?.slug ? `slug:${selectedTemplate.slug}` : null,
+        threeDModelType: "GLB",
+        theme: selectedTemplate?.slug ? selectedTemplate.slug : "sincere",
+        messageSource: "Manual",
         secretKey: `CARD-${Date.now()}`,
       },
     };
@@ -487,6 +522,10 @@ function GreetingDesignContent() {
   // Mở trang web xem trực tiếp thông điệp thiệp
   const handleLiveWebPreview = () => {
     if (typeof window !== "undefined") {
+      if (selectedTemplate?.slug) {
+        window.open(`/love-gift/${selectedTemplate.slug}?preview=1`, "_blank");
+        return;
+      }
       const previewData = {
         title: selectedTemplate?.title || product?.name || "Thiệp thông điệp yêu thương",
         receiverName: store.receiverName || "Người nhận",
@@ -553,12 +592,10 @@ function GreetingDesignContent() {
   };
 
   // Filter & Pagination for template cards
-  const categories = ["Tất cả", "Trung thu", "VIP", "Tình yêu", "Sinh nhật"];
+  const categories = ["Tất cả", ...cardCategories];
   const filteredTemplates = useMemo(() => {
-    if (selectedCategory === "Tất cả") return INITIAL_TEMPLATE_PRODUCTS;
-    return INITIAL_TEMPLATE_PRODUCTS.filter((t) =>
-      t.title.toLowerCase().includes(selectedCategory.toLowerCase())
-    );
+    if (selectedCategory === "Tất cả") return WEB_CARD_TEMPLATES;
+    return WEB_CARD_TEMPLATES.filter((template) => template.category === selectedCategory);
   }, [selectedCategory]);
 
   const itemsPerPage = 6;
@@ -717,7 +754,7 @@ function GreetingDesignContent() {
                     <button
                       onClick={() => {
                         setSelectedTemplate(null);
-                        router.push(`/shop/${id}/greeting`);
+                        router.push(`/shop/${id}/greeting?mode=web3d`);
                       }}
                       className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer transition-colors"
                     >
@@ -759,7 +796,7 @@ function GreetingDesignContent() {
                       ) : (
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs font-extrabold text-rose-600">
-                            +{formatPrice(selectedTemplate.price)}
+                            +{formatPrice(calculatePricing.cardPrice)}
                           </span>
                           <span className="text-[11px] text-muted-foreground">
                             (Phụ phí mẫu thiệp)
@@ -938,15 +975,15 @@ function GreetingDesignContent() {
                           <div className="flex items-center justify-between">
                             <span className="flex items-center gap-1 text-xs font-medium text-orange-500">
                               <Flame className="h-3.5 w-3.5 fill-orange-500" />
-                              Đã bán: {template.sold}
+                              Ưu đãi combo -20%
                             </span>
                             <span className="text-xs text-muted-foreground line-through">
-                              {formatPrice(template.originalPrice)}
+                              {formatPrice(template.originalPrice || template.price)}
                             </span>
                           </div>
                           <div className="flex items-center justify-end gap-2">
                             <span className="text-base sm:text-lg font-extrabold text-rose-600">
-                              {formatPrice(template.price)}
+                              {formatPrice(getCardPrice(template))}
                             </span>
                             <span className="px-1.5 py-0.5 bg-green-100 text-green-700 border border-green-200 text-[10px] font-bold rounded">
                               -{template.discount}%
@@ -958,8 +995,12 @@ function GreetingDesignContent() {
                         <div className="grid grid-cols-2 gap-2 mb-3">
                           <button
                             onClick={() => {
-                              setSelectedTemplate(template);
-                              toast.success(`Đã chọn mẫu: "${template.title}"`);
+                              const params = new URLSearchParams({
+                                physicalProductId: id,
+                                quantity: String(quantity),
+                              });
+                              if (editCartItemId) params.set("editCartItemId", editCartItemId);
+                              router.push(`/cards/${template.slug}/edit?${params.toString()}`);
                             }}
                             className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                           >
@@ -1042,7 +1083,7 @@ function GreetingDesignContent() {
                   <button
                     onClick={() => {
                       setSelectedTemplate(null);
-                      router.push(`/shop/${id}/greeting`);
+                      router.push(`/shop/${id}/greeting?mode=web3d`);
                     }}
                     className="self-start sm:self-auto px-4 py-2 rounded-xl border border-border hover:bg-muted text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer text-foreground"
                   >
@@ -1108,7 +1149,7 @@ function GreetingDesignContent() {
                     <button
                       onClick={() => {
                         setSelectedTemplate(null);
-                        router.push(`/shop/${id}/greeting`);
+                        router.push(`/shop/${id}/greeting?mode=web3d`);
                       }}
                       className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold border border-border hover:bg-muted transition-colors text-foreground flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
                     >
@@ -1166,12 +1207,24 @@ function GreetingDesignContent() {
         </div>
       </div>
 
-      {/* Product Demo Modal */}
-      <ProductDemoModal
-        isOpen={isDemoModalOpen}
-        onClose={() => setIsDemoModalOpen(false)}
-        product={demoProduct}
-      />
+      {/* Lightweight procedural Three.js preview */}
+      <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
+        <DialogContent className="sm:max-w-4xl p-0 overflow-hidden bg-background">
+          <DialogHeader className="px-6 pt-5">
+            <DialogTitle>{demoProduct?.title || "Xem trước thiệp 3D"}</DialogTitle>
+            <DialogDescription>
+              Kéo hoặc chạm trực tiếp vào khung để trải nghiệm mẫu thiệp.
+            </DialogDescription>
+          </DialogHeader>
+          {demoProduct?.slug && (
+            <iframe
+              src={`/love-gift/${demoProduct.slug}?preview=1`}
+              title={`Xem trước 3D: ${demoProduct.title}`}
+              className="h-[70vh] w-full border-0"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Tutorial Video Modal */}
       <TutorialVideoModal
@@ -1288,7 +1341,7 @@ function GreetingDesignContent() {
               className="py-3 px-4 rounded-xl font-bold btn-hero text-black shadow-coral-glow hover:scale-[1.02] flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <CreditCard className="w-4 h-4" />
-              Thanh toán ({formatPrice(selectedTemplate?.price || product?.price)})
+              Thanh toán ({formatPrice(calculatePricing.totalItemPrice)})
             </button>
           </div>
         </DialogContent>

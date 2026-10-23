@@ -1,17 +1,40 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { ProvinceDistrictSelect } from "@/components/common/ProvinceDistrictSelect";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { useOrderStore } from "@/store/useOrderStore";
+import { useOrderStore, type OrderItem } from "@/store/useOrderStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { toast } from "sonner";
-import { Truck, ShoppingCart, CreditCard, ArrowLeft, Wand2, Box, Clock, Sparkles, CheckCircle2 } from "lucide-react";
+import { Truck, ShoppingCart, CreditCard, ArrowLeft, Clock, Sparkles, CheckCircle2 } from "lucide-react";
 import api from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getAccessToken } from "@/lib/authSession";
+
+type PricedOrderProduct = OrderItem["product"] & { basePrice?: number; cardPrice?: number };
+
+const isPhysicalOrderItem = (item: OrderItem) =>
+  !item.product.is3D && !item.product.isDigital && item.product.category !== "Thiệp điện tử";
+
+const getCardPrice = (item: OrderItem) => {
+  if (!isPhysicalOrderItem(item) || !item.gift) return 0;
+  const product = item.product as PricedOrderProduct;
+  return Number(item.gift.cardPrice ?? product.cardPrice ?? 5000);
+};
+
+const getBasePrice = (item: OrderItem) => {
+  const product = item.product as PricedOrderProduct;
+  if (!isPhysicalOrderItem(item) || !item.gift) return Number(product.price);
+  if (product.basePrice !== undefined) return Number(product.basePrice);
+  const cardPrice = getCardPrice(item);
+  return product.cardPrice !== undefined && product.price > cardPrice
+    ? Number(product.price) - cardPrice
+    : Number(product.price);
+};
+
+const getUnitPrice = (item: OrderItem) => getBasePrice(item) + getCardPrice(item);
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -214,26 +237,39 @@ export default function CheckoutPage() {
         paymentMethod: effectivePaymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
         shippingFee: hasPhysicalItems ? shipping : 0,
         items: items.map(item => {
-          const cardPrice = item.gift?.cardPrice ?? (item.product as any).cardPrice ?? (item.gift ? 5000 : 0);
+          const cardPrice = getCardPrice(item);
+          const isPhysicalItem = isPhysicalOrderItem(item);
+          const submittedGift = item.gift ?? (isPhysicalItem ? {
+            giftTitle: `Chứng nhận chế tác - ${item.product.name}`,
+            senderName: "CraftVision 3D",
+            receiverName: shippingInfo.receiverName || "Chủ nhân sản phẩm",
+            message: "Chứng nhận nguồn gốc và câu chuyện chế tác thủ công của sản phẩm.",
+            messageSource: "System",
+            theme: "craft-certificate",
+            threeDModelUrl: null,
+            previewImageUrl: item.product.image || null,
+            threeDModelType: "GLB",
+            mediaFileIds: []
+          } : null);
           const rawId = item.product.id || "";
           const cleanedId = rawId.replace(/-3d$/, "");
           const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanedId);
           return {
             productId: isGuid ? cleanedId : "00000000-0000-0000-0000-000000000000",
             quantity: item.quantity,
-            wantNfc: !!item.gift,
+            wantNfc: isPhysicalItem || !!submittedGift,
             extraPrice: cardPrice,
-            gift: item.gift ? {
-              giftTitle: item.gift.giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`,
-              senderName: item.gift.senderName || "Người gửi",
-              receiverName: item.gift.receiverName || shippingInfo.receiverName || "Người nhận",
-              message: item.gift.message || "",
-              messageSource: item.gift.messageSource || "AI",
-              theme: item.gift.theme || "sincere",
-              threeDModelUrl: item.gift.threeDModelUrl || null,
-              previewImageUrl: item.gift.previewImageUrl || null,
-              threeDModelType: item.gift.threeDModelType || "GLB",
-              mediaFileIds: item.gift.mediaFileIds || []
+            gift: submittedGift ? {
+              giftTitle: submittedGift.giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`,
+              senderName: submittedGift.senderName || "Người gửi",
+              receiverName: submittedGift.receiverName || shippingInfo.receiverName || "Người nhận",
+              message: submittedGift.message || "",
+              messageSource: submittedGift.messageSource || "AI",
+              theme: submittedGift.theme || "sincere",
+              threeDModelUrl: submittedGift.threeDModelUrl || null,
+              previewImageUrl: submittedGift.previewImageUrl || null,
+              threeDModelType: submittedGift.threeDModelType || "GLB",
+              mediaFileIds: submittedGift.mediaFileIds || []
             } : null
           };
         })
@@ -274,7 +310,7 @@ export default function CheckoutPage() {
 
   if (!items || items.length === 0) return null;
 
-  const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const subtotal = items.reduce((acc, item) => acc + getUnitPrice(item) * item.quantity, 0);
 
   const calculateShippingFee = () => {
     if (!hasPhysicalItems || subtotal >= 500000) return 0;
@@ -407,9 +443,12 @@ export default function CheckoutPage() {
 
             <div className="space-y-4">
               {items.map((item, idx) => {
-                const cardPrice = item.gift?.cardPrice ?? (item.product as any).cardPrice ?? (item.gift ? 5000 : 0);
-                const basePrice = (item.product as any).basePrice ?? (item.gift ? Math.max(0, item.product.price - cardPrice) : item.product.price);
+                const cardPrice = getCardPrice(item);
+                const basePrice = getBasePrice(item);
+                const unitPrice = getUnitPrice(item);
                 const templateTitle = (item.gift as any)?.templateTitle || (item.gift as any)?.giftTitle || "Mẫu mặc định";
+                const cardSlug = item.gift?.cardSlug || item.cardSlug;
+                const originalCardPrice = item.gift?.originalCardPrice;
 
                 return (
                   <div key={idx} className="flex justify-between items-start text-sm border-b border-border/50 pb-3">
@@ -419,21 +458,30 @@ export default function CheckoutPage() {
                         <span className="text-muted-foreground font-medium">x{item.quantity}</span>
                         {item.gift && (
                           <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                            <span>🎁 Đã kèm thiệp:</span>
-                            <span className="font-semibold">{templateTitle}</span>
-                            <span className="text-primary font-bold">(+{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)})</span>
+                            {cardSlug ? (
+                              <>
+                                <span>🎁 Thiệp 3D:</span>
+                                <span className="font-semibold">{templateTitle}</span>
+                                <span className="text-primary font-bold">(+{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)}{originalCardPrice ? `, -20% từ ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(originalCardPrice)}` : ""})</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>🎁 Phí thiệp mặc định:</span>
+                                <span className="text-primary font-bold">+{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)}</span>
+                              </>
+                            )}
                           </span>
                         )}
                       </div>
                       {item.gift && basePrice > 0 && (
                         <p className="text-[11px] text-muted-foreground mt-1">
-                          Đơn giá: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(basePrice)} (SP) + {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)} (Thiệp) = <span className="font-semibold text-foreground">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.product.price)}</span>
+                          Đơn giá: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(basePrice)} (SP) + {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cardPrice)} (Thiệp) = <span className="font-semibold text-foreground">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(unitPrice)}</span>
                         </p>
                       )}
                     </div>
                     <div className="text-right whitespace-nowrap">
                       <span className="font-bold text-foreground">
-                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.product.price * item.quantity)}
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(unitPrice * item.quantity)}
                       </span>
                     </div>
                   </div>

@@ -39,6 +39,9 @@ export interface CartItem extends Product {
   senderName?: string;
   receiverName?: string;
   cardSlug?: string;
+  cardType?: 'none' | 'default' | 'web_library_3d';
+  originalCardPrice?: number;
+  discountedCardPrice?: number;
   isCardTemplate?: boolean;
   draftValues?: Record<string, import('@/features/cards/catalog').CardValue>;
   selectedTemplate?: {
@@ -62,6 +65,9 @@ export interface ToggleFavoriteOptions {
   senderName?: string;
   receiverName?: string;
   cardSlug?: string;
+  cardType?: CartItem['cardType'];
+  originalCardPrice?: number;
+  discountedCardPrice?: number;
   selectedTemplate?: CartItem['selectedTemplate'];
   preserveQuantity?: boolean;
   customQuantity?: number;
@@ -129,6 +135,9 @@ export const useWishlistStore = create<WishlistStore>()(
         let finalSenderName: string | undefined;
         let finalReceiverName: string | undefined;
         let finalCardSlug: string | undefined;
+        let finalCardType: CartItem['cardType'] | undefined;
+        let finalOriginalCardPrice: number | undefined;
+        let finalDiscountedCardPrice: number | undefined;
         let finalSelectedTemplate: CartItem['selectedTemplate'] | undefined;
         let finalPreserveQuantity: boolean | undefined;
         let finalCustomQuantity: number | undefined;
@@ -142,6 +151,9 @@ export const useWishlistStore = create<WishlistStore>()(
           finalSenderName = opts.senderName;
           finalReceiverName = opts.receiverName;
           finalCardSlug = opts.cardSlug;
+          finalCardType = opts.cardType;
+          finalOriginalCardPrice = opts.originalCardPrice;
+          finalDiscountedCardPrice = opts.discountedCardPrice;
           finalSelectedTemplate = opts.selectedTemplate;
           finalPreserveQuantity = opts.preserveQuantity;
           finalCustomQuantity = opts.customQuantity;
@@ -205,6 +217,9 @@ export const useWishlistStore = create<WishlistStore>()(
             senderName: finalSenderName !== undefined ? finalSenderName : currentItem.senderName,
             receiverName: finalReceiverName !== undefined ? finalReceiverName : currentItem.receiverName,
             cardSlug: finalCardSlug !== undefined ? finalCardSlug : currentItem.cardSlug,
+            cardType: finalCardType !== undefined ? finalCardType : currentItem.cardType,
+            originalCardPrice: finalOriginalCardPrice !== undefined ? finalOriginalCardPrice : currentItem.originalCardPrice,
+            discountedCardPrice: finalDiscountedCardPrice !== undefined ? finalDiscountedCardPrice : currentItem.discountedCardPrice,
             selectedTemplate: finalSelectedTemplate !== undefined ? finalSelectedTemplate : currentItem.selectedTemplate,
             stock: effectiveStock
           };
@@ -232,6 +247,9 @@ export const useWishlistStore = create<WishlistStore>()(
               senderName: finalSenderName, 
               receiverName: finalReceiverName, 
               cardSlug: finalCardSlug,
+              cardType: finalCardType,
+              originalCardPrice: finalOriginalCardPrice,
+              discountedCardPrice: finalDiscountedCardPrice,
               selectedTemplate: finalSelectedTemplate, 
               stock: maxStock 
             }
@@ -307,12 +325,21 @@ export const useWishlistStore = create<WishlistStore>()(
             if (!isOutOfStock && status.stock > 0 && itemQty > status.stock) {
               itemQty = status.stock;
             }
+            const hasCard = Boolean(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate);
+            const cardFee = hasCard
+              ? item.discountedCardPrice ?? item.cardPrice ?? item.selectedTemplate?.price ?? 5000
+              : 0;
+            const latestBasePrice = status.price !== undefined && status.price > 0
+              ? status.price
+              : item.basePrice ?? Math.max(0, item.price - cardFee);
             return {
               ...item,
               stock: status.stock,
               quantity: itemQty,
               isOutOfStock: isOutOfStock,
-              price: status.price !== undefined && status.price > 0 ? status.price : item.price,
+              basePrice: hasCard ? latestBasePrice : item.basePrice,
+              cardPrice: hasCard ? cardFee : item.cardPrice,
+              price: hasCard ? latestBasePrice + cardFee : latestBasePrice,
             };
           }
           return item;

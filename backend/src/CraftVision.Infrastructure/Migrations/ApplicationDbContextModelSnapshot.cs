@@ -377,6 +377,44 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("cart_items", (string)null);
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.DevicePushToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("platform");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_device_push_tokens");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("ix_device_push_tokens_token");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_device_push_tokens_user_id");
+
+                    b.ToTable("device_push_tokens", (string)null);
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1148,14 +1186,20 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<bool>("InventoryDeducted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("inventory_deducted");
+
                     b.Property<string>("OrderCode")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("order_code");
 
                     b.Property<string>("OrderKind")
-                        .ValueGeneratedOnAdd()
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasDefaultValue("Product")
                         .HasColumnName("order_kind");
@@ -1841,6 +1885,52 @@ namespace CraftVision.Infrastructure.Migrations
                     b.ToTable("user_quotas", (string)null);
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.Voucher", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("numeric")
+                        .HasColumnName("discount_percent");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ends_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<decimal?>("MaximumDiscount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("maximum_discount");
+
+                    b.Property<decimal>("MinimumOrderAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("minimum_order_amount");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("starts_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vouchers");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vouchers_code");
+
+                    b.ToTable("vouchers", (string)null);
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.Wishlist", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2016,6 +2106,18 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("Cart");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.DevicePushToken", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_device_push_tokens_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.DiyPlan", b =>

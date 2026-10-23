@@ -22,7 +22,7 @@ paths:
       - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
     post:
       summary: Create or reuse the owner's PayOS QR checkout for a saved card
-      description: Returns a PayOS checkout URL. Pending orders are reused; cancelled or expired orders can be retried. Provider errors never return a dummy URL.
+      description: Returns the PayOS checkout and transfer details used by the shared in-app bank-transfer screen. Pending orders are reused; cancelled or expired orders can be retried. Provider errors never return a dummy URL.
       responses:
         '200':
           description: Payment status and checkout URL
@@ -215,11 +215,17 @@ components:
           additionalProperties: true
     CardPayment:
       type: object
-      required: [status, amount, checkoutUrl]
+      required: [status, amount, checkoutUrl, orderCode]
       properties:
         status: { type: string, enum: [UNPAID, PENDING, PROCESSING, PAID, CANCELLED, EXPIRED] }
         amount: { type: integer, description: Server-calculated amount in VND }
         checkoutUrl: { type: string, nullable: true }
+        orderCode: { type: integer, format: int64 }
+        qrCode: { type: string, nullable: true, description: VietQR payload returned by PayOS when a checkout is created }
+        bin: { type: string, nullable: true }
+        accountNumber: { type: string, nullable: true }
+        accountName: { type: string, nullable: true }
+        description: { type: string, nullable: true }
     OwnerCard:
       type: object
       required: [id, revision, draft, updatedAt, sharePath]

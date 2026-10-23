@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using CraftVision.Application.Interfaces;
-using CraftVision.Application.Interfaces.Repositories;
 using CraftVision.Application.Interfaces.Services;
-using CraftVision.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -15,13 +13,13 @@ public class PayOSController : ControllerBase
 {
     private readonly IPayOSService _payOsService;
     private readonly ILogger<PayOSController> _logger;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IOrderService _orderService;
 
-    public PayOSController(IPayOSService payOsService, ILogger<PayOSController> logger, IUnitOfWork unitOfWork)
+    public PayOSController(IPayOSService payOsService, ILogger<PayOSController> logger, IOrderService orderService)
     {
         _payOsService = payOsService;
         _logger = logger;
-        _unitOfWork = unitOfWork;
+        _orderService = orderService;
     }
 
     /// <summary>
@@ -38,14 +36,7 @@ public class PayOSController : ControllerBase
             var orderCode = await _payOsService.ProcessWebhookAsync(webhookBody, signature);
             if (orderCode.HasValue)
             {
-                var order = await _unitOfWork.Orders.GetByOrderCodeAsync(orderCode.Value.ToString());
-                if (order != null)
-                {
-                    order.PaymentStatus = PaymentStatus.Paid;
-                    order.OrderStatus = OrderStatus.Processing;
-                    _unitOfWork.Orders.Update(order);
-                    await _unitOfWork.SaveChangesAsync();
-                }
+                await _orderService.MarkOrderPaidByCodeAsync(orderCode.Value.ToString());
 
                 // Must return 200 OK so PayOS knows we received it
                 return Ok(new { success = true });

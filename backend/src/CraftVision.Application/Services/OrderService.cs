@@ -96,10 +96,8 @@ public class OrderService : IOrderService
                         throw new Exception($"Sản phẩm '{product.Name}' đã hết hàng.");
                     if (product.Stock < itemDto.Quantity)
                         throw new Exception($"Sản phẩm '{product.Name}' không đủ số lượng trong kho (chỉ còn {product.Stock} sản phẩm).");
-                    
-                    product.Stock -= itemDto.Quantity;
-                    _unitOfWork.Products.Update(product);
-                    order.OrderStatus = OrderStatus.Processing;
+
+                    order.OrderStatus = OrderStatus.Pending;
                 }
                 else
                 {
@@ -503,6 +501,7 @@ public class OrderService : IOrderService
             throw new ArgumentException("Invalid status");
         }
 
+        var previousStatus = order.OrderStatus;
         order.OrderStatus = newStatus;
         order.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Orders.Update(order);
@@ -513,7 +512,7 @@ public class OrderService : IOrderService
             foreach (var item in items)
             {
                 var prod = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
-                if (prod != null && prod.ProductType == ProductType.InStock)
+                if (previousStatus != OrderStatus.Cancelled && order.InventoryDeducted && prod != null && prod.ProductType == ProductType.InStock)
                 {
                     prod.Stock += item.Quantity;
                     _unitOfWork.Products.Update(prod);
@@ -531,6 +530,7 @@ public class OrderService : IOrderService
                     }
                 }
             }
+            order.InventoryDeducted = false;
         }
         else if (newStatus == OrderStatus.Shipped || newStatus == OrderStatus.Delivered)
         {
@@ -564,6 +564,12 @@ public class OrderService : IOrderService
         if (!Enum.TryParse<PaymentStatus>(status, out var newStatus))
         {
             throw new ArgumentException("Invalid payment status");
+        }
+
+        if (newStatus == PaymentStatus.Paid)
+        {
+            await MarkOrderPaidAsync(orderId);
+            return;
         }
 
         order.PaymentStatus = newStatus;
@@ -613,10 +619,10 @@ public class OrderService : IOrderService
         order.OrderStatus = OrderStatus.Cancelled;
         order.UpdatedAt = DateTime.UtcNow;
         
-        // Restore stock
+        // Restore inventory only when this order actually deducted it.
         foreach (var item in order.OrderItems)
         {
-            if (item.Product != null && item.Product.ProductType == ProductType.InStock)
+            if (order.InventoryDeducted && item.Product != null && item.Product.ProductType == ProductType.InStock)
             {
                 item.Product.Stock += item.Quantity;
                 _unitOfWork.Products.Update(item.Product);
@@ -634,6 +640,7 @@ public class OrderService : IOrderService
                 }
             }
         }
+        order.InventoryDeducted = false;
 
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
@@ -731,10 +738,7 @@ public class OrderService : IOrderService
             bool isPaid = await _payOsService.CheckPaymentStatusAsync(orderCodeLong);
             if (isPaid)
             {
-                order.PaymentStatus = PaymentStatus.Paid;
-                order.UpdatedAt = DateTime.UtcNow;
-                _unitOfWork.Orders.Update(order);
-                await _unitOfWork.SaveChangesAsync();
+                await MarkOrderPaidAsync(orderId);
                 return true;
             }
         }
@@ -743,13 +747,70 @@ public class OrderService : IOrderService
 
     public async Task SimulatePaymentAsync(Guid orderId)
     {
-        var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
-        if (order == null) throw new Exception("Order not found");
+        await MarkOrderPaidAsync(orderId);
+    }
 
-        order.PaymentStatus = PaymentStatus.Paid;
-        order.UpdatedAt = DateTime.UtcNow;
-        _unitOfWork.Orders.Update(order);
-        await _unitOfWork.SaveChangesAsync();
+    public async Task MarkOrderPaidByCodeAsync(string orderCode)
+    {
+        var order = await _unitOfWork.Orders.GetByOrderCodeAsync(orderCode);
+        if (order == null) throw new Exception("Order not found");
+        await MarkOrderPaidAsync(order.Id);
+    }
+
+    private async Task MarkOrderPaidAsync(Guid orderId)
+    {
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
+            if (order == null) throw new Exception("Order not found");
+            if (order.PaymentStatus == PaymentStatus.Paid)
+            {
+                await _unitOfWork.CommitTransactionAsync();
+                return;
+            }
+            if (order.OrderStatus == OrderStatus.Cancelled)
+                throw new InvalidOperationException("Không thể thanh toán đơn hàng đã bị huỷ.");
+
+            if (!order.InventoryDeducted && order.OrderKind != "DigitalCard")
+            {
+                var inStockItems = order.OrderItems
+                    .Where(item => item.Product?.ProductType == ProductType.InStock)
+                    .ToList();
+
+                foreach (var item in inStockItems)
+                {
+                    if (item.Product!.Stock < item.Quantity)
+                        throw new InvalidOperationException($"Sản phẩm '{item.Product.Name}' không đủ số lượng tại thời điểm thanh toán.");
+                }
+
+                foreach (var item in inStockItems)
+                {
+                    item.Product!.Stock -= item.Quantity;
+                    item.Product.UpdatedAt = DateTime.UtcNow;
+                    _unitOfWork.Products.Update(item.Product);
+                }
+
+                order.InventoryDeducted = true;
+            }
+
+            order.PaymentStatus = PaymentStatus.Paid;
+            order.OrderStatus = order.OrderKind == "DigitalCard"
+                ? OrderStatus.Delivered
+                : order.OrderItems.Any(item => item.Product?.ProductType == ProductType.PreOrder)
+                    ? OrderStatus.WaitingProduction
+                    : OrderStatus.Processing;
+            order.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.Orders.Update(order);
+
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task<OrderDto> GetOrRegeneratePaymentLinkAsync(Guid orderId)

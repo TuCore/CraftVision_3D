@@ -23,20 +23,11 @@ public class ProductService : IProductService
     {
         var p = await _unitOfWork.Products.GetByIdAsync(id);
         if (p == null || !p.IsActive) throw new Exception("Product not found");
-        var inCart = await _unitOfWork.Products.GetQuantityInCartsAsync(p.Id);
         var dto = MapToDto(p);
         dto.OriginalStock = p.Stock;
-        dto.ReservedStock = inCart;
-        if (p.ProductType == ProductType.InStock)
-        {
-            dto.Stock = Math.Max(0, p.Stock - inCart);
-            dto.AvailableStock = dto.Stock;
-        }
-        else
-        {
-            dto.Stock = p.Stock;
-            dto.AvailableStock = p.Stock;
-        }
+        dto.ReservedStock = 0;
+        dto.Stock = p.Stock;
+        dto.AvailableStock = p.Stock;
         return dto;
     }
 
@@ -44,20 +35,11 @@ public class ProductService : IProductService
     {
         var p = await _unitOfWork.Products.GetBySkuAsync(sku);
         if (p == null || !p.IsActive) throw new Exception("Product not found");
-        var inCart = await _unitOfWork.Products.GetQuantityInCartsAsync(p.Id);
         var dto = MapToDto(p);
         dto.OriginalStock = p.Stock;
-        dto.ReservedStock = inCart;
-        if (p.ProductType == ProductType.InStock)
-        {
-            dto.Stock = Math.Max(0, p.Stock - inCart);
-            dto.AvailableStock = dto.Stock;
-        }
-        else
-        {
-            dto.Stock = p.Stock;
-            dto.AvailableStock = p.Stock;
-        }
+        dto.ReservedStock = 0;
+        dto.Stock = p.Stock;
+        dto.AvailableStock = p.Stock;
         return dto;
     }
 
@@ -65,7 +47,6 @@ public class ProductService : IProductService
     {
         var (items, total) = await _unitOfWork.Products.SearchAndFilterAsync(filter);
         var pList = items.ToList();
-        var inCarts = await _unitOfWork.Products.GetQuantitiesInCartsAsync(pList.Select(x => x.Id));
 
         return new PagedResult<ProductDto>
         {
@@ -73,18 +54,9 @@ public class ProductService : IProductService
             {
                 var dto = MapToDto(p);
                 dto.OriginalStock = p.Stock;
-                if (p.ProductType == ProductType.InStock)
-                {
-                    inCarts.TryGetValue(p.Id, out int reserved);
-                    dto.ReservedStock = reserved;
-                    dto.Stock = Math.Max(0, p.Stock - reserved);
-                    dto.AvailableStock = dto.Stock;
-                }
-                else
-                {
-                    dto.Stock = p.Stock;
-                    dto.AvailableStock = p.Stock;
-                }
+                dto.ReservedStock = 0;
+                dto.Stock = p.Stock;
+                dto.AvailableStock = p.Stock;
                 return dto;
             }).ToList(),
             TotalItems = total,
@@ -210,19 +182,17 @@ public class ProductService : IProductService
                 continue;
             }
 
-            int inCart = await _unitOfWork.Products.GetQuantityInCartsAsync(product.Id);
-            int remainingStock = Math.Max(0, product.Stock - inCart);
-
-            bool isOutOfStock = product.ProductType == ProductType.InStock && (remainingStock <= 0 || product.Stock < item.Quantity);
-            bool isSufficient = product.ProductType != ProductType.InStock || (remainingStock >= 0);
+            int availableStock = Math.Max(0, product.Stock);
+            bool isOutOfStock = product.ProductType == ProductType.InStock && availableStock < item.Quantity;
+            bool isSufficient = product.ProductType != ProductType.InStock || availableStock >= item.Quantity;
             string? message = null;
-            if (isOutOfStock)
+            if (availableStock <= 0 && isOutOfStock)
             {
                 message = "Sản phẩm đã hết hàng.";
             }
-            else if (remainingStock < 0)
+            else if (!isSufficient)
             {
-                message = $"Chỉ còn {remainingStock} sản phẩm khả dụng trong kho.";
+                message = $"Chỉ còn {availableStock} sản phẩm khả dụng trong kho.";
             }
 
             result.Add(new ProductStockStatusDto
@@ -230,7 +200,7 @@ public class ProductService : IProductService
                 ProductId = product.Id,
                 Name = product.Name,
                 Price = product.Price,
-                Stock = remainingStock,
+                Stock = availableStock,
                 ProductType = product.ProductType.ToString(),
                 IsActive = product.IsActive,
                 IsOutOfStock = isOutOfStock,
