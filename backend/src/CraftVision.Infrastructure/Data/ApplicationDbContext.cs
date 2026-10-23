@@ -197,6 +197,10 @@ public class ApplicationDbContext : DbContext
             .Property(o => o.OrderKind)
             .HasDefaultValue("Product");
 
+        modelBuilder.Entity<Order>()
+            .Property(o => o.InventoryDeducted)
+            .HasDefaultValue(false);
+
         modelBuilder.Entity<OrderItem>()
             .HasOne(oi => oi.Product)
             .WithMany(p => p.OrderItems)

@@ -4,7 +4,14 @@ using PayOS.Models.V2.PaymentRequests;
 
 namespace CraftVision.BuildingBlocks.Payments;
 
-public sealed record PaymentLink(string Id, string CheckoutUrl);
+public sealed record PaymentLink(
+    string Id,
+    string CheckoutUrl,
+    string? QrCode = null,
+    string? Bin = null,
+    string? AccountNumber = null,
+    string? AccountName = null,
+    string? Description = null);
 public sealed record PaymentReceipt(string Id, long OrderCode, long Amount, long AmountPaid, string Status);
 public interface IPaymentProvider
 {
@@ -28,7 +35,14 @@ public sealed class PayOsPaymentProvider(IConfiguration config) : IPaymentProvid
             OrderCode = orderCode, Amount = amount, Description = "Thanh toan thiep 3D",
             ReturnUrl = returnUrl, CancelUrl = cancelUrl
         }).WaitAsync(ct);
-        return new PaymentLink(link.PaymentLinkId, link.CheckoutUrl);
+        return new PaymentLink(
+            link.PaymentLinkId,
+            link.CheckoutUrl,
+            link.QrCode,
+            link.Bin,
+            link.AccountNumber,
+            link.AccountName,
+            link.Description);
     }
     public async Task<PaymentReceipt> Get(long orderCode, CancellationToken ct)
     {

@@ -325,12 +325,21 @@ export const useWishlistStore = create<WishlistStore>()(
             if (!isOutOfStock && status.stock > 0 && itemQty > status.stock) {
               itemQty = status.stock;
             }
+            const hasCard = Boolean(item.hasGreeting || item.greetingMessage || item.greetingImage || item.selectedTemplate);
+            const cardFee = hasCard
+              ? item.discountedCardPrice ?? item.cardPrice ?? item.selectedTemplate?.price ?? 5000
+              : 0;
+            const latestBasePrice = status.price !== undefined && status.price > 0
+              ? status.price
+              : item.basePrice ?? Math.max(0, item.price - cardFee);
             return {
               ...item,
               stock: status.stock,
               quantity: itemQty,
               isOutOfStock: isOutOfStock,
-              price: status.price !== undefined && status.price > 0 ? status.price : item.price,
+              basePrice: hasCard ? latestBasePrice : item.basePrice,
+              cardPrice: hasCard ? cardFee : item.cardPrice,
+              price: hasCard ? latestBasePrice + cardFee : latestBasePrice,
             };
           }
           return item;

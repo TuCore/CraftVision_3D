@@ -1,8 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/AppShell";
-import { ArrowLeft, CheckCircle2, Copy, ExternalLink, RefreshCcw } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Copy, ExternalLink, RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -10,10 +9,22 @@ import api from "@/lib/api";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { getAccessToken } from "@/lib/authSession";
+import { cardRequest, type CardPayment } from "@/features/cards/server";
+
+const isTrustedPayOsUrl = (value: string) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && (url.hostname === "payos.vn" || url.hostname.endsWith(".payos.vn"));
+  } catch {
+    return false;
+  }
+};
 
 export default function PaymentTransferPage() {
   const router = useRouter();
   const [orderId, setOrderId] = useState<string>("");
+  const [cardId, setCardId] = useState<string>("");
+  const [returnUrl, setReturnUrl] = useState<string>("/cards/mine");
   const [total, setTotal] = useState<string>("");
   const [checkoutUrl, setCheckoutUrl] = useState<string>("");
   const [orderInfo, setOrderInfo] = useState<any>(null);
@@ -23,11 +34,38 @@ export default function PaymentTransferPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const oid = params.get("orderId");
+      const cid = params.get("cardId");
       const urlParam = params.get("checkoutUrl");
-      if (urlParam) {
-        setCheckoutUrl(decodeURIComponent(urlParam));
-      }
-      if (oid) {
+      if (urlParam && isTrustedPayOsUrl(urlParam)) setCheckoutUrl(urlParam);
+      if (cid) {
+        setCardId(cid);
+        const requestedReturnUrl = params.get("returnUrl");
+        setReturnUrl(requestedReturnUrl?.startsWith("/cards/") && !requestedReturnUrl.startsWith("//") ? requestedReturnUrl : "/cards/mine");
+        setTotal(params.get("total") || "0");
+        setOrderInfo({
+          qrCode: params.get("qrCode"),
+          payOsBin: params.get("bin"),
+          payOsAccountNumber: params.get("accountNumber"),
+          payOsAccountName: params.get("accountName"),
+          payOsDescription: params.get("description") || (params.get("orderCode") ? `CV3D ${params.get("orderCode")}` : "Thanh toan thiep 3D"),
+          payOsAmount: Number(params.get("total") || 0),
+        });
+        cardRequest<CardPayment>(`/${encodeURIComponent(cid)}/payment`)
+          .then(status => {
+            setTotal(String(status.amount));
+            if (status.checkoutUrl && isTrustedPayOsUrl(status.checkoutUrl)) setCheckoutUrl(status.checkoutUrl);
+            setOrderInfo((current: any) => ({
+              ...current,
+              qrCode: status.qrCode || current?.qrCode,
+              payOsBin: status.bin || current?.payOsBin,
+              payOsAccountNumber: status.accountNumber || current?.payOsAccountNumber,
+              payOsAccountName: status.accountName || current?.payOsAccountName,
+              payOsDescription: status.description || current?.payOsDescription,
+              payOsAmount: status.amount,
+            }));
+          })
+          .catch(() => toast.error("Không thể kiểm tra trạng thái thanh toán thiệp. Vui lòng thử lại."));
+      } else if (oid) {
         setOrderId(oid);
         setTotal(params.get("total") || "0");
         api.get(`/api/orders/${oid}`)
@@ -55,7 +93,21 @@ export default function PaymentTransferPage() {
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
-    if (orderId && !orderId.startsWith("ORD-")) {
+    if (cardId) {
+      intervalId = setInterval(async () => {
+        try {
+          const status = await cardRequest<CardPayment>(`/${encodeURIComponent(cardId)}/payment`);
+          if (status.status === "PAID") {
+            clearInterval(intervalId);
+            toast.success("Thanh toán thiệp thành công!");
+            const separator = returnUrl.includes("?") ? "&" : "?";
+            router.push(`${returnUrl}${separator}payment=return`);
+          }
+        } catch (err) {
+          console.error("Lỗi khi kiểm tra thanh toán thiệp:", err);
+        }
+      }, 3000);
+    } else if (orderId && !orderId.startsWith("ORD-")) {
       intervalId = setInterval(async () => {
         try {
           const res = await api.get(`/api/orders/${orderId}/check-payment`);
@@ -79,7 +131,7 @@ export default function PaymentTransferPage() {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [orderId, router]);
+  }, [cardId, orderId, returnUrl, router]);
 
   const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(price));
@@ -105,17 +157,32 @@ export default function PaymentTransferPage() {
       : `https://img.vietqr.io/image/970422-0382343939-qr_only.png?amount=${payAmount}&addInfo=${encodeURIComponent(transferContent)}`);
 
   const rawCheckoutUrl = orderInfo?.checkoutUrl || checkoutUrl;
-  const isValidPayOsUrl = Boolean(rawCheckoutUrl && !rawCheckoutUrl.includes("dummy-payment-url") && rawCheckoutUrl.startsWith("http"));
+  const isValidPayOsUrl = Boolean(rawCheckoutUrl && !rawCheckoutUrl.includes("dummy-payment-url") && isTrustedPayOsUrl(rawCheckoutUrl));
   const payUrl = isValidPayOsUrl ? rawCheckoutUrl : qrUrl;
 
   const handleRegenerateLink = async () => {
-    if (!orderId || orderId.startsWith("ORD-")) return;
+    if (!cardId && (!orderId || orderId.startsWith("ORD-"))) return;
     setIsRegeneratingLink(true);
     try {
-      const res = await api.post(`/api/orders/${orderId}/payment-link`);
-      setOrderInfo(res.data);
-      if (res.data?.checkoutUrl && !res.data.checkoutUrl.includes("dummy-payment-url")) {
-        setCheckoutUrl(res.data.checkoutUrl);
+      const paymentData = cardId
+        ? await cardRequest<CardPayment>(`/${encodeURIComponent(cardId)}/payment`, { method: "POST" })
+        : (await api.post(`/api/orders/${orderId}/payment-link`)).data;
+      if (cardId) {
+        setTotal(String(paymentData.amount));
+        setOrderInfo((current: any) => ({
+          ...current,
+          qrCode: paymentData.qrCode || current?.qrCode,
+          payOsBin: paymentData.bin || current?.payOsBin,
+          payOsAccountNumber: paymentData.accountNumber || current?.payOsAccountNumber,
+          payOsAccountName: paymentData.accountName || current?.payOsAccountName,
+          payOsDescription: paymentData.description || current?.payOsDescription,
+          payOsAmount: paymentData.amount,
+        }));
+      } else {
+        setOrderInfo(paymentData);
+      }
+      if (paymentData?.checkoutUrl && !paymentData.checkoutUrl.includes("dummy-payment-url") && isTrustedPayOsUrl(paymentData.checkoutUrl)) {
+        setCheckoutUrl(paymentData.checkoutUrl);
         toast.success("Đã tạo lại link thanh toán PayOS thành công!");
       } else {
         toast.info("Đã cập nhật thông tin thanh toán.");
@@ -149,6 +216,11 @@ export default function PaymentTransferPage() {
 
   const handleCancelPayment = async () => {
     try {
+      if (cardId) {
+        toast.info("Đã đóng màn hình thanh toán. Thiệp của bạn vẫn được lưu.");
+        router.push(returnUrl);
+        return;
+      }
       if (orderId && !orderId.startsWith("ORD-")) {
         await api.patch(`/api/orders/${orderId}/cancel`);
       }
@@ -312,9 +384,11 @@ export default function PaymentTransferPage() {
         </div>
 
         <div className="flex justify-center gap-4 pt-8">
-          <button onClick={handleSimulateSuccess} className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3.5 rounded-xl font-bold transition-colors">
-            Đã thanh toán (Dev)
-          </button>
+          {!cardId && (
+            <button onClick={handleSimulateSuccess} className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3.5 rounded-xl font-bold transition-colors">
+              Đã thanh toán (Dev)
+            </button>
+          )}
           <button onClick={handleCancelPayment} className="bg-card hover:bg-muted border border-border px-8 py-3.5 rounded-xl font-bold transition-colors text-destructive">
             Huỷ thanh toán
           </button>

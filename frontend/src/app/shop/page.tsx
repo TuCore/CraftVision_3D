@@ -33,23 +33,14 @@ export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isFavorite, toggleFavorite } = useFavoriteStore();
-  const { toggleFavorite: addToCart, items: cartItems } = useWishlistStore();
+  const { toggleFavorite: addToCart } = useWishlistStore();
   const { data: categoriesData } = useProductCategories();
   const allCategoryLabel = language === "vi" ? "Tất cả" : "All";
   const dynamicCategories = [allCategoryLabel, ...(categoriesData?.map(c => c.name) || [])];
 
   const getProductAvailableStock = (product: Product) => {
     if (product.stock === undefined) return 0;
-    const prodId = (product.id || '').toLowerCase();
-    const inCartQty = cartItems
-      .filter((i) => {
-        const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
-        return idToCheck.includes(prodId);
-      })
-      .reduce((sum, item) => sum + (item.quantity || 1), 0);
-    const baseStock = product.availableStock !== undefined ? product.availableStock : product.stock;
-    const localPending = Math.max(0, inCartQty - (product.reservedStock || 0));
-    return Math.max(0, baseStock - localPending);
+    return Math.max(0, product.availableStock !== undefined ? product.availableStock : product.stock);
   };
 
   const handleAddToCart = (product: Product) => {

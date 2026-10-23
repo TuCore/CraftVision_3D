@@ -3,7 +3,17 @@ import { parseDraft } from "./storage";
 import { getAccessToken, logout } from "@/lib/authSession";
 
 export interface ServerCard { id: string; revision: number; draft: CardDraft; updatedAt: string; publishedAt: string | null; sharePath: string | null; paidAt: string | null }
-export interface CardPayment { status: "UNPAID" | "PENDING" | "PROCESSING" | "PAID" | "CANCELLED" | "EXPIRED"; amount: number; checkoutUrl: string | null }
+export interface CardPayment {
+  status: "UNPAID" | "PENDING" | "PROCESSING" | "PAID" | "CANCELLED" | "EXPIRED";
+  amount: number;
+  checkoutUrl: string | null;
+  orderCode: number;
+  qrCode?: string | null;
+  bin?: string | null;
+  accountNumber?: string | null;
+  accountName?: string | null;
+  description?: string | null;
+}
 export async function cardRequest<T>(path: string, options: RequestInit = {}, authenticated = true): Promise<T> {
   const headers = new Headers(options.headers);
   if (authenticated) {

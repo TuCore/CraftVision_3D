@@ -139,7 +139,19 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
         } else if (status.checkoutUrl) {
           const url = new URL(status.checkoutUrl);
           if (url.protocol !== "https:" || !(url.hostname === "payos.vn" || url.hostname.endsWith(".payos.vn"))) throw new Error("Liên kết thanh toán không hợp lệ.");
-          window.location.assign(url.href);
+          const paymentParams = new URLSearchParams({
+            cardId: card.id,
+            total: String(status.amount),
+            checkoutUrl: url.href,
+            returnUrl: `/cards/${template.slug}/edit?card=${card.id}`,
+          });
+          if (status.orderCode) paymentParams.set("orderCode", String(status.orderCode));
+          if (status.qrCode) paymentParams.set("qrCode", status.qrCode);
+          if (status.bin) paymentParams.set("bin", status.bin);
+          if (status.accountNumber) paymentParams.set("accountNumber", status.accountNumber);
+          if (status.accountName) paymentParams.set("accountName", status.accountName);
+          if (status.description) paymentParams.set("description", status.description);
+          router.push(`/payment/transfer?${paymentParams.toString()}`);
         } else setNotice("Chưa tạo được liên kết thanh toán. Vui lòng thử lại.");
         return;
       }

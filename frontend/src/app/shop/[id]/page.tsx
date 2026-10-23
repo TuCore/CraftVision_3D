@@ -160,16 +160,9 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     notFound();
   }
 
-  const inCartQty = items
-    .filter((i) => {
-      const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
-      return idToCheck.includes(id.toLowerCase());
-    })
-    .reduce((sum, item) => sum + (item.quantity || 1), 0);
   const baseStock = (product as any)?.availableStock !== undefined ? (product as any).availableStock : ((product as any)?.stock ?? 0);
-  const localPending = Math.max(0, inCartQty - ((product as any)?.reservedStock || 0));
-  const availableStock = Math.max(0, baseStock - localPending);
-  const isOutOfStock = (product as any)?.stock !== undefined && (baseStock === 0 || availableStock === 0);
+  const availableStock = Math.max(0, baseStock);
+  const isOutOfStock = (product as any)?.stock !== undefined && availableStock === 0;
   const maxStock = availableStock;
 
   const handleDecrease = () => setQuantity((prev) => Math.max(1, prev - 1));
