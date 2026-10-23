@@ -24,6 +24,11 @@ public sealed class CardPayment
     public int Amount { get; set; }
     public string? LinkId { get; set; }
     public string? CheckoutUrl { get; set; }
+    public string? QrCode { get; set; }
+    public string? Bin { get; set; }
+    public string? AccountNumber { get; set; }
+    public string? AccountName { get; set; }
+    public string? Description { get; set; }
     public string Status { get; set; } = "PENDING";
 }
 public sealed class StoredAsset
@@ -69,6 +74,9 @@ public sealed class CardDatabase(DbContextOptions<CardDatabase> options) : DbCon
         using var payments = typeof(CardDatabase).Assembly.GetManifestResourceStream("CardSharing.payments.sql")!;
         using var paymentReader = new StreamReader(payments);
         await Database.ExecuteSqlRawAsync(await paymentReader.ReadToEndAsync(ct), ct);
+        using var paymentDetails = typeof(CardDatabase).Assembly.GetManifestResourceStream("CardSharing.payment-transfer-details.sql")!;
+        using var paymentDetailsReader = new StreamReader(paymentDetails);
+        await Database.ExecuteSqlRawAsync(await paymentDetailsReader.ReadToEndAsync(ct), ct);
     }
 }
 public static class CardRegistration

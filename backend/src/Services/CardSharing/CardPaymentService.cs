@@ -5,7 +5,16 @@ using Microsoft.Extensions.Configuration;
 
 namespace CraftVision.CardSharing;
 
-public sealed record CardPaymentView(string Status, int Amount, string? CheckoutUrl);
+public sealed record CardPaymentView(
+    string Status,
+    int Amount,
+    string? CheckoutUrl,
+    long OrderCode,
+    string? QrCode = null,
+    string? Bin = null,
+    string? AccountNumber = null,
+    string? AccountName = null,
+    string? Description = null);
 public interface ICardPurchaseRecorder
 {
     Task RecordPaidPurchase(
@@ -44,7 +53,13 @@ public sealed class CardPaymentService(
     private static CardPaymentView View(StoredCard card, CardPayment? payment) => new(
         card.PaidAt.HasValue ? "PAID" : payment?.Status ?? "UNPAID",
         payment?.Amount ?? CardPrices.For(JsonSerializer.Deserialize<JsonElement>(card.DraftJson).GetProperty("template").GetString()!),
-        card.PaidAt.HasValue ? null : payment?.CheckoutUrl);
+        card.PaidAt.HasValue ? null : payment?.CheckoutUrl,
+        payment?.OrderCode ?? 0,
+        payment?.QrCode,
+        payment?.Bin,
+        payment?.AccountNumber,
+        payment?.AccountName,
+        payment?.Description);
 
     private async Task EnsurePurchaseRecorded(StoredCard card, CardPayment? payment, CancellationToken ct)
     {
@@ -160,7 +175,13 @@ public sealed class CardPaymentService(
                 if (!Uri.TryCreate(link.CheckoutUrl, UriKind.Absolute, out var url) || url.Scheme != "https" ||
                     !(url.Host == "payos.vn" || url.Host.EndsWith(".payos.vn", StringComparison.OrdinalIgnoreCase)) || string.IsNullOrWhiteSpace(link.Id))
                     throw new CardError(503, "PayOS chưa trả về liên kết thanh toán hợp lệ.");
-                payment.LinkId = link.Id; payment.CheckoutUrl = link.CheckoutUrl;
+                payment.LinkId = link.Id;
+                payment.CheckoutUrl = link.CheckoutUrl;
+                payment.QrCode = link.QrCode;
+                payment.Bin = link.Bin;
+                payment.AccountNumber = link.AccountNumber;
+                payment.AccountName = link.AccountName;
+                payment.Description = link.Description;
                 await db.SaveChangesAsync(ct);
             }
             await tx.CommitAsync(ct);

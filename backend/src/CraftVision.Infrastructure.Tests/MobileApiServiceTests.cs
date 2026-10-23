@@ -27,6 +27,8 @@ public class MobileApiServiceTests
         Assert.Single(cart.Items);
         Assert.Equal(1, cart.Items[0].Quantity);
         Assert.Equal(125_000m, cart.Items[0].Price);
+        Assert.Equal(10, cart.Items[0].Stock);
+        Assert.False(cart.Items[0].IsOutOfStock);
     }
 
     [Fact]

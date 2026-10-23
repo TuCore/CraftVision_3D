@@ -17,6 +17,7 @@ public class Order
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cod;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
     public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
+    public bool InventoryDeducted { get; set; }
     
     public string? ReceiverName { get; set; }
     public string? ReceiverPhone { get; set; }

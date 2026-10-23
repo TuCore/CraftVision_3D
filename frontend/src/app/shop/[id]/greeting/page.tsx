@@ -136,20 +136,11 @@ function GreetingDesignContent() {
     };
   }, [product, isPhysical, selectedTemplate, quantity, getCardPrice]);
 
-  const inCartQty = useMemo(() => {
-    return items
-      .filter((i) => {
-        const idToCheck = ((i as any).productId || i.id || i.cartItemId || '').toLowerCase();
-        return idToCheck.includes(id.toLowerCase());
-      })
-      .reduce((sum, item) => sum + (item.quantity || 1), 0);
-  }, [items, id]);
-
   const rawStock = (product as any)?.stock ?? 0;
-  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined 
-    ? Math.max(0, rawStock - (editCartItemId ? 0 : inCartQty)) 
+  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined
+    ? Math.max(0, rawStock)
     : undefined;
-  const isGreetingOutOfStock = isPhysical && (product as any)?.stock !== undefined && (rawStock === 0 || (!editCartItemId && greetingMaxStock === 0));
+  const isGreetingOutOfStock = isPhysical && (product as any)?.stock !== undefined && rawStock === 0;
 
   const handleGreetingDecrease = () => setQuantity((q) => Math.max(1, q - 1));
 

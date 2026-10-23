@@ -35,9 +35,9 @@ public class CartService : ICartService
                 Price = i.Product.Price,
                 Quantity = i.Quantity,
                 SelectedOptions = i.SelectedOptions,
-                Stock = Math.Max(0, i.Product.Stock - i.Quantity),
+                Stock = Math.Max(0, i.Product.Stock),
                 ProductType = i.Product.ProductType.ToString(),
-                IsOutOfStock = (i.Product.ProductType == CraftVision.Domain.Enums.ProductType.InStock && i.Product.Stock - i.Quantity <= 0) || !i.Product.IsActive
+                IsOutOfStock = (i.Product.ProductType == CraftVision.Domain.Enums.ProductType.InStock && i.Product.Stock < i.Quantity) || !i.Product.IsActive
             }).ToList()
         };
     }
