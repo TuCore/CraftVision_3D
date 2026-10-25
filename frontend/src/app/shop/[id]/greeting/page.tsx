@@ -8,25 +8,24 @@ import { Product } from "@/lib/product.types";
 import { getAccessToken } from "@/lib/authSession";
 import {
   ArrowLeft,
-  CheckCircle,
   Sparkles,
   Flame,
   Eye,
   PlayCircle,
-  ChevronLeft,
-  ChevronRight,
   RotateCcw,
-  Pencil,
-  LayoutGrid,
   CreditCard,
   ExternalLink,
-  X,
-  Heart,
   ShoppingCart,
+  Music,
+  Image as ImageIcon,
+  Trash2,
+  Palette,
+  RefreshCw,
+  Gift,
+  ChevronDown,
 } from "lucide-react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useGreetingStore } from "@/store/useGreetingStore";
-import { useCollectionStore } from "@/store/useCollectionStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import {
   Dialog,
@@ -42,14 +41,27 @@ import {
   TemplateVideo,
   DEFAULT_TUTORIAL_VIDEO,
 } from "@/data/templateProducts";
-import { cardTemplates, categories as cardCategories } from "@/features/cards/catalog";
+import {
+  cardTemplates,
+  categories as cardCategories,
+  defaultDraft,
+  type CardTemplate,
+  type CardDraft,
+} from "@/features/cards/catalog";
+import {
+  saveDraft,
+  readDraft,
+  importPhoto,
+  importAudio,
+} from "@/features/cards/storage";
 import { getCardCommerce } from "@/features/cards/commerce";
 
 type GreetingTemplate = TemplateProduct & {
-  slug?: string;
-  category?: string;
-  action?: string;
-  reveal?: string;
+  slug: string;
+  category: string;
+  action: string;
+  reveal: string;
+  rawTemplate: CardTemplate;
 };
 
 const WEB_CARD_TEMPLATES: GreetingTemplate[] = cardTemplates.map((template) => {
@@ -66,8 +78,23 @@ const WEB_CARD_TEMPLATES: GreetingTemplate[] = cardTemplates.map((template) => {
     discount: 20,
     action: template.action,
     reveal: template.reveal,
+    rawTemplate: template,
   };
 });
+
+const TEMPLATE_MESSAGE_KEYS = [
+  "confession",
+  "proposal",
+  "gratitude",
+  "apology",
+  "pledge",
+  "reunionWish",
+  "wish",
+  "encouragement",
+  "shortWish",
+  "shortThanks",
+  "peace",
+];
 
 function GreetingDesignContent() {
   const router = useRouter();
@@ -78,30 +105,49 @@ function GreetingDesignContent() {
   const modelUrl = searchParams.get("modelUrl");
   const customName = searchParams.get("customName");
   const editCartItemId = searchParams.get("editCartItemId");
-  const isDefaultMode = searchParams.get("mode") === "default";
-  const isWeb3dMode = !isDefaultMode;
+  const initialQtyParam = Number(searchParams.get("quantity")) || 1;
+  const initialSlugParam = searchParams.get("slug");
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<GreetingTemplate | null>(null);
-  const [message, setMessage] = useState("");
-  const [greetingImage, setGreetingImage] = useState<string | null>(null);
-  const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
-  const [quantity, setQuantity] = useState(1);
-  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
+  const [selectedTemplate, setSelectedTemplate] = useState<GreetingTemplate>(() => {
+    if (initialSlugParam) {
+      const found = WEB_CARD_TEMPLATES.find((t) => t.slug === initialSlugParam);
+      if (found) return found;
+    }
+    return WEB_CARD_TEMPLATES[0];
+  });
 
-  // Template mặc định cố định ban đầu của sản phẩm (thêm 5.000đ cho câu chúc riêng mẫu mặc định)
-  const defaultProductTemplate = useMemo<TemplateProduct | null>(() => {
-    if (!product) return null;
-    return {
-      id: 0,
-      image: product.image,
-      title: `Thiệp NFC mặc định (${product.name})`,
-      sold: 1,
-      originalPrice: 10000,
-      price: 5000,
-      discount: 50,
-    };
-  }, [product]);
+  // Các ô nhập nội dung đồng bộ lên Thiệp 3D
+  const [recipientName, setRecipientName] = useState("");
+  const [senderName, setSenderName] = useState("");
+  const [cardTitle, setCardTitle] = useState("");
+  const [introText, setIntroText] = useState("Một món quà nhỏ, dành riêng cho bạn");
+  const [letterTitle, setLetterTitle] = useState("Gửi bạn thân mến");
+  const [message, setMessage] = useState("");
+  const [closingText, setClosingText] = useState("Với tất cả yêu thương");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [audioData, setAudioData] = useState<string>("");
+  const [audioFileName, setAudioFileName] = useState<string>("");
+  const [accentColor, setAccentColor] = useState<string>(WEB_CARD_TEMPLATES[0].rawTemplate.color);
+  const [envelopeColor, setEnvelopeColor] = useState<string>("#f9e8d4");
+  const [envelopeLabel, setEnvelopeLabel] = useState<string>("Dành riêng cho bạn");
+  const [sealType, setSealType] = useState<string>("Trái tim");
+
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("Tất cả");
+  const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
+  const [quantity, setQuantity] = useState(Math.max(1, initialQtyParam));
+  const [previewVersion, setPreviewVersion] = useState(1);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [showAIHelper, setShowAIHelper] = useState(false);
+
+  const { toggleFavorite, updateCartItem, items } = useWishlistStore();
+  const store = useGreetingStore();
+
+  // Video & Fullscreen Preview Modals
+  const [videoMap, setVideoMap] = useState<Record<number, TemplateVideo>>({});
+  const [activeVideo, setActiveVideo] = useState<TemplateVideo | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const isPhysical = useMemo(() => {
     if (!product) return false;
@@ -112,17 +158,19 @@ function GreetingDesignContent() {
     );
   }, [product]);
 
-  const getCardPrice = useCallback((template: GreetingTemplate | null | undefined): number => {
-    if (!template) return 5000;
-    if (template.id === 0 || isDefaultMode) return 5000;
-    const retailPrice = template.originalPrice || template.price || 49000;
-    return isWeb3dMode ? Math.round(retailPrice * 0.8) : retailPrice;
-  }, [isDefaultMode, isWeb3dMode]);
+  const getCardPrice = useCallback(
+    (template: GreetingTemplate | null | undefined): number => {
+      if (!template) return 39200;
+      const retailPrice = template.originalPrice || template.price || 49000;
+      return isPhysical ? Math.round(retailPrice * 0.8) : retailPrice;
+    },
+    [isPhysical]
+  );
 
   const calculatePricing = useMemo(() => {
     if (!product) return { basePrice: 0, cardPrice: 0, unitPrice: 0, totalItemPrice: 0 };
     if (!isPhysical) {
-      const price = selectedTemplate?.price || product.price || 49999;
+      const price = selectedTemplate?.price || product.price || 49000;
       return { basePrice: 0, cardPrice: price, unitPrice: price, totalItemPrice: price * quantity };
     }
     const basePrice = product.price || 0;
@@ -137,10 +185,10 @@ function GreetingDesignContent() {
   }, [product, isPhysical, selectedTemplate, quantity, getCardPrice]);
 
   const rawStock = (product as any)?.stock ?? 0;
-  const greetingMaxStock = isPhysical && (product as any)?.stock !== undefined
-    ? Math.max(0, rawStock)
-    : undefined;
-  const isGreetingOutOfStock = isPhysical && (product as any)?.stock !== undefined && rawStock === 0;
+  const greetingMaxStock =
+    isPhysical && (product as any)?.stock !== undefined ? Math.max(0, rawStock) : undefined;
+  const isGreetingOutOfStock =
+    isPhysical && (product as any)?.stock !== undefined && rawStock === 0;
 
   const handleGreetingDecrease = () => setQuantity((q) => Math.max(1, q - 1));
 
@@ -177,37 +225,137 @@ function GreetingDesignContent() {
     setQuantity(parsed);
   };
 
-  // Nếu người dùng chọn mode=default và chưa chọn template khác, tự động áp dụng template mặc định
+  // Tạo đối tượng CardDraft chuẩn từ toàn bộ ô nhập hiện tại của người dùng cho bất kỳ mẫu thiệp nào
+  const buildCurrentDraft = useCallback(
+    (tmpl: GreetingTemplate): CardDraft => {
+      const base = defaultDraft(tmpl.rawTemplate);
+      const effectiveRecipient = recipientName.trim() || store.receiverName || "Người thương";
+      const effectiveSender = senderName.trim() || store.senderName || "Một người luôn bên bạn";
+      const effectiveTitle = cardTitle.trim() || tmpl.title;
+      const effectiveMessage = message.trim() || tmpl.rawTemplate.message;
+
+      base.values.recipient = effectiveRecipient;
+      base.values.sender = effectiveSender;
+      base.values.title = effectiveTitle;
+      base.values.intro = introText.trim() || "Một món quà nhỏ, dành riêng cho bạn";
+      base.values.letterTitle = letterTitle.trim() || "Gửi bạn thân mến";
+      base.values.message = effectiveMessage;
+      base.values.closing = closingText.trim() || "Với tất cả yêu thương";
+      base.values.accent = /^#[0-9a-f]{6}$/i.test(accentColor)
+        ? accentColor
+        : tmpl.rawTemplate.color;
+      base.values.envelopeColor = /^#[0-9a-f]{6}$/i.test(envelopeColor)
+        ? envelopeColor
+        : "#f9e8d4";
+      base.values.envelopeLabel = envelopeLabel.trim() || "Dành riêng cho bạn";
+      base.values.seal = ["Trái tim", "Ngôi sao", "Bông hoa"].includes(sealType)
+        ? sealType
+        : "Trái tim";
+
+      if (photos.length > 0) {
+        base.values.photo = photos[0];
+      } else {
+        base.values.photo = "";
+      }
+
+      if (audioData) {
+        base.values.audio = audioData;
+      } else {
+        base.values.audio = "";
+      }
+
+      // Đồng bộ nội dung chữ & album ảnh sang các trường riêng của từng mẫu thiệp 3D
+      for (const field of tmpl.rawTemplate.fields) {
+        if (field.type === "images") {
+          const maxPhotos = field.max || 12;
+          base.values[field.key] = photos.slice(0, maxPhotos);
+        } else if (field.type === "image" && field.key !== "logo") {
+          base.values[field.key] = photos[0] || "";
+        } else if (
+          TEMPLATE_MESSAGE_KEYS.includes(field.key) &&
+          (field.type === "textarea" || field.type === "text")
+        ) {
+          base.values[field.key] = effectiveMessage;
+        } else if (field.key === "couple" && !base.values.couple) {
+          base.values.couple = `${effectiveSender} & ${effectiveRecipient}`;
+        }
+      }
+
+      return base;
+    },
+    [
+      recipientName,
+      senderName,
+      store.receiverName,
+      store.senderName,
+      cardTitle,
+      introText,
+      letterTitle,
+      message,
+      closingText,
+      accentColor,
+      envelopeColor,
+      envelopeLabel,
+      sealType,
+      photos,
+      audioData,
+    ]
+  );
+
+  // Tự động lưu bản nháp vào IndexedDB và làm mới khung 3D mỗi khi người dùng thay đổi nội dung hoặc đổi mẫu thiệp
   useEffect(() => {
-    if (isDefaultMode && defaultProductTemplate && !selectedTemplate) {
-      setSelectedTemplate(defaultProductTemplate);
+    if (!selectedTemplate) return;
+    const timer = setTimeout(async () => {
+      try {
+        const draft = buildCurrentDraft(selectedTemplate);
+        await saveDraft(draft);
+        setPreviewVersion((v) => v + 1);
+      } catch (err) {
+        console.error("Failed to sync 3D card draft:", err);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [selectedTemplate, buildCurrentDraft]);
+
+  const handleForceRefreshPreview = async () => {
+    try {
+      const draft = buildCurrentDraft(selectedTemplate);
+      await saveDraft(draft);
+      setPreviewVersion((v) => v + 1);
+      toast.success("Đã cập nhật nội dung lên cảnh Thiệp 3D!");
+    } catch {
+      toast.error("Không thể cập nhật bản xem thử.");
     }
-  }, [isDefaultMode, defaultProductTemplate, selectedTemplate]);
+  };
 
-  // Template browser state
-  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [videoMap, setVideoMap] = useState<Record<number, TemplateVideo>>({});
+  // Đổi mẫu thiệp từ ô Dropdown: Giữ nguyên toàn bộ nội dung chữ, ảnh, nhạc đã nhập
+  const handleSelectTemplateBySlug = async (slug: string) => {
+    const nextTmpl = WEB_CARD_TEMPLATES.find((t) => t.slug === slug);
+    if (!nextTmpl) return;
+    setSelectedTemplate(nextTmpl);
+    setAccentColor(nextTmpl.rawTemplate.color);
+    try {
+      const draft = buildCurrentDraft(nextTmpl);
+      await saveDraft(draft);
+      setPreviewVersion((v) => v + 1);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-  // Modals for Demo and Tutorial
-  const [demoProduct, setDemoProduct] = useState<GreetingTemplate | null>(null);
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const [activeVideo, setActiveVideo] = useState<TemplateVideo | null>(null);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-
-  const { saveItem } = useCollectionStore();
-  const store = useGreetingStore();
-
+  // Tải thông tin sản phẩm vật lý
   useEffect(() => {
-    // Check if route id is a template product id (e.g., "template-1" or numeric template ID)
-    const isTemplateRoute = id.startsWith("template-") || (!isNaN(Number(id)) && Number(id) > 0 && Number(id) <= 200);
+    const isTemplateRoute =
+      id.startsWith("template-") || (!isNaN(Number(id)) && Number(id) > 0 && Number(id) <= 200);
     const parsedTemplateId = id.startsWith("template-")
       ? parseInt(id.replace("template-", ""), 10)
-      : (!isNaN(Number(id)) ? parseInt(id, 10) : null);
+      : !isNaN(Number(id))
+      ? parseInt(id, 10)
+      : null;
 
     if (isTemplateRoute && parsedTemplateId) {
-      const tmpl = WEB_CARD_TEMPLATES.find((t) => t.id === parsedTemplateId) || WEB_CARD_TEMPLATES[0];
+      const tmpl =
+        WEB_CARD_TEMPLATES.find((t) => t.id === parsedTemplateId) || WEB_CARD_TEMPLATES[0];
       setProduct({
         id: `template-${tmpl.id}`,
         name: tmpl.title,
@@ -217,10 +365,11 @@ function GreetingDesignContent() {
         rating: 5.0,
         description: "Thiết kế thiệp điện tử thông điệp 3D tích hợp công nghệ NFC.",
         matchScore: 100,
-        is3D: true, // Crucial for 0 VND shipping fee
+        is3D: true,
         isDigital: true,
       } as any);
       setSelectedTemplate(tmpl);
+      setAccentColor(tmpl.rawTemplate.color);
       return;
     }
 
@@ -229,12 +378,18 @@ function GreetingDesignContent() {
         const res = await fetch(`/api/products/${id}`);
         if (res.ok) {
           const p = await res.json();
+          const parsedImages = p.sampleImageUrl
+            ? p.sampleImageUrl.split(",")
+            : p.images?.map((img: any) => img.url || img) || [];
           setProduct({
             id: p.id,
             name: p.name,
             price: p.price,
             category: p.categoryName || "Khác",
-            image: p.sampleImageUrl || p.thumbnailUrl || "/image/placeholder.jpg",
+            image:
+              parsedImages.length > 0
+                ? parsedImages[0]
+                : p.thumbnailUrl || "/image/placeholder.jpg",
             rating: 4.8,
             description: p.description || "",
             matchScore: 95,
@@ -242,7 +397,6 @@ function GreetingDesignContent() {
             stock: p.stock ?? 0,
           });
         } else {
-          // Fallback to template if product not found
           const fallbackTmpl = WEB_CARD_TEMPLATES[0];
           setProduct({
             id: `template-${fallbackTmpl.id}`,
@@ -285,50 +439,78 @@ function GreetingDesignContent() {
       if (!customElements.get("model-viewer")) {
         const script = document.createElement("script");
         script.type = "module";
-        script.src = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
+        script.src =
+          "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
         document.head.appendChild(script);
       }
     }
   }, [from3d, modelUrl]);
 
-  // Load cart item data if editing
+  // Nạp lại dữ liệu khi chỉnh sửa sản phẩm từ giỏ hàng
   useEffect(() => {
     if (editCartItemId && items.length > 0) {
       const existingItem = items.find(
         (i) => (i.cartItemId || i.id) === editCartItemId || i.id === editCartItemId
       );
       if (existingItem) {
-        if (existingItem.selectedTemplate) {
-          setSelectedTemplate(existingItem.selectedTemplate as any);
+        const matchedTmpl = WEB_CARD_TEMPLATES.find(
+          (t) =>
+            t.slug === existingItem.cardSlug ||
+            t.slug === existingItem.selectedTemplate?.slug ||
+            t.id === existingItem.selectedTemplate?.id
+        );
+        if (matchedTmpl) {
+          setSelectedTemplate(matchedTmpl);
+          setAccentColor(matchedTmpl.rawTemplate.color);
         }
-        if (existingItem.greetingMessage) {
-          setMessage(existingItem.greetingMessage);
-        }
-        if (existingItem.greetingImage) {
-          setGreetingImage(existingItem.greetingImage);
-        }
+        if (existingItem.greetingMessage) setMessage(existingItem.greetingMessage);
         if (existingItem.senderName) {
+          setSenderName(existingItem.senderName);
           store.setField("senderName", existingItem.senderName);
         }
         if (existingItem.receiverName) {
+          setRecipientName(existingItem.receiverName);
           store.setField("receiverName", existingItem.receiverName);
         }
-        if (existingItem.quantity) {
-          setQuantity(existingItem.quantity);
+        if (existingItem.greetingImage) {
+          setPhotos([existingItem.greetingImage]);
         }
-      }
-    } else if (product && !editCartItemId) {
-      const cartItem = items.find((i) => i.id === product.id && i.hasGreeting);
-      if (cartItem) {
-        if (cartItem.greetingMessage && !message) setMessage(cartItem.greetingMessage);
-        if (cartItem.greetingImage && !greetingImage) setGreetingImage(cartItem.greetingImage);
-        if (cartItem.selectedTemplate && !selectedTemplate) {
-          setSelectedTemplate(cartItem.selectedTemplate as any);
+        if (existingItem.draftValues) {
+          const dv = existingItem.draftValues;
+          if (typeof dv.title === "string") setCardTitle(dv.title);
+          if (typeof dv.intro === "string") setIntroText(dv.intro);
+          if (typeof dv.letterTitle === "string") setLetterTitle(dv.letterTitle);
+          if (typeof dv.closing === "string") setClosingText(dv.closing);
+          if (typeof dv.audio === "string" && dv.audio) {
+            setAudioData(dv.audio);
+            setAudioFileName("Nhạc nền đã lưu");
+          }
+          if (Array.isArray(dv.album) && dv.album.length > 0) {
+            setPhotos(dv.album.filter((x): x is string => typeof x === "string"));
+          } else if (typeof dv.photo === "string" && dv.photo) {
+            setPhotos([dv.photo]);
+          }
+          if (typeof dv.accent === "string") setAccentColor(dv.accent);
+          if (typeof dv.envelopeColor === "string") setEnvelopeColor(dv.envelopeColor);
+          if (typeof dv.envelopeLabel === "string") setEnvelopeLabel(dv.envelopeLabel);
+          if (typeof dv.seal === "string") setSealType(dv.seal);
+        } else if (matchedTmpl) {
+          readDraft(matchedTmpl.slug).then((saved) => {
+            if (!saved) return;
+            const dv = saved.values;
+            if (typeof dv.audio === "string" && dv.audio) {
+              setAudioData(dv.audio);
+              setAudioFileName("Nhạc nền đã lưu");
+            }
+            if (Array.isArray(dv.album) && dv.album.length > 0) {
+              setPhotos(dv.album.filter((x): x is string => typeof x === "string"));
+            }
+          });
         }
-        if (cartItem.quantity) setQuantity(cartItem.quantity);
+        if (existingItem.quantity) setQuantity(existingItem.quantity);
       }
     }
-  }, [editCartItemId, items, product]);
+  }, [editCartItemId, items]);
 
   const handleOpenVideo = (template: GreetingTemplate) => {
     const video =
@@ -343,11 +525,53 @@ function GreetingDesignContent() {
         detailUrl: DEFAULT_TUTORIAL_VIDEO.detailUrl,
       };
     setActiveVideo(video);
-    setDemoProduct(template);
     setIsVideoModalOpen(true);
   };
 
-  const handleConfirm = () => {
+  // Xử lý tải nhiều ảnh kỷ niệm lên Thiệp 3D (chuẩn hóa qua importPhoto)
+  const handlePhotosUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    if (!files.length) return;
+    if (photos.length + files.length > 8) {
+      toast.warning("Tối đa 8 hình ảnh kỷ niệm trên thiệp 3D.");
+      return;
+    }
+    setIsUploadingMedia(true);
+    try {
+      const converted = await Promise.all(files.map((file) => importPhoto(file)));
+      setPhotos((prev) => [...prev, ...converted]);
+      toast.success(`Đã chèn ${converted.length} ảnh vào Thiệp 3D!`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Không thể đọc tệp hình ảnh.");
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  // Xử lý tải nhạc nền / âm thanh lên Thiệp 3D (chuẩn hóa qua importAudio)
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setIsUploadingMedia(true);
+    try {
+      const dataUrl = await importAudio(file);
+      setAudioData(dataUrl);
+      setAudioFileName(file.name);
+      toast.success(`Đã chèn nhạc "${file.name}" vào Thiệp 3D!`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Không thể tải tệp âm thanh.");
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  const handleConfirm = async () => {
     if (!product) return;
 
     const token = getAccessToken();
@@ -355,6 +579,13 @@ function GreetingDesignContent() {
       toast.info("Vui lòng đăng nhập hoặc đăng ký để thêm vào giỏ hàng!");
       router.push("/auth");
       return;
+    }
+
+    const draft = buildCurrentDraft(selectedTemplate);
+    try {
+      await saveDraft(draft);
+    } catch (err) {
+      console.error(err);
     }
 
     let finalProduct = product;
@@ -370,51 +601,49 @@ function GreetingDesignContent() {
     }
 
     const { basePrice, cardPrice, unitPrice } = calculatePricing;
+    const effectiveSender = senderName.trim() || store.senderName || "Người gửi";
+    const effectiveRecipient = recipientName.trim() || store.receiverName || "Người nhận";
+    const effectiveMessage = message.trim() || selectedTemplate.rawTemplate.message;
+    const primaryPhoto = photos[0] || undefined;
 
-    const templateData = selectedTemplate
-      ? {
-          id: selectedTemplate.id,
-          slug: selectedTemplate.slug,
-          title: selectedTemplate.title,
-          image: selectedTemplate.image,
-          price: cardPrice,
-          originalPrice: selectedTemplate.originalPrice || selectedTemplate.price,
-          discount: selectedTemplate.id === 0 ? selectedTemplate.discount : 20,
-        }
-      : {
-          id: 0,
-          title: "Thiệp lời chúc riêng (Mẫu mặc định)",
-          image: product.image,
-          price: 5000,
-        };
+    const templateData = {
+      id: selectedTemplate.id,
+      slug: selectedTemplate.slug,
+      title: selectedTemplate.title,
+      image: selectedTemplate.image,
+      price: cardPrice,
+      originalPrice: selectedTemplate.originalPrice || selectedTemplate.price,
+      discount: 20,
+      is3D: true,
+    };
 
     const cartProduct = {
       ...finalProduct,
-      name: isPhysical ? finalProduct.name : (selectedTemplate?.title || finalProduct.name),
+      name: isPhysical ? finalProduct.name : selectedTemplate.title || finalProduct.name,
       price: unitPrice,
       basePrice: isPhysical ? basePrice : undefined,
       cardPrice: isPhysical ? cardPrice : undefined,
-      image: isPhysical ? finalProduct.image : (selectedTemplate?.image || finalProduct.image),
+      image: isPhysical ? finalProduct.image : selectedTemplate.image || finalProduct.image,
     };
 
-    // Chế độ chỉnh sửa item trong giỏ: Cập nhật trực tiếp, KHÔNG tăng biến đếm sản phẩm!
     if (editCartItemId) {
       updateCartItem(editCartItemId, {
         ...cartProduct,
         hasGreeting: true,
-        greetingMessage: message,
-        greetingImage: greetingImage || undefined,
-        senderName: store.senderName,
-        receiverName: store.receiverName,
-        cardSlug: selectedTemplate?.slug,
-        cardType: selectedTemplate?.slug ? "web_library_3d" : "default",
-        originalCardPrice: selectedTemplate?.slug ? (selectedTemplate.originalPrice || selectedTemplate.price) : 5000,
+        greetingMessage: effectiveMessage,
+        greetingImage: primaryPhoto,
+        senderName: effectiveSender,
+        receiverName: effectiveRecipient,
+        cardSlug: selectedTemplate.slug,
+        cardType: "web_library_3d",
+        originalCardPrice: selectedTemplate.originalPrice || selectedTemplate.price,
         discountedCardPrice: cardPrice,
         selectedTemplate: templateData,
+        draftValues: draft.values,
         quantity: quantity,
       });
 
-      toast.success("Đã cập nhật thiệp và đơn hàng thành công!");
+      toast.success("Đã cập nhật thiệp 3D và sản phẩm trong giỏ hàng!");
       router.push("/cart");
       return;
     }
@@ -424,27 +653,38 @@ function GreetingDesignContent() {
       return;
     }
     if (isPhysical && greetingMaxStock !== undefined && quantity > greetingMaxStock) {
-      toast.warning(`Kho chỉ còn ${greetingMaxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`);
+      toast.warning(
+        `Kho chỉ còn ${greetingMaxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`
+      );
       setQuantity(greetingMaxStock);
       return;
     }
 
-    // Chế độ thêm mới hoặc từ trang chi tiết:
     toggleFavorite(cartProduct, {
       hasGreeting: true,
-      greetingMessage: message,
-      greetingImage: greetingImage || undefined,
-      senderName: store.senderName,
-      receiverName: store.receiverName,
-      cardSlug: selectedTemplate?.slug,
-      cardType: selectedTemplate?.slug ? "web_library_3d" : "default",
-      originalCardPrice: selectedTemplate?.slug ? (selectedTemplate.originalPrice || selectedTemplate.price) : 5000,
+      greetingMessage: effectiveMessage,
+      greetingImage: primaryPhoto,
+      senderName: effectiveSender,
+      receiverName: effectiveRecipient,
+      cardSlug: selectedTemplate.slug,
+      cardType: "web_library_3d",
+      originalCardPrice: selectedTemplate.originalPrice || selectedTemplate.price,
       discountedCardPrice: cardPrice,
       selectedTemplate: templateData,
       customQuantity: quantity,
     });
 
-    toast.success("Đã thêm sản phẩm kèm thiệp vào giỏ hàng!", {
+    const addedItem = useWishlistStore
+      .getState()
+      .items.find(
+        (item) =>
+          item.id === cartProduct.id && item.selectedTemplate?.slug === selectedTemplate.slug
+      );
+    if (addedItem) {
+      updateCartItem(addedItem.cartItemId || addedItem.id, { draftValues: draft.values });
+    }
+
+    toast.success("Đã thêm sản phẩm kèm Thiệp 3D vào giỏ hàng!", {
       action: {
         label: "Xem giỏ hàng",
         onClick: () => router.push("/cart"),
@@ -452,8 +692,7 @@ function GreetingDesignContent() {
     });
   };
 
-  // Xử lý Thanh toán ngay (chuyển thẳng sang trang thanh toán không kèm chi phí ship nếu là thiệp điện tử)
-  const handleDirectCheckout = () => {
+  const handleDirectCheckout = async () => {
     if (!product) return;
 
     if (isPhysical && isGreetingOutOfStock) {
@@ -461,7 +700,9 @@ function GreetingDesignContent() {
       return;
     }
     if (isPhysical && greetingMaxStock !== undefined && quantity > greetingMaxStock) {
-      toast.warning(`Kho chỉ còn ${greetingMaxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`);
+      toast.warning(
+        `Kho chỉ còn ${greetingMaxStock} sản phẩm! Đã tự động điều chỉnh về tối đa.`
+      );
       setQuantity(greetingMaxStock);
       return;
     }
@@ -473,41 +714,53 @@ function GreetingDesignContent() {
       return;
     }
 
+    const draft = buildCurrentDraft(selectedTemplate);
+    try {
+      await saveDraft(draft);
+    } catch (err) {
+      console.error(err);
+    }
+
     const { basePrice, cardPrice, unitPrice } = calculatePricing;
+    const effectiveSender = senderName.trim() || store.senderName || "Người gửi";
+    const effectiveRecipient = recipientName.trim() || store.receiverName || "Người nhận";
+    const effectiveMessage = message.trim() || selectedTemplate.rawTemplate.message;
+    const primaryPhoto = photos[0] || undefined;
 
     const orderItem = {
       product: {
         ...product,
         id: product.id,
-        name: isPhysical ? product.name : (selectedTemplate?.title || product.name),
+        name: isPhysical ? product.name : selectedTemplate.title || product.name,
         price: unitPrice,
         basePrice: isPhysical ? basePrice : undefined,
         cardPrice: isPhysical ? cardPrice : undefined,
-        image: isPhysical ? product.image : (selectedTemplate?.image || product.image),
+        image: isPhysical ? product.image : selectedTemplate.image || product.image,
         category: isPhysical ? product.category : "Thiệp điện tử",
         is3D: isPhysical ? (product as any).is3D : true,
         isDigital: !isPhysical,
       },
       quantity: quantity,
       hasGreeting: true,
-      cardSlug: selectedTemplate?.slug,
+      cardSlug: selectedTemplate.slug,
       cardPrice,
+      draftValues: draft.values,
       gift: {
-        giftTitle: selectedTemplate?.title || (isDefaultMode ? "Thiệp lời chúc riêng (Mẫu mặc định)" : `Thiệp thông điệp - ${product.name}`),
-        templateTitle: selectedTemplate?.title || (isDefaultMode ? "Mẫu mặc định" : "Câu chúc riêng"),
+        giftTitle: cardTitle.trim() || selectedTemplate.title,
+        templateTitle: selectedTemplate.title,
         cardPrice: cardPrice,
-        originalCardPrice: selectedTemplate?.slug ? (selectedTemplate.originalPrice || selectedTemplate.price) : 5000,
-        cardSlug: selectedTemplate?.slug,
-        templateId: selectedTemplate?.id ?? 0,
-        senderName: store.senderName || "Người gửi",
-        receiverName: store.receiverName || "Người nhận",
-        message: message,
-        greetingMessage: message,
-        greetingImage: greetingImage || undefined,
-        previewImageUrl: greetingImage || selectedTemplate?.image,
-        threeDModelUrl: selectedTemplate?.slug ? `slug:${selectedTemplate.slug}` : null,
+        originalCardPrice: selectedTemplate.originalPrice || selectedTemplate.price,
+        cardSlug: selectedTemplate.slug,
+        templateId: selectedTemplate.id,
+        senderName: effectiveSender,
+        receiverName: effectiveRecipient,
+        message: effectiveMessage,
+        greetingMessage: effectiveMessage,
+        greetingImage: primaryPhoto,
+        previewImageUrl: primaryPhoto || selectedTemplate.image,
+        threeDModelUrl: `slug:${selectedTemplate.slug}`,
         threeDModelType: "GLB",
-        theme: selectedTemplate?.slug ? selectedTemplate.slug : "sincere",
+        theme: selectedTemplate.slug,
         messageSource: "Manual",
         secretKey: `CARD-${Date.now()}`,
       },
@@ -519,65 +772,15 @@ function GreetingDesignContent() {
     router.push("/checkout");
   };
 
-  // Mở trang web xem trực tiếp thông điệp thiệp
-  const handleLiveWebPreview = () => {
+  const handleLiveWebPreview = async () => {
     if (typeof window !== "undefined") {
-      if (selectedTemplate?.slug) {
-        window.open(`/love-gift/${selectedTemplate.slug}?preview=1`, "_blank");
-        return;
+      try {
+        const draft = buildCurrentDraft(selectedTemplate);
+        await saveDraft(draft);
+      } catch (e) {
+        console.error(e);
       }
-      const previewData = {
-        title: selectedTemplate?.title || product?.name || "Thiệp thông điệp yêu thương",
-        receiverName: store.receiverName || "Người nhận",
-        senderName: store.senderName || "Người gửi",
-        message: message || "Một món quà bất ngờ và ngập tràn yêu thương đang chờ đón bạn...",
-        image: greetingImage || selectedTemplate?.image || "/dreamy-hero-bg.jpg",
-        price: selectedTemplate?.price || product?.price || 49999,
-        templateId: selectedTemplate?.id || 1,
-      };
-      sessionStorage.setItem("preview_greeting", JSON.stringify(previewData));
-
-      const query = new URLSearchParams({
-        preview: "1",
-        title: previewData.title,
-        receiver: previewData.receiverName,
-        sender: previewData.senderName,
-      });
-
-      window.open(`/greeting-card?${query.toString()}`, "_blank");
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-          const MAX_SIZE = 800;
-
-          if (width > height && width > MAX_SIZE) {
-            height *= MAX_SIZE / width;
-            width = MAX_SIZE;
-          } else if (height > MAX_SIZE) {
-            width *= MAX_SIZE / height;
-            height = MAX_SIZE;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          setGreetingImage(canvas.toDataURL("image/jpeg", 0.7));
-        };
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
+      window.open(`/love-gift/${selectedTemplate.slug}?draft=1`, "_blank");
     }
   };
 
@@ -591,19 +794,11 @@ function GreetingDesignContent() {
       .replace("₫", "VND");
   };
 
-  // Filter & Pagination for template cards
   const categories = ["Tất cả", ...cardCategories];
-  const filteredTemplates = useMemo(() => {
-    if (selectedCategory === "Tất cả") return WEB_CARD_TEMPLATES;
-    return WEB_CARD_TEMPLATES.filter((template) => template.category === selectedCategory);
-  }, [selectedCategory]);
-
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredTemplates.length / itemsPerPage);
-  const displayedTemplates = filteredTemplates.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const filteredTemplatesForDropdown = useMemo(() => {
+    if (selectedCategoryFilter === "Tất cả") return WEB_CARD_TEMPLATES;
+    return WEB_CARD_TEMPLATES.filter((t) => t.category === selectedCategoryFilter);
+  }, [selectedCategoryFilter]);
 
   if (!product) {
     return (
@@ -617,108 +812,135 @@ function GreetingDesignContent() {
 
   return (
     <AppShell active="shop">
-      <div className="mx-auto max-w-6xl space-y-8 py-8 px-4">
+      <div className="mx-auto max-w-7xl space-y-6 py-6 px-4">
         {/* Top Header */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2.5 bg-card hover:bg-muted border border-border shadow-sm rounded-full transition-all hover:scale-105 cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold font-display gradient-text">
-                {editCartItemId ? "Chỉnh sửa thiệp & đơn hàng" : "Thiết kế câu chúc riêng"}
-              </h1>
-              {editCartItemId && (
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 text-xs font-bold border border-blue-500/20">
-                  Chế độ chỉnh sửa
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <button
+              onClick={() => router.back()}
+              className="p-2.5 bg-card hover:bg-muted border border-border shadow-sm rounded-full transition-all hover:scale-105 cursor-pointer"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-extrabold font-display gradient-text">
+                  {editCartItemId
+                    ? "Chỉnh sửa Thiệp 3D & Đơn hàng"
+                    : "Thiết kế Thiệp 3D đi kèm quà Handmade"}
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 text-xs font-bold border border-rose-500/20">
+                  Đồng bộ 3D trực tiếp
                 </span>
-              )}
+              </div>
+              <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+                Nhập lời chúc, chèn hình ảnh và âm thanh trực tiếp lên thiệp 3D. Đổi mẫu thiệp bất kỳ ở ô Dropdown mà không mất nội dung đã nhập.
+              </p>
             </div>
-            <p className="text-muted-foreground text-xs sm:text-sm mt-1">
-              {editCartItemId
-                ? "Cập nhật lại mẫu thiệp, lời chúc hoặc số lượng mà không làm tăng biến đếm sản phẩm trong giỏ."
-                : "Gửi gắm yêu thương qua từng thông điệp cá nhân hoá cùng thiệp thông minh."}
-            </p>
           </div>
         </div>
 
         {/* 2-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Mảng bên trái: Giữ lại sản phẩm chính và mẫu thiệp đã chọn */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="glass-card rounded-3xl p-5 shadow-soft border border-white/40 sticky top-24 space-y-5">
-              {/* Product Image */}
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden">
-                <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors z-10 pointer-events-none" />
-                {from3d && modelUrl ? (
-                  // @ts-ignore
-                  <model-viewer
-                    src={modelUrl}
-                    auto-rotate
-                    camera-controls
-                    shadow-intensity="1"
-                    environment-image="neutral"
-                    style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
-                    className="relative z-0"
-                  ></model-viewer>
-                ) : (
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover relative z-0"
-                  />
-                )}
-                {!from3d && (
-                  <div className="absolute top-3 left-3 z-20 glass-strong px-2.5 py-1 rounded-lg text-[10px] font-bold text-foreground shadow-sm">
-                    {product.category}
-                  </div>
-                )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+          {/* CỘT TRÁI (5 phần): TÓM TẮT SẢN PHẨM VẬT LÝ & KHUNG XEM TRƯỚC THIỆP 3D LIVE */}
+          <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
+            {/* 1. Khung Xem Trước Thiệp 3D Trực Tiếp */}
+            <div className="glass-card rounded-3xl p-4 sm:p-5 shadow-soft border border-white/40 space-y-3.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
+                    Xem trước Thiệp 3D trực tiếp
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleForceRefreshPreview}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors cursor-pointer"
+                    title="Làm mới cảnh 3D với nội dung vừa nhập"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Cập nhật</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLiveWebPreview}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold transition-colors cursor-pointer"
+                    title="Mở toàn màn hình"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Mở rộng</span>
+                  </button>
+                </div>
               </div>
 
-              <div>
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Sản phẩm chính
-                </span>
-                <h3 className="text-lg font-bold font-display leading-tight text-foreground mt-0.5">
-                  {from3d && customName ? customName : product.name}
-                </h3>
-                {!from3d && (
-                  <div className="text-xl font-bold font-display gradient-text mt-1">
+              <div className="relative w-full aspect-[4/5] sm:aspect-[10/11] rounded-2xl overflow-hidden border border-border/70 bg-[#120718] shadow-inner">
+                <iframe
+                  key={`${selectedTemplate.slug}-${previewVersion}`}
+                  src={`/love-gift/${selectedTemplate.slug}?preview=1&draft=1`}
+                  title={`Xem trước 3D: ${selectedTemplate.title}`}
+                  className="w-full h-full border-0"
+                />
+              </div>
+
+              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+                💡 Chạm, kéo xoay 360° hoặc mở phong thư ngay trong khung trên để kiểm tra tên, lời chúc, hình ảnh và nhạc nền của bạn.
+              </p>
+            </div>
+
+            {/* 2. Thông tin Sản phẩm vật lý Handmade + Giá tổng hợp */}
+            <div className="glass-card rounded-3xl p-4 sm:p-5 shadow-soft border border-white/40 space-y-4">
+              <div className="flex items-center gap-3.5">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-border/60 bg-muted">
+                  {from3d && modelUrl ? (
+                    // @ts-ignore
+                    <model-viewer
+                      src={modelUrl}
+                      auto-rotate
+                      camera-controls
+                      style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
+                    ></model-viewer>
+                  ) : (
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                    <Gift className="w-3 h-3" />
+                    Sản phẩm Handmade đã chọn
+                  </span>
+                  <h3 className="text-base font-bold text-foreground truncate mt-1">
+                    {from3d && customName ? customName : product.name}
+                  </h3>
+                  <div className="text-sm font-bold text-rose-600 mt-0.5">
                     {formatPrice(product.price)}
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Quantity Adjustment */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/60 dark:bg-card/60 border border-border/60 shadow-xs">
+              {/* Số lượng đặt */}
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-white/60 dark:bg-card/60 border border-border/60">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-foreground">Số lượng đặt:</span>
-                    {isPhysical && (product as any)?.stock !== undefined && (
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${
-                        (product as any).stock > 0
-                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                          : "bg-red-500/10 text-red-500 border-red-500/20"
-                      }`}>
-                        {(product as any).stock > 0 ? `Kho: ${(product as any).stock}` : "Hết hàng"}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {isPhysical && (product as any)?.stock !== undefined && (product as any).stock > 0
-                      ? `Còn lại trong kho: ${(product as any).stock} sản phẩm`
-                      : "Chỉnh sửa số lượng sản phẩm"}
-                  </p>
+                  <span className="text-xs font-bold text-foreground block">
+                    Số lượng sản phẩm:
+                  </span>
+                  {isPhysical && (product as any)?.stock !== undefined && (
+                    <span className="text-[11px] text-muted-foreground">
+                      Kho còn: <strong>{(product as any).stock}</strong> sản phẩm
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center bg-white dark:bg-background rounded-xl border border-primary/20 overflow-hidden shadow-xs h-8">
+                <div className="flex items-center bg-white dark:bg-background rounded-xl border border-primary/20 overflow-hidden h-8">
                   <button
                     type="button"
                     onClick={handleGreetingDecrease}
                     disabled={quantity <= 1 || (isPhysical && (product as any)?.stock === 0)}
-                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer disabled:opacity-40"
                   >
                     -
                   </button>
@@ -727,514 +949,542 @@ function GreetingDesignContent() {
                     min="1"
                     max={greetingMaxStock ?? 9999}
                     value={quantity}
-                    disabled={isPhysical && (product as any)?.stock === 0}
                     onChange={(e) => handleGreetingQuantityChange(e.target.value)}
-                    className="w-10 text-center text-xs sm:text-sm font-bold text-primary bg-transparent border-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-10 text-center text-xs font-bold text-primary bg-transparent border-0 outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleGreetingIncrease}
                     disabled={greetingMaxStock !== undefined && quantity >= greetingMaxStock}
-                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer disabled:opacity-40"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              {/* Mảng bên trái: Giữ lại thông tin mẫu thiết kế đã chọn */}
-              <div className="hidden">
-              {selectedTemplate ? (
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary text-white text-[11px] font-bold shadow-xs">
-                      <Sparkles className="w-3 h-3" />
-                      {selectedTemplate.id === 0 ? "Mẫu thiệp mặc định" : "Mẫu thiệp đã chọn"}
+              {/* Chi tiết giá combo */}
+              <div className="pt-2 border-t border-border/50 space-y-1.5 text-xs">
+                {isPhysical && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Giá sản phẩm Handmade:</span>
+                    <span className="font-semibold text-foreground">
+                      {formatPrice(product.price)}
                     </span>
-                    <button
-                      onClick={() => {
-                        setSelectedTemplate(null);
-                        router.push(`/shop/${id}/greeting?mode=web3d`);
-                      }}
-                      className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      {selectedTemplate.id === 0 ? (
-                        <>
-                          <LayoutGrid className="w-3 h-3" />
-                          Chọn mẫu web
-                        </>
-                      ) : (
-                        <>
-                          <RotateCcw className="w-3 h-3" />
-                          Đổi mẫu
-                        </>
-                      )}
-                    </button>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border/60 bg-muted">
-                      <img
-                        src={selectedTemplate.image}
-                        alt={selectedTemplate.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2">
-                        {selectedTemplate.title}
-                      </h4>
-                      {selectedTemplate.id === 0 ? (
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-xs font-extrabold text-rose-600">
-                            +5.000 đ
-                          </span>
-                          <span className="text-[11px] text-muted-foreground">
-                            (Phụ phí câu chúc riêng mẫu mặc định)
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-extrabold text-rose-600">
-                            +{formatPrice(calculatePricing.cardPrice)}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground">
-                            (Phụ phí mẫu thiệp)
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {isPhysical && (
-                    <div className="pt-2.5 border-t border-primary/20 space-y-1.5 text-xs">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Giá sản phẩm vật lý:</span>
-                        <span className="font-semibold text-foreground">{formatPrice(product.price)}</span>
-                      </div>
-                      <div className="flex justify-between text-rose-600 font-medium">
-                        <span>Phụ phí thiệp kèm theo:</span>
-                        <span>+{formatPrice(calculatePricing.cardPrice)}</span>
-                      </div>
-                      <div className="border-t border-primary/10 pt-1.5 flex justify-between font-bold text-foreground">
-                        <span>Tổng 1 sản phẩm:</span>
-                        <span className="text-primary font-extrabold text-sm">{formatPrice(calculatePricing.unitPrice)}</span>
-                      </div>
-                      {quantity > 1 && (
-                        <div className="flex justify-between text-muted-foreground font-semibold">
-                          <span>Tổng tiền (x{quantity}):</span>
-                          <span className="text-primary font-bold">{formatPrice(calculatePricing.totalItemPrice)}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                )}
+                <div className="flex justify-between text-rose-600 font-medium">
+                  <span>Thiệp 3D NFC đi kèm (Ưu đãi -20%):</span>
+                  <span>+{formatPrice(calculatePricing.cardPrice)}</span>
                 </div>
-              ) : (
-                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300 text-xs sm:text-sm flex items-start gap-2.5">
-                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-xs uppercase tracking-wider mb-0.5">
-                      Bước 1: Chọn thiệp mẫu
-                    </p>
-                    <p className="text-xs opacity-90 leading-relaxed">
-                      Hãy chọn 1 mẫu thiệp từ danh sách bên phải hoặc dùng mẫu mặc định để bắt đầu thiết kế lời chúc.
-                    </p>
-                  </div>
+                <div className="border-t border-border/50 pt-2 flex justify-between items-center font-bold text-foreground text-sm">
+                  <span>Tổng cộng ({quantity} bộ):</span>
+                  <span className="text-lg font-extrabold text-primary">
+                    {formatPrice(calculatePricing.totalItemPrice)}
+                  </span>
                 </div>
-              )}
-
-              {from3d ? (
-                <div className="space-y-3 pt-2">
-                  <p className="text-sm font-semibold text-foreground">Hình thức nhận thiết kế 3D:</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setDeliveryMethod("link")}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                        deliveryMethod === "link"
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-card hover:bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-                      <span className="font-semibold text-sm">Gửi Link web</span>
-                    </button>
-                    <button
-                      onClick={() => setDeliveryMethod("qr")}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                        deliveryMethod === "qr"
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-card hover:bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3" /><path d="M21 21v.01" /><path d="M12 7v3a2 2 0 0 1-2 2H7" /><path d="M3 12h.01" /><path d="M12 3h.01" /><path d="M12 16v.01" /><path d="M16 12h1" /><path d="M21 12v.01" /><path d="M12 21v-1" /></svg>
-                      <span className="font-semibold text-sm">Tạo mã QR</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 text-xs text-primary/90 leading-relaxed">
-                  Thiệp vật lý tích hợp NFC sẽ được đóng gói cẩn thận cùng sản phẩm này, mang đến trải nghiệm mở quà bất ngờ cho người nhận.
-                </div>
-              )}
               </div>
             </div>
           </div>
 
-          {/* Mảng bên phải:
-              Trạng thái 1: Show các thiệp mẫu (Hình 2) khi chưa chọn
-              Trạng thái 2: Hiện form tạo câu chúc AI (Hình 4) khi đã chọn mẫu
-          */}
-          <div className="lg:col-span-8">
-            {!selectedTemplate ? (
-              /* Giao diện Hình 2: Danh sách các thiệp mẫu có thể thiết kế */
-              <div className="glass-card rounded-3xl p-6 sm:p-8 space-y-6 shadow-soft border border-white/40">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-2">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Bước 1: Chọn mẫu thiết kế
-                    </div>
-                    <h2 className="text-xl sm:text-2xl font-bold font-display text-foreground">
-                      Chọn mẫu thiệp NFC bạn muốn thiết kế
-                    </h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                      Bấm &quot;Chọn mẫu&quot; để giữ mẫu và chuyển sang bước viết câu chúc cá nhân hóa.
-                    </p>
-                  </div>
+          {/* CỘT PHẢI (7 phần): DROPDOWN CHỌN MẪU THIỆP 3D + CÁC Ô NHẬP NỘI DUNG, ẢNH, ÂM THANH */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* KHỐI 1: Ô DROPDOWN CHỌN / ĐỔI LOẠI THIỆP 3D TRONG HỆ THỐNG */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold mb-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    1. Chọn hoặc đổi mẫu Thiệp 3D ({WEB_CARD_TEMPLATES.length} mẫu có sẵn)
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
+                    Mẫu Thiệp 3D hiển thị nội dung của bạn
+                  </h2>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenVideo(selectedTemplate)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:underline cursor-pointer self-start sm:self-auto"
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  Video hướng dẫn
+                </button>
+              </div>
 
-                {/* Banner chuyển sang Dùng mẫu mặc định ban đầu */}
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[color:var(--coral)]/20 flex items-center justify-center shrink-0">
-                      <Sparkles className="w-5 h-5 text-[color:var(--coral)]" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-foreground">Không muốn chọn mẫu thiệp web?</h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">Sử dụng mẫu thiệp NFC tiêu chuẩn mặc định ban đầu của sản phẩm.</p>
-                    </div>
-                  </div>
+              {/* Bộ lọc nhanh theo dịp (tùy chọn) */}
+              <div className="flex flex-wrap gap-1.5">
+                {categories.map((cat) => (
                   <button
+                    key={cat}
+                    type="button"
                     onClick={() => {
-                      if (defaultProductTemplate) {
-                        setSelectedTemplate(defaultProductTemplate);
+                      setSelectedCategoryFilter(cat);
+                      const list =
+                        cat === "Tất cả"
+                          ? WEB_CARD_TEMPLATES
+                          : WEB_CARD_TEMPLATES.filter((t) => t.category === cat);
+                      if (list.length > 0 && !list.some((t) => t.slug === selectedTemplate.slug)) {
+                        handleSelectTemplateBySlug(list[0].slug);
                       }
                     }}
-                    className="px-4 py-2 rounded-xl btn-hero text-black text-xs font-bold shadow-coral-glow hover:scale-105 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      selectedCategoryFilter === cat
+                        ? "bg-primary text-white shadow-xs"
+                        : "bg-white/60 dark:bg-card/60 hover:bg-muted text-muted-foreground border border-border/50"
+                    }`}
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Dùng mẫu mặc định
+                    {cat}
                   </button>
+                ))}
+              </div>
+
+              {/* Ô Dropdown chọn mẫu thiệp 3D */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="card-template-dropdown"
+                  className="block text-xs sm:text-sm font-bold text-foreground"
+                >
+                  Chọn loại thiệp 3D từ danh sách (Đổi mẫu vẫn giữ nguyên lời chúc, ảnh & âm thanh):
+                </label>
+                <div className="relative">
+                  <select
+                    id="card-template-dropdown"
+                    value={selectedTemplate.slug}
+                    onChange={(e) => handleSelectTemplateBySlug(e.target.value)}
+                    className="w-full appearance-none rounded-2xl border-2 border-primary/30 bg-white dark:bg-card px-4 py-3.5 pr-10 text-sm font-bold text-foreground shadow-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+                  >
+                    {(selectedCategoryFilter === "Tất cả"
+                      ? cardCategories
+                      : [selectedCategoryFilter]
+                    ).map((catName) => {
+                      const groupTemplates = filteredTemplatesForDropdown.filter(
+                        (t) => t.category === catName
+                      );
+                      if (groupTemplates.length === 0) return null;
+                      return (
+                        <optgroup key={catName} label={`── Chủ đề: ${catName} ──`}>
+                          {groupTemplates.map((tmpl) => (
+                            <option key={tmpl.slug} value={tmpl.slug}>
+                              {tmpl.title} ({formatPrice(getCardPrice(tmpl))})
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    })}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
                 </div>
+              </div>
 
-                {/* Filter tags */}
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setCurrentPage(1);
-                      }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                        selectedCategory === cat
-                          ? "bg-primary text-white shadow-sm"
-                          : "bg-white/60 dark:bg-card/60 hover:bg-muted text-muted-foreground border border-border/50"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Grid cards (Thiết kế y hệt Hình 2) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {displayedTemplates.map((template) => (
-                    <div
-                      key={template.id}
-                      className="group flex flex-col bg-card rounded-3xl border border-border/50 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                    >
-                      {/* Product Image */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                        <img
-                          src={template.image}
-                          alt={template.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-4 sm:p-5 flex flex-col flex-1">
-                        {/* Title */}
-                        <h3 className="font-bold text-foreground text-sm line-clamp-2 min-h-[2.5rem] mb-3">
-                          {template.title}
-                        </h3>
-
-                        {/* Sold & Price */}
-                        <div className="flex flex-col gap-1.5 mt-auto mb-4">
-                          <div className="flex items-center justify-between">
-                            <span className="flex items-center gap-1 text-xs font-medium text-orange-500">
-                              <Flame className="h-3.5 w-3.5 fill-orange-500" />
-                              Ưu đãi combo -20%
-                            </span>
-                            <span className="text-xs text-muted-foreground line-through">
-                              {formatPrice(template.originalPrice || template.price)}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="text-base sm:text-lg font-extrabold text-rose-600">
-                              {formatPrice(getCardPrice(template))}
-                            </span>
-                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 border border-green-200 text-[10px] font-bold rounded">
-                              -{template.discount}%
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Buttons (Hình 2: Nút Mua ngay / Chọn mẫu & Xem demo) */}
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <button
-                            onClick={() => {
-                              const params = new URLSearchParams({
-                                physicalProductId: id,
-                                quantity: String(quantity),
-                              });
-                              if (editCartItemId) params.set("editCartItemId", editCartItemId);
-                              router.push(`/cards/${template.slug}/edit?${params.toString()}`);
-                            }}
-                            className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
-                          >
-                            <Sparkles className="h-4 w-4" /> Chọn mẫu
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDemoProduct(template);
-                              setIsDemoModalOpen(true);
-                            }}
-                            className="flex items-center justify-center gap-1.5 bg-transparent hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors cursor-pointer"
-                          >
-                            <Eye className="h-4 w-4" /> Xem demo
-                          </button>
-                        </div>
-
-                        {/* Link: Video hướng dẫn */}
-                        <div className="flex items-center justify-end text-xs font-medium px-1">
-                          <button
-                            onClick={() => handleOpenVideo(template)}
-                            className="flex items-center gap-1.5 text-rose-500 hover:underline hover:text-rose-600 transition-all cursor-pointer font-semibold"
-                          >
-                            <PlayCircle className="h-3.5 w-3.5" /> Video hướng dẫn
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-4 pt-4 border-t border-border/40">
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className={`flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors ${
-                        currentPage === 1 ? "opacity-40 cursor-not-allowed" : "hover:bg-muted cursor-pointer"
-                      }`}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Trang {currentPage} / {totalPages}
+              {/* Tóm tắt tương tác của mẫu thiệp đang chọn */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-500/10 via-amber-500/5 to-transparent border border-rose-500/20 flex items-center gap-3.5">
+                <img
+                  src={selectedTemplate.image}
+                  alt={selectedTemplate.title}
+                  className="w-14 h-14 rounded-xl object-cover border border-white/50 shrink-0 bg-muted"
+                />
+                <div className="flex-1 min-w-0 text-xs space-y-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-foreground text-sm">
+                      {selectedTemplate.title}
                     </span>
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className={`flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors ${
-                        currentPage === totalPages ? "opacity-40 cursor-not-allowed" : "hover:bg-muted cursor-pointer"
-                      }`}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 font-bold text-[10px]">
+                      {selectedTemplate.category}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground">
+                    <strong>Hiệu ứng 3D:</strong> {selectedTemplate.action} — {selectedTemplate.reveal}.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* KHỐI 2: CÁC Ô NHẬP NỘI DUNG CHỮ LÊN THIỆP 3D */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-5">
+              <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-3">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold mb-1">
+                    2. Thông tin & Lời chúc trên Thiệp 3D
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
+                    Nhập nội dung hiển thị trên thiệp
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAIHelper((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs font-bold shadow-xs hover:scale-105 transition-transform cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {showAIHelper ? "Ẩn trợ lý AI" : "Dùng AI gợi ý lời chúc"}
+                </button>
+              </div>
+
+              {/* Hàng 1: Tên người nhận & Tên người gửi */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Tên người nhận <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: Nguyễn Bảo Ngọc, Mẹ yêu, Anh Tuấn..."
+                    value={recipientName}
+                    onChange={(e) => {
+                      setRecipientName(e.target.value);
+                      store.setField("receiverName", e.target.value);
+                    }}
+                    className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Tên / Chữ ký người gửi <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VD: Minh Tuấn, Con của mẹ, Người thương..."
+                    value={senderName}
+                    onChange={(e) => {
+                      setSenderName(e.target.value);
+                      store.setField("senderName", e.target.value);
+                    }}
+                    className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              {/* Hàng 2: Tiêu đề thiệp 3D & Lời mở đầu */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Tiêu đề hiển thị trên Thiệp 3D
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={selectedTemplate.title}
+                    value={cardTitle}
+                    onChange={(e) => setCardTitle(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Lời mở đầu sân khấu 3D
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Một món quà nhỏ, dành riêng cho bạn"
+                    value={introText}
+                    onChange={(e) => setIntroText(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              {/* Hàng 3: Tiêu đề lá thư & Dòng kết thư */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Tiêu đề lá thư
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Gửi bạn thân mến"
+                    value={letterTitle}
+                    onChange={(e) => setLetterTitle(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Dòng kết lá thư
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Với tất cả yêu thương"
+                    value={closingText}
+                    onChange={(e) => setClosingText(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              {/* Trợ lý AI tạo câu chúc (mở khi người dùng bấm nút) */}
+              {showAIHelper && (
+                <div className="p-4 rounded-2xl bg-rose-50/60 dark:bg-card/60 border border-rose-200/60">
+                  <AIGiftWidget
+                    receiverName={recipientName}
+                    senderName={senderName}
+                    value={message}
+                    onChange={setMessage}
+                  />
+                </div>
+              )}
+
+              {/* Ô nhập Lời chúc chính trên thiệp 3D */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Nội dung lời chúc trong Thiệp 3D <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[11px] text-muted-foreground">
+                    {message.length}/5000 ký tự
+                  </span>
+                </div>
+                <textarea
+                  rows={5}
+                  maxLength={5000}
+                  placeholder={selectedTemplate.rawTemplate.message}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full rounded-2xl border border-border bg-white/80 dark:bg-background p-3.5 text-sm leading-relaxed outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-y"
+                />
+              </div>
+            </div>
+
+            {/* KHỐI 3: CHÈN HÌNH ẢNH KỶ NIỆM & ÂM THANH / NHẠC NỀN LÊN THIỆP 3D */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-6">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 text-xs font-bold mb-1">
+                  3. Đính kèm Hình ảnh & Âm thanh lên Thiệp 3D
+                </span>
+                <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
+                  Hình ảnh kỷ niệm & Nhạc nền phát khi mở thiệp
+                </h2>
+              </div>
+
+              {/* Phần tải Hình ảnh kỷ niệm */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-rose-500" />
+                      Hình ảnh kỷ niệm trên Thiệp 3D ({photos.length}/8 ảnh)
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Ảnh tải lên sẽ xuất hiện trong phong thư 3D và khung ảnh kỷ niệm của mẫu thiệp.
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs cursor-pointer transition-colors shrink-0 self-start sm:self-auto">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>+ Tải ảnh lên (JPG, PNG, WebP)</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      disabled={isUploadingMedia}
+                      onChange={handlePhotosUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {photos.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-1">
+                    {photos.map((src, idx) => (
+                      <div
+                        key={idx}
+                        className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted shadow-xs"
+                      >
+                        <img
+                          src={src}
+                          alt={`Ảnh kỷ niệm ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {idx === 0 && (
+                          <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-semibold">
+                            Ảnh chính
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePhoto(idx)}
+                          className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/65 hover:bg-red-600 text-white transition-colors cursor-pointer"
+                          title="Xóa ảnh này"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border-2 border-dashed border-border/70 bg-white/40 dark:bg-card/40 p-4 text-center text-xs text-muted-foreground">
+                    Chưa có ảnh kỷ niệm nào. Bấm <strong>&ldquo;+ Tải ảnh lên&rdquo;</strong> để đưa hình ảnh của bạn vào không gian 3D.
                   </div>
                 )}
               </div>
-            ) : (
-              /* Giao diện Hình 4: Form nhập thông tin lời chúc AI và ảnh thiệp */
-              <div className="glass-card rounded-3xl p-6 md:p-8 space-y-8 shadow-soft border border-white/40">
-                {/* Header trạng thái */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
+
+              {/* Phần tải Âm thanh / Nhạc nền */}
+              <div className="pt-4 border-t border-border/50 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold mb-2">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      {selectedTemplate.id === 0 ? "Mẫu thiệp mặc định" : "Bước 2: Thiết kế thông điệp thiệp"}
-                    </div>
-                    <h2 className="text-xl sm:text-2xl font-bold font-display text-foreground">
-                      {selectedTemplate.id === 0
-                        ? `Thiết kế câu chúc cho ${product?.name || "sản phẩm"}`
-                        : `Tạo câu chúc cho mẫu: ${selectedTemplate.title}`}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                      {selectedTemplate.id === 0
-                        ? "Dùng mẫu thiệp NFC mặc định ban đầu, nhập thông tin để AI viết lời chúc ấm áp."
-                        : "Nhập thông tin người nhận để AI viết lời chúc ấm áp và cảm xúc nhất."}
+                    <label className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Music className="w-4 h-4 text-amber-500" />
+                      Âm thanh / Nhạc nền phát trên Thiệp 3D
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Hỗ trợ MP3, WAV, OGG (tối đa 8 MB). Nhạc sẽ tự động vang lên khi người nhận chạm mở thiệp 3D.
                     </p>
                   </div>
+                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-xs cursor-pointer transition-colors shrink-0 self-start sm:self-auto">
+                    <Music className="w-4 h-4" />
+                    <span>{audioData ? "Đổi file âm thanh" : "+ Chọn file âm thanh"}</span>
+                    <input
+                      type="file"
+                      accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg"
+                      disabled={isUploadingMedia}
+                      onChange={handleAudioUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
 
-                  <button
-                    onClick={() => {
-                      setSelectedTemplate(null);
-                      router.push(`/shop/${id}/greeting?mode=web3d`);
-                    }}
-                    className="self-start sm:self-auto px-4 py-2 rounded-xl border border-border hover:bg-muted text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer text-foreground"
+                {audioData ? (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25">
+                    <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
+                      <Music className="w-5 h-5 text-amber-600 shrink-0" />
+                      <span className="text-xs font-bold text-foreground truncate">
+                        {audioFileName || "Nhạc nền tùy chỉnh đã tải lên"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <audio controls src={audioData} className="h-9 max-w-[220px]" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAudioData("");
+                          setAudioFileName("");
+                        }}
+                        className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 text-xs font-semibold cursor-pointer shrink-0"
+                        title="Gỡ nhạc nền"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border-2 border-dashed border-border/70 bg-white/40 dark:bg-card/40 p-4 text-center text-xs text-muted-foreground">
+                    Chưa chèn file âm thanh riêng (Thiệp sẽ dùng âm thanh hiệu ứng mặc định).
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* KHỐI 4: TÙY CHỈNH MÀU SẮC & PHONG THƯ 3D */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-4">
+              <div className="flex items-center gap-2">
+                <Palette className="w-4 h-4 text-primary" />
+                <h3 className="text-sm sm:text-base font-bold text-foreground">
+                  4. Tùy chỉnh Phong thư & Màu sắc 3D
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-muted-foreground">
+                    Màu chủ đạo 3D
+                  </label>
+                  <div className="flex items-center gap-2 rounded-xl border border-border bg-white/80 dark:bg-background px-2.5 py-1.5">
+                    <input
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
+                    />
+                    <span className="text-xs font-mono text-foreground">{accentColor}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-muted-foreground">
+                    Màu phong thư
+                  </label>
+                  <div className="flex items-center gap-2 rounded-xl border border-border bg-white/80 dark:bg-background px-2.5 py-1.5">
+                    <input
+                      type="color"
+                      value={envelopeColor}
+                      onChange={(e) => setEnvelopeColor(e.target.value)}
+                      className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
+                    />
+                    <span className="text-xs font-mono text-foreground">{envelopeColor}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-muted-foreground">
+                    Dấu niêm phong
+                  </label>
+                  <select
+                    value={sealType}
+                    onChange={(e) => setSealType(e.target.value)}
+                    className="w-full h-[42px] rounded-xl border border-border bg-white/80 dark:bg-background px-2.5 text-xs font-semibold text-foreground outline-none"
                   >
-                    {selectedTemplate.id === 0 ? (
-                      <>
-                        <LayoutGrid className="w-4 h-4 text-amber-600" />
-                        Chọn mẫu từ thư viện web
-                      </>
-                    ) : (
-                      <>
-                        <RotateCcw className="w-4 h-4 text-primary" />
-                        Đổi mẫu thiệp
-                      </>
-                    )}
-                  </button>
+                    <option value="Trái tim">❤️ Trái tim</option>
+                    <option value="Ngôi sao">⭐ Ngôi sao</option>
+                    <option value="Bông hoa">🌸 Bông hoa</option>
+                  </select>
                 </div>
 
-                {/* AI Gift Widget (Hình 4) */}
-                <AIGiftWidget
-                  receiverName=""
-                  senderName=""
-                  value={message}
-                  onChange={setMessage}
-                />
-
-                {/* Image Upload Section */}
-                <div className="border-t border-border/50 pt-8">
-                  <h2 className="text-xl font-bold font-display mb-4">Ảnh in trên thiệp (Tuỳ chọn)</h2>
-                  <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-primary/30 flex items-center justify-center bg-primary/5 overflow-hidden relative shrink-0">
-                      {greetingImage ? (
-                        <>
-                          <img src={greetingImage} alt="Uploaded" className="w-full h-full object-cover" />
-                          <button
-                            onClick={() => setGreetingImage(null)}
-                            className="absolute top-2 right-2 bg-black/50 hover:bg-black text-white rounded-full p-1 transition-colors cursor-pointer"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                          </button>
-                        </>
-                      ) : (
-                        <div className="text-center p-4">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mx-auto text-primary/50 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span className="text-xs text-muted-foreground">Chưa có ảnh</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 text-center sm:text-left">
-                      <p className="text-sm text-muted-foreground mb-3">Tải lên một bức ảnh kỷ niệm để in lên mặt trước của thiệp NFC.</p>
-                      <label className="inline-block cursor-pointer px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-semibold rounded-xl transition-colors">
-                        <span>Chọn ảnh tải lên</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Action Buttons */}
-                <div className="pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mt-8">
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <button
-                      onClick={() => {
-                        setSelectedTemplate(null);
-                        router.push(`/shop/${id}/greeting?mode=web3d`);
-                      }}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold border border-border hover:bg-muted transition-colors text-foreground flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
-                    >
-                      {selectedTemplate.id === 0 ? (
-                        <>
-                          <LayoutGrid className="w-4 h-4 text-amber-600" />
-                          Xem kho mẫu web
-                        </>
-                      ) : (
-                        <>
-                          <RotateCcw className="w-4 h-4" />
-                          Chọn mẫu khác
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => router.back()}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold border border-border hover:bg-muted transition-colors text-foreground cursor-pointer text-xs sm:text-sm"
-                    >
-                      Hủy
-                    </button>
-                  </div>
-
-                  {/* 2 Main Options: Xem trước & Thanh toán ngay */}
-                  <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
-                    <button
-                      onClick={() => setIsPreviewModalOpen(true)}
-                      className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer text-sm"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Xem trước
-                    </button>
-
-                    <button
-                      onClick={handleDirectCheckout}
-                      className="w-full sm:w-auto btn-hero px-7 py-3 rounded-xl font-bold text-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-coral-glow cursor-pointer text-sm"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      Thanh toán ngay
-                    </button>
-
-                    <button
-                      onClick={handleConfirm}
-                      className="w-full sm:w-auto px-5 py-3 rounded-xl font-semibold border border-border bg-card hover:bg-muted transition-colors text-foreground flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
-                      title="Thêm vào giỏ hàng để mua sau"
-                    >
-                      <ShoppingCart className="w-4 h-4 text-muted-foreground" />
-                      {editCartItemId ? "Cập nhật giỏ" : "Thêm giỏ hàng"}
-                    </button>
-                  </div>
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-muted-foreground">
+                    Chữ ngoài phong thư
+                  </label>
+                  <input
+                    type="text"
+                    value={envelopeLabel}
+                    onChange={(e) => setEnvelopeLabel(e.target.value)}
+                    placeholder="Dành riêng cho bạn"
+                    className="w-full h-[42px] rounded-xl border border-border bg-white/80 dark:bg-background px-2.5 text-xs text-foreground outline-none"
+                  />
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* THANH NÚT HÀNH ĐỘNG CUỐI TRANG */}
+            <div className="glass-card rounded-3xl p-4 sm:p-5 shadow-soft border border-white/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setIsPreviewModalOpen(true)}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
+              >
+                <Eye className="w-4 h-4" />
+                Xem tóm tắt thiệp
+              </button>
+
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold border border-border bg-card hover:bg-muted transition-colors text-foreground flex items-center justify-center gap-2 cursor-pointer text-sm"
+                >
+                  <ShoppingCart className="w-4 h-4 text-primary" />
+                  {editCartItemId ? "Cập nhật giỏ hàng" : "Thêm vào giỏ hàng"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDirectCheckout}
+                  className="w-full sm:w-auto btn-hero px-7 py-3 rounded-xl font-bold text-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-coral-glow cursor-pointer text-sm"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Thanh toán ngay ({formatPrice(calculatePricing.totalItemPrice)})
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Lightweight procedural Three.js preview */}
-      <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
-        <DialogContent className="sm:max-w-4xl p-0 overflow-hidden bg-background">
-          <DialogHeader className="px-6 pt-5">
-            <DialogTitle>{demoProduct?.title || "Xem trước thiệp 3D"}</DialogTitle>
-            <DialogDescription>
-              Kéo hoặc chạm trực tiếp vào khung để trải nghiệm mẫu thiệp.
-            </DialogDescription>
-          </DialogHeader>
-          {demoProduct?.slug && (
-            <iframe
-              src={`/love-gift/${demoProduct.slug}?preview=1`}
-              title={`Xem trước 3D: ${demoProduct.title}`}
-              className="h-[70vh] w-full border-0"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Tutorial Video Modal */}
       <TutorialVideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
         video={activeVideo}
-        productTitle={demoProduct?.title}
+        productTitle={selectedTemplate.title}
       />
 
-      {/* Popup Xem trước thông điệp thiệp */}
+      {/* Popup Xem trước tóm tắt thông điệp thiệp */}
       <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
         <DialogContent className="sm:max-w-2xl bg-white dark:bg-card border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
           <DialogHeader className="text-center pb-2">
@@ -1242,31 +1492,29 @@ function GreetingDesignContent() {
               <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <DialogTitle className="text-2xl font-bold font-display text-foreground">
-              Xem trước thông điệp thiệp
+              Xem trước thông điệp Thiệp 3D
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
-              Kiểm tra hình ảnh và câu chúc trước khi mở trực tiếp hoặc thanh toán.
+              Kiểm tra lại thông tin trước khi mở toàn màn hình 3D hoặc thanh toán.
             </DialogDescription>
           </DialogHeader>
 
-          {/* Visual Card Mockup */}
           <div className="my-4 p-5 rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-amber-50/60 dark:from-muted/40 dark:to-muted/20 border border-primary/20 shadow-sm space-y-4">
-            {/* Header of mockup */}
             <div className="flex items-center justify-between border-b border-border/40 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-border/60 shrink-0">
                   <img
-                    src={isPhysical ? product?.image : (selectedTemplate?.image || product?.image)}
-                    alt="Template"
+                    src={isPhysical ? product?.image : selectedTemplate.image}
+                    alt="Product"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-foreground line-clamp-1">
-                    {isPhysical ? product?.name : (selectedTemplate?.title || product?.name)}
+                    {isPhysical ? product?.name : selectedTemplate.title}
                   </h4>
                   <span className="text-[11px] font-semibold text-primary">
-                    {isPhysical ? `Kèm thiệp NFC: ${selectedTemplate?.title || "Mẫu mặc định"}` : "Thiệp điện tử NFC & 3D"}
+                    Mẫu Thiệp 3D: {selectedTemplate.title}
                   </span>
                 </div>
               </div>
@@ -1274,67 +1522,68 @@ function GreetingDesignContent() {
                 <span className="text-base font-extrabold text-rose-600 block">
                   {formatPrice(calculatePricing.unitPrice)}
                 </span>
-                {isPhysical ? (
+                {isPhysical && (
                   <span className="text-[10px] text-muted-foreground block">
-                    (Gồm {formatPrice(product?.price || 0)} + {formatPrice(calculatePricing.cardPrice)})
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-100 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
-                    Miễn phí vận chuyển (0đ)
+                    (Gồm {formatPrice(product?.price || 0)} +{" "}
+                    {formatPrice(calculatePricing.cardPrice)})
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Recipient & Sender */}
             <div className="grid grid-cols-2 gap-3 text-xs bg-white/70 dark:bg-card/70 p-3 rounded-xl border border-border/50">
               <div>
-                <span className="text-muted-foreground text-[10px] block uppercase font-bold">Người nhận:</span>
+                <span className="text-muted-foreground text-[10px] block uppercase font-bold">
+                  Người nhận:
+                </span>
                 <span className="font-bold text-foreground text-sm">
-                  {store.receiverName || "Người thương"}
+                  {recipientName || store.receiverName || "Người thương"}
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground text-[10px] block uppercase font-bold">Người gửi:</span>
+                <span className="text-muted-foreground text-[10px] block uppercase font-bold">
+                  Người gửi:
+                </span>
                 <span className="font-bold text-foreground text-sm">
-                  {store.senderName || "Bạn"}
+                  {senderName || store.senderName || "Bạn"}
                 </span>
               </div>
             </div>
 
-            {/* Custom message */}
             <div className="p-4 rounded-xl bg-white dark:bg-card border border-rose-200/60 dark:border-rose-900/30 text-center relative overflow-hidden">
-              <div className="absolute top-2 left-2 text-rose-200 dark:text-rose-900/30 text-4xl font-serif">“</div>
               <p className="text-sm font-serif italic text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed px-4 py-1">
-                {message || "Chúc bạn luôn ngập tràn niềm vui, bình an và hạnh phúc trong cuộc sống!"}
+                {message || selectedTemplate.rawTemplate.message}
               </p>
-              <div className="absolute bottom-1 right-2 text-rose-200 dark:text-rose-900/30 text-4xl font-serif">”</div>
             </div>
 
-            {/* Attached Photo if uploaded */}
-            {greetingImage && (
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-card/60 border border-border/50">
-                <img
-                  src={greetingImage}
-                  alt="Ảnh kỷ niệm"
-                  className="w-14 h-14 rounded-lg object-cover border border-border shrink-0"
-                />
-                <div>
-                  <span className="text-xs font-bold text-foreground block">Ảnh kỷ niệm kèm thiệp</span>
-                  <p className="text-[11px] text-muted-foreground">Ảnh sẽ hiển thị sống động khi người nhận mở bao thư và khám phá không gian 3D.</p>
-                </div>
+            {photos.length > 0 && (
+              <div className="flex items-center gap-2 overflow-x-auto py-1">
+                {photos.map((src, idx) => (
+                  <img
+                    key={idx}
+                    src={src}
+                    alt={`Ảnh ${idx + 1}`}
+                    className="w-14 h-14 rounded-lg object-cover border border-border shrink-0"
+                  />
+                ))}
+              </div>
+            )}
+
+            {audioData && (
+              <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                <Music className="w-4 h-4" />
+                <span>Đã đính kèm nhạc nền: {audioFileName || "Âm thanh tùy chỉnh"}</span>
               </div>
             )}
           </div>
 
-          {/* 2 Explicit Action Buttons in Modal: Xem trực tiếp & Thanh toán */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <button
               onClick={handleLiveWebPreview}
               className="py-3 px-4 rounded-xl font-bold border-2 border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
             >
               <ExternalLink className="w-4 h-4" />
-              Xem trực tiếp
+              Mở toàn màn hình 3D
             </button>
             <button
               onClick={handleDirectCheckout}

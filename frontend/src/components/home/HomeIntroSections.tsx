@@ -32,35 +32,39 @@ interface HandmadePreviewItem {
   price?: number;
 }
 
+const EXTRA_HANDMADE_ITEMS: HandmadePreviewItem[] = [
+  {
+    id: "hm-custom-1",
+    name: "Móc khóa cỏ 4 lá",
+    category: "Phụ kiện",
+    image: "/handmade-1.jpg",
+    price: 35000,
+  },
+  {
+    id: "hm-custom-2",
+    name: "Thú len Amigurumi",
+    category: "Len móc",
+    image: "/handmade-2.jpg",
+    price: 159000,
+  },
+];
+
 const FALLBACK_HANDMADE_ITEMS: HandmadePreviewItem[] = [
   {
     id: "hm-1",
-    name: "Bó hoa Tulip thủ công cao cấp",
-    category: "Hoa Handmade",
+    name: "Hoa kẽm nhung",
+    category: "Hoa",
     image: "/images/memory-flower/tulip.png",
     price: 189000,
   },
   {
     id: "hm-2",
-    name: "Gói quà kỷ niệm thiết kế riêng",
-    category: "Set Quà Thủ Công",
+    name: "Gấu bông",
+    category: "Trang trí",
     image: "/images/memory-flower/wrapper.png",
     price: 249000,
   },
-  {
-    id: "hm-3",
-    name: "Thiệp & Phụ kiện thủ công gắn NFC",
-    category: "Quà Tặng NFC",
-    image: "/images/memory-flower/card.png",
-    price: 129000,
-  },
-  {
-    id: "hm-4",
-    name: "Hộp quà lưu niệm chế tác tỉ mỉ",
-    category: "Bộ Sưu Tập",
-    image: "/anh3.jpg",
-    price: 299000,
-  },
+  ...EXTRA_HANDMADE_ITEMS,
 ];
 
 const WEB_3D_CARD_PREVIEWS = [
@@ -137,8 +141,8 @@ export function HomeIntroSections() {
       try {
         const { data } = await api.get("/api/products?page=1&pageSize=4");
         const items = data?.items;
-        if (mounted && Array.isArray(items) && items.length >= 2) {
-          const mapped: HandmadePreviewItem[] = items.slice(0, 4).map((p: any, idx: number) => {
+        if (mounted && Array.isArray(items) && items.length >= 1) {
+          const mapped: HandmadePreviewItem[] = items.slice(0, 2).map((p: any, idx: number) => {
             const parsedImages = p.sampleImageUrl
               ? p.sampleImageUrl.split(",")
               : p.images || [];
@@ -154,7 +158,7 @@ export function HomeIntroSections() {
               price: p.price,
             };
           });
-          setHandmadeItems(mapped);
+          setHandmadeItems([...mapped, ...EXTRA_HANDMADE_ITEMS].slice(0, 4));
         }
       } catch {
         // Keep fallback handmade showcase images when offline or unauthenticated

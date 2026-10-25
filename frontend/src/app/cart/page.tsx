@@ -80,7 +80,7 @@ export default function CartPage() {
     );
     const editCartItemId = encodeURIComponent(item.cartItemId || item.id);
 
-    if (catalogTemplate) {
+    if (isCatalogCard && catalogTemplate) {
       router.push(`/cards/${catalogTemplate.slug}/edit?editCartItemId=${editCartItemId}`);
       return;
     }

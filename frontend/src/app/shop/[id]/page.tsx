@@ -421,7 +421,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                         router.push("/auth");
                         return;
                       }
-                      router.push(`/shop/${product.id}/greeting?mode=default`);
+                      router.push(`/shop/${product.id}/greeting?quantity=${quantity}`);
                     }}
                     className="w-full mt-3 cursor-pointer relative overflow-hidden rounded-2xl border border-[color:var(--coral)] bg-[color:var(--coral)]/5 hover:bg-[color:var(--coral)]/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
                   >
@@ -432,19 +432,19 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-foreground group-hover:text-[color:var(--coral)] transition-colors text-sm sm:text-base">
-                            Thiết kế câu chúc riêng
+                            Thiết kế Thiệp 3D NFC đi kèm quà
                           </h3>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-[color:var(--coral)]/15 text-[color:var(--coral)] font-bold shrink-0">
-                            Mẫu mặc định
+                            54+ mẫu 3D (-20%)
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Dùng mẫu thiệp mặc định cố định ban đầu, không qua bước chọn mẫu web.
+                          Nhập thông tin, chèn ảnh & âm thanh trực tiếp lên thiệp 3D và đổi mẫu thiệp tùy ý.
                         </p>
                       </div>
                     </div>
                     <div className="bg-[color:var(--coral)] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shrink-0 shadow-coral-glow group-hover:scale-105 transition-transform">
-                      Thiết kế ngay
+                      Thiết kế Thiệp 3D →
                     </div>
                   </div>
 
@@ -458,7 +458,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                       }
                       router.push(`/shop/${product.id}/greeting?mode=web3d`);
                     }}
-                    className="w-full cursor-pointer relative overflow-hidden rounded-2xl border border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10 transition-all p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4 group shadow-xs hover:shadow-md"
+                    className="hidden"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
