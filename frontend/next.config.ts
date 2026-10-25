@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
     '*.tucore.io.vn'
   ],
   experimental: {
+    // Reduce compiler memory pressure during local Webpack development.
+    webpackMemoryOptimizations: true,
     proxyTimeout: 120000,
   },
   async rewrites() {
