@@ -47,6 +47,95 @@ function createStarTexture(): T.CanvasTexture {
   return tex;
 }
 
+function createLetterPaperTexture(
+  recipient: string,
+  sender: string,
+  message: string,
+  accent: string
+): T.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 768;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d")!;
+
+  // Fine cream stationery paper background
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
+  bgGrad.addColorStop(0, "#fffdf8");
+  bgGrad.addColorStop(1, "#f7ead7");
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 768, 512);
+
+  // Outer gold & accent double border
+  ctx.strokeStyle = "#d97706";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(22, 22, 724, 468);
+  ctx.strokeStyle = accent || "#be185d";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(34, 34, 700, 444);
+
+  // Ruled paper lines
+  ctx.strokeStyle = "rgba(180, 130, 90, 0.22)";
+  ctx.lineWidth = 1.5;
+  for (let y = 155; y <= 385; y += 46) {
+    ctx.beginPath();
+    ctx.moveTo(64, y);
+    ctx.lineTo(704, y);
+    ctx.stroke();
+  }
+
+  // Header & Recipient
+  ctx.fillStyle = "#881337";
+  ctx.font = "bold 30px Georgia, serif";
+  ctx.textAlign = "left";
+  const safeRecipient = (recipient || "Người thương").slice(0, 28);
+  ctx.fillText(`Gửi ${safeRecipient},`, 64, 98);
+
+  // Decorative heart stamp on top-right
+  ctx.fillStyle = accent || "#e11d48";
+  ctx.font = "bold 28px Georgia, serif";
+  ctx.textAlign = "right";
+  ctx.fillText("♥", 698, 96);
+
+  // Wrapped preview of the letter message
+  ctx.fillStyle = "#3c2415";
+  ctx.font = "italic 23px Georgia, serif";
+  ctx.textAlign = "left";
+  const cleanMsg = (
+    message || "Chúc bạn luôn rạng rỡ, bình an và ngập tràn yêu thương..."
+  )
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = cleanMsg.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  for (const w of words) {
+    const test = current ? `${current} ${w}` : w;
+    if (ctx.measureText(test).width > 620) {
+      lines.push(current);
+      current = w;
+      if (lines.length >= 5) break;
+    } else {
+      current = test;
+    }
+  }
+  if (current && lines.length < 5) lines.push(current);
+  lines.forEach((line, idx) => {
+    const suffix = idx === 4 && words.length > 25 ? "..." : "";
+    ctx.fillText(line + suffix, 64, 146 + idx * 46);
+  });
+
+  // Sender signature at bottom right
+  ctx.fillStyle = "#7c2d12";
+  ctx.font = "bold 24px Georgia, serif";
+  ctx.textAlign = "right";
+  const safeSender = (sender || "Người gửi").slice(0, 24);
+  ctx.fillText(`— ${safeSender} ✨`, 696, 442);
+
+  const tex = new T.CanvasTexture(canvas);
+  tex.colorSpace = T.SRGBColorSpace;
+  return tex;
+}
+
 function createFallbackPhotoTexture(index: number, accent: string): T.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 512;
@@ -426,49 +515,274 @@ export default function UnifiedCosmicScene({
     scene.add(envelopeStageGroup);
 
     const envelopeGroup = new T.Group();
-    envelopeGroup.position.set(0, -0.25, 0.4);
+    envelopeGroup.position.set(0, -0.15, 0.45);
     envelopeStageGroup.add(envelopeGroup);
 
-    const envBodyMat = trackMat(
-      new T.MeshStandardMaterial({ color: envelopeColor, roughness: 0.45 })
+    const envW = 2.76;
+    const envH = 1.8;
+    const hw = envW / 2;
+    const hh = envH / 2;
+
+    const baseEnvCol = new T.Color(envelopeColor);
+    const sideFoldCol = baseEnvCol.clone().multiplyScalar(0.84);
+    const bottomFoldCol = baseEnvCol.clone().multiplyScalar(0.93);
+    const topFlapCol = baseEnvCol.clone().lerp(new T.Color(accentColor), 0.16);
+
+    const envBackMat = trackMat(
+      new T.MeshStandardMaterial({ color: baseEnvCol, roughness: 0.42, metalness: 0.08 })
     );
-    const envTrimMat = trackMat(
+    const envSideFoldMat = trackMat(
+      new T.MeshStandardMaterial({ color: sideFoldCol, roughness: 0.44, metalness: 0.08 })
+    );
+    const envBottomFoldMat = trackMat(
+      new T.MeshStandardMaterial({ color: bottomFoldCol, roughness: 0.4, metalness: 0.1 })
+    );
+    const envTopFlapMat = trackMat(
       new T.MeshStandardMaterial({
-        color: accentColor,
-        roughness: 0.3,
-        metalness: 0.45,
+        color: topFlapCol,
+        roughness: 0.36,
+        metalness: 0.15,
+        side: T.DoubleSide,
       })
     );
-    const envBody = new T.Mesh(trackGeo(new T.BoxGeometry(2.5, 1.65, 0.16)), envBodyMat);
-    const envTrim = new T.Mesh(trackGeo(new T.BoxGeometry(2.56, 1.71, 0.12)), envTrimMat);
-    envTrim.position.z = -0.03;
+    const silkLiningMat = trackMat(
+      new T.MeshStandardMaterial({
+        color: "#fdf6e7",
+        roughness: 0.48,
+        metalness: 0.05,
+        side: T.DoubleSide,
+      })
+    );
+    const goldFoilMat = trackMat(
+      new T.MeshStandardMaterial({
+        color: "#fbbf24",
+        roughness: 0.25,
+        metalness: 0.72,
+      })
+    );
 
+    // 5.1. Lưng phong bì + Viền kim loại vàng + Lớp lót lụa kem bên trong
+    const goldBackTrim = new T.Mesh(
+      trackGeo(new T.BoxGeometry(envW + 0.06, envH + 0.06, 0.014)),
+      goldFoilMat
+    );
+    goldBackTrim.position.z = -0.068;
+
+    const backPanel = new T.Mesh(
+      trackGeo(new T.BoxGeometry(envW, envH, 0.02)),
+      envBackMat
+    );
+    backPanel.position.z = -0.052;
+
+    const innerLining = new T.Mesh(
+      trackGeo(new T.PlaneGeometry(envW - 0.1, envH - 0.1)),
+      silkLiningMat
+    );
+    innerLining.position.z = -0.039;
+
+    // Thành viền trái, phải và đáy tạo độ dày túi thư thật (để hở khe miệng trên)
+    const leftWall = new T.Mesh(
+      trackGeo(new T.BoxGeometry(0.03, envH, 0.09)),
+      envSideFoldMat
+    );
+    leftWall.position.set(-hw + 0.015, 0, -0.008);
+    const rightWall = new T.Mesh(
+      trackGeo(new T.BoxGeometry(0.03, envH, 0.09)),
+      envSideFoldMat
+    );
+    rightWall.position.set(hw - 0.015, 0, -0.008);
+    const bottomWall = new T.Mesh(
+      trackGeo(new T.BoxGeometry(envW, 0.03, 0.09)),
+      envBottomFoldMat
+    );
+    bottomWall.position.set(0, -hh + 0.015, -0.008);
+
+    // 5.2. Tờ thư 3D có nội dung chữ thật nằm trong khe túi phong bì
+    const letterPaperGroup = new T.Group();
+    letterPaperGroup.position.set(0, -0.04, -0.005);
+    const letterPaperTex = trackTex(
+      createLetterPaperTexture(
+        String(draft.values.recipient || "Bạn"),
+        String(draft.values.sender || "Người gửi"),
+        String(draft.values.message || ""),
+        accentColor
+      )
+    );
+    const letterSheetBacking = new T.Mesh(
+      trackGeo(new T.BoxGeometry(2.36, 1.54, 0.016)),
+      trackMat(new T.MeshStandardMaterial({ color: "#fffcf5", roughness: 0.42 }))
+    );
+    const letterSheetFront = new T.Mesh(
+      trackGeo(new T.PlaneGeometry(2.32, 1.5)),
+      trackMat(
+        new T.MeshBasicMaterial({
+          map: letterPaperTex,
+          side: T.DoubleSide,
+        })
+      )
+    );
+    letterSheetFront.position.z = 0.01;
+    letterPaperGroup.add(letterSheetBacking, letterSheetFront);
+
+    // 5.3. Ba cánh gấp mặt trước tạo khe túi phong bì chữ V chuẩn thực tế
+    const foldExtrudeSettings: T.ExtrudeGeometryOptions = {
+      depth: 0.01,
+      bevelEnabled: true,
+      bevelThickness: 0.003,
+      bevelSize: 0.003,
+      bevelSegments: 2,
+    };
+
+    const leftFoldShape = new T.Shape();
+    leftFoldShape.moveTo(-hw, hh);
+    leftFoldShape.lineTo(-hw, -hh);
+    leftFoldShape.lineTo(-0.12, -0.02);
+    leftFoldShape.closePath();
+    const leftFoldMesh = new T.Mesh(
+      trackGeo(new T.ExtrudeGeometry(leftFoldShape, foldExtrudeSettings)),
+      envSideFoldMat
+    );
+    leftFoldMesh.position.z = 0.028;
+
+    const rightFoldShape = new T.Shape();
+    rightFoldShape.moveTo(hw, hh);
+    rightFoldShape.lineTo(0.12, -0.02);
+    rightFoldShape.lineTo(hw, -hh);
+    rightFoldShape.closePath();
+    const rightFoldMesh = new T.Mesh(
+      trackGeo(new T.ExtrudeGeometry(rightFoldShape, foldExtrudeSettings)),
+      envSideFoldMat
+    );
+    rightFoldMesh.position.z = 0.031;
+
+    const bottomFoldShape = new T.Shape();
+    bottomFoldShape.moveTo(-hw, -hh);
+    bottomFoldShape.lineTo(hw, -hh);
+    bottomFoldShape.lineTo(0.22, 0.08);
+    bottomFoldShape.lineTo(-0.22, 0.08);
+    bottomFoldShape.closePath();
+    const bottomFoldMesh = new T.Mesh(
+      trackGeo(new T.ExtrudeGeometry(bottomFoldShape, foldExtrudeSettings)),
+      envBottomFoldMat
+    );
+    bottomFoldMesh.position.z = 0.04;
+
+    // Đường viền chỉ vàng nổi bật dọc theo nếp gấp chữ V của phong bì
+    const seamLineMat = trackMat(
+      new T.LineBasicMaterial({ color: "#fcd34d", transparent: true, opacity: 0.85 })
+    );
+    const vPocketPoints = [
+      new T.Vector3(-hw, hh, 0.054),
+      new T.Vector3(-0.16, 0.02, 0.054),
+      new T.Vector3(0.16, 0.02, 0.054),
+      new T.Vector3(hw, hh, 0.054),
+    ];
+    const vPocketLine = new T.Line(
+      trackGeo(new T.BufferGeometry().setFromPoints(vPocketPoints)),
+      seamLineMat
+    );
+    const bottomSeamPoints = [
+      new T.Vector3(-hw, -hh, 0.056),
+      new T.Vector3(-0.22, 0.08, 0.056),
+      new T.Vector3(0.22, 0.08, 0.056),
+      new T.Vector3(hw, -hh, 0.056),
+    ];
+    const bottomSeamLine = new T.Line(
+      trackGeo(new T.BufferGeometry().setFromPoints(bottomSeamPoints)),
+      seamLineMat
+    );
+
+    // 5.4. Bản lề Nắp phong thư trên (Tam giác cân bo đỉnh bằng THREE.Shape, xoay chuẩn trục X)
     const flapPivot = new T.Group();
-    flapPivot.position.set(0, 0.82, 0.06);
+    flapPivot.position.set(0, hh, 0.052);
+
+    const topFlapShape = new T.Shape();
+    topFlapShape.moveTo(-hw, 0);
+    topFlapShape.lineTo(hw, 0);
+    topFlapShape.lineTo(0.14, -0.92);
+    topFlapShape.quadraticCurveTo(0, -1.03, -0.14, -0.92);
+    topFlapShape.closePath();
+
     const flapMesh = new T.Mesh(
-      trackGeo(new T.ConeGeometry(1.38, 0.95, 4)),
-      envTrimMat
+      trackGeo(
+        new T.ExtrudeGeometry(topFlapShape, {
+          depth: 0.012,
+          bevelEnabled: true,
+          bevelThickness: 0.003,
+          bevelSize: 0.003,
+          bevelSegments: 2,
+        })
+      ),
+      envTopFlapMat
     );
-    flapMesh.rotation.z = Math.PI;
-    flapMesh.rotation.y = Math.PI / 4;
-    flapMesh.scale.z = 0.08;
-    flapMesh.position.y = -0.42;
-    flapPivot.add(flapMesh);
 
-    const innerSheet = new T.Mesh(
-      trackGeo(new T.BoxGeometry(2.15, 1.4, 0.04)),
-      trackMat(new T.MeshStandardMaterial({ color: "#fffdf8", roughness: 0.5 }))
+    // Lớp lót lụa kem mặt trong của nắp phong thư (hiện ra khi nắp mở lật lên)
+    const innerFlapShape = new T.Shape();
+    innerFlapShape.moveTo(-hw + 0.1, -0.04);
+    innerFlapShape.lineTo(hw - 0.1, -0.04);
+    innerFlapShape.lineTo(0.1, -0.86);
+    innerFlapShape.quadraticCurveTo(0, -0.94, -0.1, -0.86);
+    innerFlapShape.closePath();
+    const innerFlapLining = new T.Mesh(
+      trackGeo(new T.ShapeGeometry(innerFlapShape)),
+      silkLiningMat
     );
-    innerSheet.position.set(0, 0.1, 0.02);
+    innerFlapLining.position.z = -0.003;
 
-    const waxSeal = new T.Mesh(
-      trackGeo(new T.CylinderGeometry(0.24, 0.24, 0.08, 28)),
-      trackMat(new T.MeshStandardMaterial({ color: accentColor, roughness: 0.25, metalness: 0.35 }))
+    // Viền vàng dọc theo mép nắp phong thư
+    const flapEdgePoints = [
+      new T.Vector3(-hw, 0, 0.018),
+      new T.Vector3(0, -1.01, 0.018),
+      new T.Vector3(hw, 0, 0.018),
+    ];
+    const flapEdgeLine = new T.Line(
+      trackGeo(new T.BufferGeometry().setFromPoints(flapEdgePoints)),
+      seamLineMat
     );
-    waxSeal.rotation.x = Math.PI / 2;
-    waxSeal.position.set(0, 0.02, 0.12);
+    flapPivot.add(flapMesh, innerFlapLining, flapEdgeLine);
 
-    envelopeGroup.add(envTrim, envBody, innerSheet, flapPivot, waxSeal);
+    // 5.5. Con dấu sáp đóng nổi (3D Embossed Wax Seal) tại đỉnh mũi nắp thư
+    const waxSealGroup = new T.Group();
+    waxSealGroup.position.set(0, -0.08, 0.074);
+    const waxDisc = new T.Mesh(
+      trackGeo(new T.CylinderGeometry(0.23, 0.25, 0.042, 32)),
+      trackMat(
+        new T.MeshStandardMaterial({
+          color: accentColor,
+          roughness: 0.28,
+          metalness: 0.35,
+        })
+      )
+    );
+    waxDisc.rotation.x = Math.PI / 2;
+    const waxGoldRing = new T.Mesh(
+      trackGeo(new T.TorusGeometry(0.16, 0.018, 12, 32)),
+      goldFoilMat
+    );
+    waxGoldRing.position.z = 0.022;
+    const waxStarCore = new T.Mesh(
+      trackGeo(new T.OctahedronGeometry(0.075, 0)),
+      goldFoilMat
+    );
+    waxStarCore.position.z = 0.028;
+    waxSealGroup.add(waxDisc, waxGoldRing, waxStarCore);
+
+    envelopeGroup.add(
+      goldBackTrim,
+      backPanel,
+      innerLining,
+      leftWall,
+      rightWall,
+      bottomWall,
+      letterPaperGroup,
+      leftFoldMesh,
+      rightFoldMesh,
+      bottomFoldMesh,
+      vPocketLine,
+      bottomSeamLine,
+      flapPivot,
+      waxSealGroup
+    );
 
     // Các khung ảnh kỷ niệm xoay vòng quanh Lá thư (tạo đủ số lượng để đội hình 3D đẹp mắt)
     const orbitGroup = new T.Group();
@@ -679,6 +993,7 @@ export default function UnifiedCosmicScene({
     // =========================================================================
     let rafId = 0;
     const startTime = performance.now();
+    let openProgress = letterOpenedRef.current ? 1 : 0;
 
     const animate = (now: number) => {
       rafId = requestAnimationFrame(animate);
@@ -746,15 +1061,36 @@ export default function UnifiedCosmicScene({
         });
       }
 
-      // Animation Bước 4: Mở Phong Thư & 8 Kiểu Ảnh Xoay Vòng Quanh Lá Thư
+      // Animation Bước 4: Mở/Đóng Phong Thư 3 Pha & 8 Kiểu Ảnh Xoay Vòng Quanh Lá Thư
       if (envelopeStageGroup.visible) {
-        const isOpen = letterOpenedRef.current;
-        const targetFlapRot = isOpen ? -Math.PI * 0.78 : 0;
-        flapPivot.rotation.x += (targetFlapRot - flapPivot.rotation.x) * 0.08;
-        innerSheet.position.y += ((isOpen ? 0.62 : 0.1) - innerSheet.position.y) * 0.08;
-        waxSeal.scale.setScalar(isOpen ? 0.01 : 1);
-        envelopeGroup.rotation.y = Math.sin(elapsed * 0.7) * 0.14 + userYaw * 0.35;
-        envelopeGroup.position.y = -0.25 + Math.sin(elapsed * 1.4) * 0.06;
+        const targetOpen = letterOpenedRef.current ? 1 : 0;
+        openProgress += (targetOpen - openProgress) * 0.055;
+
+        // Pha 1 (0.00 -> 0.22): Con dấu sáp nảy nhẹ và tách mở
+        const sealT = Math.max(0, Math.min(1, openProgress / 0.22));
+        waxSealGroup.visible = sealT < 0.98;
+        waxSealGroup.scale.setScalar(Math.max(0.001, 1 - sealT * 0.95));
+        waxSealGroup.position.z = 0.074 + Math.sin(sealT * Math.PI) * 0.08;
+
+        // Pha 2 (0.14 -> 0.56): Nắp phong thư xoay mở quanh bản lề ngang (0° -> -162°)
+        const flapT = Math.max(0, Math.min(1, (openProgress - 0.14) / 0.42));
+        const flapEase = flapT * flapT * (3 - 2 * flapT);
+        flapPivot.rotation.x = -flapEase * Math.PI * 0.9;
+
+        // Pha 3 (0.45 -> 1.00): Tờ thư có chữ rút từ trong túi phong bì lên cao
+        const sheetT = Math.max(0, Math.min(1, (openProgress - 0.45) / 0.55));
+        const sheetEase = sheetT * sheetT * (3 - 2 * sheetT);
+        letterPaperGroup.position.y = -0.04 + sheetEase * 1.04;
+        letterPaperGroup.position.z =
+          -0.005 + Math.max(0, (sheetEase - 0.35) / 0.65) * 0.095;
+        letterPaperGroup.rotation.x = -sheetEase * 0.05;
+        letterPaperGroup.scale.setScalar(0.95 + sheetEase * 0.09);
+
+        // Thân phong bì hạ nhẹ xuống khi tờ thư rút lên để cân đối khung hình
+        envelopeGroup.rotation.y =
+          Math.sin(elapsed * 0.65) * 0.14 + userYaw * 0.35;
+        envelopeGroup.position.y =
+          -0.12 - sheetEase * 0.38 + Math.sin(elapsed * 1.4) * 0.05;
 
         updatePhotoFormation(formation, elapsed);
       }

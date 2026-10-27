@@ -158,11 +158,16 @@ export default function UnifiedCardExperience({
       };
     }
     if (stage === "ENVELOPE_LETTER") {
-      stageTimerRef.current = setTimeout(() => {
+      setLetterOpened(false);
+      setShowLetterSheet(false);
+      const openFlapTimer = setTimeout(() => {
         setLetterOpened(true);
+      }, 450);
+      stageTimerRef.current = setTimeout(() => {
         setShowLetterSheet(true);
-      }, 750);
+      }, 1850);
       return () => {
+        clearTimeout(openFlapTimer);
         if (stageTimerRef.current) clearTimeout(stageTimerRef.current);
       };
     }
@@ -257,8 +262,11 @@ export default function UnifiedCardExperience({
       return;
     }
     if (stage === "ENVELOPE_LETTER") {
-      setLetterOpened(true);
-      setShowLetterSheet((prev) => !prev);
+      setLetterOpened((prev) => {
+        const next = !prev;
+        if (!next) setShowLetterSheet(false);
+        return next;
+      });
     }
   }, [stage, triggerModelVoiceAndTranscript, voiceFinished, voiceTriggered]);
 
@@ -533,19 +541,37 @@ export default function UnifiedCardExperience({
       {/* =================================================================== */}
       {stage === "ENVELOPE_LETTER" && (
         <>
-          {/* Thanh chuyển đổi giữa Đọc thư và Ngắm trọn các bức ảnh xoay quanh lá thư */}
+          {/* Thanh chuyển đổi giữa Đóng/Mở Phong thư 3D, Đọc thư và Ngắm các bức ảnh xoay quanh */}
           <div className="pointer-events-auto absolute bottom-5 inset-x-0 z-30 flex flex-wrap items-center justify-center gap-2.5 px-4">
             <button
               type="button"
               onClick={() => {
-                setLetterOpened(true);
-                setShowLetterSheet((prev) => !prev);
+                if (letterOpened) {
+                  setShowLetterSheet(false);
+                  setLetterOpened(false);
+                } else {
+                  setLetterOpened(true);
+                }
+              }}
+              className="rounded-full border border-amber-300/40 bg-black/65 px-4 py-2.5 text-xs sm:text-sm font-bold text-amber-200 shadow-lg backdrop-blur-md transition hover:bg-white/15 cursor-pointer"
+            >
+              {letterOpened ? "✉️ Đóng nắp phong thư 3D" : "💌 Mở nắp phong thư 3D"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!showLetterSheet) {
+                  setLetterOpened(true);
+                  setShowLetterSheet(true);
+                } else {
+                  setShowLetterSheet(false);
+                }
               }}
               className="rounded-full bg-gradient-to-r from-rose-500 to-amber-500 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xl transition hover:scale-105 cursor-pointer"
             >
               {showLetterSheet
-                ? `🌌 Ẩn trang thư để ngắm ${photoFormation.name}`
-                : `💌 Mở đọc lá thư (${envelopeLabel})`}
+                ? `🌌 Ẩn trang đọc thư để ngắm ${photoFormation.name}`
+                : `📜 Đọc toàn văn bức thư (${envelopeLabel})`}
             </button>
             {voiceSrc && (
               <button
