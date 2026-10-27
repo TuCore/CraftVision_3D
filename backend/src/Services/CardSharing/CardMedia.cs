@@ -19,7 +19,9 @@ public sealed class CardMedia(CardDatabase db, IConfiguration configuration)
         if (b[..4].SequenceEqual("RIFF"u8) && b.Slice(8, 4).SequenceEqual("WAVE"u8)) return "audio/wav";
         if (b[..4].SequenceEqual("OggS"u8)) return "audio/ogg";
         if (b[..3].SequenceEqual("ID3"u8) || (b[0] == 0xff && (b[1] & 0xe0) == 0xe0)) return "audio/mpeg";
-        throw new CardError(400, "Chỉ hỗ trợ JPEG, PNG, WebP, MP3, WAV và OGG.");
+        if (b[..4].SequenceEqual(new byte[] { 0x1A, 0x45, 0xDF, 0xA3 })) return "audio/webm";
+        if (b.Slice(4, 4).SequenceEqual("ftyp"u8)) return "audio/mp4";
+        throw new CardError(400, "Chỉ hỗ trợ JPEG, PNG, WebP, MP3, WAV, OGG, WebM và MP4/M4A.");
     }
     public async Task<StoredAsset> Upload(Guid owner, byte[] bytes, CancellationToken ct)
     {

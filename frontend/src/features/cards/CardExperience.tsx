@@ -8,13 +8,14 @@ import dynamic from "next/dynamic";
 import { fieldsFor, type CardTemplate, type CardDraft } from "./catalog";
 import "./cards.css";
 
+const UnifiedCardExperience = dynamic(() => import("./UnifiedCardExperience"), { ssr: false, loading: () => <div className="scene-loading">Đang dựng món quà 3D…</div> });
 const CardScene = dynamic(() => import("./CardScene"), { ssr: false, loading: () => <div className="scene-loading">Đang dựng món quà 3D…</div> });
 const RoseRainExperience = dynamic(() => import("./RoseRainExperience"), { ssr: false });
 const HeartKeyExperience = dynamic(() => import("./HeartKeyExperience"), { ssr: false });
 const BirthdayInteractiveExperience = dynamic(() => import("./BirthdayInteractiveExperience"), { ssr: false });
 const MemoryFlowerExperience = dynamic(() => import("./MemoryFlowerExperience"), { ssr: false });
 export default function CardExperience(props: { template: CardTemplate; draft: CardDraft; embedded?: boolean }) {
-  if (props.template.slug === "rose-love") return <RoseRainExperience {...props} />;
+  return <UnifiedCardExperience {...props} />; if (props.template.slug === "rose-love") return <RoseRainExperience {...props} />;
   if (props.template.slug === "heart-key") return <HeartKeyExperience {...props} />;
   if (props.template.slug === "birthday-wish") return <BirthdayInteractiveExperience {...props} />;
   if (props.template.slug === "memory-train") return <MemoryFlowerExperience {...props} />;

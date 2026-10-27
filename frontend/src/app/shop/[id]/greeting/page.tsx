@@ -9,10 +9,8 @@ import { getAccessToken } from "@/lib/authSession";
 import {
   ArrowLeft,
   Sparkles,
-  Flame,
   Eye,
   PlayCircle,
-  RotateCcw,
   CreditCard,
   ExternalLink,
   ShoppingCart,
@@ -22,7 +20,8 @@ import {
   Palette,
   RefreshCw,
   Gift,
-  ChevronDown,
+  Box,
+  Orbit,
 } from "lucide-react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useGreetingStore } from "@/store/useGreetingStore";
@@ -43,7 +42,6 @@ import {
 } from "@/data/templateProducts";
 import {
   cardTemplates,
-  categories as cardCategories,
   defaultDraft,
   type CardTemplate,
   type CardDraft,
@@ -55,6 +53,19 @@ import {
   importAudio,
 } from "@/features/cards/storage";
 import { getCardCommerce } from "@/features/cards/commerce";
+import {
+  ENABLED_CURATED_MODELS,
+  COSMIC_BACKGROUNDS,
+  PHOTO_FORMATIONS,
+  FREE_PHOTO_LIMIT,
+  EXTRA_PHOTO_PRICE_VND,
+  MAX_CARD_PHOTOS,
+  calculateExtraPhotoFee,
+  getCuratedModel,
+  getCosmicBackground,
+  getPhotoFormation,
+} from "@/features/cards/curatedModels";
+import { VoiceRecorderField } from "@/features/cards/VoiceRecorderField";
 
 type GreetingTemplate = TemplateProduct & {
   slug: string;
@@ -82,19 +93,11 @@ const WEB_CARD_TEMPLATES: GreetingTemplate[] = cardTemplates.map((template) => {
   };
 });
 
-const TEMPLATE_MESSAGE_KEYS = [
-  "confession",
-  "proposal",
-  "gratitude",
-  "apology",
-  "pledge",
-  "reunionWish",
-  "wish",
-  "encouragement",
-  "shortWish",
-  "shortThanks",
-  "peace",
-];
+// Format Thiệp 3D Duy Nhất chuẩn của hệ thống
+const MASTER_CARD_TEMPLATE: GreetingTemplate = {
+  ...WEB_CARD_TEMPLATES[0],
+  title: "Thiệp 3D Vũ Trụ Kỷ Niệm CraftVision",
+};
 
 function GreetingDesignContent() {
   const router = useRouter();
@@ -106,35 +109,40 @@ function GreetingDesignContent() {
   const customName = searchParams.get("customName");
   const editCartItemId = searchParams.get("editCartItemId");
   const initialQtyParam = Number(searchParams.get("quantity")) || 1;
-  const initialSlugParam = searchParams.get("slug");
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<GreetingTemplate>(() => {
-    if (initialSlugParam) {
-      const found = WEB_CARD_TEMPLATES.find((t) => t.slug === initialSlugParam);
-      if (found) return found;
-    }
-    return WEB_CARD_TEMPLATES[0];
-  });
+  const [selectedTemplate] = useState<GreetingTemplate>(MASTER_CARD_TEMPLATE);
 
-  // Các ô nhập nội dung đồng bộ lên Thiệp 3D
+  // 1. Model 3D (do chủ hệ thống cung cấp) & Background Vũ trụ 3D có chiều sâu
+  const [sceneModelId, setSceneModelId] = useState<string>(ENABLED_CURATED_MODELS[0].id);
+  const [bgStyleId, setBgStyleId] = useState<string>(COSMIC_BACKGROUNDS[0].id);
+  const [bgColor, setBgColor] = useState<string>(COSMIC_BACKGROUNDS[0].nebulaPrimary);
+
+  // 2. Lời mở đầu thiệp & Tâm thư
   const [recipientName, setRecipientName] = useState("");
   const [senderName, setSenderName] = useState("");
-  const [cardTitle, setCardTitle] = useState("");
-  const [introText, setIntroText] = useState("Một món quà nhỏ, dành riêng cho bạn");
-  const [letterTitle, setLetterTitle] = useState("Gửi bạn thân mến");
+  const [cardTitle, setCardTitle] = useState("Một Món Quà Nhỏ Giữa Vũ Trụ");
+  const [introText, setIntroText] = useState("Giữa hàng triệu vì sao, món quà này dành riêng cho bạn");
+  const [letterTitle, setLetterTitle] = useState("Gửi người đặc biệt của tôi");
   const [message, setMessage] = useState("");
   const [closingText, setClosingText] = useState("Với tất cả yêu thương");
+
+  // 3. Hình ảnh kỷ niệm (Miễn phí 5 ảnh, từ ảnh thứ 6 +5.000đ/ảnh) & Cách trình bày 3D
   const [photos, setPhotos] = useState<string[]>([]);
+  const [photoFormationId, setPhotoFormationId] = useState<string>(PHOTO_FORMATIONS[0].id);
+
+  // 4. Âm nhạc xuyên suốt & Ghi âm Giọng nói (kèm văn bản xuất hiện từng chữ cái)
   const [audioData, setAudioData] = useState<string>("");
   const [audioFileName, setAudioFileName] = useState<string>("");
-  const [accentColor, setAccentColor] = useState<string>(WEB_CARD_TEMPLATES[0].rawTemplate.color);
+  const [voiceData, setVoiceData] = useState<string>("");
+  const [voiceText, setVoiceText] = useState<string>("");
+
+  // 5. Tùy chỉnh Phong thư & Màu chủ đạo
+  const [accentColor, setAccentColor] = useState<string>(ENABLED_CURATED_MODELS[0].defaultColor);
   const [envelopeColor, setEnvelopeColor] = useState<string>("#f9e8d4");
   const [envelopeLabel, setEnvelopeLabel] = useState<string>("Dành riêng cho bạn");
   const [sealType, setSealType] = useState<string>("Trái tim");
 
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("Tất cả");
-  const [deliveryMethod, setDeliveryMethod] = useState<"link" | "qr">("link");
   const [quantity, setQuantity] = useState(Math.max(1, initialQtyParam));
   const [previewVersion, setPreviewVersion] = useState(1);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
@@ -143,7 +151,6 @@ function GreetingDesignContent() {
   const { toggleFavorite, updateCartItem, items } = useWishlistStore();
   const store = useGreetingStore();
 
-  // Video & Fullscreen Preview Modals
   const [videoMap, setVideoMap] = useState<Record<number, TemplateVideo>>({});
   const [activeVideo, setActiveVideo] = useState<TemplateVideo | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -154,11 +161,11 @@ function GreetingDesignContent() {
     return (
       !product.id.startsWith("template-") &&
       product.category !== "Thiệp điện tử" &&
-      !(product as any).isDigital
+      !(product as unknown as { isDigital?: boolean }).isDigital
     );
   }, [product]);
 
-  const getCardPrice = useCallback(
+  const getBaseCardPrice = useCallback(
     (template: GreetingTemplate | null | undefined): number => {
       if (!template) return 39200;
       const retailPrice = template.originalPrice || template.price || 49000;
@@ -167,28 +174,59 @@ function GreetingDesignContent() {
     [isPhysical]
   );
 
+  const extraPhotoPricing = useMemo(
+    () => calculateExtraPhotoFee(photos.length),
+    [photos.length]
+  );
+
   const calculatePricing = useMemo(() => {
-    if (!product) return { basePrice: 0, cardPrice: 0, unitPrice: 0, totalItemPrice: 0 };
+    if (!product) {
+      return {
+        basePrice: 0,
+        baseCardPrice: 0,
+        extraPhotoCount: 0,
+        extraPhotoFee: 0,
+        cardPrice: 0,
+        unitPrice: 0,
+        totalItemPrice: 0,
+      };
+    }
+    const baseCardPrice = getBaseCardPrice(selectedTemplate);
+    const cardPrice = baseCardPrice + extraPhotoPricing.extraFee;
+
     if (!isPhysical) {
-      const price = selectedTemplate?.price || product.price || 49000;
-      return { basePrice: 0, cardPrice: price, unitPrice: price, totalItemPrice: price * quantity };
+      return {
+        basePrice: 0,
+        baseCardPrice,
+        extraPhotoCount: extraPhotoPricing.extraCount,
+        extraPhotoFee: extraPhotoPricing.extraFee,
+        cardPrice,
+        unitPrice: cardPrice,
+        totalItemPrice: cardPrice * quantity,
+      };
     }
     const basePrice = product.price || 0;
-    const cardPrice = getCardPrice(selectedTemplate);
     const unitPrice = basePrice + cardPrice;
     return {
       basePrice,
+      baseCardPrice,
+      extraPhotoCount: extraPhotoPricing.extraCount,
+      extraPhotoFee: extraPhotoPricing.extraFee,
       cardPrice,
       unitPrice,
       totalItemPrice: unitPrice * quantity,
     };
-  }, [product, isPhysical, selectedTemplate, quantity, getCardPrice]);
+  }, [product, isPhysical, selectedTemplate, quantity, getBaseCardPrice, extraPhotoPricing]);
 
-  const rawStock = (product as any)?.stock ?? 0;
+  const rawStock = (product as unknown as { stock?: number })?.stock ?? 0;
   const greetingMaxStock =
-    isPhysical && (product as any)?.stock !== undefined ? Math.max(0, rawStock) : undefined;
+    isPhysical && (product as unknown as { stock?: number })?.stock !== undefined
+      ? Math.max(0, rawStock)
+      : undefined;
   const isGreetingOutOfStock =
-    isPhysical && (product as any)?.stock !== undefined && rawStock === 0;
+    isPhysical &&
+    (product as unknown as { stock?: number })?.stock !== undefined &&
+    rawStock === 0;
 
   const handleGreetingDecrease = () => setQuantity((q) => Math.max(1, q - 1));
 
@@ -225,7 +263,7 @@ function GreetingDesignContent() {
     setQuantity(parsed);
   };
 
-  // Tạo đối tượng CardDraft chuẩn từ toàn bộ ô nhập hiện tại của người dùng cho bất kỳ mẫu thiệp nào
+  // Tạo đối tượng CardDraft chuẩn từ toàn bộ tùy chỉnh của người dùng
   const buildCurrentDraft = useCallback(
     (tmpl: GreetingTemplate): CardDraft => {
       const base = defaultDraft(tmpl.rawTemplate);
@@ -237,10 +275,17 @@ function GreetingDesignContent() {
       base.values.recipient = effectiveRecipient;
       base.values.sender = effectiveSender;
       base.values.title = effectiveTitle;
-      base.values.intro = introText.trim() || "Một món quà nhỏ, dành riêng cho bạn";
-      base.values.letterTitle = letterTitle.trim() || "Gửi bạn thân mến";
+      base.values.intro =
+        introText.trim() || "Giữa hàng triệu vì sao, món quà này dành riêng cho bạn";
+      base.values.letterTitle = letterTitle.trim() || "Gửi người đặc biệt của tôi";
       base.values.message = effectiveMessage;
       base.values.closing = closingText.trim() || "Với tất cả yêu thương";
+
+      base.values.sceneModel = sceneModelId;
+      base.values.bgStyle = bgStyleId;
+      base.values.bgColor = /^#[0-9a-f]{6}$/i.test(bgColor) ? bgColor : "#7b2cbf";
+      base.values.photoFormation = photoFormationId;
+
       base.values.accent = /^#[0-9a-f]{6}$/i.test(accentColor)
         ? accentColor
         : tmpl.rawTemplate.color;
@@ -252,34 +297,11 @@ function GreetingDesignContent() {
         ? sealType
         : "Trái tim";
 
-      if (photos.length > 0) {
-        base.values.photo = photos[0];
-      } else {
-        base.values.photo = "";
-      }
-
-      if (audioData) {
-        base.values.audio = audioData;
-      } else {
-        base.values.audio = "";
-      }
-
-      // Đồng bộ nội dung chữ & album ảnh sang các trường riêng của từng mẫu thiệp 3D
-      for (const field of tmpl.rawTemplate.fields) {
-        if (field.type === "images") {
-          const maxPhotos = field.max || 12;
-          base.values[field.key] = photos.slice(0, maxPhotos);
-        } else if (field.type === "image" && field.key !== "logo") {
-          base.values[field.key] = photos[0] || "";
-        } else if (
-          TEMPLATE_MESSAGE_KEYS.includes(field.key) &&
-          (field.type === "textarea" || field.type === "text")
-        ) {
-          base.values[field.key] = effectiveMessage;
-        } else if (field.key === "couple" && !base.values.couple) {
-          base.values.couple = `${effectiveSender} & ${effectiveRecipient}`;
-        }
-      }
+      base.values.photo = photos[0] || "";
+      base.values.album = photos.slice(0, MAX_CARD_PHOTOS);
+      base.values.audio = audioData || "";
+      base.values.voice = voiceData || "";
+      base.values.voiceText = voiceText.trim() || "";
 
       return base;
     },
@@ -293,18 +315,23 @@ function GreetingDesignContent() {
       letterTitle,
       message,
       closingText,
+      sceneModelId,
+      bgStyleId,
+      bgColor,
+      photoFormationId,
       accentColor,
       envelopeColor,
       envelopeLabel,
       sealType,
       photos,
       audioData,
+      voiceData,
+      voiceText,
     ]
   );
 
-  // Tự động lưu bản nháp vào IndexedDB và làm mới khung 3D mỗi khi người dùng thay đổi nội dung hoặc đổi mẫu thiệp
+  // Tự động lưu bản nháp vào IndexedDB và làm mới khung 3D mỗi khi người dùng thay đổi nội dung
   useEffect(() => {
-    if (!selectedTemplate) return;
     const timer = setTimeout(async () => {
       try {
         const draft = buildCurrentDraft(selectedTemplate);
@@ -328,48 +355,23 @@ function GreetingDesignContent() {
     }
   };
 
-  // Đổi mẫu thiệp từ ô Dropdown: Giữ nguyên toàn bộ nội dung chữ, ảnh, nhạc đã nhập
-  const handleSelectTemplateBySlug = async (slug: string) => {
-    const nextTmpl = WEB_CARD_TEMPLATES.find((t) => t.slug === slug);
-    if (!nextTmpl) return;
-    setSelectedTemplate(nextTmpl);
-    setAccentColor(nextTmpl.rawTemplate.color);
-    try {
-      const draft = buildCurrentDraft(nextTmpl);
-      await saveDraft(draft);
-      setPreviewVersion((v) => v + 1);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   // Tải thông tin sản phẩm vật lý
   useEffect(() => {
     const isTemplateRoute =
       id.startsWith("template-") || (!isNaN(Number(id)) && Number(id) > 0 && Number(id) <= 200);
-    const parsedTemplateId = id.startsWith("template-")
-      ? parseInt(id.replace("template-", ""), 10)
-      : !isNaN(Number(id))
-      ? parseInt(id, 10)
-      : null;
-
-    if (isTemplateRoute && parsedTemplateId) {
-      const tmpl =
-        WEB_CARD_TEMPLATES.find((t) => t.id === parsedTemplateId) || WEB_CARD_TEMPLATES[0];
+    if (isTemplateRoute) {
       setProduct({
-        id: `template-${tmpl.id}`,
-        name: tmpl.title,
-        price: tmpl.price,
+        id: `template-${MASTER_CARD_TEMPLATE.id}`,
+        name: MASTER_CARD_TEMPLATE.title,
+        price: MASTER_CARD_TEMPLATE.price,
         category: "Thiệp điện tử",
-        image: tmpl.image,
+        image: MASTER_CARD_TEMPLATE.image,
         rating: 5.0,
         description: "Thiết kế thiệp điện tử thông điệp 3D tích hợp công nghệ NFC.",
         matchScore: 100,
         is3D: true,
         isDigital: true,
-      } as any);
-      setSelectedTemplate(tmpl);
-      setAccentColor(tmpl.rawTemplate.color);
+      } as unknown as Product);
       return;
     }
 
@@ -380,7 +382,9 @@ function GreetingDesignContent() {
           const p = await res.json();
           const parsedImages = p.sampleImageUrl
             ? p.sampleImageUrl.split(",")
-            : p.images?.map((img: any) => img.url || img) || [];
+            : p.images?.map((img: { url?: string } | string) =>
+                typeof img === "string" ? img : img.url
+              ) || [];
           setProduct({
             id: p.id,
             name: p.name,
@@ -397,26 +401,24 @@ function GreetingDesignContent() {
             stock: p.stock ?? 0,
           });
         } else {
-          const fallbackTmpl = WEB_CARD_TEMPLATES[0];
           setProduct({
-            id: `template-${fallbackTmpl.id}`,
-            name: fallbackTmpl.title,
-            price: fallbackTmpl.price,
+            id: `template-${MASTER_CARD_TEMPLATE.id}`,
+            name: MASTER_CARD_TEMPLATE.title,
+            price: MASTER_CARD_TEMPLATE.price,
             category: "Thiệp điện tử",
-            image: fallbackTmpl.image,
+            image: MASTER_CARD_TEMPLATE.image,
             rating: 5.0,
             description: "Thiết kế thiệp điện tử thông điệp 3D.",
             matchScore: 100,
             is3D: true,
             isDigital: true,
-          } as any);
-          setSelectedTemplate(fallbackTmpl);
+          } as unknown as Product);
         }
       } catch (e) {
         console.error(e);
       }
     };
-    fetchProduct();
+    void fetchProduct();
   }, [id]);
 
   useEffect(() => {
@@ -431,7 +433,7 @@ function GreetingDesignContent() {
         console.error("Lỗi khi tải video hướng dẫn:", e);
       }
     };
-    fetchVideos();
+    void fetchVideos();
   }, []);
 
   useEffect(() => {
@@ -453,16 +455,6 @@ function GreetingDesignContent() {
         (i) => (i.cartItemId || i.id) === editCartItemId || i.id === editCartItemId
       );
       if (existingItem) {
-        const matchedTmpl = WEB_CARD_TEMPLATES.find(
-          (t) =>
-            t.slug === existingItem.cardSlug ||
-            t.slug === existingItem.selectedTemplate?.slug ||
-            t.id === existingItem.selectedTemplate?.id
-        );
-        if (matchedTmpl) {
-          setSelectedTemplate(matchedTmpl);
-          setAccentColor(matchedTmpl.rawTemplate.color);
-        }
         if (existingItem.greetingMessage) setMessage(existingItem.greetingMessage);
         if (existingItem.senderName) {
           setSenderName(existingItem.senderName);
@@ -481,10 +473,16 @@ function GreetingDesignContent() {
           if (typeof dv.intro === "string") setIntroText(dv.intro);
           if (typeof dv.letterTitle === "string") setLetterTitle(dv.letterTitle);
           if (typeof dv.closing === "string") setClosingText(dv.closing);
+          if (typeof dv.sceneModel === "string") setSceneModelId(dv.sceneModel);
+          if (typeof dv.bgStyle === "string") setBgStyleId(dv.bgStyle);
+          if (typeof dv.bgColor === "string") setBgColor(dv.bgColor);
+          if (typeof dv.photoFormation === "string") setPhotoFormationId(dv.photoFormation);
           if (typeof dv.audio === "string" && dv.audio) {
             setAudioData(dv.audio);
             setAudioFileName("Nhạc nền đã lưu");
           }
+          if (typeof dv.voice === "string") setVoiceData(dv.voice);
+          if (typeof dv.voiceText === "string") setVoiceText(dv.voiceText);
           if (Array.isArray(dv.album) && dv.album.length > 0) {
             setPhotos(dv.album.filter((x): x is string => typeof x === "string"));
           } else if (typeof dv.photo === "string" && dv.photo) {
@@ -494,14 +492,16 @@ function GreetingDesignContent() {
           if (typeof dv.envelopeColor === "string") setEnvelopeColor(dv.envelopeColor);
           if (typeof dv.envelopeLabel === "string") setEnvelopeLabel(dv.envelopeLabel);
           if (typeof dv.seal === "string") setSealType(dv.seal);
-        } else if (matchedTmpl) {
-          readDraft(matchedTmpl.slug).then((saved) => {
+        } else {
+          readDraft(selectedTemplate.slug).then((saved) => {
             if (!saved) return;
             const dv = saved.values;
             if (typeof dv.audio === "string" && dv.audio) {
               setAudioData(dv.audio);
               setAudioFileName("Nhạc nền đã lưu");
             }
+            if (typeof dv.voice === "string") setVoiceData(dv.voice);
+            if (typeof dv.voiceText === "string") setVoiceText(dv.voiceText);
             if (Array.isArray(dv.album) && dv.album.length > 0) {
               setPhotos(dv.album.filter((x): x is string => typeof x === "string"));
             }
@@ -510,7 +510,7 @@ function GreetingDesignContent() {
         if (existingItem.quantity) setQuantity(existingItem.quantity);
       }
     }
-  }, [editCartItemId, items]);
+  }, [editCartItemId, items, selectedTemplate.slug, store]);
 
   const handleOpenVideo = (template: GreetingTemplate) => {
     const video =
@@ -528,20 +528,30 @@ function GreetingDesignContent() {
     setIsVideoModalOpen(true);
   };
 
-  // Xử lý tải nhiều ảnh kỷ niệm lên Thiệp 3D (chuẩn hóa qua importPhoto)
+  // Xử lý tải nhiều ảnh kỷ niệm lên Thiệp 3D (Miễn phí 5 ảnh đầu, từ ảnh thứ 6 +5.000đ/ảnh, tối đa 20 ảnh)
   const handlePhotosUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     e.target.value = "";
     if (!files.length) return;
-    if (photos.length + files.length > 8) {
-      toast.warning("Tối đa 8 hình ảnh kỷ niệm trên thiệp 3D.");
+    if (photos.length + files.length > MAX_CARD_PHOTOS) {
+      toast.warning(`Tối đa ${MAX_CARD_PHOTOS} hình ảnh kỷ niệm trên thiệp 3D.`);
       return;
     }
     setIsUploadingMedia(true);
     try {
       const converted = await Promise.all(files.map((file) => importPhoto(file)));
+      const nextCount = photos.length + converted.length;
       setPhotos((prev) => [...prev, ...converted]);
-      toast.success(`Đã chèn ${converted.length} ảnh vào Thiệp 3D!`);
+      if (nextCount > FREE_PHOTO_LIMIT) {
+        const extra = nextCount - FREE_PHOTO_LIMIT;
+        toast.success(
+          `Đã thêm ảnh! Bạn đang có ${nextCount} ảnh (${FREE_PHOTO_LIMIT} ảnh miễn phí + ${extra} ảnh thêm: +${(
+            extra * EXTRA_PHOTO_PRICE_VND
+          ).toLocaleString("vi-VN")}đ).`
+        );
+      } else {
+        toast.success(`Đã chèn ${converted.length} ảnh vào Thiệp 3D!`);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Không thể đọc tệp hình ảnh.");
     } finally {
@@ -553,7 +563,17 @@ function GreetingDesignContent() {
     setPhotos((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  // Xử lý tải nhạc nền / âm thanh lên Thiệp 3D (chuẩn hóa qua importAudio)
+  const handleMovePhoto = (index: number, direction: -1 | 1) => {
+    setPhotos((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  // Xử lý tải nhạc nền phát xuyên suốt
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -563,7 +583,7 @@ function GreetingDesignContent() {
       const dataUrl = await importAudio(file);
       setAudioData(dataUrl);
       setAudioFileName(file.name);
-      toast.success(`Đã chèn nhạc "${file.name}" vào Thiệp 3D!`);
+      toast.success(`Đã chèn nhạc nền "${file.name}" vào Thiệp 3D!`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Không thể tải tệp âm thanh.");
     } finally {
@@ -597,7 +617,7 @@ function GreetingDesignContent() {
         category: "3D",
         is3D: true,
         modelUrl: modelUrl,
-      } as any;
+      } as unknown as Product;
     }
 
     const { basePrice, cardPrice, unitPrice } = calculatePricing;
@@ -609,10 +629,10 @@ function GreetingDesignContent() {
     const templateData = {
       id: selectedTemplate.id,
       slug: selectedTemplate.slug,
-      title: selectedTemplate.title,
+      title: cardTitle.trim() || selectedTemplate.title,
       image: selectedTemplate.image,
       price: cardPrice,
-      originalPrice: selectedTemplate.originalPrice || selectedTemplate.price,
+      originalPrice: (selectedTemplate.originalPrice || selectedTemplate.price) + calculatePricing.extraPhotoFee,
       discount: 20,
       is3D: true,
     };
@@ -636,7 +656,7 @@ function GreetingDesignContent() {
         receiverName: effectiveRecipient,
         cardSlug: selectedTemplate.slug,
         cardType: "web_library_3d",
-        originalCardPrice: selectedTemplate.originalPrice || selectedTemplate.price,
+        originalCardPrice: templateData.originalPrice,
         discountedCardPrice: cardPrice,
         selectedTemplate: templateData,
         draftValues: draft.values,
@@ -668,7 +688,7 @@ function GreetingDesignContent() {
       receiverName: effectiveRecipient,
       cardSlug: selectedTemplate.slug,
       cardType: "web_library_3d",
-      originalCardPrice: selectedTemplate.originalPrice || selectedTemplate.price,
+      originalCardPrice: templateData.originalPrice,
       discountedCardPrice: cardPrice,
       selectedTemplate: templateData,
       customQuantity: quantity,
@@ -737,7 +757,7 @@ function GreetingDesignContent() {
         cardPrice: isPhysical ? cardPrice : undefined,
         image: isPhysical ? product.image : selectedTemplate.image || product.image,
         category: isPhysical ? product.category : "Thiệp điện tử",
-        is3D: isPhysical ? (product as any).is3D : true,
+        is3D: isPhysical ? (product as unknown as { is3D?: boolean }).is3D : true,
         isDigital: !isPhysical,
       },
       quantity: quantity,
@@ -749,7 +769,9 @@ function GreetingDesignContent() {
         giftTitle: cardTitle.trim() || selectedTemplate.title,
         templateTitle: selectedTemplate.title,
         cardPrice: cardPrice,
-        originalCardPrice: selectedTemplate.originalPrice || selectedTemplate.price,
+        originalCardPrice:
+          (selectedTemplate.originalPrice || selectedTemplate.price) +
+          calculatePricing.extraPhotoFee,
         cardSlug: selectedTemplate.slug,
         templateId: selectedTemplate.id,
         senderName: effectiveSender,
@@ -766,7 +788,7 @@ function GreetingDesignContent() {
       },
     };
 
-    useOrderStore.getState().setItems([orderItem as any]);
+    useOrderStore.getState().setItems([orderItem as never]);
     setIsPreviewModalOpen(false);
     toast.success("Đang chuyển tới trang thanh toán...");
     router.push("/checkout");
@@ -794,11 +816,9 @@ function GreetingDesignContent() {
       .replace("₫", "VND");
   };
 
-  const categories = ["Tất cả", ...cardCategories];
-  const filteredTemplatesForDropdown = useMemo(() => {
-    if (selectedCategoryFilter === "Tất cả") return WEB_CARD_TEMPLATES;
-    return WEB_CARD_TEMPLATES.filter((t) => t.category === selectedCategoryFilter);
-  }, [selectedCategoryFilter]);
+  const activeCuratedModel = getCuratedModel(sceneModelId);
+  const activeCosmicBg = getCosmicBackground(bgStyleId);
+  const activeFormation = getPhotoFormation(photoFormationId);
 
   if (!product) {
     return (
@@ -826,23 +846,31 @@ function GreetingDesignContent() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl sm:text-3xl font-extrabold font-display gradient-text">
                   {editCartItemId
-                    ? "Chỉnh sửa Thiệp 3D & Đơn hàng"
-                    : "Thiết kế Thiệp 3D đi kèm quà Handmade"}
+                    ? "Chỉnh sửa Thiệp 3D Vũ Trụ & Đơn hàng"
+                    : "Thiết kế Thiệp 3D Vũ Trụ đi kèm quà Handmade"}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 text-xs font-bold border border-rose-500/20">
-                  Đồng bộ 3D trực tiếp
+                  Format 3D Điện Ảnh Duy Nhất
                 </span>
               </div>
               <p className="text-muted-foreground text-xs sm:text-sm mt-1">
-                Nhập lời chúc, chèn hình ảnh và âm thanh trực tiếp lên thiệp 3D. Đổi mẫu thiệp bất kỳ ở ô Dropdown mà không mất nội dung đã nhập.
+                Kịch bản: Mở thiệp hiện 1–2 ảnh mở màn → Chuyển cảnh vũ trụ → Chạm Model 3D phát giọng nói & chữ chạy từng ký tự → Mở phong thư & ngắm ảnh xoay quanh.
               </p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => handleOpenVideo(selectedTemplate)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:underline cursor-pointer self-start sm:self-auto"
+          >
+            <PlayCircle className="w-4 h-4" />
+            Video hướng dẫn
+          </button>
         </div>
 
         {/* 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
-          {/* CỘT TRÁI (5 phần): TÓM TẮT SẢN PHẨM VẬT LÝ & KHUNG XEM TRƯỚC THIỆP 3D LIVE */}
+          {/* CỘT TRÁI (5 phần): KHUNG XEM TRƯỚC THIỆP 3D LIVE & TÓM TẮT GIÁ ĐƠN HÀNG */}
           <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
             {/* 1. Khung Xem Trước Thiệp 3D Trực Tiếp */}
             <div className="glass-card rounded-3xl p-4 sm:p-5 shadow-soft border border-white/40 space-y-3.5">
@@ -875,18 +903,26 @@ function GreetingDesignContent() {
                 </div>
               </div>
 
-              <div className="relative w-full aspect-[4/5] sm:aspect-[10/11] rounded-2xl overflow-hidden border border-border/70 bg-[#120718] shadow-inner">
+              <div className="relative w-full aspect-[4/5] sm:aspect-[10/11] rounded-2xl overflow-hidden border border-border/70 bg-[#060411] shadow-inner">
                 <iframe
                   key={`${selectedTemplate.slug}-${previewVersion}`}
                   src={`/love-gift/${selectedTemplate.slug}?preview=1&draft=1`}
-                  title={`Xem trước 3D: ${selectedTemplate.title}`}
+                  title="Xem trước Thiệp 3D Vũ Trụ"
                   className="w-full h-full border-0"
                 />
               </div>
 
-              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                💡 Chạm, kéo xoay 360° hoặc mở phong thư ngay trong khung trên để kiểm tra tên, lời chúc, hình ảnh và nhạc nền của bạn.
-              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted-foreground">
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+                  {activeCuratedModel.icon} {activeCuratedModel.name}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 font-semibold">
+                  {activeCosmicBg.icon} {activeCosmicBg.name}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 font-semibold">
+                  {activeFormation.icon} {activeFormation.name}
+                </span>
+              </div>
             </div>
 
             {/* 2. Thông tin Sản phẩm vật lý Handmade + Giá tổng hợp */}
@@ -894,13 +930,12 @@ function GreetingDesignContent() {
               <div className="flex items-center gap-3.5">
                 <div className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-border/60 bg-muted">
                   {from3d && modelUrl ? (
-                    // @ts-ignore
                     <model-viewer
                       src={modelUrl}
                       auto-rotate
                       camera-controls
                       style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
-                    ></model-viewer>
+                    />
                   ) : (
                     <img
                       src={product.image}
@@ -929,9 +964,9 @@ function GreetingDesignContent() {
                   <span className="text-xs font-bold text-foreground block">
                     Số lượng sản phẩm:
                   </span>
-                  {isPhysical && (product as any)?.stock !== undefined && (
+                  {isPhysical && (product as unknown as { stock?: number })?.stock !== undefined && (
                     <span className="text-[11px] text-muted-foreground">
-                      Kho còn: <strong>{(product as any).stock}</strong> sản phẩm
+                      Kho còn: <strong>{(product as unknown as { stock?: number }).stock}</strong> sản phẩm
                     </span>
                   )}
                 </div>
@@ -939,7 +974,7 @@ function GreetingDesignContent() {
                   <button
                     type="button"
                     onClick={handleGreetingDecrease}
-                    disabled={quantity <= 1 || (isPhysical && (product as any)?.stock === 0)}
+                    disabled={quantity <= 1 || isGreetingOutOfStock}
                     className="w-8 h-full flex items-center justify-center hover:bg-primary/10 text-primary font-bold transition-colors cursor-pointer disabled:opacity-40"
                   >
                     -
@@ -963,7 +998,7 @@ function GreetingDesignContent() {
                 </div>
               </div>
 
-              {/* Chi tiết giá combo */}
+              {/* Chi tiết giá combo (bao gồm phụ phí ảnh vượt quá 5 ảnh) */}
               <div className="pt-2 border-t border-border/50 space-y-1.5 text-xs">
                 {isPhysical && (
                   <div className="flex justify-between text-muted-foreground">
@@ -974,9 +1009,17 @@ function GreetingDesignContent() {
                   </div>
                 )}
                 <div className="flex justify-between text-rose-600 font-medium">
-                  <span>Thiệp 3D NFC đi kèm (Ưu đãi -20%):</span>
-                  <span>+{formatPrice(calculatePricing.cardPrice)}</span>
+                  <span>Thiệp 3D NFC đi kèm (Miễn phí {FREE_PHOTO_LIMIT} ảnh):</span>
+                  <span>+{formatPrice(calculatePricing.baseCardPrice)}</span>
                 </div>
+                {calculatePricing.extraPhotoCount > 0 && (
+                  <div className="flex justify-between text-amber-600 font-semibold">
+                    <span>
+                      Phụ phí thêm ảnh ({calculatePricing.extraPhotoCount} ảnh × 5.000đ):
+                    </span>
+                    <span>+{formatPrice(calculatePricing.extraPhotoFee)}</span>
+                  </div>
+                )}
                 <div className="border-t border-border/50 pt-2 flex justify-between items-center font-bold text-foreground text-sm">
                   <span>Tổng cộng ({quantity} bộ):</span>
                   <span className="text-lg font-extrabold text-primary">
@@ -987,127 +1030,130 @@ function GreetingDesignContent() {
             </div>
           </div>
 
-          {/* CỘT PHẢI (7 phần): DROPDOWN CHỌN MẪU THIỆP 3D + CÁC Ô NHẬP NỘI DUNG, ẢNH, ÂM THANH */}
+          {/* CỘT PHẢI (7 phần): CẤU HÌNH TOÀN DIỆN THIỆP 3D DUY NHẤT */}
           <div className="lg:col-span-7 space-y-6">
-            {/* KHỐI 1: Ô DROPDOWN CHỌN / ĐỔI LOẠI THIỆP 3D TRONG HỆ THỐNG */}
-            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold mb-1">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    1. Chọn hoặc đổi mẫu Thiệp 3D ({WEB_CARD_TEMPLATES.length} mẫu có sẵn)
-                  </span>
-                  <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
-                    Mẫu Thiệp 3D hiển thị nội dung của bạn
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleOpenVideo(selectedTemplate)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:underline cursor-pointer self-start sm:self-auto"
-                >
-                  <PlayCircle className="w-4 h-4" />
-                  Video hướng dẫn
-                </button>
+            {/* KHỐI 1: CHỌN MODEL 3D TRUNG TÂM & BACKGROUND VŨ TRỤ 3D */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold mb-1">
+                  <Box className="w-3.5 h-3.5" />
+                  1. Chọn Model 3D Trung tâm & Không gian Vũ trụ
+                </span>
+                <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
+                  Mô hình 3D do hệ thống tuyển chọn & Nền vũ trụ có chiều sâu
+                </h2>
               </div>
 
-              {/* Bộ lọc nhanh theo dịp (tùy chọn) */}
-              <div className="flex flex-wrap gap-1.5">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategoryFilter(cat);
-                      const list =
-                        cat === "Tất cả"
-                          ? WEB_CARD_TEMPLATES
-                          : WEB_CARD_TEMPLATES.filter((t) => t.category === cat);
-                      if (list.length > 0 && !list.some((t) => t.slug === selectedTemplate.slug)) {
-                        handleSelectTemplateBySlug(list[0].slug);
-                      }
-                    }}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                      selectedCategoryFilter === cat
-                        ? "bg-primary text-white shadow-xs"
-                        : "bg-white/60 dark:bg-card/60 hover:bg-muted text-muted-foreground border border-border/50"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              {/* Ô Dropdown chọn mẫu thiệp 3D */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="card-template-dropdown"
-                  className="block text-xs sm:text-sm font-bold text-foreground"
-                >
-                  Chọn loại thiệp 3D từ danh sách (Đổi mẫu vẫn giữ nguyên lời chúc, ảnh & âm thanh):
+              {/* Danh sách Model 3D do chủ hệ thống cung cấp */}
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-bold text-foreground">
+                  Chọn Mô hình 3D xuất hiện ở tâm điểm thiệp ({ENABLED_CURATED_MODELS.length} mô hình hệ thống):
                 </label>
-                <div className="relative">
-                  <select
-                    id="card-template-dropdown"
-                    value={selectedTemplate.slug}
-                    onChange={(e) => handleSelectTemplateBySlug(e.target.value)}
-                    className="w-full appearance-none rounded-2xl border-2 border-primary/30 bg-white dark:bg-card px-4 py-3.5 pr-10 text-sm font-bold text-foreground shadow-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-                  >
-                    {(selectedCategoryFilter === "Tất cả"
-                      ? cardCategories
-                      : [selectedCategoryFilter]
-                    ).map((catName) => {
-                      const groupTemplates = filteredTemplatesForDropdown.filter(
-                        (t) => t.category === catName
-                      );
-                      if (groupTemplates.length === 0) return null;
-                      return (
-                        <optgroup key={catName} label={`── Chủ đề: ${catName} ──`}>
-                          {groupTemplates.map((tmpl) => (
-                            <option key={tmpl.slug} value={tmpl.slug}>
-                              {tmpl.title} ({formatPrice(getCardPrice(tmpl))})
-                            </option>
-                          ))}
-                        </optgroup>
-                      );
-                    })}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {ENABLED_CURATED_MODELS.map((model) => {
+                    const isSelected = model.id === sceneModelId;
+                    return (
+                      <button
+                        key={model.id}
+                        type="button"
+                        onClick={() => {
+                          setSceneModelId(model.id);
+                          setAccentColor(model.defaultColor);
+                        }}
+                        className={`flex items-start gap-3 p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
+                            : "border-border/60 bg-white/70 dark:bg-card/60 hover:bg-muted/60"
+                        }`}
+                      >
+                        <span className="text-2xl shrink-0 mt-0.5">{model.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-xs sm:text-sm font-bold text-foreground truncate">
+                              {model.name}
+                            </span>
+                            {isSelected && (
+                              <span className="px-2 py-0.5 rounded-full bg-primary text-white text-[10px] font-bold shrink-0">
+                                Đang chọn
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
+                            {model.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Tóm tắt tương tác của mẫu thiệp đang chọn */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-500/10 via-amber-500/5 to-transparent border border-rose-500/20 flex items-center gap-3.5">
-                <img
-                  src={selectedTemplate.image}
-                  alt={selectedTemplate.title}
-                  className="w-14 h-14 rounded-xl object-cover border border-white/50 shrink-0 bg-muted"
-                />
-                <div className="flex-1 min-w-0 text-xs space-y-0.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-foreground text-sm">
-                      {selectedTemplate.title}
+              {/* Chọn Background Vũ trụ có chiều sâu */}
+              <div className="space-y-2.5 pt-3 border-t border-border/40">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground">
+                    Chọn Background 3D chiều sâu Vũ trụ ({COSMIC_BACKGROUNDS.length} chủ đề):
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground font-semibold">
+                      Màu ánh sáng tinh vân:
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 font-bold text-[10px]">
-                      {selectedTemplate.category}
-                    </span>
+                    <input
+                      type="color"
+                      value={bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-7 h-7 rounded cursor-pointer border border-border bg-transparent"
+                      title="Tùy chỉnh màu tinh vân vũ trụ"
+                    />
                   </div>
-                  <p className="text-muted-foreground">
-                    <strong>Hiệu ứng 3D:</strong> {selectedTemplate.action} — {selectedTemplate.reveal}.
-                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {COSMIC_BACKGROUNDS.map((bg) => {
+                    const isSelected = bg.id === bgStyleId;
+                    return (
+                      <button
+                        key={bg.id}
+                        type="button"
+                        onClick={() => {
+                          setBgStyleId(bg.id);
+                          setBgColor(bg.nebulaPrimary);
+                        }}
+                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-purple-500 bg-purple-500/10 ring-1 ring-purple-500/30"
+                            : "border-border/60 bg-white/70 dark:bg-card/60 hover:bg-muted/60"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg">{bg.icon}</span>
+                          <span
+                            className="w-4 h-4 rounded-full border border-white/40"
+                            style={{
+                              background: `linear-gradient(135deg, ${bg.nebulaPrimary}, ${bg.nebulaSecondary})`,
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs font-bold text-foreground mt-1.5">{bg.name}</p>
+                        <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
+                          {bg.description}
+                        </p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* KHỐI 2: CÁC Ô NHẬP NỘI DUNG CHỮ LÊN THIỆP 3D */}
+            {/* KHỐI 2: LỜI MỞ ĐẦU THIỆP & NỘI DUNG LÁ THƯ */}
             <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-5">
               <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-3">
                 <div>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold mb-1">
-                    2. Thông tin & Lời chúc trên Thiệp 3D
+                    2. Lời mở đầu thiệp & Nội dung Lá thư
                   </span>
                   <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
-                    Nhập nội dung hiển thị trên thiệp
+                    Tùy chỉnh mọi lời dẫn và tâm thư theo ý của bạn
                   </h2>
                 </div>
                 <button
@@ -1120,7 +1166,6 @@ function GreetingDesignContent() {
                 </button>
               </div>
 
-              {/* Hàng 1: Tên người nhận & Tên người gửi */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs sm:text-sm font-bold text-foreground">
@@ -1154,15 +1199,14 @@ function GreetingDesignContent() {
                 </div>
               </div>
 
-              {/* Hàng 2: Tiêu đề thiệp 3D & Lời mở đầu */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs sm:text-sm font-bold text-foreground">
-                    Tiêu đề hiển thị trên Thiệp 3D
+                    Tiêu đề mở màn Thiệp 3D
                   </label>
                   <input
                     type="text"
-                    placeholder={selectedTemplate.title}
+                    placeholder="Một Món Quà Nhỏ Giữa Vũ Trụ"
                     value={cardTitle}
                     onChange={(e) => setCardTitle(e.target.value)}
                     className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -1170,11 +1214,11 @@ function GreetingDesignContent() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs sm:text-sm font-bold text-foreground">
-                    Lời mở đầu sân khấu 3D
+                    Lời mở đầu thiệp (Hiện ở màn hình chào & cảnh mở màn)
                   </label>
                   <input
                     type="text"
-                    placeholder="Một món quà nhỏ, dành riêng cho bạn"
+                    placeholder="Giữa hàng triệu vì sao, món quà này dành riêng cho bạn"
                     value={introText}
                     onChange={(e) => setIntroText(e.target.value)}
                     className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -1182,7 +1226,6 @@ function GreetingDesignContent() {
                 </div>
               </div>
 
-              {/* Hàng 3: Tiêu đề lá thư & Dòng kết thư */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs sm:text-sm font-bold text-foreground">
@@ -1190,7 +1233,7 @@ function GreetingDesignContent() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Gửi bạn thân mến"
+                    placeholder="Gửi người đặc biệt của tôi"
                     value={letterTitle}
                     onChange={(e) => setLetterTitle(e.target.value)}
                     className="w-full rounded-xl border border-border bg-white/80 dark:bg-background px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -1210,7 +1253,6 @@ function GreetingDesignContent() {
                 </div>
               </div>
 
-              {/* Trợ lý AI tạo câu chúc (mở khi người dùng bấm nút) */}
               {showAIHelper && (
                 <div className="p-4 rounded-2xl bg-rose-50/60 dark:bg-card/60 border border-rose-200/60">
                   <AIGiftWidget
@@ -1222,11 +1264,10 @@ function GreetingDesignContent() {
                 </div>
               )}
 
-              {/* Ô nhập Lời chúc chính trên thiệp 3D */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs sm:text-sm font-bold text-foreground">
-                    Nội dung lời chúc trong Thiệp 3D <span className="text-rose-500">*</span>
+                    Nội dung lời chúc trong Lá thư <span className="text-rose-500">*</span>
                   </label>
                   <span className="text-[11px] text-muted-foreground">
                     {message.length}/5000 ký tự
@@ -1243,96 +1284,201 @@ function GreetingDesignContent() {
               </div>
             </div>
 
-            {/* KHỐI 3: CHÈN HÌNH ẢNH KỶ NIỆM & ÂM THANH / NHẠC NỀN LÊN THIỆP 3D */}
-            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-6">
-              <div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 text-xs font-bold mb-1">
-                  3. Đính kèm Hình ảnh & Âm thanh lên Thiệp 3D
-                </span>
-                <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
-                  Hình ảnh kỷ niệm & Nhạc nền phát khi mở thiệp
-                </h2>
-              </div>
-
-              {/* Phần tải Hình ảnh kỷ niệm */}
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <label className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-rose-500" />
-                      Hình ảnh kỷ niệm trên Thiệp 3D ({photos.length}/8 ảnh)
-                    </label>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Ảnh tải lên sẽ xuất hiện trong phong thư 3D và khung ảnh kỷ niệm của mẫu thiệp.
-                    </p>
-                  </div>
-                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs cursor-pointer transition-colors shrink-0 self-start sm:self-auto">
-                    <ImageIcon className="w-4 h-4" />
-                    <span>+ Tải ảnh lên (JPG, PNG, WebP)</span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      disabled={isUploadingMedia}
-                      onChange={handlePhotosUpload}
-                      className="hidden"
-                    />
-                  </label>
+            {/* KHỐI 3: HÌNH ẢNH KỶ NIỆM (MIỄN PHÍ 5 ẢNH, +5.000Đ/ẢNH THÊM) & 8 KIỂU TRÌNH BÀY 3D */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 text-xs font-bold mb-1">
+                    <Orbit className="w-3.5 h-3.5" />
+                    3. Hình ảnh Kỷ niệm & Cách trình bày 3D quanh Lá thư
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
+                    Miễn phí {FREE_PHOTO_LIMIT} ảnh đầu tiên · Thêm ảnh thứ 6 trở đi: +5.000đ/ảnh
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    💡 <strong>1–2 ảnh đầu tiên</strong> sẽ xuất hiện ngay lúc mở thiệp 3D; sau đó <strong>tất cả các ảnh</strong> sẽ xoay vòng quanh lá thư ở cảnh cuối.
+                  </p>
                 </div>
 
-                {photos.length > 0 ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-1">
-                    {photos.map((src, idx) => (
+                <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white hover:opacity-95 font-bold text-xs cursor-pointer transition-all shrink-0 self-start sm:self-auto shadow-xs">
+                  <ImageIcon className="w-4 h-4" />
+                  <span>+ Tải ảnh lên ({photos.length}/{MAX_CARD_PHOTOS})</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    disabled={isUploadingMedia}
+                    onChange={handlePhotosUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Thanh trạng thái số lượng ảnh & phụ phí */}
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-muted/60 px-4 py-2.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-foreground">
+                    Đã chọn: {photos.length} ảnh
+                  </span>
+                  <span className="text-muted-foreground">
+                    ({Math.min(photos.length, FREE_PHOTO_LIMIT)}/{FREE_PHOTO_LIMIT} ảnh miễn phí)
+                  </span>
+                </div>
+                {extraPhotoPricing.extraCount > 0 ? (
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold">
+                    +{extraPhotoPricing.extraCount} ảnh thêm (+
+                    {formatPrice(extraPhotoPricing.extraFee)})
+                  </span>
+                ) : (
+                  <span className="text-emerald-600 font-semibold">
+                    Đang trong gói {FREE_PHOTO_LIMIT} ảnh miễn phí
+                  </span>
+                )}
+              </div>
+
+              {photos.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {photos.map((src, idx) => {
+                    const isExtra = idx >= FREE_PHOTO_LIMIT;
+                    return (
                       <div
                         key={idx}
-                        className="group relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted shadow-xs"
+                        className={`group relative aspect-square rounded-2xl overflow-hidden border bg-muted shadow-xs ${
+                          isExtra ? "border-amber-500/50" : "border-border"
+                        }`}
                       >
                         <img
                           src={src}
                           alt={`Ảnh kỷ niệm ${idx + 1}`}
                           className="w-full h-full object-cover"
                         />
-                        {idx === 0 && (
-                          <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-semibold">
-                            Ảnh chính
+                        <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between gap-1">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${
+                              idx < 2
+                                ? "bg-rose-600/90"
+                                : isExtra
+                                ? "bg-amber-600/90"
+                                : "bg-black/70"
+                            }`}
+                          >
+                            {idx < 2
+                              ? `Ảnh mở màn #${idx + 1}`
+                              : isExtra
+                              ? `Ảnh #${idx + 1} (+5k)`
+                              : `Ảnh #${idx + 1}`}
                           </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePhoto(idx)}
-                          className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/65 hover:bg-red-600 text-white transition-colors cursor-pointer"
-                          title="Xóa ảnh này"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        </div>
+                        <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                          {idx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleMovePhoto(idx, -1)}
+                              className="px-1.5 py-1 rounded-md bg-black/65 hover:bg-black text-white text-[10px] font-bold cursor-pointer"
+                              title="Đưa lên trước"
+                            >
+                              ←
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePhoto(idx)}
+                            className="p-1.5 rounded-full bg-black/65 hover:bg-red-600 text-white transition-colors cursor-pointer"
+                            title="Xóa ảnh này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border-2 border-dashed border-border/70 bg-white/40 dark:bg-card/40 p-4 text-center text-xs text-muted-foreground">
-                    Chưa có ảnh kỷ niệm nào. Bấm <strong>&ldquo;+ Tải ảnh lên&rdquo;</strong> để đưa hình ảnh của bạn vào không gian 3D.
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-2xl border-2 border-dashed border-border/70 bg-white/40 dark:bg-card/40 p-5 text-center text-xs text-muted-foreground">
+                  Chưa có ảnh kỷ niệm nào. Bấm <strong>&ldquo;+ Tải ảnh lên&rdquo;</strong> để đưa 1–2 ảnh mở màn và bộ ảnh xoay quanh lá thư vào không gian 3D.
+                </div>
+              )}
+
+              {/* Chọn 1 trong 8 cách trình bày ảnh xoay quanh lá thư */}
+              <div className="space-y-2.5 pt-3 border-t border-border/40">
+                <label className="block text-xs sm:text-sm font-bold text-foreground">
+                  Chọn cách trình bày & chuyển động của Hình ảnh quanh Lá thư (8 kiểu 3D):
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {PHOTO_FORMATIONS.map((fmt) => {
+                    const isSelected = fmt.id === photoFormationId;
+                    return (
+                      <button
+                        key={fmt.id}
+                        type="button"
+                        onClick={() => setPhotoFormationId(fmt.id)}
+                        className={`flex items-start gap-3 p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-rose-500 bg-rose-500/10 ring-1 ring-rose-500/30"
+                            : "border-border/60 bg-white/70 dark:bg-card/60 hover:bg-muted/60"
+                        }`}
+                      >
+                        <span className="text-xl shrink-0 mt-0.5">{fmt.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-xs sm:text-sm font-bold text-foreground">
+                              {fmt.name}
+                            </span>
+                            {isSelected && (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold">
+                                Đang chọn
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {fmt.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* KHỐI 4: ÂM NHẠC XUYÊN SUỐT & GHI ÂM GIỌNG NÓI KHI CHẠM MODEL 3D */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold mb-1">
+                  4. Âm nhạc xuyên suốt & Ghi âm Giọng nói của bạn
+                </span>
+                <h2 className="text-lg sm:text-xl font-bold font-display text-foreground">
+                  Nhạc nền tự động nhỏ lại khi phát đoạn ghi âm giọng nói
+                </h2>
               </div>
 
-              {/* Phần tải Âm thanh / Nhạc nền */}
-              <div className="pt-4 border-t border-border/50 space-y-3">
+              {/* Phần 4A: Ghi âm giọng nói + Văn bản xuất hiện từng chữ cái */}
+              <VoiceRecorderField
+                value={voiceData}
+                onChange={(dataUrl) => setVoiceData(dataUrl)}
+                voiceText={voiceText}
+                onVoiceTextChange={setVoiceText}
+                disabled={isUploadingMedia}
+              />
+
+              {/* Phần 4B: Nhạc nền phát từ đầu đến cuối */}
+              <div className="pt-3 border-t border-border/50 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <label className="text-sm font-bold text-foreground flex items-center gap-2">
                       <Music className="w-4 h-4 text-amber-500" />
-                      Âm thanh / Nhạc nền phát trên Thiệp 3D
+                      Nhạc nền phát xuyên suốt từ đầu đến cuối
                     </label>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Hỗ trợ MP3, WAV, OGG (tối đa 8 MB). Nhạc sẽ tự động vang lên khi người nhận chạm mở thiệp 3D.
+                      Hỗ trợ MP3, WAV, OGG, M4A (tối đa 8 MB). Nhạc sẽ tự động hạ nhỏ âm lượng khi giọng nói của bạn vang lên.
                     </p>
                   </div>
                   <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-xs cursor-pointer transition-colors shrink-0 self-start sm:self-auto">
                     <Music className="w-4 h-4" />
-                    <span>{audioData ? "Đổi file âm thanh" : "+ Chọn file âm thanh"}</span>
+                    <span>{audioData ? "Đổi nhạc nền" : "+ Chọn file nhạc nền"}</span>
                     <input
                       type="file"
-                      accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg"
+                      accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/mp4,audio/x-m4a,.mp3,.wav,.ogg,.m4a"
                       disabled={isUploadingMedia}
                       onChange={handleAudioUpload}
                       className="hidden"
@@ -1365,18 +1511,18 @@ function GreetingDesignContent() {
                   </div>
                 ) : (
                   <div className="rounded-2xl border-2 border-dashed border-border/70 bg-white/40 dark:bg-card/40 p-4 text-center text-xs text-muted-foreground">
-                    Chưa chèn file âm thanh riêng (Thiệp sẽ dùng âm thanh hiệu ứng mặc định).
+                    Chưa chèn nhạc nền riêng. Bạn có thể chọn một bản nhạc MP3/WAV/M4A yêu thích để phát xuyên suốt thiệp.
                   </div>
                 )}
               </div>
             </div>
 
-            {/* KHỐI 4: TÙY CHỈNH MÀU SẮC & PHONG THƯ 3D */}
+            {/* KHỐI 5: TÙY CHỈNH PHONG THƯ & MÀU SẮC 3D */}
             <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-soft border border-white/40 space-y-4">
               <div className="flex items-center gap-2">
                 <Palette className="w-4 h-4 text-primary" />
                 <h3 className="text-sm sm:text-base font-bold text-foreground">
-                  4. Tùy chỉnh Phong thư & Màu sắc 3D
+                  5. Tùy chỉnh Phong thư & Màu sắc 3D
                 </h3>
               </div>
 
@@ -1492,7 +1638,7 @@ function GreetingDesignContent() {
               <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <DialogTitle className="text-2xl font-bold font-display text-foreground">
-              Xem trước thông điệp Thiệp 3D
+              Xem trước cấu hình Thiệp 3D Vũ Trụ
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
               Kiểm tra lại thông tin trước khi mở toàn màn hình 3D hoặc thanh toán.
@@ -1514,7 +1660,8 @@ function GreetingDesignContent() {
                     {isPhysical ? product?.name : selectedTemplate.title}
                   </h4>
                   <span className="text-[11px] font-semibold text-primary">
-                    Mẫu Thiệp 3D: {selectedTemplate.title}
+                    {activeCuratedModel.icon} {activeCuratedModel.name} · {activeCosmicBg.icon}{" "}
+                    {activeCosmicBg.name}
                   </span>
                 </div>
               </div>
@@ -1524,7 +1671,7 @@ function GreetingDesignContent() {
                 </span>
                 {isPhysical && (
                   <span className="text-[10px] text-muted-foreground block">
-                    (Gồm {formatPrice(product?.price || 0)} +{" "}
+                    (SP {formatPrice(product?.price || 0)} + Thiệp{" "}
                     {formatPrice(calculatePricing.cardPrice)})
                   </span>
                 )}
@@ -1550,6 +1697,17 @@ function GreetingDesignContent() {
               </div>
             </div>
 
+            {voiceData && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs space-y-1">
+                <span className="font-bold text-rose-600 block">
+                  🎙️ Đã đính kèm Ghi âm Giọng nói (Phát khi chạm Model 3D)
+                </span>
+                {voiceText && (
+                  <p className="italic text-muted-foreground">&ldquo;{voiceText}&rdquo;</p>
+                )}
+              </div>
+            )}
+
             <div className="p-4 rounded-xl bg-white dark:bg-card border border-rose-200/60 dark:border-rose-900/30 text-center relative overflow-hidden">
               <p className="text-sm font-serif italic text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed px-4 py-1">
                 {message || selectedTemplate.rawTemplate.message}
@@ -1557,22 +1715,20 @@ function GreetingDesignContent() {
             </div>
 
             {photos.length > 0 && (
-              <div className="flex items-center gap-2 overflow-x-auto py-1">
-                {photos.map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt={`Ảnh ${idx + 1}`}
-                    className="w-14 h-14 rounded-lg object-cover border border-border shrink-0"
-                  />
-                ))}
-              </div>
-            )}
-
-            {audioData && (
-              <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
-                <Music className="w-4 h-4" />
-                <span>Đã đính kèm nhạc nền: {audioFileName || "Âm thanh tùy chỉnh"}</span>
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-foreground block">
+                  {photos.length} ảnh kỷ niệm ({activeFormation.icon} {activeFormation.name})
+                </span>
+                <div className="flex items-center gap-2 overflow-x-auto py-1">
+                  {photos.map((src, idx) => (
+                    <img
+                      key={idx}
+                      src={src}
+                      alt={`Ảnh ${idx + 1}`}
+                      className="w-14 h-14 rounded-lg object-cover border border-border shrink-0"
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
