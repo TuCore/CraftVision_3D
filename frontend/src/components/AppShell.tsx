@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Footer } from "@/components/Footer";
-import { ShopNavDropdown } from "@/components/ShopNavDropdown";
+
 import { LanguageSwitcher, FlagVN, FlagUK } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 import { clearAuthSession, getAccessToken, isJwtExpired, logout } from "@/lib/authSession";
@@ -159,10 +159,10 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
           <nav className="hidden md:flex items-center gap-1.5">
             {visibleNav.map((item) => {
               if (item.key === "shop") {
-                return <ShopNavDropdown key={item.key} active={active} transparent={isTransparentNav} />;
+
               }
               const Icon = item.icon;
-              const isActive = active === item.key || (item.key === "home" && (pathname === "/" || pathname === "/home"));
+              const isActive = active === item.key || (item.key === "home" && (pathname === "/" || pathname === "/home")) || (item.key === "shop" && (pathname === "/shop" || pathname?.startsWith("/shop/")));
               const isCart = (item.key as string) === "cart";
               return (
                 <Link
@@ -320,10 +320,10 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
             }`}>
               {visibleNav.map((item) => {
                 if (item.key === "shop") {
-                  return <ShopNavDropdown key={item.key} active={active} transparent={isTransparentNav} mobile onNavigate={() => setIsMobileMenuOpen(false)} />;
+
                 }
                 const Icon = item.icon;
-                const isActive = active === item.key;
+                const isActive = active === item.key || (item.key === "shop" && (pathname === "/shop" || pathname?.startsWith("/shop/")));
                 const isCart = (item.key as string) === "cart";
                 return (
                   <Link

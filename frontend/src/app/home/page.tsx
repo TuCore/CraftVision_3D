@@ -5,7 +5,7 @@ import { Sparkles, MessageCircle, ChevronDown, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Studio3DSection } from "@/components/studio/Studio3DSection";
-import { TemplateProductsSection } from "@/components/home/TemplateProductsSection";
+import { HomeIntroSections } from "@/components/home/HomeIntroSections";
 import { useTranslation } from "@/components/LanguageProvider";
 import { toast } from "sonner";
 import { getAccessToken, getAuthItem } from "@/lib/authSession";
@@ -231,7 +231,7 @@ export default function HomePage() {
 
 
       {/* 3. Template Products Section */}
-      <TemplateProductsSection />
+      <HomeIntroSections />
     </AppShell>
   );
 }

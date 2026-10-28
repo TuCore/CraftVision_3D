@@ -21,6 +21,8 @@ public sealed class SharingTests
     {
         Assert.Equal("image/png", CardMedia.Detect([137,80,78,71,13,10,26,10,0,0,0,0]));
         Assert.Equal("audio/wav", CardMedia.Detect("RIFF0000WAVE"u8.ToArray()));
+        Assert.Equal("audio/webm", CardMedia.Detect([0x1A, 0x45, 0xDF, 0xA3, 0, 0, 0, 0, 0, 0, 0, 0]));
+        Assert.Equal("audio/mp4", CardMedia.Detect([0, 0, 0, 16, (byte)'f', (byte)'t', (byte)'y', (byte)'p', (byte)'M', (byte)'4', (byte)'A', (byte)' ']));
         Assert.Throws<CardError>(() => CardMedia.Detect("<html>fake image</html>"u8.ToArray()));
     }
     [Fact] public async Task PublicationIsolatedOwnershipConcurrencyRevocationAndPopulatedStartup()

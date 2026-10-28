@@ -38,7 +38,7 @@ export function parseDraft(raw: unknown, serverMedia = false): CardDraft {
       clean = value.map(item => safeImage(item, serverMedia));
     } else if (field.type === "image") clean = value ? safeImage(value, serverMedia) : "";
     else if (field.type === "audio") {
-      if (typeof value !== "string" || value.length > 12_000_000 || (value && !(serverMedia ? isServerMedia(value) : /^data:audio\/(mpeg|mp3|wav|x-wav|ogg);base64,[A-Za-z0-9+/=]+$/.test(value)))) throw new Error("Nhạc nền không hợp lệ.");
+      if (typeof value !== "string" || value.length > 12_000_000 || (value && !(serverMedia ? isServerMedia(value) : /^data:audio\/(mpeg|mp3|wav|x-wav|ogg|webm|mp4|x-m4a|m4a|aac)(;codecs=[^;]+)?;base64,[A-Za-z0-9+/=]+$/.test(value)))) throw new Error("Âm thanh không hợp lệ.");
       clean = value;
     }
     else {
@@ -57,7 +57,7 @@ function safeImage(value: unknown, serverMedia = false): string {
   return value;
 }
 export function importAudio(file: File): Promise<string> {
-  if (!["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg"].includes(file.type) || file.size > 8 * 1024 * 1024) return Promise.reject(new Error("Chọn MP3, WAV hoặc OGG không quá 8 MB."));
+  if (!["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/webm", "audio/mp4", "audio/x-m4a", "audio/m4a", "audio/aac"].includes(file.type.split(";")[0]) || file.size > 8 * 1024 * 1024) return Promise.reject(new Error("Chọn MP3, WAV, OGG, M4A hoặc WebM không quá 8 MB."));
   return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error("Không thể đọc nhạc.")); reader.readAsDataURL(file); });
 }
 export async function importPhoto(file: File): Promise<string> {

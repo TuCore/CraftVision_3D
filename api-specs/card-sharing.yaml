@@ -162,7 +162,7 @@ paths:
   /api/cards/media:
     post:
       summary: Upload and deduplicate owned image/audio to durable Cloudinary storage
-      description: Maximum 8 MiB/file; signature-checked JPEG, PNG, WebP, MP3, WAV, OGG. Owner storage quota 256 MiB. No local-disk production fallback.
+      description: Maximum 8 MiB/file; signature-checked JPEG, PNG, WebP, MP3, WAV, OGG, WebM, MP4/M4A. Owner storage quota 256 MiB. No local-disk production fallback.
       requestBody:
         required: true
         content:
