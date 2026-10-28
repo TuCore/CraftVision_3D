@@ -376,6 +376,9 @@ export default function UnifiedCosmicScene({
     renderer.outputColorSpace = T.SRGBColorSpace;
     renderer.toneMapping = T.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
+    renderer.domElement.style.display = "block";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
     host.innerHTML = "";
     host.appendChild(renderer.domElement);
 
@@ -1516,7 +1519,7 @@ export default function UnifiedCosmicScene({
       const h = Math.max(1, host.clientHeight);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h, false);
+      renderer.setSize(w, h, true);
     };
     resize();
     const observer = new ResizeObserver(resize);
@@ -1589,10 +1592,19 @@ export default function UnifiedCosmicScene({
           ? 8.5
           : 7.5;
       const camLerp = 1 - Math.exp(-4.2 * dt);
-      const targetCamX = prefersReducedMotion ? 0 : parallaxX * 0.16;
+      const targetCamX =
+        prefersReducedMotion || currentStage === "ENVELOPE_LETTER"
+          ? 0
+          : parallaxX * 0.14;
       const targetCamY =
-        (currentStage === "MODEL_STAGE" ? 0.32 : 0.14) +
-        (prefersReducedMotion ? 0 : parallaxY * 0.12);
+        (currentStage === "MODEL_STAGE"
+          ? 0.28
+          : currentStage === "ENVELOPE_LETTER"
+          ? 0.05
+          : 0.14) +
+        (prefersReducedMotion || currentStage === "ENVELOPE_LETTER"
+          ? 0
+          : parallaxY * 0.1);
       camera.position.x += (targetCamX - camera.position.x) * camLerp;
       camera.position.y += (targetCamY - camera.position.y) * camLerp;
       camera.position.z += (targetCamZ - camera.position.z) * camLerp;
@@ -1726,12 +1738,13 @@ export default function UnifiedCosmicScene({
         letterPaperGroup.rotation.x = -sheetEase * 0.05;
         letterPaperGroup.scale.setScalar(0.95 + sheetEase * 0.09);
 
+        envelopeGroup.position.x = 0;
         envelopeGroup.rotation.y =
-          Math.sin(elapsed * 0.65) * 0.13 * motionScale + userYaw * 0.35;
+          Math.sin(elapsed * 0.65) * 0.1 * motionScale + userYaw * 0.35;
         envelopeGroup.position.y =
-          -0.12 -
-          sheetEase * 0.38 +
-          Math.sin(elapsed * 1.4) * 0.045 * motionScale;
+          0.06 -
+          sheetEase * 0.36 +
+          Math.sin(elapsed * 1.4) * 0.04 * motionScale;
 
         updatePhotoFormation(formationRef.current, elapsed, dt);
       }

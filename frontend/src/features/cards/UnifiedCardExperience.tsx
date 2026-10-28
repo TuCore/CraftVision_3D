@@ -27,40 +27,6 @@ const UnifiedCosmicScene = dynamic(() => import("./UnifiedCosmicScene"), {
 const NORMAL_BGM_VOLUME = 0.38;
 const DUCKED_BGM_VOLUME = 0.06;
 
-interface TimelineStep {
-  id: "INTRO" | "OPENING_PHOTOS" | "MODEL_STAGE" | "ENVELOPE_LETTER";
-  stepNumber: string;
-  label: string;
-  shortLabel: string;
-}
-
-const TIMELINE_STEPS: TimelineStep[] = [
-  {
-    id: "INTRO",
-    stepNumber: "01",
-    label: "Mở đầu",
-    shortLabel: "Mở đầu",
-  },
-  {
-    id: "OPENING_PHOTOS",
-    stepNumber: "02",
-    label: "Ảnh mở màn",
-    shortLabel: "Ảnh mở màn",
-  },
-  {
-    id: "MODEL_STAGE",
-    stepNumber: "03",
-    label: "Quà 3D & Giọng nói",
-    shortLabel: "Quà 3D",
-  },
-  {
-    id: "ENVELOPE_LETTER",
-    stepNumber: "04",
-    label: "Phong thư & Kỷ niệm",
-    shortLabel: "Phong thư",
-  },
-];
-
 const WAVEFORM_BAR_HEIGHTS = [38, 72, 54, 92, 64, 100, 48, 84, 60, 88, 44, 70];
 
 function formatAudioTime(seconds: number): string {
@@ -506,20 +472,6 @@ export default function UnifiedCardExperience({
     }
   };
 
-  // Map current stage (including internal TRANSITION) to the 4 timeline steps
-  const activeStepIndex = useMemo(() => {
-    if (stage === "INTRO") return 0;
-    if (stage === "OPENING_PHOTOS" || stage === "TRANSITION") return 1;
-    if (stage === "MODEL_STAGE") return 2;
-    return 3;
-  }, [stage]);
-
-  const handleTimelineClick = (step: TimelineStep, index: number) => {
-    // Clicking the currently active step does not reset the experience
-    if (index === activeStepIndex) return;
-    navigateToStage(step.id);
-  };
-
   const hasValidVoiceDuration =
     Number.isFinite(voiceDuration) && voiceDuration > 0;
   const voiceProgressPercent = useMemo(() => {
@@ -693,73 +645,6 @@ export default function UnifiedCardExperience({
             )}
           </div>
         </div>
-
-        {/* 4-Step Interactive Celestial Timeline Bar */}
-        <nav
-          aria-label="Hành trình trải nghiệm thiệp 3D"
-          className="pointer-events-auto mx-auto w-full max-w-2xl overflow-x-auto no-scrollbar"
-        >
-          <ol className="flex min-w-max items-center justify-between gap-1 rounded-full border border-[#f5d78e]/25 bg-[#0b0618]/75 px-2.5 py-1.5 shadow-[0_10px_32px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:px-4">
-            {TIMELINE_STEPS.map((step, idx) => {
-              const isCurrent = idx === activeStepIndex;
-              const isCompleted = idx < activeStepIndex;
-              return (
-                <React.Fragment key={step.id}>
-                  <li className="flex items-center">
-                    <button
-                      type="button"
-                      onClick={() => handleTimelineClick(step, idx)}
-                      aria-current={isCurrent ? "step" : undefined}
-                      className={`group relative flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] sm:px-3 sm:py-1.5 sm:text-xs font-semibold transition-all duration-300 focus-visible:outline-2 focus-visible:outline-[#f5d78e] cursor-pointer ${
-                        isCurrent
-                          ? "border border-[#f5d78e]/70 bg-gradient-to-r from-[#881337]/90 via-[#9f1239]/85 to-[#b45309]/85 text-[#fffdf8] shadow-[0_0_18px_rgba(245,215,142,0.35)]"
-                          : isCompleted
-                          ? "border border-[#f5d78e]/25 bg-[#f5d78e]/10 text-[#f5d78e] hover:border-[#f5d78e]/55 hover:bg-[#f5d78e]/20"
-                          : "border border-transparent text-white/65 hover:border-white/20 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      <span
-                        className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold transition-colors ${
-                          isCurrent
-                            ? "bg-[#f5d78e] text-[#2a0a18]"
-                            : isCompleted
-                            ? "bg-[#f5d78e]/25 text-[#f5d78e]"
-                            : "bg-white/10 text-white/60 group-hover:bg-white/20 group-hover:text-white"
-                        }`}
-                      >
-                        {isCompleted ? "✓" : step.stepNumber}
-                      </span>
-                      <span className="sm:hidden whitespace-nowrap">
-                        {step.shortLabel}
-                      </span>
-                      <span className="hidden sm:inline whitespace-nowrap">
-                        {step.label}
-                      </span>
-                    </button>
-                  </li>
-                  {idx < TIMELINE_STEPS.length - 1 && (
-                    <li
-                      aria-hidden="true"
-                      className="flex-1 min-w-[14px] sm:min-w-[28px] px-0.5"
-                    >
-                      <div className="h-[1.5px] w-full overflow-hidden rounded-full bg-white/15">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            idx < activeStepIndex
-                              ? "w-full bg-gradient-to-r from-[#f5d78e] to-[#f43f5e]"
-                              : idx === activeStepIndex && stage === "TRANSITION"
-                              ? "w-2/3 bg-[#f5d78e]"
-                              : "w-0"
-                          }`}
-                        />
-                      </div>
-                    </li>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </ol>
-        </nav>
       </header>
 
       {/* =================================================================== */}
