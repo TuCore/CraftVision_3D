@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { getAccessToken } from "@/lib/authSession";
 import api from "@/lib/api";
+import { CARD_CATALOG_VISIBLE } from "@/features/cards/visibility";
 
 interface HandmadePreviewItem {
   id: string;
@@ -131,9 +132,9 @@ export function HomeIntroSections() {
     FALLBACK_HANDMADE_ITEMS
   );
 
-  const visionReveal = useScrollReveal();
-  const handmadeReveal = useScrollReveal();
-  const card3dReveal = useScrollReveal();
+  const { ref: visionRef, isVisible: isVisionVisible } = useScrollReveal();
+  const { ref: handmadeRef, isVisible: isHandmadeVisible } = useScrollReveal();
+  const { ref: card3dRef, isVisible: isCard3dVisible } = useScrollReveal();
 
   useEffect(() => {
     let mounted = true;
@@ -193,9 +194,9 @@ export function HomeIntroSections() {
         <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-4xl h-80 bg-rose-200/40 blur-[90px] rounded-full" />
 
         <div
-          ref={visionReveal.ref}
+          ref={visionRef}
           className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 transition-all duration-1000 ease-out ${
-            visionReveal.isVisible
+            isVisionVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-12"
           }`}
@@ -397,9 +398,9 @@ export function HomeIntroSections() {
         className="relative w-full py-20 sm:py-28 bg-gradient-to-b from-background via-rose-50/40 to-background border-t border-border/40"
       >
         <div
-          ref={handmadeReveal.ref}
+          ref={handmadeRef}
           className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 transition-all duration-1000 ease-out ${
-            handmadeReveal.isVisible
+            isHandmadeVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-12"
           }`}
@@ -500,7 +501,7 @@ export function HomeIntroSections() {
           SECTION 3: GIỚI THIỆU THIỆP WEB 3D
           (Text ở bên trái - Hình ảnh ở bên phải)
       ===================================================================== */}
-      <section
+      {CARD_CATALOG_VISIBLE && <section
         aria-labelledby="web-3d-cards-heading"
         className="relative w-full py-20 sm:py-28 bg-background border-t border-border/40"
       >
@@ -508,9 +509,9 @@ export function HomeIntroSections() {
         <div className="pointer-events-none absolute bottom-10 right-10 w-96 h-96 bg-rose-200/35 blur-[100px] rounded-full" />
 
         <div
-          ref={card3dReveal.ref}
+          ref={card3dRef}
           className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 transition-all duration-1000 ease-out ${
-            card3dReveal.isVisible
+            isCard3dVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-12"
           }`}
@@ -614,7 +615,7 @@ export function HomeIntroSections() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
     </div>
   );
 }

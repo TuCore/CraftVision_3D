@@ -13,6 +13,7 @@ import { useProductReviews } from "@/hooks/useReviews";
 import React from "react";
 import { ReviewList } from "@/components/ReviewList";
 import { getAccessToken } from "@/lib/authSession";
+import { CARD_CATALOG_VISIBLE } from "@/features/cards/visibility";
 
 export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -411,7 +412,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 </button>
               )}
 
-              {!product.isComingSoon && !isOutOfStock && (
+              {CARD_CATALOG_VISIBLE && !product.isComingSoon && !isOutOfStock && (
                 <>
                   {/* Component 1: Thiết kế câu chúc riêng với MẪU MẶC ĐỊNH (Không chọn mẫu web) */}
                   <div

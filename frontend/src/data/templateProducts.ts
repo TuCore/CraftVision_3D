@@ -1,13 +1,3 @@
-export interface TemplateVideo {
-  id: number;
-  templateId: number;
-  headerTitle: string;
-  videoUrl: string;
-  captionTitle: string;
-  captionDesc: string;
-  detailUrl?: string;
-}
-
 export interface TemplateProduct {
   id: number;
   image: string;
@@ -16,17 +6,7 @@ export interface TemplateProduct {
   originalPrice: number;
   price: number;
   discount: number;
-  video?: TemplateVideo;
 }
-
-// Default video used when a template has not customized its own
-export const DEFAULT_TUTORIAL_VIDEO: Omit<TemplateVideo, "id" | "templateId"> = {
-  headerTitle: "Video Hướng Dẫn Thanh Toán",
-  videoUrl: "/videos/payment-tutorial.mp4",
-  captionTitle: "Hướng Dẫn Thanh Toán An Toàn",
-  captionDesc: "Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận.",
-  detailUrl: "/shop",
-};
 
 export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
   {
@@ -37,15 +17,6 @@ export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
     originalPrice: 89999,
     price: 49999,
     discount: 44,
-    video: {
-      id: 17,
-      templateId: 17,
-      headerTitle: "Video Xem Thử Thiệp 3D",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      captionTitle: "Điều Ước Sinh Nhật Dệt Từ Ánh Sao",
-      captionDesc: "Trải nghiệm thiệp 3D mở phong thư, bánh sinh nhật tương tác, ngọn lửa hạt bập bùng và pháo hoa ước nguyện.",
-      detailUrl: "/greeting-card"
-    }
   },
   { 
     id: 1, 
@@ -55,15 +26,6 @@ export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
     originalPrice: 69998, 
     price: 49999, 
     discount: 40,
-    video: {
-      id: 1,
-      templateId: 1,
-      headerTitle: "Video Hướng Dẫn Thanh Toán",
-      videoUrl: "/videos/payment-tutorial.mp4",
-      captionTitle: "Hướng Dẫn Thanh Toán An Toàn",
-      captionDesc: "Hướng dẫn thanh toán qua PayOS: mở ứng dụng ngân hàng, quét mã QR trên trang thanh toán và kiểm tra thông tin trước khi xác nhận.",
-      detailUrl: "/shop"
-    }
   },
   { 
     id: 2, 
@@ -73,15 +35,6 @@ export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
     originalPrice: 69998, 
     price: 49999, 
     discount: 40,
-    video: {
-      id: 2,
-      templateId: 2,
-      headerTitle: "Video Hướng Dẫn Chi Tiết",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      captionTitle: "Hướng Dẫn Tuỳ Chỉnh & Thanh Toán",
-      captionDesc: "Cách tạo thiệp online và quét mã QR thanh toán nhanh chóng",
-      detailUrl: "/shop"
-    }
   },
   { 
     id: 3, 
@@ -91,15 +44,6 @@ export const INITIAL_TEMPLATE_PRODUCTS: TemplateProduct[] = [
     originalPrice: 69998, 
     price: 49999, 
     discount: 40,
-    video: {
-      id: 3,
-      templateId: 3,
-      headerTitle: "Video Hướng Dẫn Sử Dụng Thẻ NFC",
-      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      captionTitle: "Kích Hoạt & Cài Đặt Thẻ Quà Tặng NFC",
-      captionDesc: "Chạm nhẹ điện thoại vào thẻ để mở thiệp chúc mừng cá nhân hoá 3D",
-      detailUrl: "/shop"
-    }
   },
   { id: 4, image: "/dreamy-hero-bg.jpg", title: "LOVE VIP - Mưa lời yêu thương 3D", sold: 144, originalPrice: 66665, price: 39999, discount: 40 },
   { id: 5, image: "/dreamy-hero-bg.jpg", title: "Món quà tình yêu lấp lánh", sold: 89, originalPrice: 49999, price: 29999, discount: 40 },

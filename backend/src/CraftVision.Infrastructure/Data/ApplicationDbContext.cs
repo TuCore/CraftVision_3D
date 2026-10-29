@@ -32,6 +32,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<ProductImage> ProductImages { get; set; } = null!;
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
+    public DbSet<OrderFinancialEvent> OrderFinancialEvents => Set<OrderFinancialEvent>();
+    public DbSet<OrderFinancialLine> OrderFinancialLines => Set<OrderFinancialLine>();
     public DbSet<NfcTag> NfcTags { get; set; } = null!;
     public DbSet<Gift> Gifts { get; set; } = null!;
     public DbSet<GiftMedia> GiftMediaList { get; set; } = null!;
@@ -200,6 +202,21 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Order>()
             .Property(o => o.InventoryDeducted)
             .HasDefaultValue(false);
+
+        modelBuilder.Entity<Order>().Property(o => o.IsArchived).HasDefaultValue(false);
+        modelBuilder.Entity<Order>().Property(o => o.Revision).HasDefaultValue(1).IsConcurrencyToken();
+        modelBuilder.Entity<Product>().Property(p => p.LowStockThreshold).HasDefaultValue(5);
+        var financialEvent = modelBuilder.Entity<OrderFinancialEvent>();
+        financialEvent.ToTable("order_financial_events").HasKey(e => e.Id);
+        financialEvent.HasIndex(e => new { e.OrderId, e.Kind }).IsUnique();
+        financialEvent.HasIndex(e => new { e.OccurredAt, e.OrderKind, e.PaymentMethod });
+        financialEvent.HasOne(e => e.Order).WithMany(o => o.FinancialEvents).HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+        financialEvent.Property(e => e.MerchandiseAmount).HasPrecision(18, 2);
+        financialEvent.Property(e => e.ShippingAmount).HasPrecision(18, 2);
+        var financialLine = modelBuilder.Entity<OrderFinancialLine>();
+        financialLine.ToTable("order_financial_lines").HasKey(l => l.Id);
+        financialLine.Property(l => l.Amount).HasPrecision(18, 2);
+        financialLine.HasOne(l => l.Event).WithMany(e => e.Lines).HasForeignKey(l => l.EventId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<OrderItem>()
             .HasOne(oi => oi.Product)

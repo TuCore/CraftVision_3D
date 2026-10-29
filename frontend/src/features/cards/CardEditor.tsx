@@ -14,6 +14,7 @@ import { VoiceRecorderField } from "./VoiceRecorderField";
 import { getAccessToken } from "@/lib/authSession";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { toast } from "sonner";
+import { SharedTutorialButton } from "@/features/tutorials/SharedTutorialButton";
 import type { Product } from "@/lib/product.types";
 import "./cards.css";
 
@@ -348,8 +349,8 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
   const designKeys = ["accent", "envelopeColor", "envelopeLabel", "seal"];
   const all = fieldsFor(template);
   const visible = tab === 0 ? commonFields.filter(field => !designKeys.includes(field.key)) : tab === 1 ? template.fields.filter(field => !commonFields.some(common => common.key === field.key)) : all.filter(field => designKeys.includes(field.key));
-  return <div className="cards-workspace"><header className="cards-top"><Link href={physicalProductId ? `/shop/${physicalProductId}/greeting?mode=web3d` : "/cards"}>{physicalProductId ? "← Chọn mẫu thiệp khác" : "← Bộ sưu tập 55 thiệp"}</Link><Link href="/cards/mine">Thiệp của tôi ☁</Link></header>
-    <div className="editor-heading"><p>{template.category}</p><h1>{template.title}</h1><p>{template.action}. {template.reveal}.</p></div>
+  return <div className="cards-workspace"><header className="cards-top" style={{ justifyContent: "flex-end" }}><Link href="/cards/mine">Thiệp của tôi ☁</Link></header>
+    <div className="editor-heading"><p>{template.category}</p><h1>{template.title}</h1><p>{template.action}. {template.reveal}.</p><SharedTutorialButton productTitle={template.title} /></div>
     {physicalProductId && <section className="server-card-panel" aria-label="Sản phẩm đi kèm"><h2>Thiệp đi kèm sản phẩm</h2><p>{physicalProduct ? `Bạn đang cá nhân hóa mẫu này cho ${physicalProduct.name}. Nội dung và thiết kế riêng của mẫu sẽ được lưu cùng sản phẩm trong giỏ hàng.` : physicalProductError || "Đang tải thông tin sản phẩm…"}</p></section>}
     {!physicalProductId && <section className="server-card-panel" aria-label="Lưu và chia sẻ công khai"><h2>Lưu & gửi thiệp</h2><p>Bạn có thể chỉnh sửa, lưu bản nháp và xem thử miễn phí. Để tạo link gửi người nhận, hãy thanh toán thiệp qua mã QR trên PayOS. Chỉ sau khi hệ thống xác nhận đã nhận đủ tiền, bạn mới có thể xuất bản thiệp.</p>
       <p><strong>{serverCard?.paidAt ? "Đã thanh toán" : `Giá thiệp: ${price === undefined ? "Đang cập nhật" : formatCardPrice(price)}`}</strong>{!serverCard?.paidAt && " · Thanh toán một lần cho thiệp này; các lần chỉnh sửa sau không cần trả lại."}</p>

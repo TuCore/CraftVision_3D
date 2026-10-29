@@ -289,7 +289,7 @@ public class OrderService : IOrderService
             ?? throw new InvalidOperationException("Card owner does not exist in the commerce database.");
         var purchasedAt = paidAt.Kind == DateTimeKind.Utc ? paidAt : paidAt.ToUniversalTime();
 
-        _unitOfWork.Orders.Add(new Order
+        var cardOrder = new Order
         {
             Id = cardId,
             UserId = userId,
@@ -304,9 +304,12 @@ public class OrderService : IOrderService
             ReceiverAddress = "Online",
             ShippingFee = 0,
             TotalAmount = amount,
+            PaidAt = purchasedAt,
             CreatedAt = purchasedAt,
             UpdatedAt = purchasedAt
-        });
+        };
+        cardOrder.FinancialEvents.Add(OrderFinancialEvent.Receipt(cardOrder, purchasedAt));
+        _unitOfWork.Orders.Add(cardOrder);
 
         await _unitOfWork.SaveChangesAsync();
     }
@@ -572,6 +575,20 @@ public class OrderService : IOrderService
             return;
         }
 
+        if (newStatus == order.PaymentStatus) return;
+        if (newStatus == PaymentStatus.Refunded)
+        {
+            if (order.PaymentStatus != PaymentStatus.Paid)
+                throw new InvalidOperationException("Chỉ hoàn tiền cho đơn đã thanh toán. Thao tác này xác nhận đã hoàn toàn bộ tiền.");
+            var receipt = order.FinancialEvents.SingleOrDefault(e => e.Kind == "Receipt")
+                ?? OrderFinancialEvent.Receipt(order, order.PaidAt);
+            if (!order.FinancialEvents.Contains(receipt)) _unitOfWork.Orders.AddFinancialEvent(order, receipt);
+            order.RefundedAt = DateTime.UtcNow;
+            _unitOfWork.Orders.AddFinancialEvent(order, receipt.Refund(order.RefundedAt.Value));
+        }
+        else if (order.PaymentStatus is PaymentStatus.Paid or PaymentStatus.Refunded)
+            throw new InvalidOperationException("Không thể đổi khoản đã thu/hoàn về chưa thanh toán. Lịch sử giao dịch phải được giữ nguyên.");
+
         order.PaymentStatus = newStatus;
         order.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Orders.Update(order);
@@ -683,47 +700,10 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(id);
         if (order == null) throw new Exception("Order not found");
-        if (order.OrderKind == "DigitalCard")
-            throw new InvalidOperationException("Paid digital card purchase history cannot be deleted.");
-
-        var nfcTagsToDelete = new System.Collections.Generic.List<CraftVision.Domain.Entities.NfcTag>();
-
-        await _unitOfWork.BeginTransactionAsync();
-        try
-        {
-            foreach (var item in order.OrderItems.ToList())
-            {
-                if (item.Gift != null)
-                {
-                    if (item.Gift.NfcTag != null)
-                    {
-                        nfcTagsToDelete.Add(item.Gift.NfcTag);
-                    }
-                    _unitOfWork.Gifts.Remove(item.Gift);
-                }
-                _unitOfWork.OrderItems.Remove(item);
-            }
-
-            _unitOfWork.Orders.Remove(order);
-            await _unitOfWork.SaveChangesAsync();
-
-            foreach (var tag in nfcTagsToDelete)
-            {
-                _unitOfWork.NfcTags.Remove(tag);
-            }
-
-            if (nfcTagsToDelete.Any())
-            {
-                await _unitOfWork.SaveChangesAsync();
-            }
-
-            await _unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            await _unitOfWork.RollbackTransactionAsync();
-            throw;
-        }
+        order.IsArchived = true;
+        order.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<bool> CheckAndUpdatePaymentStatusAsync(Guid orderId)
@@ -769,6 +749,8 @@ public class OrderService : IOrderService
                 await _unitOfWork.CommitTransactionAsync();
                 return;
             }
+            if (order.PaymentStatus == PaymentStatus.Refunded)
+                throw new InvalidOperationException("Đơn đã hoàn tiền không thể được ghi nhận thanh toán lại.");
             if (order.OrderStatus == OrderStatus.Cancelled)
                 throw new InvalidOperationException("Không thể thanh toán đơn hàng đã bị huỷ.");
 
@@ -795,6 +777,8 @@ public class OrderService : IOrderService
             }
 
             order.PaymentStatus = PaymentStatus.Paid;
+            order.PaidAt = DateTime.UtcNow;
+            _unitOfWork.Orders.AddFinancialEvent(order, OrderFinancialEvent.Receipt(order, order.PaidAt));
             order.OrderStatus = order.OrderKind == "DigitalCard"
                 ? OrderStatus.Delivered
                 : order.OrderItems.Any(item => item.Product?.ProductType == ProductType.PreOrder)

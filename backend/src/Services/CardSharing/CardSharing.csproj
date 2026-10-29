@@ -8,6 +8,7 @@
     <EmbeddedResource Include="../../../../databases/CardSharing/001_initial.sql" LogicalName="CardSharing.schema.sql" />
     <EmbeddedResource Include="../../../../databases/CardSharing/002_payments.sql" LogicalName="CardSharing.payments.sql" />
     <EmbeddedResource Include="../../../../databases/CardSharing/003_payment_transfer_details.sql" LogicalName="CardSharing.payment-transfer-details.sql" />
+    <EmbeddedResource Include="../../../../databases/CardSharing/004_shared_tutorial.sql" LogicalName="CardSharing.tutorial.sql" />
     <EmbeddedResource Include="../../../../api-specs/card-prices.json" LogicalName="CardSharing.prices.json" />
     <EmbeddedResource Include="../../../../api-specs/card-fields.json" LogicalName="CardSharing.fields.json" />
   </ItemGroup>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Truck, MapPin, CheckCircle2 } from "lucide-react";
 
-export default function OrderDetailPage({ params }: { params: { id: string } }) {
+export default function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}

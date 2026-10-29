@@ -13,5 +13,6 @@ public interface IOrderRepository
     Task<(IEnumerable<Order> Items, int TotalCount)> GetAllAsync(int page, int size);
     void Add(Order order);
     void Update(Order order);
+    void AddFinancialEvent(Order order, OrderFinancialEvent entry);
     void Remove(Order order);
 }

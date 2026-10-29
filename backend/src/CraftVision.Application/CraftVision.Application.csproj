@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CraftVision.Domain\CraftVision.Domain.csproj" />
+    <Compile Include="../Services/Reporting/ReportContracts.cs" Link="Reporting/ReportContracts.cs" />
   </ItemGroup>
 
   <ItemGroup>

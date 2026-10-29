@@ -12,6 +12,7 @@ import { useWishlistStore } from "@/store/useWishlistStore";
 import { useProductCategories } from "@/hooks/useProductCategories";
 import api from "@/lib/api";
 import { getAccessToken } from "@/lib/authSession";
+import { CARD_CATALOG_VISIBLE } from "@/features/cards/visibility";
 
 import { TiltCard } from "@/components/TiltCard";
 import {
@@ -154,12 +155,12 @@ export default function ShopPage() {
                 {cat}
               </button>
             ))}
-            <Link
+            {CARD_CATALOG_VISIBLE && <Link
               href="/cards"
               className="inline-flex items-center gap-2 rounded-full border border-amber-400/50 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
             >
               <Sparkles className="h-4 w-4" /> Thư viện Thiệp 3D (54+ mẫu)
-            </Link>
+            </Link>}
           </div>
         </section>
 
