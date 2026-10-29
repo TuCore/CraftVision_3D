@@ -81,6 +81,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
             description: p.description || "",
             matchScore: 0,
             productType: p.productType,
+            supportsNfc: p.supportsNfc === true,
             images: parsedImages,
             isComingSoon: p.isComingSoon,
             stock: p.stock ?? 0,
@@ -410,6 +411,18 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                   <ShoppingBag className="h-5 w-5" />
                   Thêm vào giỏ hàng
                 </button>
+              )}
+
+              {product.supportsNfc && !product.isComingSoon && !isOutOfStock && (
+                <Link
+                  href={{ pathname: `/shop/${product.id}/greeting`, query: { quantity } }}
+                  prefetch={false}
+                  className="w-full py-4 px-4 rounded-2xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-colors font-bold flex items-center justify-center gap-2 text-center focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                >
+                  <Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  Thêm mẫu thiệp vào NFC
+                  <ChevronRight className="h-5 w-5 shrink-0" aria-hidden="true" />
+                </Link>
               )}
 
               {CARD_CATALOG_VISIBLE && !product.isComingSoon && !isOutOfStock && (

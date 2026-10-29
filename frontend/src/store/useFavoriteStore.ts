@@ -1,26 +1,10 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { getAccessToken, isJwtExpired } from '@/lib/authSession';
+import { favoritesApi } from '@/features/favorites/api';
+import { createFavoriteState } from '@/features/favorites/state';
 
-interface FavoriteStore {
-  favoriteIds: string[];
-  toggleFavorite: (productId: string) => void;
-  isFavorite: (productId: string) => boolean;
-}
-
-export const useFavoriteStore = create<FavoriteStore>()(
-  persist(
-    (set, get) => ({
-      favoriteIds: [],
-      toggleFavorite: (productId) => set((state) => {
-        if (state.favoriteIds.includes(productId)) {
-          return { favoriteIds: state.favoriteIds.filter(id => id !== productId) };
-        }
-        return { favoriteIds: [...state.favoriteIds, productId] };
-      }),
-      isFavorite: (productId) => get().favoriteIds.includes(productId),
-    }),
-    {
-      name: 'favorite-storage',
-    }
-  )
-);
+// Account favorites come from the server, never from the legacy shared browser list.
+export const useFavoriteStore = create(createFavoriteState(favoritesApi, () => {
+  const token = getAccessToken();
+  return token && !isJwtExpired(token) ? token : null;
+}));

@@ -6,12 +6,12 @@ import { AppShell } from "@/components/AppShell";
 import Link from "next/link";
 import { Search, Star, Sparkles, Loader2, Heart, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { Product, Category } from "@/lib/product.types";
+import { Product } from "@/lib/product.types";
 import { useFavoriteStore } from "@/store/useFavoriteStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useProductCategories } from "@/hooks/useProductCategories";
-import api from "@/lib/api";
-import { getAccessToken } from "@/lib/authSession";
+import { fetchApi } from "@/lib/apiClient";
+import { getAccessToken, isJwtExpired } from "@/lib/authSession";
 import { CARD_CATALOG_VISIBLE } from "@/features/cards/visibility";
 
 import { TiltCard } from "@/components/TiltCard";
@@ -31,9 +31,14 @@ export default function ShopPage() {
   const { t, language } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
   const [search, setSearch] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { isFavorite, toggleFavorite } = useFavoriteStore();
+  const {
+    favoriteIds, isFavorite, toggleFavorite, pendingIds, hasSession,
+    isLoading: favoritesLoading, hasLoaded: favoritesLoaded,
+    loadError: favoritesLoadError, syncFavorites,
+  } = useFavoriteStore();
   const { toggleFavorite: addToCart } = useWishlistStore();
   const { data: categoriesData } = useProductCategories();
   const allCategoryLabel = language === "vi" ? "Tất cả" : "All";
@@ -42,6 +47,20 @@ export default function ShopPage() {
   const getProductAvailableStock = (product: Product) => {
     if (product.stock === undefined) return 0;
     return Math.max(0, product.availableStock !== undefined ? product.availableStock : product.stock);
+  };
+
+  const handleFavorite = async (productId: string) => {
+    const token = getAccessToken();
+    if (!token || isJwtExpired(token)) {
+      toast.info(language === "vi" ? "Vui lòng đăng nhập để lưu sản phẩm yêu thích!" : "Please sign in to save your favorites!");
+      router.push("/auth");
+      return;
+    }
+    try {
+      await toggleFavorite(productId);
+    } catch {
+      toast.error(language === "vi" ? "Chưa lưu được thay đổi yêu thích. Vui lòng thử lại." : "Could not save your favorites. Please try again.");
+    }
   };
 
   const handleAddToCart = (product: Product) => {
@@ -79,11 +98,16 @@ export default function ShopPage() {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const { data } = await api.get('/api/products?page=1&pageSize=100', {
-          params: { _t: Date.now() },
+        const data = await fetchApi(`/api/products?page=1&pageSize=100&_t=${Date.now()}`, {
+          cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
         });
-        const items = data.items || [];
+        const items = [...(data.items || [])];
+        // Include later pages so saved favorites cannot disappear behind the first 100 products.
+        for (let page = 2; page <= (data.totalPages || 1); page++) {
+          const next = await fetchApi(`/api/products?page=${page}&pageSize=100&_t=${Date.now()}`, { cache: 'no-store' });
+          items.push(...(next.items || []));
+        }
         // Map backend ProductDto to frontend Product interface
         const mapped = items.map((p: any) => {
           const parsedImages = p.sampleImageUrl ? p.sampleImageUrl.split(',') : (p.images || []);
@@ -103,7 +127,7 @@ export default function ShopPage() {
             reservedStock: p.reservedStock ?? 0,
           };
         });
-        setProducts(mapped);
+        setProducts([...new Map<string, Product>(mapped.map((product: Product) => [product.id, product])).values()]);
       } catch (error) {
         console.error("Failed to fetch products", error);
       } finally {
@@ -121,16 +145,18 @@ export default function ShopPage() {
     return products.filter((product) => {
       const matchSearch = product.name.toLowerCase().includes(search.toLowerCase());
       const matchCategory = selectedCategory === allCategoryLabel || selectedCategory === "Tất cả" || selectedCategory === "All" || product.category === selectedCategory;
-      return matchSearch && matchCategory;
+      const matchFavorite = !showFavoritesOnly || favoriteIds.includes(product.id);
+      return matchSearch && matchCategory && matchFavorite;
     });
-  }, [search, selectedCategory, products, allCategoryLabel]);
+  }, [search, selectedCategory, products, allCategoryLabel, showFavoritesOnly, favoriteIds]);
 
   return (
     <AppShell active="shop">
       <div className="space-y-8">
         {/* Search & Filter */}
         <section id="products-grid" className="space-y-4 scroll-mt-24">
-          <div className="relative max-w-md mx-auto md:mx-0">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input
               type="text"
@@ -140,6 +166,26 @@ export default function ShopPage() {
               className="w-full h-12 pl-12 pr-4 rounded-full glass-card border border-border outline-none focus:ring-2 focus:ring-primary/50 text-sm"
             />
           </div>
+          <button
+            type="button"
+            onClick={() => setShowFavoritesOnly((current) => !current)}
+            aria-pressed={showFavoritesOnly}
+            aria-label={language === "vi" ? "Chỉ xem sản phẩm yêu thích" : "Show favorite products only"}
+            aria-busy={favoritesLoading}
+            className={`inline-flex h-12 shrink-0 self-start items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary ${showFavoritesOnly ? "border-rose-400 bg-rose-500/15 text-rose-600 dark:text-rose-300" : "glass-card border-border text-foreground hover:border-rose-400/70"}`}
+          >
+            {favoritesLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Heart className={`h-4 w-4 ${showFavoritesOnly ? "fill-current" : ""}`} aria-hidden="true" />}
+            {language === "vi" ? "Yêu thích" : "Favorites"}
+            <span className="min-w-5 rounded-full bg-rose-500/15 px-1.5 py-0.5 text-xs tabular-nums">{favoriteIds.length}</span>
+          </button>
+          </div>
+
+          {favoritesLoadError && (
+            <div role="alert" className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm">
+              <span>{language === "vi" ? "Chưa tải được danh sách yêu thích từ tài khoản." : "Could not load your account's favorites."}</span>
+              <button type="button" disabled={favoritesLoading} onClick={() => void syncFavorites()} className="font-semibold text-primary underline disabled:opacity-50">{language === "vi" ? "Thử lại" : "Retry"}</button>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2">
             {dynamicCategories.map((cat) => (
@@ -299,15 +345,20 @@ export default function ShopPage() {
 
                   {/* Heart Button */}
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleFavorite(product.id);
+                      void handleFavorite(product.id);
                     }}
-                    className="absolute top-2 right-2 z-30 p-2 rounded-full glass-strong hover:bg-white/80 transition-colors"
+                    aria-label={`${isFavorite(product.id) ? (language === "vi" ? "Bỏ yêu thích" : "Remove from favorites") : (language === "vi" ? "Thêm vào yêu thích" : "Add to favorites")}: ${product.name}`}
+                    aria-pressed={isFavorite(product.id)}
+                    disabled={pendingIds.includes(product.id) || (hasSession && (favoritesLoading || !favoritesLoaded))}
+                    className="absolute top-2 right-2 z-30 p-2 rounded-full glass-strong hover:bg-white/80 transition-colors disabled:opacity-50 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
-                    <Heart
+                    {pendingIds.includes(product.id) ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Heart
+                      aria-hidden="true"
                       className={`h-4 w-4 ${isFavorite(product.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
-                    />
+                    />}
                   </button>
                 </div>
                 
@@ -370,9 +421,18 @@ export default function ShopPage() {
           })}
         </section>
 
-        {filteredProducts.length === 0 && (
+        {filteredProducts.length === 0 && !isLoading && (
           <div className="text-center py-20 text-muted-foreground">
-            {t("shop.no_products")}
+            {showFavoritesOnly ? (
+              favoritesLoading ? <p role="status">{language === "vi" ? "Đang tải sản phẩm yêu thích…" : "Loading favorites…"}</p> : (
+                <>
+                  <Heart className="mx-auto mb-4 h-10 w-10 text-rose-400" aria-hidden="true" />
+                  <p>{!hasSession ? (language === "vi" ? "Đăng nhập để xem và lưu sản phẩm yêu thích theo tài khoản." : "Sign in to view and save your favorites.") : favoritesLoadError ? (language === "vi" ? "Vui lòng thử tải lại danh sách yêu thích." : "Please try loading your favorites again.") : favoriteIds.length === 0 ? (language === "vi" ? "Bạn chưa có sản phẩm yêu thích. Bấm trái tim trên sản phẩm để lưu lại nhé." : "No favorites yet. Tap a product's heart to save it.") : (language === "vi" ? "Không có sản phẩm yêu thích phù hợp với bộ lọc hiện tại." : "No favorites match your current filters.")}</p>
+                  {!hasSession && <Link href="/auth" className="mt-4 inline-block font-semibold text-primary underline">{language === "vi" ? "Đăng nhập" : "Sign in"}</Link>}
+                  <button type="button" onClick={() => { setShowFavoritesOnly(false); setSearch(""); setSelectedCategory(allCategoryLabel); }} className="mx-auto mt-4 block font-semibold text-primary underline">{language === "vi" ? "Xem tất cả sản phẩm" : "View all products"}</button>
+                </>
+              )
+            ) : t("shop.no_products")}
           </div>
         )}
       </div>
