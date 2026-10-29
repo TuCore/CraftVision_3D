@@ -1,0 +1,79 @@
+openapi: 3.0.3
+info:
+  title: Account Favorites
+  version: 1.0.0
+  description: Existing authenticated favorites API used by the storefront. The user is taken from the JWT claims. Browser requests use the /api Gateway proxy.
+security:
+  - bearerAuth: []
+paths:
+  /api/favorites:
+    get:
+      summary: List the current account's saved products
+      responses:
+        '200':
+          description: Favorites ordered by creation time, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Favorite'
+        '401':
+          description: Authentication required
+  /api/favorites/{productId}:
+    parameters:
+      - in: path
+        name: productId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Save a product for the current account
+      responses:
+        '200':
+          description: Saved favorite, or the existing favorite if already saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Favorite'
+        '401':
+          description: Authentication required
+        '404':
+          description: Product not found
+    delete:
+      summary: Remove a product from the current account's favorites
+      responses:
+        '204':
+          description: Removed successfully; no response body
+        '401':
+          description: Authentication required
+        '404':
+          description: Favorite not found; storefront treats this as already removed
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Favorite:
+      type: object
+      required: [id, productId, name, price, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        price:
+          type: number
+        imageUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time

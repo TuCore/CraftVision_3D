@@ -10,6 +10,7 @@ export interface Product {
   description: string;
   matchScore: number;
   productType?: string;
+  supportsNfc?: boolean;
   images?: string[];
   isComingSoon?: boolean;
   stock?: number;

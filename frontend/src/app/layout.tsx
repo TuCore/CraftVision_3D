@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import QueryProvider from "@/providers/QueryProvider";
 import BackgroundMusic from "@/features/music/BackgroundMusic";
+import { FavoriteSync } from "@/features/favorites/FavoriteSync";
 const poppins = Poppins({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
             <LanguageProvider>
               <GoogleOAuthProvider clientId={googleClientId}>
                 {children}
+                <FavoriteSync />
                 <BackgroundMusic />
                 <Toaster position="top-center" />
               </GoogleOAuthProvider>
