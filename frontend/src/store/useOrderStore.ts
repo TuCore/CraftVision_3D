@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { Product } from '@/lib/product.types';
+import { commerceStorage } from '@/lib/commerceStorage';
 
 export interface OrderGift {
   giftTitle?: string;
@@ -51,6 +52,7 @@ export const useOrderStore = create<OrderStore>()(
     }),
     {
       name: 'order-storage',
+      storage: createJSONStorage(() => commerceStorage),
       version: 2,
     }
   )

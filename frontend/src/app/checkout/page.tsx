@@ -12,6 +12,7 @@ import { Truck, ShoppingCart, CreditCard, ArrowLeft, Clock, Sparkles, CheckCircl
 import api from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getAccessToken } from "@/lib/authSession";
+import { useStoreHydration } from "@/hooks/useStoreHydration";
 
 type PricedOrderProduct = OrderItem["product"] & { basePrice?: number; cardPrice?: number };
 
@@ -40,6 +41,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearItems } = useOrderStore();
   const { removeFromCart } = useWishlistStore(); // to clear cart items on success
+  const orderHydrated = useStoreHydration(useOrderStore);
+  const cartHydrated = useStoreHydration(useWishlistStore);
 
   const [shippingInfo, setShippingInfo] = useState({
     receiverName: "",
@@ -84,6 +87,7 @@ export default function CheckoutPage() {
   );
 
   useEffect(() => {
+    if (!orderHydrated || !cartHydrated) return;
     const token = getAccessToken();
     if (!token) {
       toast.info("Vui lòng đăng nhập hoặc đăng ký để tiến hành thanh toán!");
@@ -128,7 +132,7 @@ export default function CheckoutPage() {
     };
 
     verifyCheckoutStock();
-  }, [items, router, isOrderPlaced]);
+  }, [items, router, isOrderPlaced, orderHydrated, cartHydrated]);
 
   useEffect(() => {
     if (hasPhysicalItems) {
@@ -334,6 +338,10 @@ export default function CheckoutPage() {
 
   const shipping = calculateShippingFee();
   const total = subtotal + (hasPhysicalItems && !hasAddressLocation ? 0 : shipping);
+
+  if (!orderHydrated || !cartHydrated) {
+    return <AppShell active="shop"><p role="status" className="py-20 text-center text-muted-foreground">Đang khôi phục thông tin thanh toán…</p></AppShell>;
+  }
 
   return (
     <AppShell active="shop">

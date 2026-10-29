@@ -41,6 +41,7 @@ import { useMemo, useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useTranslation } from "@/components/LanguageProvider";
 import { cardTemplates } from "@/features/cards/catalog";
+import { useStoreHydration } from "@/hooks/useStoreHydration";
 
 const getCardSlug = (item: CartItem) => item.cardSlug || item.selectedTemplate?.slug;
 const getCardFee = (item: CartItem) =>
@@ -52,6 +53,8 @@ export default function CartPage() {
   const { t, language } = useTranslation();
   const { items, removeFromCart, updateQuantity, updateCartItem, clearWishlist, syncStock } = useWishlistStore();
   const { setItems, orderNote, setOrderNote } = useOrderStore();
+  const cartHydrated = useStoreHydration(useWishlistStore);
+  const orderHydrated = useStoreHydration(useOrderStore);
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isValidatingStock, setIsValidatingStock] = useState(false);
@@ -188,12 +191,6 @@ export default function CartPage() {
 
       if (payloadItems.length === 0) return;
 
-      if (getAccessToken()) {
-        payloadItems.forEach((pi) => {
-          api.post('/api/cart/items', { productId: pi.productId, quantity: pi.quantity }).catch(() => {});
-        });
-      }
-
       let stockStatuses: any[] = [];
       try {
         const res = await api.post('/api/products/check-stock', { items: payloadItems }, {
@@ -246,6 +243,7 @@ export default function CartPage() {
   };
 
   useEffect(() => {
+    if (!cartHydrated) return;
     checkLiveStock();
     const handleFocus = () => checkLiveStock();
     window.addEventListener("focus", handleFocus);
@@ -257,7 +255,7 @@ export default function CartPage() {
       window.removeEventListener("focus", handleFocus);
       clearInterval(interval);
     };
-  }, [items.length]);
+  }, [items.length, cartHydrated]);
 
   // Separate items into Available vs Sold Out items
   const { availableItems, soldOutItems } = useMemo(() => {
@@ -342,6 +340,10 @@ export default function CartPage() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
+
+  if (!cartHydrated || !orderHydrated) {
+    return <AppShell active="cart"><p role="status" className="py-20 text-center text-muted-foreground">Đang khôi phục giỏ hàng…</p></AppShell>;
+  }
 
   return (
     <AppShell active="cart">

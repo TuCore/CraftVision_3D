@@ -12,6 +12,7 @@ import { LanguageSwitcher, FlagVN, FlagUK } from "@/components/LanguageSwitcher"
 import { toast } from "sonner";
 import { clearAuthSession, getAccessToken, isJwtExpired, logout } from "@/lib/authSession";
 import { useIdleTimeout } from "@/hooks/useIdleTimeout";
+import { commerceStorage, COMMERCE_STORAGE_WARNING } from "@/lib/commerceStorage";
 
 export function AppShell({ children, active }: { children: ReactNode; active?: string }) {
   const { t, language, setLanguage } = useTranslation();
@@ -26,6 +27,13 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
   const [bumpingKey, setBumpingKey] = useState<string | null>(null);
   const prevCount = useRef(wishlistCount);
   useIdleTimeout();
+
+  useEffect(() => {
+    const warn = () => toast.warning("Trình duyệt không lưu được giỏ hàng lâu dài. Hãy hoàn tất trong phiên hiện tại và tránh tải lại trang.", { id: "commerce-storage-warning", duration: 8000 });
+    window.addEventListener(COMMERCE_STORAGE_WARNING, warn);
+    if (commerceStorage.hasFailedWrites()) warn();
+    return () => window.removeEventListener(COMMERCE_STORAGE_WARNING, warn);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {

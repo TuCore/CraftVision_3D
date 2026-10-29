@@ -12,7 +12,8 @@
     "test:tutorial": "tsc --ignoreConfig --strict --target ES2020 --module commonjs --lib ES2020,DOM --skipLibCheck --outDir node_modules/.tutorial-tests src/features/tutorials/types.ts && node --test tests/tutorial-video.test.cjs",
     "test:dashboard": "tsc --ignoreConfig --strict --target ES2020 --module commonjs --lib ES2020,DOM --skipLibCheck --outDir node_modules/.dashboard-tests src/features/dashboard/types.ts && node --test tests/dashboard.test.cjs",
     "test:favorites": "tsc --ignoreConfig --strict --target ES2020 --module commonjs --lib ES2020,DOM --skipLibCheck --outDir node_modules/.favorite-tests src/features/favorites/state.ts src/features/favorites/api.ts && node --test tests/favorites.test.cjs",
-    "test:password": "tsc --ignoreConfig --strict --target ES2020 --module commonjs --lib ES2020,DOM --skipLibCheck --outDir node_modules/.password-tests src/features/auth/passwordPolicy.ts && node --test tests/password-policy.test.cjs"
+    "test:password": "tsc --ignoreConfig --strict --target ES2020 --module commonjs --lib ES2020,DOM --skipLibCheck --outDir node_modules/.password-tests src/features/auth/passwordPolicy.ts && node --test tests/password-policy.test.cjs",
+    "test:commerce-storage": "tsc --ignoreConfig --strict --target ES2020 --module commonjs --lib ES2020,DOM --skipLibCheck --outDir node_modules/.commerce-tests src/lib/commerceStorage.ts && node --test tests/commerce-storage.test.cjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
