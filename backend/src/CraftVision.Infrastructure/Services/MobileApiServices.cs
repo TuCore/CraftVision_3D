@@ -8,6 +8,7 @@ using CraftVision.Domain.Entities;
 using CraftVision.Domain.Enums;
 using CraftVision.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using CraftVision.Security;
 
 namespace CraftVision.Infrastructure.Services;
 
@@ -112,7 +113,7 @@ public class PasswordResetService(ApplicationDbContext db, IPasswordHasher hashe
 
     public async Task ResetAsync(string token, string newPassword)
     {
-        if (newPassword.Length < 8) throw new ArgumentException("Password must contain at least 8 characters.");
+        PasswordPolicy.Validate(newPassword);
         var hash = Hash(token.Trim());
         var reset = await db.PasswordResetTokens.Include(x => x.User)
             .FirstOrDefaultAsync(x => x.TokenHash == hash && x.UsedAt == null && x.ExpiresAt > DateTime.UtcNow)

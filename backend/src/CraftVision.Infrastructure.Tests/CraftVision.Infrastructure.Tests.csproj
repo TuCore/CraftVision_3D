@@ -28,6 +28,8 @@
     <ProjectReference Include="..\CraftVision.Application\CraftVision.Application.csproj" />
     <ProjectReference Include="../Services/CardSharing/CardSharing.csproj" />
     <Compile Include="../Gateway/ReportingController.cs" Link="Gateway/ReportingController.cs" />
+    <Compile Include="../CraftVision.Presentation/Controllers/AuthController.cs" Link="Http/AuthController.cs" />
+    <None Include="../../../api-specs/password-policy-cases.json" Link="password-policy-cases.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

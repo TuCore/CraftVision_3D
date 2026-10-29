@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CraftVision.Domain\CraftVision.Domain.csproj" />
     <Compile Include="../Services/Reporting/ReportContracts.cs" Link="Reporting/ReportContracts.cs" />
+    <Compile Include="../BuildingBlocks/Security/PasswordPolicy.cs" Link="Security/PasswordPolicy.cs" />
   </ItemGroup>
 
   <ItemGroup>

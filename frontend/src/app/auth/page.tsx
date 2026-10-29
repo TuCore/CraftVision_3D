@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Box, Mail, Lock, User, Sparkles, ArrowRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { Mail, Lock, User, ArrowRight, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,18 +10,32 @@ import { fetchApi } from "@/lib/apiClient";
 import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
 import { StarryBackground } from "@/components/StarryBackground";
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { consumeAuthNotice, getJwtRole, setAuthSession } from "@/lib/authSession";
+import { getPasswordRequirements } from "@/features/auth/passwordPolicy";
 
-export default function AuthPage() {
+function AuthForm() {
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<"login" | "register">(searchParams.get("mode") === "register" ? "register" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+  const passwordsMismatch = mode === "register" && confirmPassword.length > 0 && password !== confirmPassword;
+  const passwordRequirements = getPasswordRequirements(password);
+  const passwordMeetsRequirements = passwordRequirements.every((requirement) => requirement.met);
+
+  const changeMode = (nextMode: "login" | "register") => {
+    setMode(nextMode);
+    setConfirmPassword("");
+    setAcceptedTerms(false);
+    setError("");
+  };
 
   useEffect(() => {
     const reason = consumeAuthNotice();
@@ -36,8 +50,22 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-    setLoading(true);
     setError("");
+    if (mode === "register") {
+      if (!acceptedTerms) {
+        setError("Vui lòng đồng ý với Điều khoản và Chính sách bảo mật để đăng ký.");
+        return;
+      }
+      if (!passwordMeetsRequirements) {
+        setError("Vui lòng nhập mật khẩu đáp ứng đủ 5 yêu cầu bên dưới.");
+        return;
+      }
+      if (!confirmPassword || password !== confirmPassword) {
+        setError("Mật khẩu nhập lại chưa khớp. Vui lòng kiểm tra lại.");
+        return;
+      }
+    }
+    setLoading(true);
 
     try {
       if (mode === "register") {
@@ -141,7 +169,7 @@ export default function AuthPage() {
           <div className="glass-strong bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
             <div className="flex gap-1 p-1 bg-white/60 rounded-2xl mb-6">
               <button
-                onClick={() => setMode("login")}
+                onClick={() => changeMode("login")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
                   mode === "login" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -149,7 +177,7 @@ export default function AuthPage() {
                 Đăng nhập
               </button>
               <button
-                onClick={() => setMode("register")}
+                onClick={() => changeMode("register")}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
                   mode === "register" ? "btn-hero" : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -193,9 +221,47 @@ export default function AuthPage() {
                 <Label htmlFor="password">Mật khẩu</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className="pl-10 h-11 bg-white/80" />
+                  <Input id="password" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} minLength={mode === "register" ? 8 : undefined} aria-describedby={mode === "register" ? "password-requirements" : undefined} value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className="pl-10 h-11 bg-white/80" />
                 </div>
+                {mode === "register" && (
+                  <div id="password-requirements" className="pt-2">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Mật khẩu cần có:</p>
+                    <ul aria-label="Yêu cầu mật khẩu" className="space-y-2">
+                      {passwordRequirements.map((requirement) => (
+                        <li key={requirement.id} data-password-rule={requirement.id} data-met={requirement.met} className={`flex items-center gap-2 text-xs transition-colors ${requirement.met ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                          <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors ${requirement.met ? "border-emerald-500 bg-emerald-500/10" : "border-muted-foreground/40"}`}>
+                            {requirement.met && <Check className="h-3 w-3" strokeWidth={3} />}
+                          </span>
+                          <span>{requirement.label}<span className="sr-only">{requirement.met ? ": Đã đạt" : ": Chưa đạt"}</span></span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p role="status" className="sr-only">Đã đạt {passwordRequirements.filter((requirement) => requirement.met).length} trên 5 yêu cầu mật khẩu.</p>
+                  </div>
+                )}
               </div>
+
+              {mode === "register" && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="confirm-password">Nhập lại mật khẩu</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      required
+                      placeholder="Nhập lại mật khẩu của bạn"
+                      aria-invalid={passwordsMismatch}
+                      aria-describedby={passwordsMismatch ? "confirm-password-error" : undefined}
+                      className="pl-10 h-11 bg-white/80"
+                    />
+                  </div>
+                  {passwordsMismatch && <p id="confirm-password-error" role="status" className="text-sm text-rose-600">Mật khẩu nhập lại chưa khớp.</p>}
+                </div>
+              )}
 
               {mode === "login" ? (
                 <div className="flex items-center justify-between text-sm">
@@ -210,16 +276,24 @@ export default function AuthPage() {
                 </div>
               ) : (
                 <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <Checkbox id="terms-auth" className="mt-0.5" />
+                  <Checkbox
+                    id="terms-auth"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                    required
+                    disabled={loading}
+                    aria-label="Tôi đồng ý với Điều khoản và Chính sách bảo mật"
+                    className="mt-0.5"
+                  />
                   <div>
                     <label htmlFor="terms-auth" className="cursor-pointer">
                       Tôi đồng ý với{" "}
                     </label>
-                    <Link href="/terms" className="text-primary font-medium hover:underline">Điều khoản</Link>{" "}
+                    <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">Điều khoản</Link>{" "}
                     <label htmlFor="terms-auth" className="cursor-pointer">
                       và{" "}
                     </label>
-                    <Link href="/privacy" className="text-primary font-medium hover:underline">Chính sách bảo mật</Link>
+                    <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">Chính sách bảo mật</Link>
                     <label htmlFor="terms-auth" className="cursor-pointer">
                       .
                     </label>
@@ -227,16 +301,16 @@ export default function AuthPage() {
                 </div>
               )}
 
-              <button
+              {(mode === "login" || acceptedTerms) && <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (mode === "register" && (!passwordMeetsRequirements || !confirmPassword || passwordsMismatch))}
                 className="btn-hero w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold disabled:opacity-70"
               >
                 {loading ? "Đang xử lý..." : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
                 <ArrowRight className="h-4 w-4" />
-              </button>
+              </button>}
 
-              <div className="flex items-center gap-3 my-2">
+              {(mode === "login" || acceptedTerms) && <><div className="flex items-center gap-3 my-2">
                 <div className="h-px flex-1 bg-border" />
                 <span className="text-xs text-muted-foreground">HOẶC</span>
                 <div className="h-px flex-1 bg-border" />
@@ -248,6 +322,10 @@ export default function AuthPage() {
                     onSuccess={(credentialResponse) => {
                       (async () => {
                         if (loading) return;
+                        if (mode === "register" && !acceptedTerms) {
+                          setError("Vui lòng đồng ý với Điều khoản và Chính sách bảo mật để đăng ký.");
+                          return;
+                        }
                         setLoading(true);
                         setError("");
                         try {
@@ -268,18 +346,26 @@ export default function AuthPage() {
                     onError={() => {
                       setError("Đăng nhập Google thất bại.");
                     }}
-                    useOneTap
+                    useOneTap={mode === "login"}
                     shape="rectangular"
                     theme="outline"
                     text="continue_with"
                     size="large"
                   />
                 </div>
-              </div>
+              </div></>}
             </form>
           </div>
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <AuthForm />
+    </Suspense>
   );
 }

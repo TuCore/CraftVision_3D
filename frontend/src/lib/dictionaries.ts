@@ -14,6 +14,7 @@ export const dictionaries = {
     "nav.cart": "Giỏ hàng",
     "nav.logout": "Đăng xuất",
     "nav.login": "Đăng nhập",
+    "nav.register": "Đăng ký",
     "nav.language": "Ngôn ngữ",
     "nav.exit_demo": "Thoát Demo",
 
@@ -191,6 +192,7 @@ export const dictionaries = {
     "nav.cart": "Cart",
     "nav.logout": "Logout",
     "nav.login": "Login",
+    "nav.register": "Sign up",
     "nav.language": "Language",
     "nav.exit_demo": "Exit Demo",
 

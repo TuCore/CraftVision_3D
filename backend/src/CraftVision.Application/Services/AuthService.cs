@@ -5,6 +5,7 @@ using CraftVision.Application.Interfaces.Repositories;
 using CraftVision.Domain.Entities;
 using CraftVision.Domain.Enums;
 using Microsoft.Extensions.Configuration;
+using CraftVision.Security;
 
 namespace CraftVision.Application.Services;
 
@@ -35,6 +36,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
+        PasswordPolicy.Validate(request.Password);
         var exists = await _userRepository.ExistsByEmailAsync(request.Email);
         if (exists)
             throw new Exception("Email đã tồn tại.");
