@@ -133,15 +133,45 @@ public class MobileApiServiceTests
             .Callback<string, string, string, bool>((_, _, value, _) => body = value)
             .Returns(Task.CompletedTask);
         var hasher = new Mock<IPasswordHasher>();
-        hasher.Setup(x => x.HashPassword("new-password")).Returns("new-hash");
+        hasher.Setup(x => x.HashPassword("New-password1!")).Returns("new-hash");
         var service = new PasswordResetService(db, hasher.Object, email.Object);
 
         await service.RequestAsync("CUSTOMER@example.com");
         var token = Regex.Match(body!, "[A-F0-9]{64}").Value;
-        await service.ResetAsync(token, "new-password");
+        await service.ResetAsync(token, "New-password1!");
 
         Assert.Equal("new-hash", user.PasswordHash);
-        await Assert.ThrowsAsync<ArgumentException>(() => service.ResetAsync(token, "another-password"));
+        await Assert.ThrowsAsync<ArgumentException>(() => service.ResetAsync(token, "Another-password2!"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Short1!")]
+    [InlineData("lowercase1!")]
+    [InlineData("UPPERCASE1!")]
+    [InlineData("NoNumbers!")]
+    [InlineData("NoSpecial1")]
+    public async Task PasswordReset_WeakPassword_DoesNotChangeUserOrConsumeToken(string? password)
+    {
+        await using var db = CreateDb();
+        const string token = "local-policy-test-token";
+        var user = new User { Email = "reset-policy@example.test", PasswordHash = "old-hash" };
+        var reset = new PasswordResetToken
+        {
+            User = user,
+            TokenHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token))),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+        };
+        db.AddRange(user, reset);
+        await db.SaveChangesAsync();
+        var hasher = new Mock<IPasswordHasher>(MockBehavior.Strict);
+        var service = new PasswordResetService(db, hasher.Object, new Mock<IEmailService>().Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.ResetAsync(token, password!));
+
+        Assert.Equal("old-hash", (await db.Users.SingleAsync()).PasswordHash);
+        Assert.Null((await db.PasswordResetTokens.SingleAsync()).UsedAt);
+        hasher.VerifyNoOtherCalls();
     }
 
     [Fact]

@@ -213,10 +213,10 @@ export function AppShell({ children, active }: { children: ReactNode; active?: s
                   <span>{t("nav.login")}</span>
                 </Link>
                 <Link
-                  href="/auth"
+                  href="/auth?mode=register"
                   className="btn-hero hidden sm:inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold text-black shadow-sm hover:scale-105 transition-transform"
                 >
-                  <span>Bắt đầu</span>
+                  <span>{t("nav.register")}</span>
                 </Link>
               </div>
             ) : isDemo ? (
