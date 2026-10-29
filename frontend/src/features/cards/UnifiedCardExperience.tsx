@@ -4,7 +4,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import type { CardDraft, CardTemplate } from "./catalog";
 import type { UnifiedStage } from "./UnifiedCosmicScene";
 import {
@@ -40,7 +39,6 @@ function formatAudioTime(seconds: number): string {
 export default function UnifiedCardExperience({
   template,
   draft,
-  embedded = false,
 }: {
   template: CardTemplate;
   draft: CardDraft;
@@ -607,15 +605,6 @@ export default function UnifiedCardExperience({
       <header className="pointer-events-none absolute top-0 inset-x-0 z-40 flex flex-col gap-2 px-3 pt-3 sm:px-5 sm:pt-4">
         <div className="flex items-center justify-between gap-2">
           <div className="pointer-events-auto flex items-center gap-2">
-            {!embedded && (
-              <Link
-                href="/cards"
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#f5d78e]/30 bg-[#0d071c]/75 px-3.5 py-1.5 text-xs font-semibold text-[#fdf6e7] shadow-lg backdrop-blur-xl transition hover:border-[#f5d78e]/65 hover:bg-[#190e30]/85 focus-visible:outline-2 focus-visible:outline-[#f5d78e]"
-              >
-                <span>←</span>
-                <span>Bộ sưu tập</span>
-              </Link>
-            )}
             <span className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-[#f5d78e]/20 bg-[#0d071c]/65 px-3.5 py-1.5 text-[11px] font-medium text-[#f5d78e]/90 backdrop-blur-xl">
               <span>{cosmicBg.icon}</span>
               <span>{cosmicBg.name}</span>

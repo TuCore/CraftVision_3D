@@ -15,6 +15,7 @@ public class Product
     public decimal Price { get; set; }
     
     public int Stock { get; set; } 
+    public int LowStockThreshold { get; set; } = 5;
     
     public string? SampleImageUrl { get; set; }
     

@@ -1,0 +1,78 @@
+openapi: 3.0.3
+info:
+  title: CraftVision Admin Reporting Gateway
+  version: 1.0.0
+  description: Admin-only commerce reports. Revenue is receipted merchandise less confirmed full refunds, excluding shipping. Orders use creation dates; receipts use payment dates. Unknown historical payment dates are reported separately. All dates use Asia/Ho_Chi_Minh; from/to are inclusive local dates, maximum 366 days. Digital card revenue comes only from mirrored commerce orders.
+servers: [{ url: / }]
+security: [{ bearerAuth: [] }]
+paths:
+  /api/admin/dashboard/summary:
+    get:
+      summary: Six current and previous-period KPIs, receipts/refunds/shipping and unknown historical coverage
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }, { $ref: '#/components/parameters/Kind' }, { $ref: '#/components/parameters/Method' }]
+      responses:
+        '200': { description: Current and previous summaries, coverage and updatedAt }
+        '400': { description: Invalid dates or filters }
+        '401': { description: Sign in required }
+        '403': { description: Admin role required }
+        '503': { description: Source unavailable; never replaced with zero }
+  /api/admin/dashboard/revenue:
+    get:
+      summary: Daily, weekly or monthly zero-filled current/prior revenue series, revenue composition and order status counts
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }, { $ref: '#/components/parameters/Kind' }, { $ref: '#/components/parameters/Method' }, { name: groupBy, in: query, schema: { type: string, enum: [day, week, month], default: day } }]
+      responses:
+        '200': { description: Series, composition, order statuses, updatedAt }
+  /api/admin/dashboard/top-selling:
+    get:
+      summary: Separate merchandise and digital-template rankings from immutable payment snapshots; refunded quantities are separate from units sold
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }, { $ref: '#/components/parameters/Kind' }, { $ref: '#/components/parameters/Method' }]
+      responses:
+        '200': { description: Up to 10 products and 10 templates ordered by net revenue }
+  /api/admin/dashboard/system:
+    get:
+      summary: Current active customer/product/stock/NFC counts, new customers in selected dates and operational alerts; kind/payment filters do not affect system-wide snapshots
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { description: Commerce snapshot and alerts; independent card-service snapshot may be unavailable }
+  /api/admin/dashboard/details:
+    get:
+      summary: Paginated drilldowns matching the selected KPI or alert, including archived financial history
+      parameters:
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+        - { $ref: '#/components/parameters/Kind' }
+        - { $ref: '#/components/parameters/Method' }
+        - { name: metric, in: query, required: true, schema: { type: string, enum: [revenue, orders, paidOrders, productsSold, cardsSold, buyers, legacy, pending, refundPending, customers, newCustomers, products, lowStock, nfc] } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        '200': { description: Rows and totalItems; fixed pageSize 20 }
+  /api/admin/reports/sales/export:
+    get:
+      summary: Stream UTF-8 BOM CSV of dated financial events using the same filters and snapshot values as the dashboard; formula-like text is escaped
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }, { $ref: '#/components/parameters/Kind' }, { $ref: '#/components/parameters/Method' }]
+      responses:
+        '200': { description: CSV with event ID, order, kind, method, local date, receipt/refund, signed merchandise and shipping amounts, content: { text/csv: { schema: { type: string } } } }
+  /api/admin/dashboard/stock-threshold/{id}:
+    put:
+      summary: Configure a product-specific low-stock threshold, including zero
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [threshold], properties: { threshold: { type: integer, minimum: 0, maximum: 1000000 } } } } }
+      responses:
+        '204': { description: Saved }
+  /api/admin/dashboard/cards:
+    get:
+      summary: Admin card inventory supplied by the owning CardSharing service, never used as an additional revenue source
+      parameters: [{ name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }]
+      responses:
+        '200': { description: Draft/published totals and paginated card inventory }
+        '503': { description: Card service not configured or unavailable }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    From: { name: from, in: query, required: true, schema: { type: string, format: date } }
+    To: { name: to, in: query, required: true, schema: { type: string, format: date } }
+    Kind: { name: kind, in: query, schema: { type: string, enum: [all, Product, DigitalCard], default: all } }
+    Method: { name: method, in: query, schema: { type: string, enum: [all, Cod, BankTransfer, None], default: all } }

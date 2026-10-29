@@ -3,7 +3,6 @@
 /* eslint-disable @next/next/no-img-element -- Local uploaded data URLs and pre-rendered preview assets do not use the image optimizer. */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import { fieldsFor, type CardTemplate, type CardDraft } from "./catalog";
 import "./cards.css";
@@ -132,7 +131,6 @@ function SecretRingExperience({ template, draft, embedded = false }: { template:
     <canvas ref={particleCanvas} className="particle-canvas" aria-hidden="true" />
     <div className="ring-ambient" aria-hidden="true" />
     <div className="ring-sparkles" aria-hidden="true">{Array.from({ length: 22 }, (_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}</div>
-    {!embedded && <Link className="ring-back" href="/cards">← Bộ sưu tập</Link>}
     <button className="ring-sound" onClick={toggleAudio} aria-label={musicPlaying ? "Tắt nhạc" : "Bật nhạc"}>{musicPlaying ? "♫" : "♩"}</button>
     {stage === "INTRO" && <section className="ring-panel ring-intro">
       <span className="ring-kicker">{text("title", "Một món quà bí mật")}</span>
@@ -256,7 +254,6 @@ function StandardCardExperience({ template, draft, embedded = false }: { templat
   return <main className={`card-experience ${insideFrame ? "card-embedded" : ""}`} style={{ "--card-accent": text("accent", template.color), "--card-bg": template.background } as React.CSSProperties}>
     <CardScene template={template} draft={draft} progress={progress} envelope={letterVisible} opening={stage === "opening" || stage === "letter"} reduced={reduced} onInteract={interact} />
     <nav className="experience-nav" aria-label="Điều khiển thiệp">
-      {!insideFrame && <Link href="/cards">← Bộ sưu tập</Link>}
       {text("audio") && <button aria-pressed={musicPlaying} onClick={() => { if (!audio.current) return; if (musicPlaying) { audio.current.pause(); setMusicPlaying(false); } else void audio.current.play().then(() => setMusicPlaying(true)).catch(() => setMusicPlaying(false)); }}>{musicPlaying ? "Tắt nhạc" : "Bật nhạc"}</button>}
       <button onClick={replay}>↻ Xem lại</button>
     </nav>

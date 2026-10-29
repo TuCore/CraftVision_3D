@@ -1192,6 +1192,12 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("inventory_deducted");
 
+                    b.Property<bool>("IsArchived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_archived");
+
                     b.Property<string>("OrderCode")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1207,6 +1213,10 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<OrderStatus>("OrderStatus")
                         .HasColumnType("order_status_enum")
                         .HasColumnName("order_status");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
 
                     b.Property<string>("PayOsAccountName")
                         .HasColumnType("text")
@@ -1248,6 +1258,17 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("receiver_phone");
 
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("refunded_at");
+
+                    b.Property<int>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("revision");
+
                     b.Property<decimal>("ShippingFee")
                         .HasColumnType("numeric")
                         .HasColumnName("shipping_fee");
@@ -1275,6 +1296,111 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDatabaseName("ix_orders_user_id");
 
                     b.ToTable("orders", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderFinancialEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<decimal>("MerchandiseAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("merchandise_amount");
+
+                    b.Property<DateTime?>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("order_code");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("OrderKind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("order_kind");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("payment_method");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<decimal>("ShippingAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("shipping_amount");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_order_financial_events");
+
+                    b.HasIndex("OrderId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("ix_order_financial_events_order_id_kind");
+
+                    b.HasIndex("OccurredAt", "OrderKind", "PaymentMethod")
+                        .HasDatabaseName("ix_order_financial_events_occurred_at_order_kind_payment_method");
+
+                    b.ToTable("order_financial_events", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderFinancialLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<string>("ProductKey")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("product_key");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("product_name");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("Id")
+                        .HasName("pk_order_financial_lines");
+
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("ix_order_financial_lines_event_id");
+
+                    b.ToTable("order_financial_lines", (string)null);
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.OrderItem", b =>
@@ -1387,6 +1513,12 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<bool>("IsComingSoon")
                         .HasColumnType("boolean")
                         .HasColumnName("is_coming_soon");
+
+                    b.Property<int>("LowStockThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(5)
+                        .HasColumnName("low_stock_threshold");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -2315,6 +2447,30 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderFinancialEvent", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Order", "Order")
+                        .WithMany("FinancialEvents")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_financial_events_orders_order_id");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderFinancialLine", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.OrderFinancialEvent", "Event")
+                        .WithMany("Lines")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_financial_lines_order_financial_events_event_id");
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("CraftVision.Domain.Entities.Order", "Order")
@@ -2556,7 +2712,14 @@ namespace CraftVision.Infrastructure.Migrations
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Order", b =>
                 {
+                    b.Navigation("FinancialEvents");
+
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.OrderFinancialEvent", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.OrderItem", b =>

@@ -36,6 +36,11 @@ public class GlobalExceptionMiddleware
     {
         var statusCode = HttpStatusCode.BadRequest;
         var message = exception.Message;
+        if (exception is Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        {
+            statusCode = HttpStatusCode.Conflict;
+            message = "Dữ liệu vừa được cập nhật ở nơi khác. Vui lòng tải lại trước khi tiếp tục.";
+        }
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;

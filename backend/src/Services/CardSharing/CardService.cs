@@ -5,8 +5,21 @@ using Microsoft.EntityFrameworkCore;
 namespace CraftVision.CardSharing;
 
 public sealed record OwnerCard(Guid Id, int Revision, JsonElement Draft, DateTime UpdatedAt, DateTime? PublishedAt, string? SharePath, DateTime? PaidAt);
+public sealed record AdminCardRow(Guid Id, string TemplateSlug, string Status, DateTime UpdatedAt);
+public sealed record AdminCardInventory(int Total, int Published, int Drafts, IReadOnlyList<AdminCardRow> Items, int Page, int PageSize = 20);
 public sealed class CardService(CardDatabase db, CardValidator validator)
 {
+    public async Task<AdminCardInventory> Inventory(int page, CancellationToken ct)
+    {
+        if (page < 1 || page > 1000000) throw new CardError(400, "Trang không hợp lệ.");
+        var total = await db.Cards.CountAsync(ct);
+        var published = await db.Cards.CountAsync(c => c.PaidAt != null && c.ShareToken != null, ct);
+        var cards = await db.Cards.AsNoTracking().OrderByDescending(c => c.UpdatedAt).ThenBy(c => c.Id)
+            .Skip((page - 1) * 20).Take(20).Select(c => new { c.Id, c.DraftJson, c.PaidAt, c.ShareToken, c.UpdatedAt }).ToListAsync(ct);
+        return new(total, published, total - published, cards.Select(c => new AdminCardRow(c.Id,
+            JsonSerializer.Deserialize<JsonElement>(c.DraftJson).GetProperty("template").GetString() ?? "unknown",
+            c.PaidAt is not null && c.ShareToken is not null ? "Published" : "Draft", c.UpdatedAt)).ToList(), page);
+    }
     public static OwnerCard View(StoredCard card) => new(card.Id, card.Revision, JsonSerializer.Deserialize<JsonElement>(card.DraftJson), card.UpdatedAt, card.PaidAt.HasValue ? card.PublishedAt : null, card.ShareToken is null || !card.PaidAt.HasValue ? null : $"/love-gift/s/{card.ShareToken}", card.PaidAt);
     public async Task<OwnerCard[]> List(Guid owner, CancellationToken ct) => (await db.Cards.AsNoTracking().Where(c => c.OwnerId == owner).OrderByDescending(c => c.UpdatedAt).Take(100).ToArrayAsync(ct)).Select(View).ToArray();
     public async Task<StoredCard> Find(Guid owner, Guid id, CancellationToken ct) => await db.Cards.SingleOrDefaultAsync(c => c.Id == id && c.OwnerId == owner, ct) ?? throw new CardError(404, "Không tìm thấy thiệp.");

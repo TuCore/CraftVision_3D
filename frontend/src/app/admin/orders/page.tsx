@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from 'sonner';
 
-export const getOrderStatusConfig = (status: string) => {
+const getOrderStatusConfig = (status: string) => {
   switch (status) {
     case 'Pending': return { label: 'Chờ xử lý', color: 'bg-slate-100 text-slate-800 border-slate-200', icon: Clock };
     case 'Processing': return { label: 'Đang xử lý', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Package };
@@ -21,9 +21,10 @@ export const getOrderStatusConfig = (status: string) => {
   }
 };
 
-export const getPaymentStatusConfig = (method: string, status: string) => {
+const getPaymentStatusConfig = (method: string, status: string) => {
+  if (status === 'Refunded') return { label: 'Đã hoàn tiền', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' };
+  if (status === 'Paid') return { label: method === 'Cod' ? 'Đã thu COD' : 'Đã thanh toán (QR)', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
   if (method === 'Cod') return { label: 'COD (Chưa TT)', color: 'bg-slate-100 text-slate-800 border-slate-200' };
-  if (status === 'Paid') return { label: 'Đã thanh toán (QR)', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
   return { label: 'Chưa thanh toán (QR)', color: 'bg-rose-100 text-rose-800 border-rose-200' };
 };
 
@@ -37,11 +38,11 @@ export default function AdminOrdersPage() {
     if (!deleteOrderId) return;
     await deleteMutation.mutateAsync(deleteOrderId, {
       onSuccess: () => {
-        toast.success('Đã xóa đơn hàng thành công!');
+        toast.success('Đã lưu trữ đơn hàng. Lịch sử và báo cáo vẫn được giữ nguyên.');
         setDeleteOrderId(null);
       },
       onError: () => {
-        toast.error('Có lỗi xảy ra khi xóa đơn hàng.');
+        toast.error('Không thể lưu trữ đơn hàng.');
         setDeleteOrderId(null);
       }
     });
@@ -203,7 +204,7 @@ export default function AdminOrdersPage() {
                           <button
                             onClick={() => setDeleteOrderId(order.id)}
                             className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-border shadow-sm hover:shadow-md hover:border-red-500/30 transition-all text-muted-foreground hover:text-red-500 hover:bg-red-50"
-                            title="Xóa vĩnh viễn đơn hàng"
+                            title="Lưu trữ đơn hàng"
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>
@@ -261,10 +262,10 @@ export default function AdminOrdersPage() {
               <Trash2 className="w-8 h-8" />
             </div>
             <AlertDialogTitle className="text-2xl font-bold font-display text-center text-gray-800">
-              Xóa vĩnh viễn
+              Lưu trữ đơn hàng
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-500 font-medium text-base">
-              Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng này? Hành động này không thể hoàn tác.
+              Đơn hàng sẽ được ẩn khỏi danh sách quản trị. Lịch sử giao dịch, trạng thái xử lý và số liệu báo cáo được giữ nguyên.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8 flex gap-3 sm:gap-3 flex-col sm:flex-row">
@@ -276,7 +277,7 @@ export default function AdminOrdersPage() {
               disabled={deleteMutation.isPending}
               className="w-full sm:w-1/2 rounded-xl py-3 bg-red-600 hover:bg-red-700 text-white font-bold border-none m-0 flex justify-center items-center gap-2"
             >
-              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa ngay'}
+              {deleteMutation.isPending ? 'Đang lưu trữ...' : 'Lưu trữ'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

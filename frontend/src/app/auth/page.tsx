@@ -11,7 +11,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
 import { StarryBackground } from "@/components/StarryBackground";
 import { motion, Variants } from "framer-motion";
-import { consumeAuthNotice, setAuthSession } from "@/lib/authSession";
+import { consumeAuthNotice, getJwtRole, setAuthSession } from "@/lib/authSession";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -46,14 +46,14 @@ export default function AuthPage() {
           body: JSON.stringify({ email, password, fullName: name }),
         });
         saveSession(res);
-        router.replace(email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
+        router.replace(getJwtRole(res.token) === "Admin" ? "/admin/dashboard" : "/home");
       } else {
         const res = await fetchApi("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
         saveSession(res);
-        router.replace(email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
+        router.replace(getJwtRole(res.token) === "Admin" ? "/admin/dashboard" : "/home");
       }
     } catch (err: any) {
       setError(err.message);
@@ -257,7 +257,7 @@ export default function AuthPage() {
                           });
                           saveSession(res);
                           toast.success("Đăng nhập Google thành công!");
-                          router.replace(res.email === "admin@craftvision.vn" ? "/admin/nfc" : "/home");
+                          router.replace(getJwtRole(res.token) === "Admin" ? "/admin/dashboard" : "/home");
                         } catch (err: any) {
                           setError("Đăng nhập Google thất bại: " + err.message);
                         } finally {

@@ -4,14 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, ChevronLeft, ChevronRight, Sparkles, PlayCircle, Flame } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Sparkles, Flame } from "lucide-react";
 import { cardTemplates, type CardTemplate } from "@/features/cards/catalog";
-import { INITIAL_TEMPLATE_PRODUCTS, type TemplateVideo } from "@/data/templateProducts";
+import { INITIAL_TEMPLATE_PRODUCTS } from "@/data/templateProducts";
 import { useTranslation } from "@/components/LanguageProvider";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CardSaleDetails } from "./CardSaleDetails";
-import { TutorialVideoModal } from "./TutorialVideoModal";
-import { getCardCommerce } from "@/features/cards/commerce";
+import { SharedTutorialButton } from "@/features/tutorials/SharedTutorialButton";
+import { CARD_CATALOG_VISIBLE } from "@/features/cards/visibility";
 
 const STARLIGHT_TEMPLATE = INITIAL_TEMPLATE_PRODUCTS[0];
 const STARLIGHT_DEMO_URL = `/greeting-card?title=${encodeURIComponent(STARLIGHT_TEMPLATE.title)}`;
@@ -21,7 +21,6 @@ export function TemplateProductsSection() {
   const { t, language } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [preview, setPreview] = useState<CardTemplate | null>(null);
-  const [tutorial, setTutorial] = useState<{ title: string; video: TemplateVideo } | null>(null);
   const itemsPerPage = 8;
   const totalPages = Math.ceil((cardTemplates.length + 1) / itemsPerPage);
   const regularStart = Math.max(0, (currentPage - 1) * itemsPerPage - 1);
@@ -36,6 +35,8 @@ export function TemplateProductsSection() {
       block: "start",
     });
   };
+
+  if (!CARD_CATALOG_VISIBLE) return null;
 
   return (
     <section id="template-products" className="w-full scroll-mt-24 py-16 sm:py-24 bg-background border-t border-border/40" aria-labelledby="template-products-heading">
@@ -72,23 +73,7 @@ export function TemplateProductsSection() {
                   <Link href={`/shop/template-${STARLIGHT_TEMPLATE.id}/greeting`} className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"><Sparkles className="h-4 w-4" /> {personalizeLabel}</Link>
                   <button onClick={() => router.push(STARLIGHT_DEMO_URL)} className="flex items-center justify-center gap-1.5 hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"><Eye className="h-4 w-4" /> {t("template.view_demo")}</button>
                 </div>
-                <button
-                  onClick={() => setTutorial({
-                    title: STARLIGHT_TEMPLATE.title,
-                    video: STARLIGHT_TEMPLATE.video || {
-                      id: STARLIGHT_TEMPLATE.id,
-                      templateId: STARLIGHT_TEMPLATE.id,
-                      headerTitle: t("video.default_header"),
-                      videoUrl: "/videos/payment-tutorial.mp4",
-                      captionTitle: STARLIGHT_TEMPLATE.title,
-                      captionDesc: t("video.default_desc"),
-                    },
-                  })}
-                  className="mt-3 inline-flex self-end items-center gap-1.5 text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline"
-                >
-                  <PlayCircle className="h-4 w-4" />
-                  {t("template.tutorial_video")}
-                </button>
+                <SharedTutorialButton productTitle={STARLIGHT_TEMPLATE.title} className="mt-3 self-end" />
               </div>
             </article>
           )}
@@ -107,23 +92,7 @@ export function TemplateProductsSection() {
                   <Link href={`/cards/${card.slug}/edit`} className="flex items-center justify-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"><Sparkles className="h-4 w-4" /> {personalizeLabel}</Link>
                   <button onClick={() => setPreview(card)} className="flex items-center justify-center gap-1.5 hover:bg-muted border border-border text-foreground rounded-xl py-2.5 text-xs font-semibold transition-colors"><Eye className="h-4 w-4" /> {t("template.view_demo")}</button>
                 </div>
-                <button
-                  onClick={() => setTutorial({
-                    title: card.title,
-                    video: {
-                      id: card.id,
-                      templateId: card.id,
-                      headerTitle: t("video.default_header"),
-                      videoUrl: getCardCommerce(card.slug).videoUrl ?? "",
-                      captionTitle: t("video.default_caption"),
-                      captionDesc: t("video.default_desc"),
-                    },
-                  })}
-                  className="mt-3 inline-flex self-end items-center gap-1.5 text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline"
-                >
-                  <PlayCircle className="h-4 w-4" />
-                  {t("template.tutorial_video")}
-                </button>
+                <SharedTutorialButton productTitle={card.title} className="mt-3 self-end" />
               </div>
             </article>
           ))}
@@ -134,12 +103,6 @@ export function TemplateProductsSection() {
           <button aria-label={language === "vi" ? "Trang sau" : "Next page"} onClick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages} className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"><ChevronRight className="h-5 w-5" /></button>
         </nav>
       </div>
-      <TutorialVideoModal
-        isOpen={tutorial !== null}
-        onClose={() => setTutorial(null)}
-        productTitle={tutorial?.title}
-        video={tutorial?.video ?? null}
-      />
       <Dialog open={preview !== null} onOpenChange={open => { if (!open) setPreview(null); }}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
           {preview && <>

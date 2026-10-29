@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: CraftVision Shared Card Tutorial API
+  version: 1.0.0
+  description: One tutorial for every card template, owned by the CardSharing service. Responses use Cache-Control no-store.
+servers:
+  - url: /
+paths:
+  /api/tutorial-video:
+    get:
+      summary: Read the shared tutorial, including its revision
+      security: []
+      responses:
+        '200':
+          description: Configuration; video is null after removal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Configuration' }
+        '503': { description: Card database unavailable or not configured; never treated as an empty configuration }
+    put:
+      summary: Add or replace the tutorial for all current and future card templates
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - { $ref: '#/components/schemas/Video' }
+                - type: object
+                  required: [revision]
+                  properties:
+                    revision: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Saved configuration
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Configuration' }
+        '400': { description: Invalid fields or URL }
+        '401': { description: Sign in required }
+        '403': { description: Admin role required }
+        '409': { description: Configuration changed; reload before editing }
+        '503': { description: Storage unavailable; changes were not confirmed }
+    delete:
+      summary: Remove the tutorial globally and preserve the empty state across restarts
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: revision, in: query, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Configuration with video null and an incremented revision
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Configuration' }
+        '400': { description: Missing or invalid revision }
+        '401': { description: Sign in required }
+        '403': { description: Admin role required }
+        '409': { description: Configuration changed; reload before deleting }
+        '503': { description: Storage unavailable }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    Video:
+      type: object
+      required: [headerTitle, videoUrl]
+      properties:
+        headerTitle: { type: string, minLength: 1, maxLength: 160 }
+        videoUrl:
+          type: string
+          maxLength: 2048
+          description: Root-relative media path or HTTPS video URL; YouTube watch, embed, shorts and youtu.be links are supported.
+        captionTitle: { type: string, maxLength: 160, default: '' }
+        captionDesc: { type: string, maxLength: 2000, default: '' }
+        detailUrl: { type: string, maxLength: 2048, default: '', description: Optional root-relative or HTTPS link }
+    Configuration:
+      type: object
+      required: [video, revision, updatedAt]
+      properties:
+        video:
+          nullable: true
+          allOf: [{ $ref: '#/components/schemas/Video' }]
+        revision: { type: integer, minimum: 1 }
+        updatedAt: { type: string, format: date-time }

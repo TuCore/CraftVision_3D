@@ -14,6 +14,7 @@ namespace CraftVision.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Register Repositories
+            services.AddScoped<CraftVision.Reporting.ICommerceReports, CraftVision.Reporting.CommerceReports>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IKnowledgeRepository, CraftVision.Infrastructure.Repositories.KnowledgeRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IAi3dRequestRepository, CraftVision.Infrastructure.Repositories.Ai3dRequestRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IUploadedFileRepository, CraftVision.Infrastructure.Repositories.UploadedFileRepository>();

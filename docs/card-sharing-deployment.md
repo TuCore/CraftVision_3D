@@ -63,6 +63,16 @@ Nếu chưa có `ConnectionStrings__Cards`, host vẫn chạy nhưng API thiệp
 
 ## Kiểm thử
 
+### Video hướng dẫn chung
+
+Admin quản lý một video tại `/admin/videos`, áp dụng cho toàn bộ mẫu thiệp hiện tại và tương lai. Trang chủ, trang chọn/cá nhân hóa thiệp và trình chỉnh sửa `/cards/[slug]/edit` cùng đọc `GET /api/tutorial-video`. Chỉ JWT có role `Admin` được gọi PUT/DELETE; mỗi lần lưu/xóa cần revision hiện tại để tránh ghi đè thay đổi của admin khác.
+
+Dữ liệu nằm trong bảng `CardTutorialSettings` thuộc database Cards hiện có, không cần thêm connection string. Script nâng cấp mới `databases/CardSharing/004_shared_tutorial.sql` chạy sau 001–003 và chỉ thêm bảng, không sửa/xóa dữ liệu thiệp hay migration lịch sử. Lần đầu dùng video thanh toán `/videos/payment-tutorial.mp4`; các cấu hình theo mẫu cũ trong `frontend/src/data/templateVideos.json` được giữ để đối chiếu và không còn được đọc. Khi xóa, hệ thống giữ bản ghi với video rỗng nên khởi động lại không tự khôi phục video mặc định.
+
+Deploy backend và frontend cùng phiên bản. Đường dẫn `/videos/...` là tài nguyên trên frontend; video bên ngoài cần URL HTTPS MP4/WebM hoặc liên kết YouTube có quyền phát nhúng. Nếu database lỗi, API trả lỗi và admin có nút tải lại, không báo lưu thành công. Trang đang mở kiểm tra lại cấu hình khi mở hướng dẫn hoặc quay lại tab; không dùng realtime.
+
+Kiểm tra riêng: `npm run test:tutorial` trong frontend và `dotnet test backend/src/Services/CardSharing.Tests --filter FullyQualifiedName~TutorialVideoTests` với `CARDS_TEST_CONNECTION` trỏ database local riêng. Integration test nâng cấp schema có dữ liệu, kiểm tra phân quyền, sửa/xóa/thêm lại, xung đột revision và trạng thái xóa qua khởi động lại.
+
 Máy phát triển hiện tại đã có database `craftvision_cards_local`; kết nối được lưu trong .NET user-secrets của Presentation. Khởi động backend ở môi trường Development sẽ đọc cấu hình này. Trên máy khác cần tạo database riêng và đặt `ConnectionStrings:Cards` bằng `dotnet user-secrets set` hoặc biến môi trường tương ứng; không sao chép mật khẩu vào Git.
 
 Đặt `CARDS_TEST_CONNECTION` vào **database PostgreSQL local riêng**, rồi chạy:

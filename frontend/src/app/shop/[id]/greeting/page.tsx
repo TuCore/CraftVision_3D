@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Sparkles,
   Eye,
-  PlayCircle,
   CreditCard,
   ExternalLink,
   ShoppingCart,
@@ -34,12 +33,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { TutorialVideoModal } from "@/components/home/TutorialVideoModal";
-import {
-  TemplateProduct,
-  TemplateVideo,
-  DEFAULT_TUTORIAL_VIDEO,
-} from "@/data/templateProducts";
+import { SharedTutorialButton } from "@/features/tutorials/SharedTutorialButton";
+import { type TemplateProduct } from "@/data/templateProducts";
 import {
   cardTemplates,
   defaultDraft,
@@ -151,9 +146,6 @@ function GreetingDesignContent() {
   const { toggleFavorite, updateCartItem, items } = useWishlistStore();
   const store = useGreetingStore();
 
-  const [videoMap, setVideoMap] = useState<Record<number, TemplateVideo>>({});
-  const [activeVideo, setActiveVideo] = useState<TemplateVideo | null>(null);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const isPhysical = useMemo(() => {
@@ -422,21 +414,6 @@ function GreetingDesignContent() {
   }, [id]);
 
   useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const res = await fetch("/api/template-videos");
-        if (res.ok) {
-          const data = await res.json();
-          setVideoMap(data);
-        }
-      } catch (e) {
-        console.error("Lỗi khi tải video hướng dẫn:", e);
-      }
-    };
-    void fetchVideos();
-  }, []);
-
-  useEffect(() => {
     if (from3d && modelUrl) {
       if (!customElements.get("model-viewer")) {
         const script = document.createElement("script");
@@ -511,22 +488,6 @@ function GreetingDesignContent() {
       }
     }
   }, [editCartItemId, items, selectedTemplate.slug, store]);
-
-  const handleOpenVideo = (template: GreetingTemplate) => {
-    const video =
-      videoMap[template.id] ||
-      template.video || {
-        id: template.id,
-        templateId: template.id,
-        headerTitle: `${DEFAULT_TUTORIAL_VIDEO.headerTitle} - ${template.title}`,
-        videoUrl: DEFAULT_TUTORIAL_VIDEO.videoUrl,
-        captionTitle: DEFAULT_TUTORIAL_VIDEO.captionTitle,
-        captionDesc: DEFAULT_TUTORIAL_VIDEO.captionDesc,
-        detailUrl: DEFAULT_TUTORIAL_VIDEO.detailUrl,
-      };
-    setActiveVideo(video);
-    setIsVideoModalOpen(true);
-  };
 
   // Xử lý tải nhiều ảnh kỷ niệm lên Thiệp 3D (Miễn phí 5 ảnh đầu, từ ảnh thứ 6 +5.000đ/ảnh, tối đa 20 ảnh)
   const handlePhotosUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -858,14 +819,7 @@ function GreetingDesignContent() {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => handleOpenVideo(selectedTemplate)}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:underline cursor-pointer self-start sm:self-auto"
-          >
-            <PlayCircle className="w-4 h-4" />
-            Video hướng dẫn
-          </button>
+          <SharedTutorialButton productTitle={selectedTemplate.title} className="self-start sm:self-auto" />
         </div>
 
         {/* 2-Column Layout */}
@@ -1621,14 +1575,6 @@ function GreetingDesignContent() {
           </div>
         </div>
       </div>
-
-      {/* Tutorial Video Modal */}
-      <TutorialVideoModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        video={activeVideo}
-        productTitle={selectedTemplate.title}
-      />
 
       {/* Popup Xem trước tóm tắt thông điệp thiệp */}
       <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
