@@ -123,11 +123,11 @@ export default function AdminOrderDetailPage() {
   const confirmDeleteOrder = async () => {
     await deleteMutation.mutateAsync(order.id, {
       onSuccess: () => {
-        toast.success('Đã xóa đơn hàng thành công!');
+        toast.success('Đã lưu trữ đơn hàng. Lịch sử báo cáo vẫn được giữ nguyên.');
         router.push('/admin/orders');
       },
       onError: () => {
-        toast.error('Lỗi khi xóa đơn hàng.');
+        toast.error('Không thể lưu trữ đơn hàng.');
         setIsDeleteConfirmOpen(false);
       }
     });
@@ -153,7 +153,7 @@ export default function AdminOrderDetailPage() {
             className="flex items-center gap-2 bg-white hover:bg-red-50 text-red-500 border border-red-200 hover:border-red-300 px-4 py-2.5 rounded-xl font-bold transition-all shadow-sm disabled:opacity-50"
           >
             <Trash2 className="w-4 h-4" />
-            {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa đơn hàng'}
+            {deleteMutation.isPending ? 'Đang lưu trữ...' : 'Lưu trữ đơn hàng'}
           </button>
         )}
       </div>
@@ -285,20 +285,21 @@ export default function AdminOrderDetailPage() {
             </div>
             
             <div className="flex flex-col gap-3 mt-1">
-              <Select value={selectedPaymentStatus || order.paymentStatus} onValueChange={setSelectedPaymentStatus} disabled={order.orderKind === 'DigitalCard'}>
+              <Select value={selectedPaymentStatus || order.paymentStatus} onValueChange={setSelectedPaymentStatus} disabled={order.orderKind === 'DigitalCard' || order.paymentStatus === 'Refunded'}>
                 <SelectTrigger className="w-full h-11 bg-white/80 border-2 border-white hover:border-primary/40 rounded-xl px-4 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/20 shadow-sm transition-all data-[state=open]:border-primary/50">
                   <SelectValue placeholder="Chọn thanh toán" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border/60 shadow-xl bg-white/95 backdrop-blur-xl z-50">
-                  <SelectItem value="Unpaid" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-muted focus:bg-muted transition-colors">Chưa thanh toán</SelectItem>
+                  <SelectItem value="Unpaid" disabled={order.paymentStatus === 'Paid'} className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-muted focus:bg-muted transition-colors">Chưa thanh toán</SelectItem>
                   <SelectItem value="Paid" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-emerald-50 focus:bg-emerald-50 transition-colors">Đã thanh toán</SelectItem>
-                  <SelectItem value="Failed" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-rose-50 focus:bg-rose-50 transition-colors">Thất bại</SelectItem>
-                  <SelectItem value="Refunded" className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-indigo-50 focus:bg-indigo-50 text-indigo-700 transition-colors">Đã hoàn tiền</SelectItem>
+                  <SelectItem value="Failed" disabled={order.paymentStatus === 'Paid'} className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-rose-50 focus:bg-rose-50 transition-colors">Thất bại</SelectItem>
+                  <SelectItem value="Refunded" disabled={order.paymentStatus !== 'Paid'} className="rounded-lg font-bold cursor-pointer py-2.5 hover:bg-indigo-50 focus:bg-indigo-50 text-indigo-700 transition-colors">Đã hoàn toàn bộ tiền</SelectItem>
                 </SelectContent>
               </Select>
+              {(selectedPaymentStatus === 'Refunded') && <p className="text-xs text-muted-foreground">Chỉ xác nhận sau khi đã hoàn toàn bộ tiền cho khách. Thao tác này ghi nhận báo cáo và không chuyển tiền.</p>}
               <button 
                 onClick={handleUpdatePaymentStatus}
-                disabled={order.orderKind === 'DigitalCard' || isPaymentPending || ((selectedPaymentStatus || order.paymentStatus) === order.paymentStatus)}
+                disabled={order.orderKind === 'DigitalCard' || order.paymentStatus === 'Refunded' || isPaymentPending || ((selectedPaymentStatus || order.paymentStatus) === order.paymentStatus)}
                 className="btn-hero text-black w-full py-2.5 rounded-xl font-bold shadow-coral-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
               >
                 {order.orderKind === 'DigitalCard' ? 'PayOS đã xác nhận (chỉ đọc)' : isPaymentPending ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Lưu Thanh Toán'}
@@ -460,10 +461,10 @@ export default function AdminOrderDetailPage() {
               <Trash2 className="w-8 h-8" />
             </div>
             <AlertDialogTitle className="text-2xl font-bold font-display text-center text-gray-800">
-              Xóa vĩnh viễn
+                Lưu trữ đơn hàng
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-500 font-medium text-base">
-              Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng này? Hành động này không thể hoàn tác.
+                Đơn hàng sẽ được ẩn khỏi danh sách quản trị. Lịch sử giao dịch, trạng thái xử lý và báo cáo vẫn được giữ nguyên.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8 flex gap-3 sm:gap-3 flex-col sm:flex-row">
@@ -475,7 +476,7 @@ export default function AdminOrderDetailPage() {
               disabled={deleteMutation.isPending}
               className="w-full sm:w-1/2 rounded-xl py-3 bg-red-600 hover:bg-red-700 text-white font-bold border-none m-0 flex justify-center items-center gap-2"
             >
-              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa ngay'}
+                {deleteMutation.isPending ? 'Đang lưu trữ...' : 'Lưu trữ'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

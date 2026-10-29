@@ -18,6 +18,10 @@ public class Order
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
     public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
     public bool InventoryDeducted { get; set; }
+    public bool IsArchived { get; set; }
+    public int Revision { get; set; } = 1;
+    public DateTime? PaidAt { get; set; }
+    public DateTime? RefundedAt { get; set; }
     
     public string? ReceiverName { get; set; }
     public string? ReceiverPhone { get; set; }
@@ -36,4 +40,5 @@ public class Order
 
     public User? User { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<OrderFinancialEvent> FinancialEvents { get; set; } = new List<OrderFinancialEvent>();
 }

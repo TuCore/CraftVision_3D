@@ -2,11 +2,10 @@
 
 /* eslint-disable @next/next/no-img-element -- Personalized images can be data URLs. */
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import Link from "next/link";
 import type { CardDraft, CardTemplate } from "./catalog";
 import "./memory-flower.css";
 
-export default function MemoryFlowerExperience({ draft, embedded = false }: { draft: CardDraft; template: CardTemplate; embedded?: boolean }) {
+export default function MemoryFlowerExperience({ draft }: { draft: CardDraft; template: CardTemplate; embedded?: boolean }) {
   const value = useCallback((key: string, fallback = "") => (typeof draft.values[key] === "string" ? String(draft.values[key] || fallback) : fallback).normalize("NFC"), [draft.values]);
   const recipient = value("recipient", "Người thương");
   const sender = value("sender", "Một người luôn yêu bạn");
@@ -62,7 +61,7 @@ export default function MemoryFlowerExperience({ draft, embedded = false }: { dr
       </button>
       {!gallery && <p className="memory-flower-hint">Chạm vào hoa để nhận lời yêu ☝</p>}
       {gallery && <div className="memory-flying-images">{Array.from({ length: 16 }, (_, index) => <img key={index} src={photos[index % photos.length]} alt={`Kỷ niệm ${index % photos.length + 1}`} style={{ "--i": index } as CSSProperties} />)}</div>}
-      <nav>{!embedded && <Link href="/cards">← Bộ sưu tập</Link>}<button onClick={replay}>↻ Xem lại</button><button onClick={() => setPaused((state) => !state)}>{paused ? "Tiếp tục" : "Tạm dừng"}</button></nav>
+      <nav><button onClick={replay}>↻ Xem lại</button><button onClick={() => setPaused((state) => !state)}>{paused ? "Tiếp tục" : "Tạm dừng"}</button></nav>
       <button className="memory-music" onClick={toggleMusic} aria-label={music ? "Tắt nhạc" : "Bật nhạc"}>{music ? "♫" : "♪"}</button>
     </>}
     {opened && <div className="memory-letter-backdrop" role="presentation" onClick={closeLetter}><article role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}><button onClick={closeLetter} aria-label="Đóng thư">×</button><img src={photo} alt={`Kỷ niệm của ${recipient}`} /><div><h2>{value("letterTitle", `Gửi ${recipient}`)} 💖</h2><p>💘 {message}</p><strong>— {sender}</strong></div></article></div>}

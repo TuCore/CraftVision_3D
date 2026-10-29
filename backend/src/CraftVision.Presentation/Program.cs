@@ -184,6 +184,7 @@ builder.Services.AddScoped<ICardPurchaseRecorder>(services => services.GetRequir
 builder.Services.AddMusic(builder.Configuration);
 builder.Services.AddScoped<CraftVision.Gateway.MusicErrorFilter>();
 builder.Services.AddScoped<CraftVision.Gateway.CardErrorFilter>();
+builder.Services.AddScoped<CraftVision.Gateway.ReportingErrorFilter>();
 builder.Services.AddInfrastructure(builder.Configuration);
 // AI & Knowledge Base DI
 builder.Services.AddHttpClient<IEmbeddingProvider, GeminiEmbeddingProvider>();

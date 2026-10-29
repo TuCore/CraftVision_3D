@@ -72,8 +72,10 @@ public class OrderController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/simulate-payment")]
-    public async Task<IActionResult> SimulatePayment(Guid id)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> SimulatePayment(Guid id, [FromServices] Microsoft.Extensions.Hosting.IHostEnvironment environment)
     {
+        if (environment.EnvironmentName != "Development") return NotFound();
         await _service.SimulatePaymentAsync(id);
         return NoContent();
     }

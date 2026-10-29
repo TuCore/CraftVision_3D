@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CraftVision.Application\CraftVision.Application.csproj" />
+    <Compile Include="../Services/Reporting/CommerceReports.cs" Link="Reporting/CommerceReports.cs" />
+    <EmbeddedResource Include="../../../databases/Reporting/001_backfill_financial_history.sql" LogicalName="Reporting.backfill.sql" />
   </ItemGroup>
 
   <ItemGroup>

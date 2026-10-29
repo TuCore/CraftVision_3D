@@ -10,9 +10,11 @@ import { importPhoto, importAudio, parseDraft, readDraft, saveDraft } from "./st
 import { cardRequest, downloadDraft, uploadDraft, type ServerCard, type CardPayment } from "./server";
 import { getCardCommerce, formatCardPrice } from "./commerce";
 import { CardQRShareHub } from "./CardQRShareHub";
+import { VoiceRecorderField } from "./VoiceRecorderField";
 import { getAccessToken } from "@/lib/authSession";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { toast } from "sonner";
+import { SharedTutorialButton } from "@/features/tutorials/SharedTutorialButton";
 import type { Product } from "@/lib/product.types";
 import "./cards.css";
 
@@ -328,6 +330,8 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
     if (field.type === "list") {
       const rows = Array.isArray(raw) ? raw.filter((row): row is Record<string, string> => typeof row === "object") : [];
       input = <div className="repeater">{rows.map((row, index) => <div key={index} className="repeat-row"><strong>Mục {index + 1}</strong>{field.columns?.map(column => <label key={column}><span>{column}</span><input aria-label={`${field.label} ${index + 1}: ${column}`} value={row[column] || ""} maxLength={500} onChange={event => setValue(field.key, rows.map((item, i) => i === index ? { ...item, [column]: event.target.value } : item))} /></label>)}<div className="row-actions"><button type="button" disabled={index === 0} onClick={() => { const next = [...rows]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; setValue(field.key, next); }}>↑ Lên</button><button type="button" disabled={index === rows.length - 1} onClick={() => { const next = [...rows]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; setValue(field.key, next); }}>↓ Xuống</button><button type="button" onClick={() => setValue(field.key, rows.filter((_, i) => i !== index))}>Xóa mục {index + 1}</button></div></div>)}<button id={id} type="button" disabled={rows.length >= (field.max || 12)} onClick={() => setValue(field.key, [...rows, Object.fromEntries((field.columns || []).map(column => [column, ""]))])}>+ Thêm mục ({rows.length}/{field.max})</button></div>;
+    } else if (field.key === "voice") {
+      input = <VoiceRecorderField value={value} disabled={busy} onChange={(dataUrl) => setValue("voice", dataUrl)} />;
     } else if (field.type === "audio") {
       input = <><input {...common} type="file" accept="audio/mpeg,audio/wav,audio/ogg" disabled={busy} onChange={async event => { const file = event.target.files?.[0]; event.target.value = ""; if (!file) return; setBusy(true); try { setValue(field.key, await importAudio(file)); } catch (error) { setErrors(current => ({ ...current, [field.key]: error instanceof Error ? error.message : "Không thể đọc nhạc." })); } finally { setBusy(false); } }} /><small>MP3, WAV hoặc OGG, tối đa 8 MB. Nhạc chỉ phát khi người nhận bắt đầu tương tác.</small>{value && <><audio controls src={value} preload="metadata" /><button type="button" onClick={() => setValue(field.key, "")}>Bỏ nhạc nền</button></>}</>;
     } else if (field.type === "image" || field.type === "images") {
@@ -345,8 +349,8 @@ export default function CardEditor({ template }: { template: CardTemplate }) {
   const designKeys = ["accent", "envelopeColor", "envelopeLabel", "seal"];
   const all = fieldsFor(template);
   const visible = tab === 0 ? commonFields.filter(field => !designKeys.includes(field.key)) : tab === 1 ? template.fields.filter(field => !commonFields.some(common => common.key === field.key)) : all.filter(field => designKeys.includes(field.key));
-  return <div className="cards-workspace"><header className="cards-top"><Link href={physicalProductId ? `/shop/${physicalProductId}/greeting?mode=web3d` : "/cards"}>{physicalProductId ? "← Chọn mẫu thiệp khác" : "← Bộ sưu tập 55 thiệp"}</Link><Link href="/cards/mine">Thiệp của tôi ☁</Link></header>
-    <div className="editor-heading"><p>{template.category}</p><h1>{template.title}</h1><p>{template.action}. {template.reveal}.</p></div>
+  return <div className="cards-workspace"><header className="cards-top" style={{ justifyContent: "flex-end" }}><Link href="/cards/mine">Thiệp của tôi ☁</Link></header>
+    <div className="editor-heading"><p>{template.category}</p><h1>{template.title}</h1><p>{template.action}. {template.reveal}.</p><SharedTutorialButton productTitle={template.title} /></div>
     {physicalProductId && <section className="server-card-panel" aria-label="Sản phẩm đi kèm"><h2>Thiệp đi kèm sản phẩm</h2><p>{physicalProduct ? `Bạn đang cá nhân hóa mẫu này cho ${physicalProduct.name}. Nội dung và thiết kế riêng của mẫu sẽ được lưu cùng sản phẩm trong giỏ hàng.` : physicalProductError || "Đang tải thông tin sản phẩm…"}</p></section>}
     {!physicalProductId && <section className="server-card-panel" aria-label="Lưu và chia sẻ công khai"><h2>Lưu & gửi thiệp</h2><p>Bạn có thể chỉnh sửa, lưu bản nháp và xem thử miễn phí. Để tạo link gửi người nhận, hãy thanh toán thiệp qua mã QR trên PayOS. Chỉ sau khi hệ thống xác nhận đã nhận đủ tiền, bạn mới có thể xuất bản thiệp.</p>
       <p><strong>{serverCard?.paidAt ? "Đã thanh toán" : `Giá thiệp: ${price === undefined ? "Đang cập nhật" : formatCardPrice(price)}`}</strong>{!serverCard?.paidAt && " · Thanh toán một lần cho thiệp này; các lần chỉnh sửa sau không cần trả lại."}</p>

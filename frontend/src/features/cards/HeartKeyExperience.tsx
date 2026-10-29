@@ -3,13 +3,12 @@
 /* eslint-disable @next/next/no-img-element -- Personalized images can be data URLs. */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import type { CardDraft, CardTemplate } from "./catalog";
 import "./rose-rain.css";
 
 const Scene = dynamic(() => import("./HeartKeyScene"), { ssr: false, loading: () => <p className="rose-rain-fallback">Đang chuẩn bị bó hoa…</p> });
 
-export default function HeartKeyExperience({ draft, embedded = false }: { draft: CardDraft; template: CardTemplate; embedded?: boolean }) {
+export default function HeartKeyExperience({ draft }: { draft: CardDraft; template: CardTemplate; embedded?: boolean }) {
   const [started, setStarted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [opened, setOpened] = useState(false);
@@ -94,7 +93,6 @@ export default function HeartKeyExperience({ draft, embedded = false }: { draft:
         <p>{typed}<i aria-hidden="true" /></p>
       </header>
       <nav className="rose-rain-controls flower-love-controls" aria-label="Điều khiển thiệp">
-        {!embedded && <Link href="/cards">← Bộ sưu tập</Link>}
         <button onClick={replay}>↻ Xem lại</button>
         <button onClick={() => setPaused((value) => !value)}>{paused ? "Tiếp tục" : "Tạm dừng"}</button>
         {text("audio") && <button onClick={toggleMusic}>{music ? "Tắt nhạc" : "Bật nhạc"}</button>}

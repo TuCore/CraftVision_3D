@@ -121,6 +121,12 @@ export function getJwtExpiration(token: string): number | null {
   return typeof exp === "number" && Number.isFinite(exp) ? exp * 1000 : null;
 }
 
+export function getJwtRole(token: string): string | null {
+  const payload = decodeJwtPayload(token);
+  const role = payload?.role ?? payload?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+  return typeof role === "string" ? role : null;
+}
+
 export function isJwtExpired(token: string, now = Date.now()): boolean {
   const expiration = getJwtExpiration(token);
   return expiration === null || now >= expiration;

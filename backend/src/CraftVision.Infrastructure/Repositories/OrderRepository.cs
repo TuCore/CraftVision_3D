@@ -21,6 +21,7 @@ public class OrderRepository : IOrderRepository
     public async Task<Order?> GetByIdWithItemsAsync(Guid id)
     {
         return await _context.Set<Order>()
+            .Include(o => o.FinancialEvents).ThenInclude(e => e.Lines)
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
             .Include(o => o.OrderItems)
@@ -55,7 +56,7 @@ public class OrderRepository : IOrderRepository
 
     public async Task<(IEnumerable<Order> Items, int TotalCount)> GetAllAsync(int page, int size)
     {
-        var query = _context.Set<Order>()
+        var query = _context.Set<Order>().Where(o => !o.IsArchived)
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
             .Include(o => o.OrderItems)
@@ -73,7 +74,14 @@ public class OrderRepository : IOrderRepository
 
     public void Update(Order order)
     {
-        _context.Set<Order>().Update(order);
+        order.Revision++;
+        _context.Entry(order).State = EntityState.Modified;
+    }
+
+    public void AddFinancialEvent(Order order, OrderFinancialEvent entry)
+    {
+        _context.OrderFinancialEvents.Add(entry);
+        order.FinancialEvents.Add(entry);
     }
 
     public void Remove(Order order)

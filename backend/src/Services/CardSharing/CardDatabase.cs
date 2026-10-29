@@ -51,6 +51,7 @@ public sealed class CardDatabase(DbContextOptions<CardDatabase> options) : DbCon
     public DbSet<CardPayment> Payments => Set<CardPayment>();
     public DbSet<StoredAsset> Assets => Set<StoredAsset>();
     public DbSet<PublishedAsset> PublishedAssets => Set<PublishedAsset>();
+    public DbSet<CardTutorialSetting> TutorialSettings => Set<CardTutorialSetting>();
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.Entity<StoredCard>().ToTable("Cards").HasKey(x => x.Id);
@@ -65,6 +66,15 @@ public sealed class CardDatabase(DbContextOptions<CardDatabase> options) : DbCon
         model.Entity<PublishedAsset>().ToTable("PublishedAssets").HasKey(x => new { x.CardId, x.AssetId });
         model.Entity<PublishedAsset>().HasOne<StoredCard>().WithMany().HasForeignKey(x => x.CardId);
         model.Entity<PublishedAsset>().HasOne<StoredAsset>().WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+        var tutorial = model.Entity<CardTutorialSetting>();
+        tutorial.ToTable("CardTutorialSettings").HasKey(x => x.Id);
+        tutorial.Property(x => x.Id).ValueGeneratedNever();
+        tutorial.Property(x => x.HeaderTitle).HasMaxLength(160);
+        tutorial.Property(x => x.VideoUrl).HasMaxLength(2048);
+        tutorial.Property(x => x.CaptionTitle).HasMaxLength(160);
+        tutorial.Property(x => x.CaptionDesc).HasMaxLength(2000);
+        tutorial.Property(x => x.DetailUrl).HasMaxLength(2048);
+        tutorial.Property(x => x.Revision).IsConcurrencyToken();
     }
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -77,6 +87,9 @@ public sealed class CardDatabase(DbContextOptions<CardDatabase> options) : DbCon
         using var paymentDetails = typeof(CardDatabase).Assembly.GetManifestResourceStream("CardSharing.payment-transfer-details.sql")!;
         using var paymentDetailsReader = new StreamReader(paymentDetails);
         await Database.ExecuteSqlRawAsync(await paymentDetailsReader.ReadToEndAsync(ct), ct);
+        using var tutorial = typeof(CardDatabase).Assembly.GetManifestResourceStream("CardSharing.tutorial.sql")!;
+        using var tutorialReader = new StreamReader(tutorial);
+        await Database.ExecuteSqlRawAsync(await tutorialReader.ReadToEndAsync(ct), ct);
     }
 }
 public static class CardRegistration
@@ -88,6 +101,7 @@ public static class CardRegistration
         services.AddDbContext<CardDatabase>(o => o.UseNpgsql(connection));
         services.AddSingleton<CardValidator>();
         services.AddScoped<CardService>();
+        services.AddScoped<TutorialVideoService>();
         services.AddScoped<CardPaymentService>();
         services.AddScoped<IPaymentProvider, PayOsPaymentProvider>();
         services.AddScoped<CardMedia>();

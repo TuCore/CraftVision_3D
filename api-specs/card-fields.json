@@ -49,10 +49,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -94,13 +164,6 @@
       "label": "Chữ trên nơ",
       "type": "text",
       "required": false
-    },
-    {
-      "key": "album",
-      "label": "Album kỷ niệm",
-      "type": "images",
-      "required": false,
-      "max": 12
     }
   ],
   "heart-key": [
@@ -153,10 +216,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -212,6 +345,196 @@
       "required": false
     }
   ],
+  "birthday-wish": [
+    {
+      "key": "recipient",
+      "label": "Tên người nhận",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "sender",
+      "label": "Tên / chữ ký người gửi",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "Tiêu đề thiệp",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "intro",
+      "label": "Lời mở đầu",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "letterTitle",
+      "label": "Tiêu đề lá thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "message",
+      "label": "Lời chúc trong thư",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "closing",
+      "label": "Dòng kết",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "photo",
+      "label": "Ảnh trong thư",
+      "type": "image",
+      "required": false
+    },
+    {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
+      "key": "audio",
+      "label": "Nhạc nền của bạn (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
+    },
+    {
+      "key": "accent",
+      "label": "Màu chủ đạo",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeColor",
+      "label": "Màu phong thư",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "envelopeLabel",
+      "label": "Chữ trên phong thư",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "seal",
+      "label": "Dấu niêm phong",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Trái tim",
+        "Ngôi sao",
+        "Bông hoa"
+      ]
+    },
+    {
+      "key": "age",
+      "label": "Tuổi muốn hiển thị (bỏ trống để ẩn)",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "eventDate",
+      "label": "Ngày đáng nhớ",
+      "type": "date",
+      "required": false
+    },
+    {
+      "key": "cakeText",
+      "label": "Chữ trên bánh",
+      "type": "text",
+      "required": false
+    },
+    {
+      "key": "flavor",
+      "label": "Kiểu bánh",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Dâu",
+        "Chocolate",
+        "Vani"
+      ]
+    },
+    {
+      "key": "wish",
+      "label": "Lời dẫn điều ước",
+      "type": "text",
+      "required": false
+    }
+  ],
   "memory-train": [
     {
       "key": "recipient",
@@ -262,10 +585,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -314,13 +707,6 @@
       "label": "Tên chuyến tàu",
       "type": "text",
       "required": false
-    },
-    {
-      "key": "album",
-      "label": "Album kỷ niệm",
-      "type": "images",
-      "required": false,
-      "max": 6
     }
   ],
   "secret-ring": [
@@ -373,10 +759,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -504,10 +960,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -567,13 +1093,6 @@
       "label": "Khoảng cách hoặc lời nhắn",
       "type": "text",
       "required": false
-    },
-    {
-      "key": "album",
-      "label": "Album kỷ niệm",
-      "type": "images",
-      "required": false,
-      "max": 2
     }
   ],
   "our-music": [
@@ -626,10 +1145,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -689,133 +1278,6 @@
       "label": "Chữ khắc hộp nhạc",
       "type": "text",
       "required": false
-    },
-    {
-      "key": "album",
-      "label": "Album kỷ niệm",
-      "type": "images",
-      "required": false,
-      "max": 6
-    }
-  ],
-  "birthday-wish": [
-    {
-      "key": "recipient",
-      "label": "Tên người nhận",
-      "type": "text",
-      "required": true
-    },
-    {
-      "key": "sender",
-      "label": "Tên / chữ ký người gửi",
-      "type": "text",
-      "required": true
-    },
-    {
-      "key": "title",
-      "label": "Tiêu đề thiệp",
-      "type": "text",
-      "required": false
-    },
-    {
-      "key": "intro",
-      "label": "Lời mở đầu",
-      "type": "text",
-      "required": false
-    },
-    {
-      "key": "letterTitle",
-      "label": "Tiêu đề lá thư",
-      "type": "text",
-      "required": false
-    },
-    {
-      "key": "message",
-      "label": "Lời chúc trong thư",
-      "type": "textarea",
-      "required": true
-    },
-    {
-      "key": "closing",
-      "label": "Dòng kết",
-      "type": "text",
-      "required": false
-    },
-    {
-      "key": "photo",
-      "label": "Ảnh trong thư",
-      "type": "image",
-      "required": false
-    },
-    {
-      "key": "audio",
-      "label": "Nhạc nền của bạn (không bắt buộc)",
-      "type": "audio",
-      "required": false
-    },
-    {
-      "key": "accent",
-      "label": "Màu chủ đạo",
-      "type": "color",
-      "required": false
-    },
-    {
-      "key": "envelopeColor",
-      "label": "Màu phong thư",
-      "type": "color",
-      "required": false
-    },
-    {
-      "key": "envelopeLabel",
-      "label": "Chữ trên phong thư",
-      "type": "text",
-      "required": false
-    },
-    {
-      "key": "seal",
-      "label": "Dấu niêm phong",
-      "type": "select",
-      "required": false,
-      "options": [
-        "Trái tim",
-        "Ngôi sao",
-        "Bông hoa"
-      ]
-    },
-    {
-      "key": "age",
-      "label": "Tuổi muốn hiển thị (bỏ trống để ẩn)",
-      "type": "number",
-      "required": false
-    },
-    {
-      "key": "eventDate",
-      "label": "Ngày đáng nhớ",
-      "type": "date",
-      "required": false
-    },
-    {
-      "key": "cakeText",
-      "label": "Chữ trên bánh",
-      "type": "text",
-      "required": false
-    },
-    {
-      "key": "flavor",
-      "label": "Kiểu bánh",
-      "type": "select",
-      "required": false,
-      "options": [
-        "Dâu",
-        "Chocolate",
-        "Vani"
-      ]
-    },
-    {
-      "key": "wish",
-      "label": "Lời dẫn điều ước",
-      "type": "text",
-      "required": false
     }
   ],
   "birthday-balloon": [
@@ -868,10 +1330,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -987,10 +1519,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1102,10 +1704,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1209,10 +1881,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1323,10 +2065,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1447,10 +2259,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1566,10 +2448,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1691,10 +2643,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1809,10 +2831,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -1924,10 +3016,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2037,10 +3199,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2162,10 +3394,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2201,13 +3503,6 @@
       "label": "Cách gọi mẹ",
       "type": "text",
       "required": false
-    },
-    {
-      "key": "album",
-      "label": "Album kỷ niệm",
-      "type": "images",
-      "required": false,
-      "max": 2
     },
     {
       "key": "gratitude",
@@ -2282,10 +3577,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2395,10 +3760,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2508,10 +3943,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2558,13 +4063,6 @@
         "Tên",
         "Cách gọi"
       ]
-    },
-    {
-      "key": "album",
-      "label": "Album kỷ niệm",
-      "type": "images",
-      "required": false,
-      "max": 6
     },
     {
       "key": "motto",
@@ -2629,10 +4127,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2743,10 +4311,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2864,10 +4502,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -2971,10 +4679,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3085,10 +4863,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3212,10 +5060,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3325,10 +5243,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3452,10 +5440,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3577,10 +5635,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3690,10 +5818,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3799,10 +5997,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -3912,10 +6180,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4021,10 +6359,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4134,10 +6542,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4259,10 +6737,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4372,10 +6920,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4489,10 +7107,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4598,10 +7286,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4705,10 +7463,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4823,10 +7651,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -4942,10 +7840,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5051,10 +8019,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5160,10 +8198,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5285,10 +8393,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5394,10 +8572,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5519,10 +8767,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5633,10 +8951,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5748,10 +9136,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5881,10 +9339,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -5996,10 +9524,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -6105,10 +9703,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -6224,10 +9892,80 @@
       "required": false
     },
     {
+      "key": "album",
+      "label": "Album kỷ niệm",
+      "type": "images",
+      "required": false,
+      "max": 20
+    },
+    {
       "key": "audio",
       "label": "Nhạc nền của bạn (không bắt buộc)",
       "type": "audio",
       "required": false
+    },
+    {
+      "key": "voice",
+      "label": "Ghi âm lời chúc (không bắt buộc)",
+      "type": "audio",
+      "required": false
+    },
+    {
+      "key": "voiceText",
+      "label": "Văn bản của đoạn ghi âm",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "sceneModel",
+      "label": "Mô hình 3D trung tâm",
+      "type": "select",
+      "required": false,
+      "options": [
+        "rose-bouquet",
+        "birthday-cake",
+        "origami-heart",
+        "amigurumi",
+        "scented-candle",
+        "memory-bracelet",
+        "gift-box"
+      ]
+    },
+    {
+      "key": "bgStyle",
+      "label": "Không gian nền vũ trụ 3D",
+      "type": "select",
+      "required": false,
+      "options": [
+        "cosmic-galaxy",
+        "deep-nebula",
+        "meteor-night",
+        "rose-cosmos",
+        "golden-universe",
+        "aurora-space"
+      ]
+    },
+    {
+      "key": "bgColor",
+      "label": "Màu tinh vân vũ trụ",
+      "type": "color",
+      "required": false
+    },
+    {
+      "key": "photoFormation",
+      "label": "Cách trình bày ảnh quanh lá thư",
+      "type": "select",
+      "required": false,
+      "options": [
+        "sphere",
+        "floating-up",
+        "heart",
+        "star",
+        "film-strip",
+        "galaxy-spiral",
+        "saturn-ring",
+        "carousel-bloom"
+      ]
     },
     {
       "key": "accent",
@@ -6291,13 +10029,6 @@
       "columns": [
         "Nội dung"
       ]
-    },
-    {
-      "key": "album",
-      "label": "Album kỷ niệm",
-      "type": "images",
-      "required": false,
-      "max": 6
     },
     {
       "key": "promise",
