@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Heart, Mail, Phone, Globe, HeadphonesIcon } from "lucide-react";
-import Image from "next/image"; // If you want to use the Tiktok icon from public or next/image, but let's just use an SVG.
 import { SupportModal } from "@/components/common/SupportModal";
 import { useTranslation } from "@/components/LanguageProvider";
+import { blogTopics } from "@/features/blog/topics";
 
 export function Footer() {
   const { t, language } = useTranslation();
@@ -62,13 +62,13 @@ export function Footer() {
         <div>
           <h3 className="font-bold text-white mb-6 border-b border-white/10 pb-2 inline-block">{t("footer.topics")}</h3>
           <ul className="space-y-4 text-sm">
-            <li><Link href="#" className="text-primary hover:text-white transition-colors">{t("footer.qr_love")}</Link></li>
-            <li><Link href="#" className="text-primary hover:text-white transition-colors">{t("footer.how_to_create")}</Link></li>
-            <li><Link href="#" className="text-primary hover:text-white transition-colors">{t("footer.confession_qr")}</Link></li>
-            <li><Link href="#" className="text-primary hover:text-white transition-colors">{t("footer.heart_qr")}</Link></li>
-            <li><Link href="#" className="text-primary hover:text-white transition-colors">{t("footer.fireworks")}</Link></li>
-            <li><Link href="#" className="text-primary hover:text-white transition-colors">{t("footer.what_is")}</Link></li>
-            <li><Link href="#" className="text-primary hover:text-white transition-colors">{t("footer.photobooth")}</Link></li>
+            {blogTopics.map((topic) => (
+              <li key={topic.slug}>
+                <Link href={`/blog/${topic.slug}`} className="text-primary hover:text-white transition-colors">
+                  {t(topic.translationKey)}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
