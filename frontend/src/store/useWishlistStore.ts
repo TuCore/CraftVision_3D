@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { Product } from '@/lib/product.types';
 import api from '@/lib/api';
 import { getAccessToken } from '@/lib/authSession';
+import { commerceStorage } from '@/lib/commerceStorage';
 
 const syncItemToBackend = (productId: string, quantity: number, selectedOptions?: any) => {
   if (typeof window === 'undefined') return;
@@ -356,6 +357,7 @@ export const useWishlistStore = create<WishlistStore>()(
     }),
     {
       name: 'craftvision-wishlist',
+      storage: createJSONStorage(() => commerceStorage),
       version: 1,
       migrate: (persistedState: any) => {
         if (!persistedState || !Array.isArray(persistedState.items)) {
