@@ -300,7 +300,7 @@ public class OrderService : IOrderService
             PaymentMethod = PaymentMethod.BankTransfer,
             PaymentStatus = PaymentStatus.Paid,
             OrderStatus = OrderStatus.Delivered,
-            ReceiverName = user.DisplayName ?? user.FullName ?? user.Email ?? "CraftVision customer",
+            ReceiverName = new[] { user.DisplayName, user.FullName, user.Email }.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v))?.Trim() ?? "CraftVision customer",
             ReceiverAddress = "Online",
             ShippingFee = 0,
             TotalAmount = amount,

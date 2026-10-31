@@ -91,6 +91,13 @@ public sealed class CardDatabase(DbContextOptions<CardDatabase> options) : DbCon
         using var tutorialReader = new StreamReader(tutorial);
         await Database.ExecuteSqlRawAsync(await tutorialReader.ReadToEndAsync(ct), ct);
     }
+
+    public async Task PurgeLegacyTestPurchasesAsync(CancellationToken ct = default)
+    {
+        using var stream = typeof(CardDatabase).Assembly.GetManifestResourceStream("CardSharing.purge-test-paid-cards.sql")!;
+        using var reader = new StreamReader(stream);
+        await Database.ExecuteSqlRawAsync(await reader.ReadToEndAsync(ct), ct);
+    }
 }
 public static class CardRegistration
 {

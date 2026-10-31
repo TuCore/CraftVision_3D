@@ -310,6 +310,7 @@ using (var scope = app.Services.CreateScope())
         var cards = scope.ServiceProvider.GetService<CardDatabase>();
         if (cards is not null)
         {
+            await cards.PurgeLegacyTestPurchasesAsync();
             var recorder = scope.ServiceProvider.GetRequiredService<CraftVision.Gateway.CardPurchaseRecorder>();
             var reconciled = await recorder.ReconcilePaidPurchases(cards);
             logger.LogInformation("Reconciled {Count} paid card purchases into order history.", reconciled);
