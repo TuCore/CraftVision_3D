@@ -14,6 +14,9 @@ namespace CraftVision.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Register Repositories
+            services.AddScoped<CraftVision.Application.Interfaces.Services.IOrderPricingService, CraftVision.Vouchers.OrderPricingService>();
+            services.AddScoped<CraftVision.Application.Interfaces.Services.IWebVoucherService, CraftVision.Vouchers.VoucherService>();
+            services.AddHostedService<CraftVision.Vouchers.VoucherReservationWorker>();
             services.AddScoped<CraftVision.Reporting.ICommerceReports, CraftVision.Reporting.CommerceReports>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IKnowledgeRepository, CraftVision.Infrastructure.Repositories.KnowledgeRepository>();
             services.AddScoped<CraftVision.Application.Interfaces.Repositories.IAi3dRequestRepository, CraftVision.Infrastructure.Repositories.Ai3dRequestRepository>();

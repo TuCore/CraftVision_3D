@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useOrderDetails, useUpdateOrderStatus, useDeleteOrder, useUpdatePaymentStatus, Order } from '@/hooks/useOrders';
+import OrderDiscountSummary from '@/features/vouchers/OrderDiscountSummary';
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink, RefreshCw, User, Package, Calendar, DollarSign, Gift, ChevronDown, CheckCircle2, Clock, Truck, XCircle, Hammer, Trash2, CreditCard } from 'lucide-react';
@@ -216,6 +217,7 @@ export default function AdminOrderDetailPage() {
                 <DollarSign className="w-3.5 h-3.5" /> Tổng tiền
               </p>
               <p className="font-extrabold text-xl text-primary">{order.totalAmount.toLocaleString('vi-VN')} đ</p>
+              <OrderDiscountSummary order={order} />
             </div>
           </div>
         </div>

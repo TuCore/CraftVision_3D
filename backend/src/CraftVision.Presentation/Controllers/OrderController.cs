@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using CraftVision.Application.DTOs.Order;
 using CraftVision.Application.Interfaces;
+using CraftVision.Application.Interfaces.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +15,19 @@ namespace CraftVision.Presentation.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly IOrderService _service;
+    private readonly IUnitOfWork _work;
 
-    public OrderController(IOrderService service)
+    public OrderController(IOrderService service, IUnitOfWork work)
     {
         _service = service;
+        _work = work;
+    }
+
+    private async Task<bool> CanAccess(Guid id)
+    {
+        if (User.IsInRole("Admin")) return true;
+        return Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var user) &&
+            (await _work.Orders.GetByIdWithItemsAsync(id))?.UserId == user;
     }
 
     [HttpPost]
@@ -36,6 +46,7 @@ public class OrderController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetOrderById(Guid id)
     {
+        if (!await CanAccess(id)) return NotFound();
         return Ok(await _service.GetOrderByIdAsync(id));
     }
 
@@ -83,12 +94,14 @@ public class OrderController : ControllerBase
     [HttpPost("{id:guid}/payment-link")]
     public async Task<IActionResult> RegeneratePaymentLink(Guid id)
     {
+        if (!await CanAccess(id)) return NotFound();
         return Ok(await _service.GetOrRegeneratePaymentLinkAsync(id));
     }
 
     [HttpGet("{id:guid}/check-payment")]
     public async Task<IActionResult> CheckPaymentStatus(Guid id)
     {
+        if (!await CanAccess(id)) return NotFound();
         var isPaid = await _service.CheckAndUpdatePaymentStatusAsync(id);
         return Ok(new { isPaid });
     }

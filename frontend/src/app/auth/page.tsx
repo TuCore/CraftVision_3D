@@ -310,7 +310,7 @@ function AuthForm() {
                 <ArrowRight className="h-4 w-4" />
               </button>}
 
-              {(mode === "login" || acceptedTerms) && <><div className="flex items-center gap-3 my-2">
+              {!!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (mode === "login" || acceptedTerms) && <><div className="flex items-center gap-3 my-2">
                 <div className="h-px flex-1 bg-border" />
                 <span className="text-xs text-muted-foreground">HOẶC</span>
                 <div className="h-px flex-1 bg-border" />

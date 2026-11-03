@@ -33,7 +33,24 @@ public class NfcTagRepository : INfcTagRepository
 
     public async Task<NfcTag?> GetFirstAvailableAsync()
     {
-        return await _context.Set<NfcTag>().FirstOrDefaultAsync(x => x.Status == CraftVision.Domain.Enums.NfcStatus.Available);
+        if (_context.Database.CurrentTransaction is null)
+            throw new InvalidOperationException("Reserving an NFC tag requires an order transaction.");
+
+        // Cancelled orders retain their gifts. Never assign their tags to another gift.
+        // Claim immediately so concurrent orders and unsaved items cannot select the same tag.
+        var tags = await _context.Set<NfcTag>().FromSqlRaw("""
+            SELECT n.* FROM nfc_tags AS n
+            WHERE n.status = 'Available'
+              AND NOT EXISTS (SELECT 1 FROM gifts AS g WHERE g.nfc_tag_id = n.id)
+            ORDER BY n.created_at, n.id
+            LIMIT 1 FOR UPDATE OF n SKIP LOCKED
+            """).AsTracking().ToListAsync();
+        var tag = tags.FirstOrDefault();
+        if (tag is null) return null;
+        await _context.NfcTags.Where(n => n.Id == tag.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.Status, CraftVision.Domain.Enums.NfcStatus.Reserved));
+        tag.Status = CraftVision.Domain.Enums.NfcStatus.Reserved;
+        return tag;
     }
 
     public void Add(NfcTag tag)

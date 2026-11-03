@@ -9,6 +9,8 @@ public class CreateOrderItemDto
     public int Quantity { get; set; }
     public bool WantNfc { get; set; }
     public decimal? ExtraPrice { get; set; }
+    public string? CardType { get; set; }
+    public string? CardSlug { get; set; }
     
     public CreateGiftDto? Gift { get; set; }
 }

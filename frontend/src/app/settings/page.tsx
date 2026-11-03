@@ -60,6 +60,7 @@ import { useTranslation } from "@/components/LanguageProvider";
 import { Language } from "@/lib/dictionaries";
 import { useRouter } from "next/navigation";
 import { clearAuthSession, logout, setAuthItem } from "@/lib/authSession";
+import OrderDiscountSummary from "@/features/vouchers/OrderDiscountSummary";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -919,6 +920,7 @@ export default function SettingsPage() {
                   <div className="text-xl sm:text-2xl font-bold font-display text-primary">
                     {formatPrice(selectedOrderDetail.totalAmount ?? 0)}
                   </div>
+                  <OrderDiscountSummary order={selectedOrderDetail} />
                 </div>
               </div>
 

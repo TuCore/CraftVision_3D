@@ -76,7 +76,8 @@ public class CartService : ICartService
             _context.Carts.Add(cart);
         }
 
-        var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId && i.SelectedOptions == dto.SelectedOptions);
+        // The database has one row per (cart_id, product_id); options update that row.
+        var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
         if (existingItem != null)
         {
             if (dto.Quantity <= 0)
@@ -86,17 +87,22 @@ public class CartService : ICartService
             else
             {
                 existingItem.Quantity = dto.Quantity;
+                existingItem.SelectedOptions = dto.SelectedOptions;
                 existingItem.UpdatedAt = DateTime.UtcNow;
             }
         }
         else if (dto.Quantity > 0)
         {
-            cart.Items.Add(new CartItem
+            var item = new CartItem
             {
+                Cart = cart,
                 ProductId = dto.ProductId,
                 Quantity = dto.Quantity,
                 SelectedOptions = dto.SelectedOptions
-            });
+            };
+            // Guid IDs are assigned in the constructor. Explicitly mark new items Added;
+            // navigation change detection otherwise treats them as existing rows.
+            _context.CartItems.Add(item);
         }
 
         cart.UpdatedAt = DateTime.UtcNow;

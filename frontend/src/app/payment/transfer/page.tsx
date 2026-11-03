@@ -10,6 +10,7 @@ import { useWishlistStore } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { getAccessToken } from "@/lib/authSession";
 import { cardRequest, type CardPayment } from "@/features/cards/server";
+import OrderDiscountSummary from "@/features/vouchers/OrderDiscountSummary";
 
 const isTrustedPayOsUrl = (value: string) => {
   try {
@@ -70,8 +71,13 @@ export default function PaymentTransferPage() {
         setTotal(params.get("total") || "0");
         api.get(`/api/orders/${oid}`)
           .then(res => {
+            if (res.data.orderStatus === "Cancelled") {
+              toast.info("Đơn hàng đã hủy. Vui lòng xem trạng thái trong lịch sử đơn hàng.");
+              router.replace("/settings?tab=orders");
+              return;
+            }
             setOrderInfo(res.data);
-            if (res.data.totalAmount) setTotal(res.data.totalAmount.toString());
+            if (res.data.totalAmount != null) setTotal(res.data.totalAmount.toString());
             if (res.data.checkoutUrl) setCheckoutUrl(res.data.checkoutUrl);
           })
           .catch((err: any) => {
@@ -142,7 +148,7 @@ export default function PaymentTransferPage() {
     toast.success(`Đã copy ${label}!`);
   };
 
-  const payAmount = orderInfo?.payOsAmount || total;
+  const payAmount = orderInfo?.payOsAmount ?? total;
   const bankName = orderInfo?.payOsBin ? `Ngân hàng (BIN: ${orderInfo.payOsBin})` : "MB Bank";
   const accName = orderInfo?.payOsAccountName || "CRAFTVISION 3D";
   const accNum = orderInfo?.payOsAccountNumber || "0382343939";
@@ -271,6 +277,7 @@ export default function PaymentTransferPage() {
             <div className="space-y-2">
               <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Số tiền cần thanh toán</div>
               <div className="text-3xl font-extrabold text-primary">{formatPrice(total)}</div>
+              {!cardId && orderInfo && <OrderDiscountSummary order={orderInfo} />}
             </div>
 
             {isValidPayOsUrl ? (

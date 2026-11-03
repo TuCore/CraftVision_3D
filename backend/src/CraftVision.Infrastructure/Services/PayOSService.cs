@@ -12,6 +12,36 @@ namespace CraftVision.Infrastructure.Services;
 
 public class PayOSService : IPayOSService
 {
+    public async Task<bool> VerifyPaymentAsync(long orderCode, decimal expectedAmount)
+    {
+        var receipt = await _payOs.PaymentRequests.GetAsync(orderCode);
+        return receipt.OrderCode == orderCode && receipt.Amount == expectedAmount && receipt.AmountPaid >= expectedAmount &&
+            receipt.Status.ToString().Equals("PAID", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public async Task<bool> CloseUnpaidPaymentAsync(long orderCode, decimal expectedAmount)
+    {
+        try
+        {
+            var receipt = await _payOs.PaymentRequests.GetAsync(orderCode);
+            if (receipt.OrderCode != orderCode || receipt.Amount != expectedAmount || receipt.AmountPaid != 0) return false;
+            if (receipt.Status.ToString().ToUpperInvariant() is not ("CANCELLED" or "EXPIRED"))
+                await _payOs.PaymentRequests.CancelAsync(orderCode, "Voucher reservation cancelled or expired");
+            var closed = await _payOs.PaymentRequests.GetAsync(orderCode);
+            return closed.OrderCode == orderCode && closed.Amount == expectedAmount && closed.AmountPaid == 0 &&
+                closed.Status.ToString().ToUpperInvariant() is "CANCELLED" or "EXPIRED";
+        }
+        catch (PayOS.Exceptions.NotFoundException)
+        {
+            // Voucher payment creation holds the same database lock, so no new link can race this lookup.
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to verify closed payment {OrderCode}; voucher remains reserved", orderCode);
+            return false;
+        }
+    }
     private readonly IConfiguration _configuration;
     private readonly ILogger<PayOSService> _logger;
     private readonly PayOSClient _payOs;
@@ -82,6 +112,14 @@ public class PayOSService : IPayOSService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create PayOS payment link");
+            // Retry an existing intent with the same code after ambiguous timeouts.
+            try
+            {
+                var existing = await _payOs.PaymentRequests.GetAsync(orderCode);
+                if (existing.Amount == amount && existing.Status.ToString().Equals("PENDING", StringComparison.OrdinalIgnoreCase))
+                    return ($"https://pay.payos.vn/web/{existing.Id}", "", "", "", "", (int)amount, description);
+            }
+            catch { /* Preserve the existing intent; callers can retry later. */ }
             return ("https://pay.payos.vn/dummy-payment-url", "", "", "", "", 0, ""); // Fallback in case of error
         }
     }

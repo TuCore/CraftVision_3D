@@ -1,11 +1,15 @@
 using CraftVision.Application.Interfaces.Repositories;
 using CraftVision.Infrastructure.Data;
+using CraftVision.Application.Interfaces.Services;
+using CraftVision.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CraftVision.Infrastructure.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IWebVoucherService? _vouchers;
     
     public IUserRepository Users { get; }
     public IKnowledgeMaterialRepository KnowledgeMaterials { get; }
@@ -49,9 +53,11 @@ public class UnitOfWork : IUnitOfWork
         IGiftAiProfileRepository giftAiProfileRepository,
         IScanHistoryRepository scanHistoryRepository,
         IMessageTemplateRepository messageTemplateRepository,
-        IReviewRepository reviewRepository)
+        IReviewRepository reviewRepository,
+        IWebVoucherService? vouchers = null)
     {
         _dbContext = dbContext;
+        _vouchers = vouchers;
         Users = userRepository;
         KnowledgeMaterials = knowledgeMaterialRepository;
         KnowledgeTutorials = knowledgeTutorialRepository;
@@ -91,7 +97,15 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbContext.SaveChangesAsync(cancellationToken);
+        var orders = _dbContext.ChangeTracker.Entries<Order>()
+            .Where(e => e.State == EntityState.Modified && e.Entity.VoucherCode != null).Select(e => e.Entity).ToList();
+        if (_vouchers is null || orders.Count == 0) return await _dbContext.SaveChangesAsync(cancellationToken);
+        var ownsTransaction = _dbContext.Database.CurrentTransaction is null;
+        await using var tx = ownsTransaction ? await _dbContext.Database.BeginTransactionAsync(cancellationToken) : null;
+        foreach (var order in orders) await _vouchers.SynchronizeAsync(order, cancellationToken);
+        var result = await _dbContext.SaveChangesAsync(cancellationToken);
+        if (tx is not null) await tx.CommitAsync(cancellationToken);
+        return result;
     }
 
     public void Dispose()
