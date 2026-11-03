@@ -13,6 +13,10 @@ import api from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getAccessToken } from "@/lib/authSession";
 import { useStoreHydration } from "@/hooks/useStoreHydration";
+import { buildCheckoutRequest } from "@/features/vouchers/checkout";
+import { useVoucherQuote } from "@/features/vouchers/useVoucherQuote";
+import VoucherInput from "@/features/vouchers/VoucherInput";
+import OrderDiscountSummary from "@/features/vouchers/OrderDiscountSummary";
 
 type PricedOrderProduct = OrderItem["product"] & { basePrice?: number; cardPrice?: number };
 
@@ -85,6 +89,11 @@ export default function CheckoutPage() {
   const canSaveAddress = Boolean(
     shippingInfo.receiverName.trim() && shippingInfo.phone.trim() && shippingInfo.address.trim() && shippingInfo.province
   );
+  const [voucherCode, setVoucherCode] = useState("");
+  const [quoteVersion, setQuoteVersion] = useState(0);
+  const checkoutRequest = buildCheckoutRequest(items, shippingInfo, effectivePaymentMethod === "BANK_TRANSFER");
+  const canQuote = orderHydrated && cartHydrated && items.length > 0 && (!hasPhysicalItems || Boolean(shippingInfo.address.trim() && hasAddressLocation));
+  const { quote, loading: quoteLoading, error: quoteError } = useVoucherQuote(canQuote ? checkoutRequest : null, voucherCode, quoteVersion);
 
   useEffect(() => {
     if (!orderHydrated || !cartHydrated) return;
@@ -210,6 +219,10 @@ export default function CheckoutPage() {
       toast.error("Vui lòng chọn một món quà để thanh toán.");
       return;
     }
+    if (!quote || quoteLoading || quoteError) {
+      toast.error(quoteError || "Vui lòng chờ kiểm tra hóa đơn và mã giảm giá.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -232,57 +245,12 @@ export default function CheckoutPage() {
         }
       }
 
-      const fullAddress = `${shippingInfo.address}, ${shippingInfo.ward}, ${shippingInfo.district}, ${shippingInfo.province}`;
-
-      const payload = {
-        receiverName: hasPhysicalItems ? shippingInfo.receiverName : "Khách hàng 3D",
-        receiverPhone: hasPhysicalItems ? shippingInfo.phone : "0999999999",
-        receiverAddress: hasPhysicalItems ? fullAddress : "Online",
-        paymentMethod: effectivePaymentMethod === "BANK_TRANSFER" ? "BankTransfer" : "Cod",
-        shippingFee: hasPhysicalItems ? shipping : 0,
-        items: items.map(item => {
-          const cardPrice = getCardPrice(item);
-          const isPhysicalItem = isPhysicalOrderItem(item);
-          const submittedGift = item.gift ?? (isPhysicalItem ? {
-            giftTitle: `Chứng nhận chế tác - ${item.product.name}`,
-            senderName: "CraftVision 3D",
-            receiverName: shippingInfo.receiverName || "Chủ nhân sản phẩm",
-            message: "Chứng nhận nguồn gốc và câu chuyện chế tác thủ công của sản phẩm.",
-            messageSource: "System",
-            theme: "craft-certificate",
-            threeDModelUrl: null,
-            previewImageUrl: item.product.image || null,
-            threeDModelType: "GLB",
-            mediaFileIds: []
-          } : null);
-          const rawId = item.product.id || "";
-          const cleanedId = rawId.replace(/-3d$/, "");
-          const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanedId);
-          return {
-            productId: isGuid ? cleanedId : "00000000-0000-0000-0000-000000000000",
-            quantity: item.quantity,
-            wantNfc: isPhysicalItem || !!submittedGift,
-            extraPrice: cardPrice,
-            gift: submittedGift ? {
-              giftTitle: submittedGift.giftTitle || `Quà tặng cho ${shippingInfo.receiverName || "bạn"}`,
-              senderName: submittedGift.senderName || "Người gửi",
-              receiverName: submittedGift.receiverName || shippingInfo.receiverName || "Người nhận",
-              message: submittedGift.message || "",
-              messageSource: submittedGift.messageSource || "AI",
-              theme: submittedGift.theme || "sincere",
-              threeDModelUrl: submittedGift.threeDModelUrl || null,
-              previewImageUrl: submittedGift.previewImageUrl || null,
-              threeDModelType: submittedGift.threeDModelType || "GLB",
-              mediaFileIds: submittedGift.mediaFileIds || []
-            } : null
-          };
-        })
-      };
+      const payload = { ...checkoutRequest, voucherCode: voucherCode || undefined, expectedTotal: quote.totalAmount };
 
       const res = await api.post("/api/orders", payload);
       toast.success("Đặt hàng thành công!");
-      if (effectivePaymentMethod === "BANK_TRANSFER") {
-        router.push(`/payment/transfer?orderId=${res.data.id}&total=${total}&checkoutUrl=${encodeURIComponent(res.data.checkoutUrl || "")}`);
+      if (effectivePaymentMethod === "BANK_TRANSFER" && res.data.totalAmount > 0) {
+        router.push(`/payment/transfer?orderId=${res.data.id}&total=${res.data.totalAmount}&checkoutUrl=${encodeURIComponent(res.data.checkoutUrl || "")}`);
         return;
       }
 
@@ -300,6 +268,7 @@ export default function CheckoutPage() {
       router.push("/settings?tab=orders");
     } catch (error: any) {
       setIsOrderPlaced(false);
+      setQuoteVersion(version => version + 1);
       const errMsg = error.response?.data?.message || error.message || "Đã xảy ra lỗi khi đặt hàng.";
       toast.error(errMsg);
       if (errMsg.toLowerCase().includes("hết hàng") || errMsg.toLowerCase().includes("out of stock") || errMsg.toLowerCase().includes("tồn kho")) {
@@ -314,7 +283,7 @@ export default function CheckoutPage() {
 
   if (!items || items.length === 0) return null;
 
-  const subtotal = items.reduce((acc, item) => acc + getUnitPrice(item) * item.quantity, 0);
+  const subtotal = quote?.subtotal ?? items.reduce((acc, item) => acc + getUnitPrice(item) * item.quantity, 0);
 
   const calculateShippingFee = () => {
     if (!hasPhysicalItems || subtotal >= 500000) return 0;
@@ -336,8 +305,8 @@ export default function CheckoutPage() {
     return 35000; // Ngoại tỉnh
   };
 
-  const shipping = calculateShippingFee();
-  const total = subtotal + (hasPhysicalItems && !hasAddressLocation ? 0 : shipping);
+  const shipping = quote?.shippingFee ?? calculateShippingFee();
+  const total = quote?.totalAmount ?? subtotal + (hasPhysicalItems && !hasAddressLocation ? 0 : shipping);
 
   if (!orderHydrated || !cartHydrated) {
     return <AppShell active="shop"><p role="status" className="py-20 text-center text-muted-foreground">Đang khôi phục thông tin thanh toán…</p></AppShell>;
@@ -531,6 +500,11 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
+            <VoucherInput code={voucherCode} loading={quoteLoading} error={quoteError}
+              onApply={code => { setVoucherCode(code); setQuoteVersion(version => version + 1); }} />
+            {!canQuote && hasPhysicalItems && <p className="text-xs text-muted-foreground">Nhập địa chỉ và tỉnh/thành phố để kiểm tra mã và tổng hóa đơn.</p>}
+            {quote && <OrderDiscountSummary order={quote} />}
+            {quoteError && <button type="button" onClick={() => setQuoteVersion(version => version + 1)} className="text-sm text-primary underline">Kiểm tra lại hóa đơn</button>}
             <div className="border-t border-border pt-4">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-base">Tổng cộng</span>
@@ -598,7 +572,7 @@ export default function CheckoutPage() {
 
             <button
               onClick={handlePlaceOrder}
-              disabled={isSubmitting || !agreedTerms}
+              disabled={isSubmitting || !agreedTerms || !quote || quoteLoading || Boolean(quoteError)}
               className="w-full py-4 rounded-2xl btn-hero text-black font-bold text-lg flex items-center justify-center gap-2 shadow-coral-glow hover:-translate-y-1 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
             >
               {isSubmitting ? "Đang xử lý..." : "Đặt hàng ngay"}

@@ -5,6 +5,8 @@ namespace CraftVision.Application.Interfaces.Services;
 
 public interface IPayOSService
 {
+    Task<bool> CloseUnpaidPaymentAsync(long orderCode, decimal expectedAmount);
+    Task<bool> VerifyPaymentAsync(long orderCode, decimal expectedAmount);
     /// <summary>
     /// Creates a payment link/QR code for a specific order
     /// </summary>

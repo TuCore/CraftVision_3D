@@ -27,6 +27,8 @@
     <Compile Include="../Gateway/MusicController.cs" Link="Gateway/MusicController.cs" />
     <Compile Include="../Gateway/TutorialVideoController.cs" Link="Gateway/TutorialVideoController.cs" />
     <Compile Include="../Gateway/ReportingController.cs" Link="Gateway/ReportingController.cs" />
+    <Compile Include="../Gateway/VouchersController.cs" Link="Gateway/VouchersController.cs" />
+    <Compile Include="../Gateway/CheckoutController.cs" Link="Gateway/CheckoutController.cs" />
     <ProjectReference Include="../Services/Music/Music.csproj" />
     <ProjectReference Include="../Services/CardSharing/CardSharing.csproj" />
     <ProjectReference Include="..\CraftVision.Application\CraftVision.Application.csproj" />

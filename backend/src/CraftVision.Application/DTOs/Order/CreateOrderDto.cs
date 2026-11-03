@@ -9,6 +9,9 @@ public class CreateOrderDto
     public string? ReceiverAddress { get; set; }
     public string? PaymentMethod { get; set; }
     public decimal? ShippingFee { get; set; }
+    public string? VoucherCode { get; set; }
+    public int? PricingVersion { get; set; }
+    public decimal? ExpectedTotal { get; set; }
     
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }

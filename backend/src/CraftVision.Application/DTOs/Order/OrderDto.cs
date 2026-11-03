@@ -18,6 +18,13 @@ public class OrderDto
     public string? ReceiverAddress { get; set; }
     public decimal ShippingFee { get; set; }
     public decimal TotalAmount { get; set; }
+    public string? VoucherCode { get; set; }
+    public int DiscountPercent { get; set; }
+    public decimal OriginalTotal { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal MerchandiseDiscount { get; set; }
+    public decimal ShippingDiscount { get; set; }
+    public string? VoucherUsageStatus { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string? CheckoutUrl { get; set; }

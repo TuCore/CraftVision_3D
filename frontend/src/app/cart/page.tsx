@@ -3,6 +3,7 @@
 import { useWishlistStore, type CartItem } from "@/store/useWishlistStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { getAccessToken } from "@/lib/authSession";
+import OrderDiscountSummary from "@/features/vouchers/OrderDiscountSummary";
 import { AppShell } from "@/components/AppShell";
 import {
   ShoppingCart,
@@ -1051,7 +1052,7 @@ export default function CartPage() {
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Phí vận chuyển:</span>
                           <span className="font-semibold text-foreground">
-                            {formatPrice(selectedOrder.shippingFee || 20000)}
+                            {formatPrice(selectedOrder.shippingFee ?? 0)}
                           </span>
                         </div>
                         <p className="text-[10px] text-amber-600/90 italic pt-1 border-t border-border/30">
@@ -1060,6 +1061,7 @@ export default function CartPage() {
                       </div>
                     </div>
 
+                    <OrderDiscountSummary order={selectedOrder} />
                     {/* Địa chỉ nhận hàng */}
                     <div className="p-4 rounded-2xl bg-white dark:bg-card border border-border/60 space-y-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">

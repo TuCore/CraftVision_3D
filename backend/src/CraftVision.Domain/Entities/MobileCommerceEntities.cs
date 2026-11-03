@@ -20,6 +20,10 @@ public class Voucher
     public bool IsActive { get; set; } = true;
     public DateTime StartsAt { get; set; } = DateTime.UtcNow;
     public DateTime EndsAt { get; set; }
+    public int? CustomerLimit { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int Revision { get; set; } = 1;
 }
 
 public class UserNotification

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, ListOrdered, Tag, Menu, X, ArrowLeft, LayoutGrid, Video, LayoutDashboard, Sparkles } from 'lucide-react';
+import { Package, ListOrdered, Tag, Menu, X, ArrowLeft, LayoutGrid, Video, LayoutDashboard, Sparkles, TicketPercent } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AdminLayout({
@@ -16,6 +16,7 @@ export default function AdminLayout({
   const nav = [
     { href: "/admin/dashboard", icon: LayoutDashboard, label: "Tổng quan" },
     { href: "/admin/orders", icon: ListOrdered, label: "Đơn hàng" },
+    { href: "/admin/vouchers", icon: TicketPercent, label: "Mã giảm giá" },
     { href: "/admin/nfc", icon: Tag, label: "Kho NFC" },
     { href: "/admin/products", icon: Package, label: "Sản phẩm" },
     { href: "/admin/categories", icon: LayoutGrid, label: "Danh mục" },

@@ -185,6 +185,7 @@ builder.Services.AddMusic(builder.Configuration);
 builder.Services.AddScoped<CraftVision.Gateway.MusicErrorFilter>();
 builder.Services.AddScoped<CraftVision.Gateway.CardErrorFilter>();
 builder.Services.AddScoped<CraftVision.Gateway.ReportingErrorFilter>();
+builder.Services.AddScoped<CraftVision.Gateway.VoucherErrorFilter>();
 builder.Services.AddInfrastructure(builder.Configuration);
 // AI & Knowledge Base DI
 builder.Services.AddHttpClient<IEmbeddingProvider, GeminiEmbeddingProvider>();

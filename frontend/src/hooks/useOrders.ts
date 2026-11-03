@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
+import type { DiscountSnapshot } from '@/features/vouchers/types';
 
-export interface Order {
+export interface Order extends DiscountSnapshot {
   id: string;
   orderCode: string;
   orderKind: 'Product' | 'DigitalCard';

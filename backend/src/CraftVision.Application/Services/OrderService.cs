@@ -20,16 +20,24 @@ public class OrderService : IOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _configuration;
     private readonly IPayOSService _payOsService;
+    private readonly IOrderPricingService? _pricing;
+    private readonly IWebVoucherService? _vouchers;
 
-    public OrderService(IUnitOfWork unitOfWork, IConfiguration configuration, IPayOSService payOsService)
+    public OrderService(IUnitOfWork unitOfWork, IConfiguration configuration, IPayOSService payOsService,
+        IOrderPricingService? pricing = null, IWebVoucherService? vouchers = null)
     {
         _unitOfWork = unitOfWork;
         _configuration = configuration;
         _payOsService = payOsService;
+        _pricing = pricing;
+        _vouchers = vouchers;
     }
 
     public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto)
     {
+        if (!string.IsNullOrWhiteSpace(dto.VoucherCode) && dto.PricingVersion != 1)
+            throw new ArgumentException("Vui lòng cập nhật báo giá trước khi dùng mã giảm giá.");
+        var committed = false;
         await _unitOfWork.BeginTransactionAsync();
         try
         {
@@ -37,6 +45,11 @@ public class OrderService : IOrderService
             {
                 throw new Exception("Order must have at least one item.");
             }
+
+            var priced = dto.PricingVersion == 1
+                ? await (_pricing ?? throw new InvalidOperationException("Pricing service unavailable.")).PriceAsync(dto) : null;
+            if (priced is not null)
+                for (var index = 0; index < dto.Items.Count; index++) dto.Items[index].ProductId = priced.Lines[index].ProductId;
 
             var order = new Order
             {
@@ -57,6 +70,7 @@ public class OrderService : IOrderService
 
             foreach (var itemDto in dto.Items)
             {
+                if (itemDto.Quantity <= 0 || itemDto.ExtraPrice < 0) throw new ArgumentException("Số lượng hoặc phụ phí không hợp lệ.");
                 if (itemDto.ProductId == Guid.Empty)
                 {
                     // Fallback for digital templates from frontend
@@ -108,7 +122,7 @@ public class OrderService : IOrderService
                 // The physical NFC card can just be shipped alongside the product.
 
                 decimal extraFee = itemDto.ExtraPrice ?? (itemDto.WantNfc ? 5000m : 0m);
-                decimal unitPrice = product.Price + extraFee;
+                decimal unitPrice = priced is null ? product.Price + extraFee : priced.Lines[dto.Items.IndexOf(itemDto)].UnitPrice;
 
                 var orderItem = new OrderItem
                 {
@@ -134,6 +148,7 @@ public class OrderService : IOrderService
                     }
 
                     var availableTag = await _unitOfWork.NfcTags.GetFirstAvailableAsync();
+                    var newTag = availableTag is null;
                     if (availableTag == null)
                     {
                         // Auto-create a new tag if none are available
@@ -154,7 +169,7 @@ public class OrderService : IOrderService
                     var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
                     availableTag.LinkedUrl = $"{frontendUrl.TrimEnd('/')}/gift/scan/{availableTag.SecretKey}";
                     availableTag.UpdatedAt = DateTime.UtcNow;
-                    _unitOfWork.NfcTags.Update(availableTag);
+                    if (!newTag) _unitOfWork.NfcTags.Update(availableTag);
 
                     var gift = new Gift
                     {
@@ -211,57 +226,35 @@ public class OrderService : IOrderService
                 }
             }
 
-            decimal shippingFee = dto.ShippingFee ?? CalculateShippingFee(dto.ReceiverAddress, totalAmount);
+            decimal shippingFee = priced?.ShippingFee ?? dto.ShippingFee ?? CalculateShippingFee(dto.ReceiverAddress, totalAmount);
+            if (shippingFee < 0) throw new ArgumentException("Phí vận chuyển không hợp lệ.");
             order.ShippingFee = shippingFee;
             order.TotalAmount = totalAmount + shippingFee;
+            order.OriginalTotal = order.TotalAmount;
+            if (!string.IsNullOrWhiteSpace(dto.VoucherCode))
+                await (_vouchers ?? throw new InvalidOperationException("Voucher service unavailable.")).ReserveAsync(order, dto.VoucherCode);
+            if (dto.ExpectedTotal.HasValue && dto.ExpectedTotal != order.TotalAmount)
+                throw new ArgumentException("Giá đơn hàng vừa thay đổi. Hãy kiểm tra lại báo giá trước khi đặt hàng.");
 
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
+            committed = true;
 
-            var resultDto = await GetOrderByIdAsync(order.Id);
-
-            if (order.PaymentMethod == PaymentMethod.BankTransfer)
+            if (order.TotalAmount == 0)
             {
-                var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
-                string returnUrl = $"{frontendUrl}/payment/success";
-                string cancelUrl = $"{frontendUrl}/payment/cancel";
-                
-                var paymentInfo = await _payOsService.CreatePaymentLinkAsync(
-                    order.Id,
-                    long.Parse(order.OrderCode),
-                    order.TotalAmount,
-                    $"Thanh toan CV3D {order.OrderCode}",
-                    returnUrl,
-                    cancelUrl
-                );
-                
-                order.PayOsCheckoutUrl = paymentInfo.CheckoutUrl;
-                order.PayOsQrCode = paymentInfo.QrCode;
-                order.PayOsBin = paymentInfo.Bin;
-                order.PayOsAccountNumber = paymentInfo.AccountNumber;
-                order.PayOsAccountName = paymentInfo.AccountName;
-                _unitOfWork.Orders.Update(order);
-                await _unitOfWork.SaveChangesAsync();
-
-                resultDto.CheckoutUrl = paymentInfo.CheckoutUrl;
-                resultDto.QrCode = paymentInfo.QrCode;
-                resultDto.PayOsBin = paymentInfo.Bin;
-                resultDto.PayOsAccountNumber = paymentInfo.AccountNumber;
-                resultDto.PayOsAccountName = paymentInfo.AccountName;
-                resultDto.PayOsAmount = (int)order.TotalAmount;
-                resultDto.PayOsDescription = $"CV3D {order.OrderCode}";
+                await MarkOrderPaidAsync(order.Id);
             }
 
-            return resultDto;
+            return await GetOrderByIdAsync(order.Id);
         }
         catch (Exception ex) when (ex.GetType().Name == "DbUpdateConcurrencyException")
         {
-            await _unitOfWork.RollbackTransactionAsync();
+            if (!committed) await _unitOfWork.RollbackTransactionAsync();
             throw new Exception("Sản phẩm vừa được người khác mua hết.");
         }
         catch (Exception)
         {
-            await _unitOfWork.RollbackTransactionAsync();
+            if (!committed) await _unitOfWork.RollbackTransactionAsync();
             throw;
         }
     }
@@ -320,6 +313,7 @@ public class OrderService : IOrderService
         if (order == null) throw new Exception("Order not found");
 
         if (order.PaymentMethod == PaymentMethod.BankTransfer && 
+            order.TotalAmount > 0 &&
             order.PaymentStatus == PaymentStatus.Unpaid && 
             order.OrderStatus != OrderStatus.Cancelled &&
             (string.IsNullOrEmpty(order.PayOsCheckoutUrl) || order.PayOsCheckoutUrl.Contains("dummy-payment-url")))
@@ -349,6 +343,10 @@ public class OrderService : IOrderService
             ReceiverAddress = order.ReceiverAddress,
             ShippingFee = order.ShippingFee,
             TotalAmount = order.TotalAmount,
+            OriginalTotal = order.OriginalTotal > 0 ? order.OriginalTotal : order.TotalAmount,
+            VoucherCode = order.VoucherCode, DiscountPercent = order.DiscountPercent, DiscountAmount = order.DiscountAmount,
+            MerchandiseDiscount = order.MerchandiseDiscount, ShippingDiscount = order.ShippingDiscount,
+            VoucherUsageStatus = order.VoucherUsage?.Status,
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
             CheckoutUrl = order.PayOsCheckoutUrl,
@@ -402,6 +400,10 @@ public class OrderService : IOrderService
                 ReceiverAddress = order.ReceiverAddress,
                 ShippingFee = order.ShippingFee,
                 TotalAmount = order.TotalAmount,
+                OriginalTotal = order.OriginalTotal > 0 ? order.OriginalTotal : order.TotalAmount,
+                VoucherCode = order.VoucherCode, DiscountPercent = order.DiscountPercent, DiscountAmount = order.DiscountAmount,
+                MerchandiseDiscount = order.MerchandiseDiscount, ShippingDiscount = order.ShippingDiscount,
+                VoucherUsageStatus = order.VoucherUsage?.Status,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 CheckoutUrl = order.PayOsCheckoutUrl,
@@ -462,6 +464,10 @@ public class OrderService : IOrderService
                 ReceiverAddress = order.ReceiverAddress,
                 ShippingFee = order.ShippingFee,
                 TotalAmount = order.TotalAmount,
+                OriginalTotal = order.OriginalTotal > 0 ? order.OriginalTotal : order.TotalAmount,
+                VoucherCode = order.VoucherCode, DiscountPercent = order.DiscountPercent, DiscountAmount = order.DiscountAmount,
+                MerchandiseDiscount = order.MerchandiseDiscount, ShippingDiscount = order.ShippingDiscount,
+                VoucherUsageStatus = order.VoucherUsage?.Status,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 Items = order.OrderItems.Select(oi => new OrderItemDto
@@ -505,6 +511,8 @@ public class OrderService : IOrderService
         }
 
         var previousStatus = order.OrderStatus;
+        if (order.VoucherCode is not null && previousStatus == OrderStatus.Cancelled && newStatus != OrderStatus.Cancelled)
+            throw new InvalidOperationException("Không thể mở lại đơn đã hủy có mã giảm giá. Vui lòng tạo đơn mới.");
         order.OrderStatus = newStatus;
         order.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Orders.Update(order);
@@ -571,6 +579,9 @@ public class OrderService : IOrderService
 
         if (newStatus == PaymentStatus.Paid)
         {
+            if (order.VoucherCode is not null && order.PaymentMethod == PaymentMethod.BankTransfer && order.TotalAmount > 0 &&
+                (!long.TryParse(order.OrderCode, out var code) || !await _payOsService.VerifyPaymentAsync(code, order.TotalAmount)))
+                throw new InvalidOperationException("PayOS chưa xác nhận đủ số tiền thanh toán.");
             await MarkOrderPaidAsync(orderId);
             return;
         }
@@ -611,6 +622,8 @@ public class OrderService : IOrderService
         {
             throw new InvalidOperationException("Đơn hàng này đã hoàn thành.");
         }
+        if (order.VoucherCode is not null && order.OrderStatus != OrderStatus.Shipped)
+            throw new InvalidOperationException("Chỉ xác nhận nhận hàng khi đơn đang giao.");
 
         order.OrderStatus = OrderStatus.Delivered;
         order.UpdatedAt = DateTime.UtcNow;
@@ -715,7 +728,9 @@ public class OrderService : IOrderService
 
         if (long.TryParse(order.OrderCode, out long orderCodeLong))
         {
-            bool isPaid = await _payOsService.CheckPaymentStatusAsync(orderCodeLong);
+            bool isPaid = order.VoucherCode is null
+                ? await _payOsService.CheckPaymentStatusAsync(orderCodeLong)
+                : await _payOsService.VerifyPaymentAsync(orderCodeLong, order.TotalAmount);
             if (isPaid)
             {
                 await MarkOrderPaidAsync(orderId);
@@ -734,6 +749,9 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByOrderCodeAsync(orderCode);
         if (order == null) throw new Exception("Order not found");
+        if (order.VoucherCode is not null && order.TotalAmount > 0 &&
+            (!long.TryParse(orderCode, out var code) || !await _payOsService.VerifyPaymentAsync(code, order.TotalAmount)))
+            throw new InvalidOperationException("Thanh toán không khớp với đơn hàng.");
         await MarkOrderPaidAsync(order.Id);
     }
 
@@ -751,10 +769,12 @@ public class OrderService : IOrderService
             }
             if (order.PaymentStatus == PaymentStatus.Refunded)
                 throw new InvalidOperationException("Đơn đã hoàn tiền không thể được ghi nhận thanh toán lại.");
-            if (order.OrderStatus == OrderStatus.Cancelled)
+            var lateVoucherPayment = order.OrderStatus == OrderStatus.Cancelled && order.VoucherCode is not null &&
+                order.PaymentMethod == PaymentMethod.BankTransfer;
+            if (order.OrderStatus == OrderStatus.Cancelled && !lateVoucherPayment)
                 throw new InvalidOperationException("Không thể thanh toán đơn hàng đã bị huỷ.");
 
-            if (!order.InventoryDeducted && order.OrderKind != "DigitalCard")
+            if (!lateVoucherPayment && !order.InventoryDeducted && order.OrderKind != "DigitalCard")
             {
                 var inStockItems = order.OrderItems
                     .Where(item => item.Product?.ProductType == ProductType.InStock)
@@ -779,7 +799,8 @@ public class OrderService : IOrderService
             order.PaymentStatus = PaymentStatus.Paid;
             order.PaidAt = DateTime.UtcNow;
             _unitOfWork.Orders.AddFinancialEvent(order, OrderFinancialEvent.Receipt(order, order.PaidAt));
-            order.OrderStatus = order.OrderKind == "DigitalCard"
+            order.OrderStatus = lateVoucherPayment ? OrderStatus.Cancelled
+                : order.OrderKind == "DigitalCard" || order.OrderStatus == OrderStatus.Delivered
                 ? OrderStatus.Delivered
                 : order.OrderItems.Any(item => item.Product?.ProductType == ProductType.PreOrder)
                     ? OrderStatus.WaitingProduction
@@ -801,6 +822,8 @@ public class OrderService : IOrderService
     {
         var order = await _unitOfWork.Orders.GetByIdWithItemsAsync(orderId);
         if (order == null) throw new Exception("Order not found");
+        if (order.VoucherUsage is { Status: "Reserved", ExpiresAt: not null } usage && usage.ExpiresAt <= DateTime.UtcNow)
+            throw new InvalidOperationException("Thời gian giữ mã đã hết. Vui lòng kiểm tra thanh toán hoặc chờ đơn được hủy.");
 
         if (order.PaymentStatus == PaymentStatus.Paid)
         {
@@ -817,6 +840,24 @@ public class OrderService : IOrderService
     }
 
     private async Task GeneratePayOsLinkForOrderAsync(Order order)
+    {
+        var voucherTransaction = order.VoucherCode is not null;
+        if (voucherTransaction) await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            if (voucherTransaction)
+                await (_vouchers ?? throw new InvalidOperationException("Voucher service unavailable.")).EnsurePayableAsync(order);
+            await CreateAndSavePayOsLinkAsync(order);
+            if (voucherTransaction) await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            if (voucherTransaction) await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+    }
+
+    private async Task CreateAndSavePayOsLinkAsync(Order order)
     {
         var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
         string returnUrl = $"{frontendUrl}/payment/success";
@@ -837,7 +878,7 @@ public class OrderService : IOrderService
             cancelUrl
         );
 
-        if (string.IsNullOrEmpty(paymentInfo.CheckoutUrl) || paymentInfo.CheckoutUrl.Contains("dummy-payment-url"))
+        if (order.VoucherCode is null && (string.IsNullOrEmpty(paymentInfo.CheckoutUrl) || paymentInfo.CheckoutUrl.Contains("dummy-payment-url")))
         {
             order.OrderCode = GenerateOrderCode();
             orderCodeLong = long.Parse(order.OrderCode);

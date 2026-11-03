@@ -190,6 +190,7 @@ paths:
       security: [{ bearerAuth: [] }]
       responses: { '200': { description: Checkout URL } }
   /api/orders:
+    description: Web checkout also accepts optional voucherCode, pricingVersion=1 and expectedTotal; see vouchers.openapi.yaml. Existing request fields remain compatible. Responses include the discount snapshot and final totalAmount.
     get:
       tags: [Orders]
       summary: Liệt kê tất cả đơn hàng cho quản trị viên

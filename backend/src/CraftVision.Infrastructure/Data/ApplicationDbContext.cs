@@ -6,6 +6,13 @@ namespace CraftVision.Infrastructure.Data;
 
 public class ApplicationDbContext : DbContext
 {
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.ReplaceService<Microsoft.EntityFrameworkCore.Migrations.IMigrationsSqlGenerator,
+            CompatibleMigrationsSqlGenerator>();
+    }
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
@@ -48,6 +55,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
     public DbSet<Favorite> Favorites { get; set; } = null!;
     public DbSet<Voucher> Vouchers { get; set; } = null!;
+    public DbSet<VoucherUsage> VoucherUsages { get; set; } = null!;
     public DbSet<UserNotification> UserNotifications { get; set; } = null!;
     public DbSet<DevicePushToken> DevicePushTokens { get; set; } = null!;
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; } = null!;
@@ -112,6 +120,17 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
         modelBuilder.Entity<Favorite>().HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
         modelBuilder.Entity<Voucher>().HasIndex(x => x.Code).IsUnique();
+        modelBuilder.Entity<Voucher>().Property(x => x.Revision).IsConcurrencyToken();
+        var usage = modelBuilder.Entity<VoucherUsage>();
+        usage.ToTable("voucher_usages");
+        usage.Property(x => x.Status).HasMaxLength(16);
+        usage.Property(x => x.Revision).IsConcurrencyToken();
+        usage.HasIndex(x => x.OrderId).IsUnique();
+        usage.HasIndex(x => new { x.VoucherId, x.UserId }).IsUnique().HasFilter("status IN ('Reserved', 'Used')");
+        usage.HasIndex(x => new { x.Status, x.ExpiresAt });
+        usage.HasOne(x => x.Voucher).WithMany().HasForeignKey(x => x.VoucherId).OnDelete(DeleteBehavior.Restrict);
+        usage.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        usage.HasOne(x => x.Order).WithOne(x => x.VoucherUsage).HasForeignKey<VoucherUsage>(x => x.OrderId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<DevicePushToken>().HasIndex(x => x.Token).IsUnique();
         modelBuilder.Entity<PasswordResetToken>().HasIndex(x => x.TokenHash).IsUnique();
         

@@ -21,12 +21,29 @@ public class OrderFinancialEvent
     {
         OrderId = order.Id, UserId = order.UserId, OrderCode = order.OrderCode, OrderKind = order.OrderKind,
         PaymentMethod = order.PaymentMethod.ToString(), OccurredAt = occurredAt,
-        MerchandiseAmount = Math.Max(0, order.TotalAmount - order.ShippingFee), ShippingAmount = order.ShippingFee,
+        MerchandiseAmount = Math.Max(0, order.TotalAmount - (order.ShippingFee - order.ShippingDiscount)),
+        ShippingAmount = order.ShippingFee - order.ShippingDiscount,
         Lines = order.OrderKind == "DigitalCard"
             ? [new() { ProductKey = order.CardTemplateSlug ?? "unknown", ProductName = order.CardTemplateSlug ?? "Thiệp số", Quantity = 1, Amount = order.TotalAmount }]
-            : order.OrderItems.Select(item => new OrderFinancialLine { ProductKey = item.ProductId.ToString(),
-                ProductName = item.Product?.Name ?? item.ProductId.ToString(), Quantity = item.Quantity, Amount = item.SubTotal }).ToList(),
+            : DiscountedLines(order),
     };
+
+    private static List<OrderFinancialLine> DiscountedLines(Order order)
+    {
+        var items = order.OrderItems.OrderBy(i => i.Id).ToList();
+        var remainingSubtotal = items.Sum(i => i.SubTotal);
+        var remainingDiscount = order.MerchandiseDiscount;
+        var result = new List<OrderFinancialLine>();
+        foreach (var item in items)
+        {
+            var discount = remainingSubtotal == 0 ? 0 : Math.Min(item.SubTotal, Math.Min(remainingDiscount,
+                Math.Round(remainingDiscount * item.SubTotal / remainingSubtotal, 0, MidpointRounding.AwayFromZero)));
+            remainingSubtotal -= item.SubTotal; remainingDiscount -= discount;
+            result.Add(new() { ProductKey = item.ProductId.ToString(), ProductName = item.Product?.Name ?? item.ProductId.ToString(),
+                Quantity = item.Quantity, Amount = item.SubTotal - discount });
+        }
+        return result;
+    }
 
     public OrderFinancialEvent Refund(DateTime occurredAt) => new()
     {

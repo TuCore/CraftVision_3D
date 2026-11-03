@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: CraftVision Web Vouchers
+  version: 1.0.0
+  description: Random 8-character uppercase letter/digit codes excluding I, O, 0 and 1. One code per integer percentage, limited by distinct customers. Web checkout only; existing mobile voucher validation remains unchanged.
+servers: [{ url: / }]
+security: [{ bearerAuth: [] }]
+paths:
+  /api/admin/vouchers:
+    get:
+      summary: Admin lists managed codes with reserved, used and available counts
+      responses:
+        '200': { description: VoucherView array }
+        '403': { description: Admin role required }
+    post:
+      summary: Admin creates one random code per integer percentage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VoucherSettings' }
+      responses:
+        '201': { description: Created VoucherView }
+        '409': { description: Code already exists }
+  /api/admin/vouchers/{id}:
+    parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+    patch:
+      summary: Admin updates limit, expiry and enabled state; percentage/code are immutable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VoucherSettings' }
+      responses:
+        '200': { description: Updated VoucherView }
+        '409': { description: Limit below held plus used customers }
+  /api/admin/vouchers/{id}/usages:
+    parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+    get:
+      parameters: [{ in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }]
+      summary: Admin views paginated customer/order usage history
+      responses:
+        '200': { description: Items, totalItems, page and pageSize (20) }
+  /api/checkout/quote:
+    post:
+      summary: Authoritative web checkout quote; never reserves capacity
+      description: Send the same items, address and optional voucherCode as CreateOrder, with pricingVersion=1. Prices, card extras and shipping are calculated by the server. A changed cart requires a fresh quote. Zero totals do not create PayOS links.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items, pricingVersion]
+              properties:
+                pricingVersion: { type: integer, enum: [1] }
+                receiverAddress: { type: string }
+                voucherCode: { type: string, nullable: true, minLength: 8, maxLength: 8, example: 'K7M9X2R8' }
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [productId, quantity, cardType]
+                    properties:
+                      productId: { type: string, format: uuid }
+                      quantity: { type: integer, minimum: 1, maximum: 1000 }
+                      cardType: { type: string, enum: [none, default, web_library_3d, digital] }
+                      cardSlug: { type: string, nullable: true }
+      responses:
+        '200':
+          description: CheckoutQuote
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subtotal: { type: number }
+                  shippingFee: { type: number }
+                  originalTotal: { type: number }
+                  discountAmount: { type: number }
+                  merchandiseDiscount: { type: number }
+                  shippingDiscount: { type: number }
+                  totalAmount: { type: number }
+                  voucherCode: { type: string, nullable: true }
+                  discountPercent: { type: integer }
+        '400': { description: Invalid cart, address, code, disabled/expired/exhausted voucher or customer already holding/using code }
+        '401': { description: Authentication required }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    VoucherSettings:
+      type: object
+      required: [discountPercent, customerLimit, isActive]
+      properties:
+        discountPercent: { type: integer, minimum: 1, maximum: 100 }
+        customerLimit: { type: integer, minimum: 1, maximum: 1000000 }
+        endsAt: { type: string, format: date-time, nullable: true, description: UTC instant; null means no expiry }
+        isActive: { type: boolean }
+        revision: { type: integer, description: Required on PATCH, using the last revision returned by the server }
+    VoucherView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, minLength: 8, maxLength: 8, example: 'K7M9X2R8' }
+        discountPercent: { type: integer }
+        customerLimit: { type: integer }
+        reserved: { type: integer }
+        used: { type: integer }
+        available: { type: integer }
+        isActive: { type: boolean }
+        endsAt: { type: string, format: date-time, nullable: true }
+        revision: { type: integer }
+        createdAt: { type: string, format: date-time }
+x-order-extension:
+  request: Optional voucherCode, pricingVersion=1, and optional cardType/cardSlug on each item; old requests remain compatible. Voucher requires server pricingVersion=1. quote and create share the same calculator. expectedTotal optionally rejects stale quotes before reserving.
+  response: Adds voucherCode, discountPercent, originalTotal, discountAmount, merchandiseDiscount, shippingDiscount and voucherUsageStatus; totalAmount is the final payable amount.
+  lifecycle: Reserve in the order transaction. Commit use only when Paid AND Delivered. Release cancelled unpaid orders only after verified PayOS closure, or cancelled Refunded orders. Used is terminal. Repeated callbacks are idempotent. Pending bank reservations expire after 30 minutes; worker retries provider failures without releasing. COD reservations stay until cancelled or fulfilled. Active (Reserved/Used) customer+voucher and order IDs are unique.
+  reporting: Financial receipt/refund snapshots allocate discounts to merchandise lines and shipping, in whole VND, without rewriting historical events.

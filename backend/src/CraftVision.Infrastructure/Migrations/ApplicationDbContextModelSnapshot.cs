@@ -1186,6 +1186,14 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("discount_amount");
+
+                    b.Property<int>("DiscountPercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("discount_percent");
+
                     b.Property<bool>("InventoryDeducted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -1197,6 +1205,10 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_archived");
+
+                    b.Property<decimal>("MerchandiseDiscount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("merchandise_discount");
 
                     b.Property<string>("OrderCode")
                         .IsRequired()
@@ -1213,6 +1225,10 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<OrderStatus>("OrderStatus")
                         .HasColumnType("order_status_enum")
                         .HasColumnName("order_status");
+
+                    b.Property<decimal>("OriginalTotal")
+                        .HasColumnType("numeric")
+                        .HasColumnName("original_total");
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp with time zone")
@@ -1269,6 +1285,10 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDefaultValue(1)
                         .HasColumnName("revision");
 
+                    b.Property<decimal>("ShippingDiscount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("shipping_discount");
+
                     b.Property<decimal>("ShippingFee")
                         .HasColumnType("numeric")
                         .HasColumnName("shipping_fee");
@@ -1284,6 +1304,10 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
+
+                    b.Property<string>("VoucherCode")
+                        .HasColumnType("text")
+                        .HasColumnName("voucher_code");
 
                     b.HasKey("Id")
                         .HasName("pk_orders");
@@ -2029,6 +2053,18 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("code");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int?>("CustomerLimit")
+                        .HasColumnType("integer")
+                        .HasColumnName("customer_limit");
+
                     b.Property<decimal>("DiscountPercent")
                         .HasColumnType("numeric")
                         .HasColumnName("discount_percent");
@@ -2049,6 +2085,11 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("minimum_order_amount");
 
+                    b.Property<int>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
                     b.Property<DateTime>("StartsAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("starts_at");
@@ -2061,6 +2102,73 @@ namespace CraftVision.Infrastructure.Migrations
                         .HasDatabaseName("ix_vouchers_code");
 
                     b.ToTable("vouchers", (string)null);
+                });
+
+            modelBuilder.Entity("CraftVision.Domain.Entities.VoucherUsage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<DateTime?>("ReleasedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("released_at");
+
+                    b.Property<DateTime>("ReservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reserved_at");
+
+                    b.Property<int>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("VoucherId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("voucher_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_voucher_usages");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_voucher_usages_order_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_voucher_usages_user_id");
+
+                    b.HasIndex("Status", "ExpiresAt")
+                        .HasDatabaseName("ix_voucher_usages_status_expires_at");
+
+                    b.HasIndex("VoucherId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_voucher_usages_voucher_id_user_id")
+                        .HasFilter("status IN ('Reserved', 'Used')");
+
+                    b.ToTable("voucher_usages", (string)null);
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.Wishlist", b =>
@@ -2618,6 +2726,36 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CraftVision.Domain.Entities.VoucherUsage", b =>
+                {
+                    b.HasOne("CraftVision.Domain.Entities.Order", "Order")
+                        .WithOne("VoucherUsage")
+                        .HasForeignKey("CraftVision.Domain.Entities.VoucherUsage", "OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_voucher_usages_orders_order_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_voucher_usages_users_user_id");
+
+                    b.HasOne("CraftVision.Domain.Entities.Voucher", "Voucher")
+                        .WithMany()
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_voucher_usages_vouchers_voucher_id");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("User");
+
+                    b.Navigation("Voucher");
+                });
+
             modelBuilder.Entity("CraftVision.Domain.Entities.Wishlist", b =>
                 {
                     b.HasOne("CraftVision.Domain.Entities.User", "User")
@@ -2715,6 +2853,8 @@ namespace CraftVision.Infrastructure.Migrations
                     b.Navigation("FinancialEvents");
 
                     b.Navigation("OrderItems");
+
+                    b.Navigation("VoucherUsage");
                 });
 
             modelBuilder.Entity("CraftVision.Domain.Entities.OrderFinancialEvent", b =>

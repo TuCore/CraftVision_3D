@@ -28,6 +28,13 @@ public class Order
     public string? ReceiverAddress { get; set; }
     public decimal ShippingFee { get; set; }
     public decimal TotalAmount { get; set; }
+    public string? VoucherCode { get; set; }
+    public int DiscountPercent { get; set; }
+    public decimal OriginalTotal { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal MerchandiseDiscount { get; set; }
+    public decimal ShippingDiscount { get; set; }
+    public VoucherUsage? VoucherUsage { get; set; }
     
     public string? PayOsCheckoutUrl { get; set; }
     public string? PayOsQrCode { get; set; }
